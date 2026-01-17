@@ -66,7 +66,13 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper
 
         public LegacyDbProviderManifestWrapper(Legacy.DbProviderManifest wrappedProviderManifest)
         {
-            Debug.Assert(wrappedProviderManifest != null, "wrappedProviderManifest != null");
+            if (wrappedProviderManifest == null)
+            {
+                throw new ArgumentNullException(nameof(wrappedProviderManifest),
+                    "The wrapped provider manifest cannot be null. " +
+                    "This typically indicates the ADO.NET provider does not support the legacy Entity Framework 6 provider model, " +
+                    "or the provider manifest token was not recognized by the provider.");
+            }
 
             _wrappedProviderManifest = wrappedProviderManifest;
 

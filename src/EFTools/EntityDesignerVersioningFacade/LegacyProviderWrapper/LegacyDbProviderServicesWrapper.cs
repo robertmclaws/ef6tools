@@ -7,6 +7,7 @@ using SystemData = System.Data;
 
 namespace Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper
 {
+    using System;
     using System.Data.Entity.Core;
     using System.Data.Entity.Core.Common;
     using System.Data.Entity.Core.Common.CommandTrees;
@@ -35,7 +36,12 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper
 
         public LegacyDbProviderServicesWrapper(Legacy.DbProviderServices wrappedProviderServices)
         {
-            Debug.Assert(wrappedProviderServices != null, "wrappedProviderServices != null");
+            if (wrappedProviderServices == null)
+            {
+                throw new ArgumentNullException(nameof(wrappedProviderServices),
+                    "The wrapped provider services cannot be null. " +
+                    "This typically indicates the ADO.NET provider does not support the legacy Entity Framework 6 provider model.");
+            }
 
             _wrappedProviderServices = wrappedProviderServices;
         }
@@ -92,7 +98,21 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper
 
         protected override DbProviderManifest GetDbProviderManifest(string manifestToken)
         {
-            return new LegacyDbProviderManifestWrapper(_wrappedProviderServices.GetProviderManifest(manifestToken));
+            var legacyManifest = _wrappedProviderServices.GetProviderManifest(manifestToken);
+
+            if (legacyManifest == null)
+            {
+                throw new ProviderIncompatibleException(
+                    string.Format(
+                        System.Globalization.CultureInfo.CurrentCulture,
+                        "The ADO.NET provider returned a null provider manifest for token '{0}'. " +
+                        "This typically indicates the provider does not recognize the manifest token, " +
+                        "or the provider does not fully support the Entity Framework 6 legacy provider model. " +
+                        "If you are using Microsoft.Data.SqlClient, consider using System.Data.SqlClient instead for EF6 projects.",
+                        manifestToken ?? "(null)"));
+            }
+
+            return new LegacyDbProviderManifestWrapper(legacyManifest);
         }
     }
 }

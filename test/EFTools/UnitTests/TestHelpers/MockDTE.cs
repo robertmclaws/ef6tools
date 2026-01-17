@@ -52,6 +52,24 @@ namespace UnitTests.TestHelpers
             return CreateProject(Constants.vsMiscFilesProjectUniqueName, null, null, null, null);
         }
 
+        /// <summary>
+        /// Creates a mock SDK-style project (e.g., .NET Core, .NET 5+).
+        /// SDK-style projects don't expose VSProject2 or VSWebSite, they use the Common Project System (CPS).
+        /// </summary>
+        public static Project CreateSdkStyleProject(
+            string kind = CSharpProjectKind,
+            IDictionary<string, object> properties = null,
+            IDictionary<string, object> configurationProperties = null)
+        {
+            // SDK-style projects have null for project.Object (no VSProject2 or VSWebSite)
+            return CreateProject(
+                null,
+                null, // vsProject is null - this is what makes it an SDK-style project
+                kind,
+                properties,
+                configurationProperties);
+        }
+
         public static Project CreateWebSite(
             IEnumerable<AssemblyReference> assemblyReferences = null,
             IDictionary<string, object> properties = null,

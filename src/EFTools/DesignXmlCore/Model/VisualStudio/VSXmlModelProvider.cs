@@ -183,6 +183,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
         {
             get
             {
+                if (_xmlModels is null)
+                {
+                    yield break;
+                }
+
                 foreach (var xmlModel in _xmlModels.Values)
                 {
                     yield return xmlModel;
@@ -192,10 +197,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 
         public override void CloseXmlModel(Uri xmlModelUri)
         {
-            VSXmlModel vsXmlModel = null;
             // Note: _xmlModels can be null if we have already been disposed
             if (_xmlModels != null
-                && _xmlModels.TryGetValue(xmlModelUri, out vsXmlModel))
+                && _xmlModels.TryGetValue(xmlModelUri, out VSXmlModel vsXmlModel))
             {
                 _xmlModels.Remove(xmlModelUri);
                 vsXmlModel.Dispose();
@@ -212,8 +216,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 
         public override void BeginUndoScope(string name)
         {
-            var pum = UndoManager as ParentUndoManager;
-            if (pum != null)
+            if (UndoManager is ParentUndoManager pum)
             {
                 pum.StartParentUndoScope(name);
             }
@@ -221,8 +224,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 
         public override void EndUndoScope()
         {
-            var pum = UndoManager as ParentUndoManager;
-            if (pum != null)
+            if (UndoManager is ParentUndoManager pum)
             {
                 pum.CloseParentUndoScope();
             }
@@ -243,8 +245,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
         [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal VSXmlTransaction GetTransaction(XmlEditingScope editorTx)
         {
-            VSXmlTransaction tx = null;
-            if (!(_txDictionary.TryGetValue(editorTx, out tx)))
+            if (!(_txDictionary.TryGetValue(editorTx, out VSXmlTransaction tx)))
             {
                 tx = new VSXmlTransaction(this, editorTx);
                 _txDictionary[editorTx] = tx;
@@ -280,8 +281,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 
         public override bool RenameXmlModel(Uri oldName, Uri newName)
         {
-            VSXmlModel vsXmlModel = null;
-            if (_xmlModels.TryGetValue(oldName, out vsXmlModel))
+            if (_xmlModels.TryGetValue(oldName, out VSXmlModel vsXmlModel))
             {
                 _xmlModels.Remove(oldName);
                 _xmlModels.Add(newName, vsXmlModel);

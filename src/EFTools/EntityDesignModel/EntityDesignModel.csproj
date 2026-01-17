@@ -277,6 +277,7 @@
     <Compile Include="Commands\UpdateModelFromDatabaseCommand.cs" />
     <Compile Include="EdmRuntimeSchemaResolver.cs" />
     <Compile Include="EFExtensions.cs" />
+    <Compile Include="ProviderNames.cs" />
     <Compile Include="CopyPasteUtils.cs" />
     <Compile Include="Designer\BaseDiagramObject.cs" />
     <Compile Include="Designer\ConnectionDesignerInfo.cs" />

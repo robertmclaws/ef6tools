@@ -958,7 +958,16 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
                 return ResourceManager.GetString("ImageFormatTiff", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Scalable Vector Graphics (*.svg).
+        /// </summary>
+        internal static string ImageFormatSvg {
+            get {
+                return ResourceManager.GetString("ImageFormatSvg", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to {0} is in an association with {1}.
         /// </summary>

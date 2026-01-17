@@ -61,11 +61,11 @@ namespace Microsoft.Data.Entity.Design.Model
             Debug.Assert(thisArtifact != null, "thisArtifact != null");
 
             // This is needed to workaround problems with facet propagation feature.
-            // For Sql Server and Sql Server CE facets on properties in S-Space are by default 
-            // the same as facets on corresponding properties in C-Space and therefore it is possible 
-            // to blindly (i.e. wihtout asking the provider) propagate facets from S-Space properties 
-            // to C-Space properties. Providers for other databases may use facets to distinguish among 
-            // different types in which case the mismatch between facets on C-Space properties and S-Space 
+            // For Sql Server and Sql Server CE facets on properties in S-Space are by default
+            // the same as facets on corresponding properties in C-Space and therefore it is possible
+            // to blindly (i.e. wihtout asking the provider) propagate facets from S-Space properties
+            // to C-Space properties. Providers for other databases may use facets to distinguish among
+            // different types in which case the mismatch between facets on C-Space properties and S-Space
             // properties is intentional and facet propagation breaks this. In general we should always ask
             // the provider about the type before we propagate facet values. This is a major change though
             // so for now we will limit the default facet propagation to SqlServer and Sql Server CE only.
@@ -74,8 +74,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 && storageModel.Provider != null
                 && storageModel.Provider.Value != null)
             {
-                return storageModel.Provider.Value.Equals("System.Data.SqlClient", StringComparison.Ordinal) ||
-                       storageModel.Provider.Value.StartsWith("System.Data.SqlServerCe", StringComparison.Ordinal);
+                return ProviderNames.IsSqlServerFamilyProvider(storageModel.Provider.Value);
             }
 
             return false;

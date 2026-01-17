@@ -315,12 +315,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         [Fact]
         public void CreateDefaultLocalDbConnectionString_returns_correct_default_connection_string()
         {
+            // MSSQLLocalDB is the standard LocalDB instance name for VS2015+ (VS14 and later)
             Assert.Equal(
-#if (VS14 || VS15 || VS16 || VS17)
                 @"Data Source=(LocalDb)\MSSQLLocalDB;Initial Catalog=App.MyContext;Integrated Security=True",
-#else
-                @"Data Source=(LocalDb)\v11.0;Initial Catalog=App.MyContext;Integrated Security=True",
-#endif
                 ConnectionManager.CreateDefaultLocalDbConnectionString("App.MyContext"));
         }
 

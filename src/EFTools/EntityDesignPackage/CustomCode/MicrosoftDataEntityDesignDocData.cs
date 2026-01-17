@@ -498,35 +498,47 @@ namespace Microsoft.Data.Entity.Design.Package
         [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsQueryEditQuerySave2.OnAfterSaveUnreloadableFile(System.String,System.UInt32,Microsoft.VisualStudio.Shell.Interop.VSQEQS_FILE_ATTRIBUTE_DATA[])")]
         protected override void OnDocumentLoaded()
         {
-            base.OnDocumentLoaded();
-
-            if (Model != null
-                && Model.IsDesignerSafe)
+            try
             {
-                // The code below is to make sure that there at least 1 diagram created for the model.
-                EnsureDiagramIsCreated(Model);
-            }
+                System.Diagnostics.Debug.WriteLine("[EF6Tools] OnDocumentLoaded START");
+                base.OnDocumentLoaded();
 
-            // call IVsQueryEditQuerySave2.OnAfterSaveUnreloadableFile() otherwise VS thinks the
-            // underlying file is dirty and you get the "conflicting modifications detected" message
-            var queryEditQuerySave2 = PackageManager.Package.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
-            if (queryEditQuerySave2 != null)
+                System.Diagnostics.Debug.WriteLine($"[EF6Tools] OnDocumentLoaded: Model={Model}, IsDesignerSafe={Model?.IsDesignerSafe}");
+                if (Model != null
+                    && Model.IsDesignerSafe)
+                {
+                    // The code below is to make sure that there at least 1 diagram created for the model.
+                    EnsureDiagramIsCreated(Model);
+                }
+
+                // call IVsQueryEditQuerySave2.OnAfterSaveUnreloadableFile() otherwise VS thinks the
+                // underlying file is dirty and you get the "conflicting modifications detected" message
+                var queryEditQuerySave2 = PackageManager.Package.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
+                if (queryEditQuerySave2 != null)
+                {
+                    queryEditQuerySave2.OnAfterSaveUnreloadableFile(FileName, 0, null);
+                }
+
+                // this handler notifies us when DSL has committed a transaction
+                EventHandler<TransactionCommitEventArgs> eventHandler = OnTransactionCommitted;
+                Store.EventManagerDirectory.TransactionCommitted.Add(eventHandler);
+
+                // this lets us hook into the DSL mechanism and maybe stop a transaction from committing
+                //this.Store.TransactionManager.AddCanCommitCallback(CanCommitTransaction);
+
+                // flush it or else it will look like the doc is dirty right after loading
+                FlushUndoManager();
+
+                // Set the instance of this class in DiagramManagerContextItem.
+                EditingContext.Items.GetValue<DiagramManagerContextItem>().SetViewManager(this);
+                System.Diagnostics.Debug.WriteLine("[EF6Tools] OnDocumentLoaded END");
+            }
+            catch (Exception ex)
             {
-                queryEditQuerySave2.OnAfterSaveUnreloadableFile(FileName, 0, null);
+                System.Diagnostics.Debug.WriteLine($"[EF6Tools] OnDocumentLoaded EXCEPTION: {ex}");
+                VsUtils.ShowErrorDialog($"Error in OnDocumentLoaded: {ex.Message}\n\nStack trace:\n{ex.StackTrace}");
+                throw;
             }
-
-            // this handler notifies us when DSL has committed a transaction
-            EventHandler<TransactionCommitEventArgs> eventHandler = OnTransactionCommitted;
-            Store.EventManagerDirectory.TransactionCommitted.Add(eventHandler);
-
-            // this lets us hook into the DSL mechanism and maybe stop a transaction from committing
-            //this.Store.TransactionManager.AddCanCommitCallback(CanCommitTransaction);
-
-            // flush it or else it will look like the doc is dirty right after loading
-            FlushUndoManager();
-
-            // Set the instance of this class in DiagramManagerContextItem.
-            EditingContext.Items.GetValue<DiagramManagerContextItem>().SetViewManager(this);
         }
 
         public void EnsureDiagramIsCreated(EFArtifact artifact)
@@ -597,43 +609,54 @@ namespace Microsoft.Data.Entity.Design.Package
 
         protected override int LoadDocData(string fileName, bool isReload)
         {
-            EntityDesignerViewModel.EntityShapeLocationSeed = 0;
-            var ret = base.LoadDocData(fileName, isReload);
-
-            if (UndoManager != null)
+            try
             {
-                // Set the buffer's IOleUndoManager on XmlModelProvider, so each time a Tx Commits using XmlStore, an UndoUnit will be 
-                // pushed onto the stack.  This is currently neccessary if you want XmlEditor to fire UndoRedoCompleted Event.
-                var artifact = EditingContextManager.GetArtifact(EditingContext);
-                Debug.Assert(artifact != null, "artifact should not be null");
-                if (artifact != null)
+                System.Diagnostics.Debug.WriteLine($"[EF6Tools] LoadDocData START: fileName={fileName}, isReload={isReload}");
+                EntityDesignerViewModel.EntityShapeLocationSeed = 0;
+                var ret = base.LoadDocData(fileName, isReload);
+
+                if (UndoManager != null)
                 {
-                    var xmlModelProvider = artifact.XmlModelProvider as VSXmlModelProvider;
-                    Debug.Assert(xmlModelProvider != null, "Unexpected xml model provider type is being used with VS implementation");
-                    if (xmlModelProvider != null)
+                    // Set the buffer's IOleUndoManager on XmlModelProvider, so each time a Tx Commits using XmlStore, an UndoUnit will be
+                    // pushed onto the stack.  This is currently neccessary if you want XmlEditor to fire UndoRedoCompleted Event.
+                    var artifact = EditingContextManager.GetArtifact(EditingContext);
+                    Debug.Assert(artifact != null, "artifact should not be null");
+                    if (artifact != null)
                     {
-                        // Attempt to get the undo manager from the buffer and disable it.
-                        // This is because this undo manager is different from the undo manager that is used by the Entity Designer (ParentUndoManager)
-                        // In linked transactions this can cause a problem since there are two undo managers that are getting rolled back, and the
-                        // XML Model ends up thinking the parse tree is out of sync with the buffer. We should not have to explicitly roll back the buffer
-                        // since modifications from our undo manager wrap XML model parse tree modifications, which when rolled back will be committed
-                        // to the buffer.
-                        IOleUndoManager bufferUndoMgr;
-                        var hr = ((VSTextManagerInterop.IVsTextBuffer)VsBuffer).GetUndoManager(out bufferUndoMgr);
-
-                        Debug.Assert(bufferUndoMgr != null, "Couldn't find the buffer undo manager. Undo/Redo will be disabled");
-                        if (NativeMethods.Succeeded(hr) && bufferUndoMgr != null)
+                        var xmlModelProvider = artifact.XmlModelProvider as VSXmlModelProvider;
+                        Debug.Assert(xmlModelProvider != null, "Unexpected xml model provider type is being used with VS implementation");
+                        if (xmlModelProvider != null)
                         {
-                            xmlModelProvider.UndoManager = new ParentUndoManager(VSUndoManager);
-                            bufferUndoMgr.DiscardFrom(null);
-                            bufferUndoMgr.Enable(0);
-                        }
+                            // Attempt to get the undo manager from the buffer and disable it.
+                            // This is because this undo manager is different from the undo manager that is used by the Entity Designer (ParentUndoManager)
+                            // In linked transactions this can cause a problem since there are two undo managers that are getting rolled back, and the
+                            // XML Model ends up thinking the parse tree is out of sync with the buffer. We should not have to explicitly roll back the buffer
+                            // since modifications from our undo manager wrap XML model parse tree modifications, which when rolled back will be committed
+                            // to the buffer.
+                            IOleUndoManager bufferUndoMgr;
+                            var hr = ((VSTextManagerInterop.IVsTextBuffer)VsBuffer).GetUndoManager(out bufferUndoMgr);
 
-                        Store.UndoManager.UndoState = UndoState.Disabled;
+                            Debug.Assert(bufferUndoMgr != null, "Couldn't find the buffer undo manager. Undo/Redo will be disabled");
+                            if (NativeMethods.Succeeded(hr) && bufferUndoMgr != null)
+                            {
+                                xmlModelProvider.UndoManager = new ParentUndoManager(VSUndoManager);
+                                bufferUndoMgr.DiscardFrom(null);
+                                bufferUndoMgr.Enable(0);
+                            }
+
+                            Store.UndoManager.UndoState = UndoState.Disabled;
+                        }
                     }
                 }
+                System.Diagnostics.Debug.WriteLine($"[EF6Tools] LoadDocData END: ret={ret}");
+                return ret;
             }
-            return ret;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EF6Tools] LoadDocData EXCEPTION: {ex}");
+                VsUtils.ShowErrorDialog($"Error loading EDMX file: {ex.Message}\n\nStack trace:\n{ex.StackTrace}");
+                throw;
+            }
         }
 
         protected override void OnDocumentReloading(EventArgs e)

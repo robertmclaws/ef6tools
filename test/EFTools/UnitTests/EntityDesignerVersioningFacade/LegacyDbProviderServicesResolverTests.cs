@@ -29,5 +29,24 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
             Assert.Null(
                 new LegacyDbProviderServicesResolver().GetService(typeof(DbProviderServices), new object()));
         }
+
+        [Fact]
+        public void LegacyDbProviderServicesResolver_returns_null_for_MicrosoftDataSqlClient()
+        {
+            // Microsoft.Data.SqlClient should NOT be wrapped by LegacyDbProviderServicesWrapper
+            // because it doesn't implement the legacy System.Data.Common.DbProviderServices interface.
+            // Instead, it should be handled by the pre-registered SqlProviderServices in DependencyResolver.
+            Assert.Null(
+                new LegacyDbProviderServicesResolver().GetService(typeof(DbProviderServices), "Microsoft.Data.SqlClient"));
+        }
+
+        [Fact]
+        public void LegacyDbProviderServicesResolver_returns_null_for_MicrosoftDataSqlClient_case_insensitive()
+        {
+            Assert.Null(
+                new LegacyDbProviderServicesResolver().GetService(typeof(DbProviderServices), "microsoft.data.sqlclient"));
+            Assert.Null(
+                new LegacyDbProviderServicesResolver().GetService(typeof(DbProviderServices), "MICROSOFT.DATA.SQLCLIENT"));
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
     internal class LocalDataUtil
     {
         internal static readonly string PROVIDER_NAME_SQLCLIENT = "System.Data.SqlClient";
+        internal static readonly string PROVIDER_NAME_MICROSOFT_SQLCLIENT = "Microsoft.Data.SqlClient";
         internal static readonly string PROVIDER_NAME_OLEDB = "System.Data.OleDb";
 
         // this is the design-time provider name - all versions start with this prefix
@@ -68,7 +69,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 return false;
             }
 
-            if (0 == string.CompareOrdinal(providerInvariantName, PROVIDER_NAME_SQLCLIENT))
+            // Support both System.Data.SqlClient and Microsoft.Data.SqlClient
+            if (0 == string.CompareOrdinal(providerInvariantName, PROVIDER_NAME_SQLCLIENT) ||
+                0 == string.CompareOrdinal(providerInvariantName, PROVIDER_NAME_MICROSOFT_SQLCLIENT))
             {
                 var providerConnectionStringBuilder = new DbConnectionStringBuilder();
                 providerConnectionStringBuilder.ConnectionString = providerConnectionString;

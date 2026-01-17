@@ -97,6 +97,10 @@
     <Compile Include="CustomCode\Diagram\AutoArrangeHelper.cs" />
     <Compile Include="CustomCode\Diagram\DSLDesignerNavigationHelper.cs" />
     <Compile Include="CustomCode\Diagram\EntityDesignerDiagram.cs" />
+    <Compile Include="CustomCode\Export\SvgConnectorRenderer.cs" />
+    <Compile Include="CustomCode\Export\SvgExporter.cs" />
+    <Compile Include="CustomCode\Export\SvgShapeRenderer.cs" />
+    <Compile Include="CustomCode\Export\SvgStyleHelper.cs" />
     <Compile Include="CustomCode\Dialogs\CustomZoomDialog.cs">
       <SubType>Form</SubType>
     </Compile>

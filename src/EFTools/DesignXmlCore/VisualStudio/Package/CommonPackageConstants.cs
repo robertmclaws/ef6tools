@@ -12,7 +12,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         internal static readonly Guid xmlEditorPackageGuid = new Guid("87569308-4813-40a0-9cd0-d7a30838ca3f");
         internal static readonly Guid xmlEditorLanguageService = new Guid("f6819a78-a205-47b5-be1c-675b3c7f0b8e");
 
-        internal const string ctmenuResourceId = "ctmenu";
+        internal const string ctmenuResourceId = "EntityDesigner.ctmenu";
         internal const int ctmenuVersion = 1;
     };
 }

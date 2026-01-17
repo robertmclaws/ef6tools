@@ -100,5 +100,72 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 Assert.Null(storageModel.GetStoragePrimitiveType("foo"));
             }
         }
+
+        [Fact]
+        public void StoreTypeNameToStoreTypeMap_works_with_MicrosoftDataSqlClient()
+        {
+            // This test verifies that the provider resolution works correctly for Microsoft.Data.SqlClient
+            // The StoreTypeNameToStoreTypeMap property triggers DependencyResolver.GetService<DbProviderServices>(Provider.Value)
+            // which should return SqlProviderServices (not LegacyDbProviderServicesWrapper)
+            var ssdl =
+                XElement.Parse(
+                    "<Schema Namespace=\"Model.Store\" Provider=\"Microsoft.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
+
+            using (var storageModel = new StorageEntityModel(null, ssdl))
+            {
+                // This should NOT throw - if Microsoft.Data.SqlClient isn't properly registered,
+                // it would try to use LegacyDbProviderServicesWrapper which would fail
+                var typeMap = storageModel.StoreTypeNameToStoreTypeMap;
+
+                Assert.NotNull(typeMap);
+                Assert.True(typeMap.Count > 0);
+
+                // Verify we get the expected SQL Server types
+                Assert.True(typeMap.ContainsKey("int"));
+                Assert.True(typeMap.ContainsKey("varchar"));
+                Assert.True(typeMap.ContainsKey("nvarchar"));
+                Assert.True(typeMap.ContainsKey("datetime"));
+            }
+        }
+
+        [Fact]
+        public void GetStoragePrimitiveType_works_with_MicrosoftDataSqlClient()
+        {
+            var ssdl =
+                XElement.Parse(
+                    "<Schema Namespace=\"Model.Store\" Provider=\"Microsoft.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
+
+            using (var storageModel = new StorageEntityModel(null, ssdl))
+            {
+                // This exercises the full code path: Provider.Value -> DependencyResolver -> SqlProviderServices
+                Assert.Equal("int", storageModel.GetStoragePrimitiveType("int").Name);
+                Assert.Equal("nvarchar", storageModel.GetStoragePrimitiveType("nvarchar").Name);
+            }
+        }
+
+        [Fact]
+        public void MicrosoftDataSqlClient_and_SystemDataSqlClient_return_same_types()
+        {
+            var ssdlMds =
+                XElement.Parse(
+                    "<Schema Namespace=\"Model.Store\" Provider=\"Microsoft.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
+            var ssdlSds =
+                XElement.Parse(
+                    "<Schema Namespace=\"Model.Store\" Provider=\"System.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
+
+            using (var mdsModel = new StorageEntityModel(null, ssdlMds))
+            using (var sdsModel = new StorageEntityModel(null, ssdlSds))
+            {
+                // Both providers should return the same store types since they both use SqlProviderServices
+                var mdsTypes = mdsModel.StoreTypeNameToStoreTypeMap;
+                var sdsTypes = sdsModel.StoreTypeNameToStoreTypeMap;
+
+                Assert.Equal(sdsTypes.Count, mdsTypes.Count);
+                foreach (var typeName in sdsTypes.Keys)
+                {
+                    Assert.True(mdsTypes.ContainsKey(typeName), $"Microsoft.Data.SqlClient missing type: {typeName}");
+                }
+            }
+        }
     }
 }

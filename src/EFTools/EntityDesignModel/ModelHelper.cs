@@ -2002,7 +2002,8 @@ namespace Microsoft.Data.Entity.Design.Model
                 }
                 else
                 {
-                    if (storageModel.Provider.Value == "System.Data.SqlClient")
+                    // Support both System.Data.SqlClient and Microsoft.Data.SqlClient
+                    if (ProviderNames.IsSqlServerProvider(storageModel.Provider.Value))
                     {
                         var dataType = (SqlDbType)(providerDataType);
                         primitiveType = storageModel.GetStoragePrimitiveType(dataType.ToString());

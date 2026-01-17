@@ -11,14 +11,19 @@ Project global pre-settings.
     <RuntimeVersionMajor>6</RuntimeVersionMajor>
     <RuntimeVersionMinor>2</RuntimeVersionMinor>
     <RuntimeAssemblyVersionMinor>0</RuntimeAssemblyVersionMinor>
+    <!-- VS 2022 (17.0) settings -->
     <ToolingVersionMajor Condition="'$(VisualStudioVersion)' == '17.0'">17</ToolingVersionMajor>
     <ToolingVersionMinor Condition="'$(VisualStudioVersion)' == '17.0'">0</ToolingVersionMinor>
+    <!-- VS 2026 (18.0) settings -->
+    <ToolingVersionMajor Condition="'$(VisualStudioVersion)' == '18.0'">18</ToolingVersionMajor>
+    <ToolingVersionMinor Condition="'$(VisualStudioVersion)' == '18.0'">0</ToolingVersionMinor>
     <VersionBuild>0</VersionBuild>
     <VersionRevision>0</VersionRevision>
     <VersionReleasePrefix>0</VersionReleasePrefix>
     <VersionRelease>$(VersionReleasePrefix)</VersionRelease>
     <VersionReleaseName></VersionReleaseName>
-    <ToolingDotNetFrameworkVersion Condition="'$(VisualStudioVersion)' == '17.0'">v4.7.2</ToolingDotNetFrameworkVersion>
+    <!-- Target .NET Framework 4.8 for all supported VS versions -->
+    <ToolingDotNetFrameworkVersion Condition="'$(VisualStudioVersion)' == '17.0' OR '$(VisualStudioVersion)' == '18.0'">v4.8</ToolingDotNetFrameworkVersion>
   </PropertyGroup>
 
   <PropertyGroup>

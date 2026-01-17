@@ -725,5 +725,87 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     "System.Data.SqlClient",
                     providerConnectionString: string.Empty));
         }
+
+        // Tests for SDK-style project support
+
+        [Fact]
+        public void IsSdkStyleProject_returns_true_for_sdk_style_project()
+        {
+            var project = MockDTE.CreateSdkStyleProject();
+
+            Assert.True(VsUtils.IsSdkStyleProject(project));
+        }
+
+        [Fact]
+        public void IsSdkStyleProject_returns_false_for_traditional_project()
+        {
+            var project = MockDTE.CreateProject(new[] { MockDTE.CreateReference("EntityFramework", "6.0.0.0") });
+
+            Assert.False(VsUtils.IsSdkStyleProject(project));
+        }
+
+        [Fact]
+        public void IsSdkStyleProject_returns_false_for_website_project()
+        {
+            var project = MockDTE.CreateWebSite(new[] { MockDTE.CreateAssemblyReference("EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089") });
+
+            Assert.False(VsUtils.IsSdkStyleProject(project));
+        }
+
+        [Fact]
+        public void IsSdkStyleProject_returns_false_for_misc_files_project()
+        {
+            var project = MockDTE.CreateMiscFilesProject();
+
+            Assert.False(VsUtils.IsSdkStyleProject(project));
+        }
+
+        [Fact]
+        public void GetProjectReferenceAssemblyNames_returns_empty_for_sdk_style_project()
+        {
+            var project = MockDTE.CreateSdkStyleProject();
+
+            var referenceAssemblyNames = VsUtils.GetProjectReferenceAssemblyNames(project).ToArray();
+
+            Assert.Empty(referenceAssemblyNames);
+        }
+
+        [Fact]
+        public void EntityFrameworkSupportedInProject_returns_true_for_modern_dotnet_projects()
+        {
+            var targets = new[]
+            {
+                ".NET,Version=v8.0",
+                ".NET,Version=v9.0",
+                ".NET,Version=v10.0",
+                ".NETCoreApp,Version=v3.1",
+            };
+
+            foreach (var target in targets)
+            {
+                var monikerHelper = new MockDTE(target, MockDTE.CreateSdkStyleProject());
+
+                Assert.True(
+                    VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true),
+                    $"Expected true for {target}");
+                Assert.True(
+                    VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false),
+                    $"Expected true for {target}");
+            }
+        }
+
+        [Fact]
+        public void SchemaVersionSupportedInProject_returns_true_for_v3_and_modern_dotnet_no_ef_referenced()
+        {
+            // Modern .NET projects without explicit EF reference should support v3 schema
+            var mockDte = new MockDTE(".NET,Version=v8.0", MockDTE.CreateSdkStyleProject());
+
+            // For SDK-style projects, GetProjectReferenceAssemblyNames returns empty,
+            // so we fall back to checking schema version against target framework.
+            // Modern .NET (null from TargetNetFrameworkVersion) should map to v3 schema.
+            Assert.True(
+                VsUtils.SchemaVersionSupportedInProject(
+                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+        }
     }
 }

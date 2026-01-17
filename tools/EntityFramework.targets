@@ -13,8 +13,9 @@ Project global post-settings and targets.
   <PropertyGroup>
     <DefineConstants Condition="'$(InternalsInvisible)' == 'true'">$(DefineConstants);INTERNALS_INVISIBLE</DefineConstants>
     <DefineConstants Condition="'$(VisualStudioVersion)' == '17.0'">$(DefineConstants);VS17</DefineConstants>
-    <DefineConstants
-     Condition="'$(VisualStudioVersion)' == '17.0'">$(DefineConstants);VS12ORNEWER</DefineConstants>
+    <DefineConstants Condition="'$(VisualStudioVersion)' == '17.0'">$(DefineConstants);VS12ORNEWER</DefineConstants>
+    <DefineConstants Condition="'$(VisualStudioVersion)' == '18.0'">$(DefineConstants);VS18</DefineConstants>
+    <DefineConstants Condition="'$(VisualStudioVersion)' == '18.0'">$(DefineConstants);VS12ORNEWER</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(BuildingToolingProject)' == 'true'" >
@@ -57,7 +58,8 @@ Project global post-settings and targets.
 
   <Target Name="ValidateVisualStudioVersion">
     <PropertyGroup>
-      <VisualStudioVersionError Condition="'$(VisualStudioVersion)' == '' OR '$(VisualStudioVersion)' != '17.0'">true</VisualStudioVersionError>
+      <!-- Support VS 2022 (17.0) and VS 2026 (18.0) -->
+      <VisualStudioVersionError Condition="'$(VisualStudioVersion)' == '' OR ('$(VisualStudioVersion)' != '17.0' AND '$(VisualStudioVersion)' != '18.0')">true</VisualStudioVersionError>
     </PropertyGroup>
     <Error Condition="'$(VisualStudioVersionError)' == 'true'" Text="VisualStudioVersion property value is invalid or not supported: '$(VisualStudioVersion)'" />
   </Target>

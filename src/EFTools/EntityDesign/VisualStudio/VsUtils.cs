@@ -1047,6 +1047,27 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             return project.UniqueName == Constants.vsMiscFilesProjectUniqueName;
         }
 
+        /// <summary>
+        /// Checks if the project is an SDK-style project (e.g., .NET Core, .NET 5+).
+        /// SDK-style projects use the Common Project System (CPS) and don't expose VSProject2.
+        /// </summary>
+        public static bool IsSdkStyleProject(Project project)
+        {
+            Debug.Assert(project != null, "project is null.");
+
+            // SDK-style projects don't expose VSProject2 or VSWebSite
+            var vsProject = project.Object as VSProject2;
+            var vsWebSite = project.Object as VSWebSite;
+
+            if (vsProject != null || vsWebSite != null)
+            {
+                return false;
+            }
+
+            // If it's not a VSProject2, VSWebSite, or Miscellaneous project, it's likely SDK-style
+            return !IsMiscellaneousProject(project);
+        }
+
         internal static object GetProjectPropertyByName(Project project, string propertyName)
         {
             Debug.Assert(project != null, "project is null.");
@@ -1886,7 +1907,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 return references;
             }
 
-            Debug.Assert(IsMiscellaneousProject(project), "Project type is not recognized.");
+            // SDK-style projects (e.g., .NET Core, .NET 5+) don't expose VSProject2 or VSWebSite.
+            // They use the Common Project System (CPS). For these projects, we return an empty
+            // enumerable and let the calling code handle it gracefully based on the target framework.
+            // The assert is kept for traditional project types that should have been recognized above.
+            Debug.Assert(
+                IsMiscellaneousProject(project) || IsSdkStyleProject(project),
+                "Project type is not recognized.");
 
             return Enumerable.Empty<KeyValuePair<string, Version>>();
         }
@@ -2001,9 +2028,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 return allowMiscProject;
             }
 
-            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(project, serviceProvider);
-            return targetNetFrameworkVersion != null &&
-                   targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion3_5;
+            // Check if the project targets any supported .NET runtime (Framework 3.5+ or modern .NET)
+            return NetFrameworkVersioningHelper.IsSupportedDotNetProject(project, serviceProvider);
         }
 
         public static string GetProjectTargetDir(Project project, IServiceProvider serviceProvider)
@@ -2192,7 +2218,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(providerInvariantName), "providerInvariantName is null or empty.");
 
-            if (providerInvariantName.Equals("System.Data.SqlClient", StringComparison.OrdinalIgnoreCase))
+            if (ProviderNames.IsSqlServerProvider(providerInvariantName))
             {
                 return typeof(SqlProviderServices);
             }

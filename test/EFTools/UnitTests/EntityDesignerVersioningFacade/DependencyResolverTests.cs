@@ -2,6 +2,7 @@
 
 namespace Microsoft.Data.Entity.Design.VersioningFacade
 {
+    using System;
     using System.Data.Entity.Core.Common;
     using System.Data.Entity.Infrastructure.Pluralization;
     using System.Data.Entity.SqlServer;
@@ -31,47 +32,131 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
         [Fact]
         public void DependencyResolver_can_register_unregister_provider()
         {
-            DependencyResolver.RegisterProvider(typeof(SqlProviderServices), "System.Data.SqlClient");
+            // Use a unique provider name to avoid interfering with pre-registered providers
+            const string testProviderName = "Test.Provider.ForUnregisterTest";
+
+            DependencyResolver.RegisterProvider(typeof(SqlProviderServices), testProviderName);
             try
             {
                 Assert.Same(
                     SqlProviderServices.Instance,
-                    DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient"));
+                    DependencyResolver.GetService<DbProviderServices>(testProviderName));
             }
             finally
             {
-                DependencyResolver.UnregisterProvider("System.Data.SqlClient");
+                DependencyResolver.UnregisterProvider(testProviderName);
             }
 
-            Assert.IsType<LegacyDbProviderServicesWrapper>(
-                DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient"));
+            // After unregistering a fake provider, the legacy resolver throws because
+            // the provider isn't registered with ADO.NET DbProviderFactories
+            Assert.Throws<InvalidOperationException>(
+                () => DependencyResolver.GetService<DbProviderServices>(testProviderName));
         }
 
         [Fact]
         public void EnsureProvider_registers_provider()
         {
-            DependencyResolver.EnsureProvider("System.Data.SqlClient", typeof(SqlProviderServices));
+            // Use a unique provider name to avoid interfering with pre-registered providers
+            const string testProviderName = "Test.Provider.ForEnsureProviderTest";
+
+            DependencyResolver.EnsureProvider(testProviderName, typeof(SqlProviderServices));
             try
             {
                 Assert.Same(
                     SqlProviderServices.Instance,
-                    DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient"));
+                    DependencyResolver.GetService<DbProviderServices>(testProviderName));
             }
             finally
             {
-                DependencyResolver.UnregisterProvider("System.Data.SqlClient");
+                DependencyResolver.UnregisterProvider(testProviderName);
             }
         }
 
         [Fact]
         public void EnsureProvider_unregisters_provider_when_null()
         {
-            DependencyResolver.RegisterProvider(typeof(SqlProviderServices), "System.Data.SqlClient");
+            // Use a unique provider name to avoid interfering with pre-registered providers
+            const string testProviderName = "Test.Provider.ForEnsureProviderNullTest";
 
-            DependencyResolver.EnsureProvider("System.Data.SqlClient", null);
+            DependencyResolver.RegisterProvider(typeof(SqlProviderServices), testProviderName);
 
-            Assert.IsType<LegacyDbProviderServicesWrapper>(
-                DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient"));
+            DependencyResolver.EnsureProvider(testProviderName, null);
+
+            // After unregistering a fake provider with null, the legacy resolver throws because
+            // the provider isn't registered with ADO.NET DbProviderFactories
+            Assert.Throws<InvalidOperationException>(
+                () => DependencyResolver.GetService<DbProviderServices>(testProviderName));
+        }
+
+        [Fact]
+        public void DependencyResolver_preregisters_MicrosoftDataSqlClient()
+        {
+            // Microsoft.Data.SqlClient should be pre-registered to use SqlProviderServices
+            // This happens in the static constructor of DependencyResolver
+            var providerServices = DependencyResolver.GetService<DbProviderServices>("Microsoft.Data.SqlClient");
+
+            Assert.NotNull(providerServices);
+            Assert.Same(SqlProviderServices.Instance, providerServices);
+        }
+
+        [Fact]
+        public void DependencyResolver_preregisters_SystemDataSqlClient()
+        {
+            // System.Data.SqlClient should also be pre-registered to use SqlProviderServices
+            var providerServices = DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient");
+
+            Assert.NotNull(providerServices);
+            Assert.Same(SqlProviderServices.Instance, providerServices);
+        }
+
+        [Fact]
+        public void DependencyResolver_MicrosoftDataSqlClient_does_not_use_legacy_wrapper()
+        {
+            // Verify Microsoft.Data.SqlClient returns SqlProviderServices, NOT LegacyDbProviderServicesWrapper
+            var providerServices = DependencyResolver.GetService<DbProviderServices>("Microsoft.Data.SqlClient");
+
+            Assert.NotNull(providerServices);
+            Assert.IsNotType<LegacyDbProviderServicesWrapper>(providerServices);
+            Assert.IsType<SqlProviderServices>(providerServices);
+        }
+
+        [Fact]
+        public void GetServices_returns_single_item_for_registered_provider()
+        {
+            var services = DependencyResolver.Instance.GetServices(typeof(DbProviderServices), "Microsoft.Data.SqlClient");
+
+            Assert.NotNull(services);
+            var serviceList = new System.Collections.Generic.List<object>(services);
+            Assert.Single(serviceList);
+            Assert.Same(SqlProviderServices.Instance, serviceList[0]);
+        }
+
+        [Fact]
+        public void GetServices_returns_empty_for_unknown_type()
+        {
+            var services = DependencyResolver.Instance.GetServices(typeof(object), null);
+
+            Assert.NotNull(services);
+            Assert.Empty(services);
+        }
+
+        [Fact]
+        public void GetServices_returns_single_item_for_pluralization_service()
+        {
+            var services = DependencyResolver.Instance.GetServices(typeof(IPluralizationService), null);
+
+            Assert.NotNull(services);
+            var serviceList = new System.Collections.Generic.List<object>(services);
+            Assert.Single(serviceList);
+            Assert.IsAssignableFrom<IPluralizationService>(serviceList[0]);
+        }
+
+        [Fact]
+        public void GetService_returns_null_for_DbProviderServices_with_null_key()
+        {
+            // When key is null, should return null (not throw)
+            var result = DependencyResolver.GetService<DbProviderServices>(null);
+            Assert.Null(result);
         }
     }
 }

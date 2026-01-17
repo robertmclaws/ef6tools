@@ -15,6 +15,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Utils
     using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
     using Microsoft.Data.Entity.Design.EntityDesigner.Properties;
     using Microsoft.Data.Entity.Design.EntityDesigner.View;
+    using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
     using Microsoft.VisualStudio.Modeling;
     using Microsoft.VisualStudio.Modeling.Diagrams;
 
@@ -71,11 +72,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Utils
                 {
                     dlg.Title = Resources.ExportAsImageTitle;
                     dlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    dlg.Filter = Resources.ImageFormatBmp + "|*.bmp|" +
+                    dlg.Filter = Resources.ImageFormatSvg + "|*.svg|" +
+                                 Resources.ImageFormatPng + "|*.png|" +
+                                 Resources.ImageFormatBmp + "|*.bmp|" +
                                  Resources.ImageFormatJpeg + "|*.jpg|" +
                                  Resources.ImageFormatGif + "|*.gif|" +
-                                 Resources.ImageFormatPng + "|*.png|" +
                                  Resources.ImageFormatTiff + "|*.tif";
+                    dlg.FilterIndex = 1; // SVG is the default (most useful for modern workflows)
                     dlg.FileName = Resources.ExportImage_DefaultFileName;
                     if (dlg.ShowDialog() == DialogResult.OK)
                     {
@@ -85,6 +88,17 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Utils
                         if (childShapes != null
                             && childShapes.Count > 0)
                         {
+                            var fi = new FileInfo(dlg.FileName);
+
+                            // Handle SVG export separately (vector format, no bitmap needed)
+                            if (fi.Extension.Equals(".svg", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var svgExporter = new SvgExporter();
+                                svgExporter.ExportToSvg(diagram, dlg.FileName);
+                                return;
+                            }
+
+                            // For raster formats, create bitmap
                             Bitmap bmp = null;
                             try
                             {
@@ -100,7 +114,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Utils
                             }
 
                             var imageFormat = ImageFormat.Bmp;
-                            var fi = new FileInfo(dlg.FileName);
                             if (fi.Extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase))
                             {
                                 imageFormat = ImageFormat.Jpeg;

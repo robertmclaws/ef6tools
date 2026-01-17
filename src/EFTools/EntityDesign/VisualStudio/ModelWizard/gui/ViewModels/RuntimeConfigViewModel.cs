@@ -19,10 +19,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui.ViewModels
         public RuntimeConfigViewModel(
             Version targetNetFrameworkVersion,
             Version installedEntityFrameworkVersion,
-            bool isModernProviderAvailable, 
+            bool isModernProviderAvailable,
             bool isCodeFirst)
         {
-            if (targetNetFrameworkVersion == NetFrameworkVersioningHelper.NetFrameworkVersion3_5)
+            // Note: For modern .NET projects (.NET Core, .NET 5+), targetNetFrameworkVersion is null
+            if (targetNetFrameworkVersion != null &&
+                targetNetFrameworkVersion == NetFrameworkVersioningHelper.NetFrameworkVersion3_5)
             {
                 Debug.Assert(!isCodeFirst, "CodeFirst not supported on .NET Framework 3.5");
 

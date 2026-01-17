@@ -16,6 +16,10 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
         private static readonly LegacyDbProviderServicesResolver LegacyDbProviderServicesResolver =
             new LegacyDbProviderServicesResolver();
 
+        // NOTE: This dictionary uses default (case-SENSITIVE) comparison.
+        // The provider name in EDMX files is "Microsoft.Data.SqlClient" (exact casing),
+        // and we register with the same casing, so case-sensitivity is NOT an issue.
+        // If lookups fail, check: 1) static initialization order, 2) stale VSIX builds
         private readonly Dictionary<string, Type> _providerServicesRegistrar = new Dictionary<string, Type>();
 
         public void Register(Type type, string invariantName)
@@ -45,11 +49,24 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
                     providerInvariantName != "Microsoft.SqlServerCe.Client.4.0",
                     "providerInvariantName is for design-time.");
 
+                System.Diagnostics.Debug.WriteLine($"[EF6Tools] DbProviderServicesResolver.GetService: providerInvariantName='{providerInvariantName}'");
+                System.Diagnostics.Debug.WriteLine($"[EF6Tools] DbProviderServicesResolver: Registered providers count={_providerServicesRegistrar.Count}");
+                foreach (var kvp in _providerServicesRegistrar)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[EF6Tools] DbProviderServicesResolver: Registered '{kvp.Key}' -> {kvp.Value.Name}");
+                }
+
                 Type providerServicesType;
-                return
-                    _providerServicesRegistrar.TryGetValue(providerInvariantName, out providerServicesType)
-                        ? CreateProviderInstance(providerServicesType)
-                        : LegacyDbProviderServicesResolver.GetService(type, key);
+                if (_providerServicesRegistrar.TryGetValue(providerInvariantName, out providerServicesType))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[EF6Tools] DbProviderServicesResolver: FOUND in registrar, using {providerServicesType.Name}");
+                    return CreateProviderInstance(providerServicesType);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[EF6Tools] DbProviderServicesResolver: NOT FOUND in registrar, falling back to LegacyDbProviderServicesResolver");
+                    return LegacyDbProviderServicesResolver.GetService(type, key);
+                }
             }
 
             return null;

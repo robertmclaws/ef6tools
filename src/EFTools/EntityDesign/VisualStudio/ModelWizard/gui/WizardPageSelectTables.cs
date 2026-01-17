@@ -59,8 +59,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
             _stopwatch = new Stopwatch();
 
-            _isNetFx35 = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(Wizard.Project, ServiceProvider) <
-                NetFrameworkVersioningHelper.NetFrameworkVersion4;
+            // For modern .NET projects, TargetNetFrameworkVersion returns null - treat as not .NET 3.5
+            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(Wizard.Project, ServiceProvider);
+            _isNetFx35 = targetNetFrameworkVersion != null &&
+                targetNetFrameworkVersion < NetFrameworkVersioningHelper.NetFrameworkVersion4;
 
             InitializeModelOptions();
 

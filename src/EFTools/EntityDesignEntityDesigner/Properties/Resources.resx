@@ -285,6 +285,9 @@ Add existing entities and relationships to this diagram by dragging them from th
   <data name="ImageFormatTiff" xml:space="preserve">
     <value>Tagged Image File Format (*.tif)</value>
   </data>
+  <data name="ImageFormatSvg" xml:space="preserve">
+    <value>Scalable Vector Graphics (*.svg)</value>
+  </data>
   <data name="ExportAsImageTitle" xml:space="preserve">
     <value>Export Diagram As</value>
   </data>

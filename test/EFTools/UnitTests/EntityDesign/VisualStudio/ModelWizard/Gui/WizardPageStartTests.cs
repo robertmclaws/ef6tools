@@ -177,19 +177,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         public void OnDeactivate_updates_model_settings_if_model_file_does_not_exist_for_CodeFirst_empty_model()
         {
             var configXml = new XmlDocument();
+            // MSSQLLocalDB is the standard LocalDB instance name for VS2015+ (VS14 and later)
             configXml.LoadXml(
-                string.Format(System.Globalization.CultureInfo.CurrentCulture,
 @"<configuration>
   <connectionStrings>
-    <add name=""myModel"" connectionString=""Data Source=(localdb)\{0};"" providerName=""System.Data.SqlClient"" />
+    <add name=""myModel"" connectionString=""Data Source=(localdb)\MSSQLLocalDB;"" providerName=""System.Data.SqlClient"" />
   </connectionStrings>
-</configuration>",
-#if (VS14 || VS15 || VS16 || VS17)
-    "MSSQLLocalDB"
-#else
-    "v11.0"
-#endif
-            ));
+</configuration>");
 
             var mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, Mock.Of<IVsUtils>(), null);
             mockConfig.Setup(u => u.LoadConfig()).Returns(configXml);
@@ -209,11 +203,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             Assert.Equal(@"myModel1", modelBuilderSettings.AppConfigConnectionPropertyName);
             Assert.True(modelBuilderSettings.SaveConnectionStringInAppConfig);
             Assert.Equal(
-#if (VS14 || VS15 || VS16 || VS17)
                 @"Data Source=(LocalDb)\MSSQLLocalDB;Initial Catalog=modelNamespace.myModel;Integrated Security=True",
-#else
-                @"Data Source=(LocalDb)\v11.0;Initial Catalog=modelNamespace.myModel;Integrated Security=True",
-#endif
                 modelBuilderSettings.AppConfigConnectionString);
         }
 

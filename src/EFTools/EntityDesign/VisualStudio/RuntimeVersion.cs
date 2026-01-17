@@ -40,11 +40,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         public static Version Version5(Version targetNetFrameworkVersion)
         {
-            Debug.Assert(targetNetFrameworkVersion != null, "targetNetFrameworkVersion is null.");
+            // For modern .NET projects, targetNetFrameworkVersion is null - treat as .NET 4.5+
+            if (targetNetFrameworkVersion == null ||
+                targetNetFrameworkVersion != NetFrameworkVersioningHelper.NetFrameworkVersion4)
+            {
+                return Version5Net45;
+            }
 
-            return targetNetFrameworkVersion == NetFrameworkVersioningHelper.NetFrameworkVersion4
-                       ? Version5Net40
-                       : Version5Net45;
+            return Version5Net40;
         }
 
         public static string GetName(Version entityFrameworkVersion, Version targetNetFrameworkVersion)
@@ -78,7 +81,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         //     <paramref name="targetNetFrameworkVersion" />
         // </summary>
         // <param name="entityFrameworkVersion">The version of the referenced Entity Framework assembly.</param>
-        // <param name="targetNetFrameworkVersion">.NET Framework version tergeted by the project.</param>
+        // <param name="targetNetFrameworkVersion">
+        //     .NET Framework version targeted by the project. Can be null for modern .NET projects (.NET Core, .NET 5+).
+        // </param>
         // <returns>
         //     A target schema version for the <paramref name="entityFrameworkVersion" /> and
         //     <paramref name="targetNetFrameworkVersion" />
@@ -91,13 +96,19 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         //     - <paramref name="entityFrameworkVersion" /> is 4.0.0.0 which means that the project references only System.Data.Entity.dll in which case
         //     we need to use the target .NET Framework version to decide if this is EF4 or EF5 since the version of System.Data.Entity.dll is
         //     4.0.0.0 on both .NET Framework 4 and .NET Framework 4.5 but EF4 supports only v2 schemas while EF5 supports v3 schemas.
+        //     For modern .NET projects (.NET Core, .NET 5+), targetNetFrameworkVersion will be null and we always use Version3.
         // </remarks>
         public static Version GetTargetSchemaVersion(Version entityFrameworkVersion, Version targetNetFrameworkVersion)
         {
             Debug.Assert(
                 entityFrameworkVersion == null || entityFrameworkVersion >= Version1,
                 "entityFrameworkVersion is less than 3.5.");
-            Debug.Assert(targetNetFrameworkVersion != null, "targetNetFrameworkVersion is null.");
+
+            // For modern .NET projects, targetNetFrameworkVersion is null - always use latest schema
+            if (targetNetFrameworkVersion == null)
+            {
+                return EntityFrameworkVersion.Version3;
+            }
 
             if (entityFrameworkVersion == null)
             {
@@ -123,9 +134,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         private static Version GetLatestSchemaVersion(Version targetNetFrameworkVersion)
         {
-            Debug.Assert(targetNetFrameworkVersion != null, "targetNetFrameworkVersion is null.");
-
-            if (targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4)
+            // For modern .NET projects, targetNetFrameworkVersion is null - always use Version3
+            if (targetNetFrameworkVersion == null ||
+                targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4)
             {
                 return EntityFrameworkVersion.Version3;
             }
@@ -176,7 +187,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         //     if there are no references to any of the EF dll (i.e. System.Data.Entity.dll or
         //     EntityFramework.dll in the project.
         // </summary>
-        // <param name="netFrameworkVersion">Target .NET Framework version.</param>
+        // <param name="netFrameworkVersion">
+        //     Target .NET Framework version. Can be null for modern .NET projects (.NET Core, .NET 5+).
+        // </param>
         // <returns>
         //     EF Schema version as it was shipped with the <paramref name="netFrameworkVersion" />.
         // </returns>
@@ -186,9 +199,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         // </remarks>
         public static Version GetSchemaVersionForNetFrameworkVersion(Version netFrameworkVersion)
         {
-            Debug.Assert(netFrameworkVersion != null, "netFrameworkVersion != null");
-
-            if (netFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4_5)
+            // For modern .NET projects, netFrameworkVersion is null - always use Version3
+            if (netFrameworkVersion == null ||
+                netFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4_5)
             {
                 return EntityFrameworkVersion.Version3;
             }

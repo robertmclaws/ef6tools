@@ -147,9 +147,17 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 
         internal static bool TemplateSupported(Project project, IServiceProvider serviceProvider)
         {
-            return
-                NetFrameworkVersioningHelper.TargetNetFrameworkVersion(project, serviceProvider) >=
-                NetFrameworkVersioningHelper.NetFrameworkVersion4;
+            // Templates are supported for .NET Framework 4+ and all modern .NET projects
+            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(project, serviceProvider);
+
+            // For .NET Framework projects, check version >= 4.0
+            if (targetNetFrameworkVersion != null)
+            {
+                return targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4;
+            }
+
+            // For other projects, check if it's a modern .NET project (not invalid/unknown)
+            return NetFrameworkVersioningHelper.IsModernDotNetProject(project, serviceProvider);
         }
     }
 }

@@ -37,11 +37,8 @@ namespace Microsoft.Data.Entity.Design.Model
             {
                 if (disposing)
                 {
-                    if (_designerInfoRoot != null)
-                    {
-                        _designerInfoRoot.Dispose();
-                        _designerInfoRoot = null;
-                    }
+                    _designerInfoRoot?.Dispose();
+                    _designerInfoRoot = null;
                 }
             }
             finally
@@ -53,12 +50,8 @@ namespace Microsoft.Data.Entity.Design.Model
         internal override void Parse(ICollection<XName> unprocessedElements)
         {
             State = EFElementState.ParseAttempted;
-
-            if (_designerInfoRoot != null)
-            {
-                _designerInfoRoot.Dispose();
-                _designerInfoRoot = null;
-            }
+            _designerInfoRoot?.Dispose();
+            _designerInfoRoot = null;
 
             // convert the xlinq tree to our model
             var elem = XObject.Document.Elements().FirstOrDefault();
@@ -90,10 +83,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal void ParseDesignerInfoRoot(XElement designerInfoElement)
         {
-            if (_designerInfoRoot != null)
-            {
-                _designerInfoRoot.Dispose();
-            }
+            _designerInfoRoot?.Dispose();
             _designerInfoRoot = new EFDesignerInfoRoot(this, designerInfoElement);
             _designerInfoRoot.Parse(new HashSet<XName>());
         }

@@ -90,8 +90,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                     new ListViewItem(Resources.EmptyModelOption, "EmptyModel.png"),
                 });
 
-            if (NetFrameworkVersioningHelper.TargetNetFrameworkVersion(wizard.ModelBuilderSettings.Project, Wizard.ServiceProvider) >=
-                NetFrameworkVersioningHelper.NetFrameworkVersion4)
+            // Code First options are available for .NET Framework 4+ and all modern .NET projects
+            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(wizard.ModelBuilderSettings.Project, Wizard.ServiceProvider);
+            if (targetNetFrameworkVersion == null || targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4)
             {
                 listViewModelContents.Items.Add(new ListViewItem(Resources.EmptyModelCodeFirstOption, "EmptyModelCodeFirst.png"));
                 listViewModelContents.Items.Add(new ListViewItem(Resources.CodeFirstFromDatabaseOption, "CodeFirstFromDatabase.png"));
@@ -347,9 +348,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 }
                 else if (nSelectedItemIndex == GenerateEmptyModelCodeFirstIndex)
                 {
+                    // Option should be available for .NET Framework 4+ and all modern .NET projects
+                    var targetVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(Wizard.ModelBuilderSettings.Project, Wizard.ServiceProvider);
                     Debug.Assert(
-                        NetFrameworkVersioningHelper.TargetNetFrameworkVersion(Wizard.ModelBuilderSettings.Project, Wizard.ServiceProvider)
-                        > NetFrameworkVersioningHelper.NetFrameworkVersion3_5, "Option should be disabled for .NET Framework 3.5");
+                        targetVersion == null || targetVersion > NetFrameworkVersioningHelper.NetFrameworkVersion3_5,
+                        "Option should be disabled for .NET Framework 3.5");
 
                     Wizard.ModelBuilderSettings.GenerationOption = ModelGenerationOption.EmptyModelCodeFirst;
 

@@ -76,6 +76,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationFileSchemaTests.cs" />
@@ -124,6 +125,7 @@
     <Compile Include="EntityDesignerVersioningFacade\ReverseEngineerDb\UniqueIdentifierServiceTests.cs" />
      <Compile Include="EntityDesignerVersioningFacade\SchemaManagerTests.cs" />
     <Compile Include="EntityDesigner\CustomCode\Diagram\EntityDesignerDiagramTests.cs" />
+    <Compile Include="EntityDesigner\CustomCode\Export\SvgStyleHelperTests.cs" />
     <Compile Include="EntityDesignModel\Commands\CreatePropertyCommandTests.cs" />
     <Compile Include="EntityDesignModel\Commands\RetargetXmlNamespaceCommandTests.cs" />
     <Compile Include="EntityDesignModel\Designer\DiagramArtifactTests.cs" />
@@ -142,6 +144,7 @@
     <Compile Include="EntityDesignModel\MetadataConverter\UseStrongSpatialTypesHandlerTests.cs" />
     <Compile Include="EntityDesignModel\MetadataConverter\VersionConverterHandlerTests.cs" />
     <Compile Include="EntityDesignModel\ModelHelperTests.cs" />
+    <Compile Include="EntityDesignModel\ProviderNamesTests.cs" />
     <Compile Include="EntityDesignModel\Validation\EscherAttributeContentValidatorTests.cs" />
     <Compile Include="EntityDesignModel\Validation\RuntimeMetadataValidatorTests.cs" />
     <Compile Include="EntityDesignPackage\CustomCode\MicrosoftDataEntityDesignDocDataTests.cs" />

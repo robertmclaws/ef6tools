@@ -690,9 +690,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                         //
                         // The 3.5 runtime's Build Provider will include the web site's virtual root in the resource name.  This can change when
                         // a web app is deployed, so we must use res:\\* for the connection string when targeting netfx 3.5.
+                        // Note: For modern .NET projects, TargetNetFrameworkVersion returns null, so this check will not match.
                         //
-                        if (NetFrameworkVersioningHelper.TargetNetFrameworkVersion(project, PackageManager.Package)
-                            == NetFrameworkVersioningHelper.NetFrameworkVersion3_5)
+                        var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(project, PackageManager.Package);
+                        if (targetNetFrameworkVersion != null &&
+                            targetNetFrameworkVersion == NetFrameworkVersioningHelper.NetFrameworkVersion3_5)
                         {
                             return EmbedAsResourcePrefix;
                         }
@@ -1001,10 +1003,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static string InjectEFAttributesIntoConnectionString(string sourceConnectionString, string providerInvariantName)
         {
-            // if the provider connection string's provider property is "System.Data.SqlClient" then add the 
-            // MARS attribute (value is true if SQL Server version >= 9, false otherwise). Also add the App
-            // attribute (with fixed value EntityFramework) - which is useful for statistics on server.
-            if (!string.Equals(providerInvariantName, SqlClientProviderName, StringComparison.Ordinal))
+            // if the provider connection string's provider property is "System.Data.SqlClient" or
+            // "Microsoft.Data.SqlClient" then add the MARS attribute (value is true if SQL Server
+            // version >= 9, false otherwise). Also add the App attribute (with fixed value
+            // EntityFramework) - which is useful for statistics on server.
+            if (!ProviderNames.IsSqlServerProvider(providerInvariantName))
             {
                 return sourceConnectionString;
             }

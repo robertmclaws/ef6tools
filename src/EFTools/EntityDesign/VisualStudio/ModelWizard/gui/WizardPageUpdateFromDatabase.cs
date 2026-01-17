@@ -145,9 +145,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 toolTip.SetToolTip(chkPluralize, Resources.PluralizeCheckBoxDisabledToolTipText);
             }
 
-            // foreign keys are supported by any version of EF that runs on .NET Framework 4 or newer
-            if (NetFrameworkVersioningHelper.TargetNetFrameworkVersion(Wizard.Project, Wizard.ServiceProvider) >=
-                NetFrameworkVersioningHelper.NetFrameworkVersion4)
+            // foreign keys are supported by any version of EF that runs on .NET Framework 4 or newer (or modern .NET)
+            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(Wizard.Project, Wizard.ServiceProvider);
+            if (targetNetFrameworkVersion == null || targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4)
             {
                 chkIncludeForeignKeys.Checked = true;
                 chkIncludeForeignKeys.Enabled = true;

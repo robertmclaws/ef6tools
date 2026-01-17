@@ -269,7 +269,7 @@ namespace Microsoft.Data.Entity.Design.Package
         #endregion
 
         //
-        // implement IVsEditorFactor.CreateEditorInstance here.  This is necessary to have this method invoked, 
+        // implement IVsEditorFactor.CreateEditorInstance here.  This is necessary to have this method invoked,
         // since CreateEditorInstance in the base-class isn't virtual
         //
         int IVsEditorFactory.CreateEditorInstance(
@@ -291,10 +291,21 @@ namespace Microsoft.Data.Entity.Design.Package
             cmdUI = Guid.Empty;
             createDocWinFlags = 0;
 
-            var hr = base.CreateEditorInstance(
-                createFlags, fileName, physicalView, hierarchy, itemId, existingDocData, out docView, out docData, out editorCaption,
-                out cmdUI, out createDocWinFlags);
-            return hr;
+            try
+            {
+                LogToActivityLog($"CreateEditorInstance START: fileName={fileName}");
+                var hr = base.CreateEditorInstance(
+                    createFlags, fileName, physicalView, hierarchy, itemId, existingDocData, out docView, out docData, out editorCaption,
+                    out cmdUI, out createDocWinFlags);
+                LogToActivityLog($"CreateEditorInstance END: hr={hr}");
+                return hr;
+            }
+            catch (Exception ex)
+            {
+                LogToActivityLog($"CreateEditorInstance EXCEPTION: {ex.Message}\n{ex.StackTrace}");
+                VsUtils.ShowErrorDialog($"Error creating editor: {ex.Message}\n\nStack trace:\n{ex.StackTrace}");
+                throw;
+            }
         }
 
         /// <summary>
@@ -320,10 +331,34 @@ namespace Microsoft.Data.Entity.Design.Package
 
         protected override ModelingDocView CreateDocView(ModelingDocData docData, string physicalView, out string editorCaption)
         {
-            // Set EditorCaption to be null here because we do not want EditorFactory to update the value.
-            // We will manually set the EditorCaption when the View is loaded (see code in MicrosoftDataEntityDesignDocView.cs).
-            editorCaption = null;
-            return new MicrosoftDataEntityDesignDocView(docData, ServiceProvider, physicalView);
+            try
+            {
+                LogToActivityLog($"CreateDocView START: physicalView={physicalView}");
+                // Set EditorCaption to be null here because we do not want EditorFactory to update the value.
+                // We will manually set the EditorCaption when the View is loaded (see code in MicrosoftDataEntityDesignDocView.cs).
+                editorCaption = null;
+                var view = new MicrosoftDataEntityDesignDocView(docData, ServiceProvider, physicalView);
+                LogToActivityLog($"CreateDocView END");
+                return view;
+            }
+            catch (Exception ex)
+            {
+                LogToActivityLog($"CreateDocView EXCEPTION: {ex.Message}\n{ex.StackTrace}");
+                throw;
+            }
+        }
+
+        private void LogToActivityLog(string message)
+        {
+            try
+            {
+                var log = ServiceProvider.GetService(typeof(SVsActivityLog)) as IVsActivityLog;
+                log?.LogEntry((uint)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, "EF6Tools", message);
+            }
+            catch
+            {
+                // Ignore logging failures
+            }
         }
     }
 }

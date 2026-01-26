@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio;
     using Microsoft.Data.Entity.Tests.Design.TestHelpers;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class NetFrameworkVersioningHelperTests
@@ -14,10 +15,9 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NETFramework,Version=v4.0,Profile=Client");
 
-            Assert.Equal(
-                NetFrameworkVersioningHelper.NetFrameworkVersion4,
-                NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().Be(
+                NetFrameworkVersioningHelper.NetFrameworkVersion4);
         }
 
         [TestMethod]
@@ -25,9 +25,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(null);
 
-            Assert.Null(
-                NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeNull();
         }
 
         [TestMethod]
@@ -35,9 +34,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(string.Empty);
 
-            Assert.Null(
-                NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeNull();
         }
 
         [TestMethod]
@@ -45,9 +43,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(new object());
 
-            Assert.Null(
-                NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeNull();
         }
 
         [TestMethod]
@@ -55,9 +52,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE("abc");
 
-            Assert.Null(
-                NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeNull();
         }
 
         [TestMethod]
@@ -67,9 +63,8 @@ using FluentAssertions;
 
             var mockMonikerHelper = new MockDTE("abc", vsMiscFilesProjectUniqueName);
 
-            Assert.Null(
-                NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeNull();
         }
 
         [TestMethod]
@@ -77,9 +72,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE("Xbox,Version=v4.0");
 
-            Assert.Null(
-                NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeNull();
         }
 
         // Tests for modern .NET support (Phase 1)
@@ -90,9 +84,8 @@ using FluentAssertions;
             // .NET 8 project should return null from TargetNetFrameworkVersion
             var mockMonikerHelper = new MockDTE(".NET,Version=v8.0");
 
-            Assert.Null(
-                NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.TargetNetFrameworkVersion(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeNull();
         }
 
         [TestMethod]
@@ -100,8 +93,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NET,Version=v8.0");
 
-            (NetFrameworkVersioningHelper.IsModernDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsModernDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -109,8 +102,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NET,Version=v9.0");
 
-            (NetFrameworkVersioningHelper.IsModernDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsModernDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -118,8 +111,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NET,Version=v10.0");
 
-            (NetFrameworkVersioningHelper.IsModernDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsModernDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -127,8 +120,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NETCoreApp,Version=v3.1");
 
-            (NetFrameworkVersioningHelper.IsModernDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsModernDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -136,9 +129,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NETFramework,Version=v4.8");
 
-            Assert.False(
-                NetFrameworkVersioningHelper.IsModernDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsModernDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeFalse();
         }
 
         [TestMethod]
@@ -146,9 +138,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(null);
 
-            Assert.False(
-                NetFrameworkVersioningHelper.IsModernDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsModernDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeFalse();
         }
 
         [TestMethod]
@@ -182,9 +173,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE("Xbox,Version=v4.0");
 
-            Assert.Null(
-                NetFrameworkVersioningHelper.TargetRuntimeVersion(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.TargetRuntimeVersion(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeNull();
         }
 
         [TestMethod]
@@ -192,8 +182,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NET,Version=v8.0");
 
-            (NetFrameworkVersioningHelper.IsSupportedDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsSupportedDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -201,8 +191,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NET,Version=v10.0");
 
-            (NetFrameworkVersioningHelper.IsSupportedDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsSupportedDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -210,8 +200,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NETFramework,Version=v4.8");
 
-            (NetFrameworkVersioningHelper.IsSupportedDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsSupportedDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -219,8 +209,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NETFramework,Version=v3.5");
 
-            (NetFrameworkVersioningHelper.IsSupportedDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsSupportedDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -228,9 +218,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE(".NETFramework,Version=v2.0");
 
-            Assert.False(
-                NetFrameworkVersioningHelper.IsSupportedDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsSupportedDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeFalse();
         }
 
         [TestMethod]
@@ -238,9 +227,8 @@ using FluentAssertions;
         {
             var mockMonikerHelper = new MockDTE("Xbox,Version=v4.0");
 
-            Assert.False(
-                NetFrameworkVersioningHelper.IsSupportedDotNetProject(
-                    mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider));
+            NetFrameworkVersioningHelper.IsSupportedDotNetProject(
+                mockMonikerHelper.Project, mockMonikerHelper.ServiceProvider).Should().BeFalse();
         }
     }
 }

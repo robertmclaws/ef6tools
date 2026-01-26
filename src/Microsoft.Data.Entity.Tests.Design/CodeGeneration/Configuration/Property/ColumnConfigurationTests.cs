@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class ColumnConfigurationTests
@@ -14,7 +15,7 @@ using FluentAssertions;
             var configuration = new ColumnConfiguration { Name = "Id" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Column(\"Id\")", configuration.GetAttributeBody(code));
+            configuration.GetAttributeBody(code).Should().Be("Column(\"Id\")");
         }
 
         [TestMethod]
@@ -23,7 +24,7 @@ using FluentAssertions;
             var configuration = new ColumnConfiguration { Order = 0 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Column(Order = 0)", configuration.GetAttributeBody(code));
+            configuration.GetAttributeBody(code).Should().Be("Column(Order = 0)");
         }
 
         [TestMethod]
@@ -32,7 +33,7 @@ using FluentAssertions;
             var configuration = new ColumnConfiguration { TypeName = "int" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Column(TypeName = \"int\")", configuration.GetAttributeBody(code));
+            configuration.GetAttributeBody(code).Should().Be("Column(TypeName = \"int\")");
         }
 
         [TestMethod]
@@ -41,7 +42,7 @@ using FluentAssertions;
             var configuration = new ColumnConfiguration { Order = 0, TypeName = "int" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Column(Order = 0, TypeName = \"int\")", configuration.GetAttributeBody(code));
+            configuration.GetAttributeBody(code).Should().Be("Column(Order = 0, TypeName = \"int\")");
         }
 
         [TestMethod]
@@ -50,7 +51,7 @@ using FluentAssertions;
             var configuration = new ColumnConfiguration { Order = 0, TypeName = "int" };
             var code = new VBCodeHelper();
 
-            Assert.Equal("Column(Order:=0, TypeName:=\"int\")", configuration.GetAttributeBody(code));
+            configuration.GetAttributeBody(code).Should().Be("Column(Order:=0, TypeName:=\"int\")");
         }
 
         [TestMethod]
@@ -59,7 +60,7 @@ using FluentAssertions;
             var configuration = new ColumnConfiguration { Name = "Id", Order = 0, TypeName = "int" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Column(\"Id\", Order = 0, TypeName = \"int\")", configuration.GetAttributeBody(code));
+            configuration.GetAttributeBody(code).Should().Be("Column(\"Id\", Order = 0, TypeName = \"int\")");
         }
 
         [TestMethod]
@@ -68,7 +69,7 @@ using FluentAssertions;
             var configuration = new ColumnConfiguration { Name = "Id" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(".HasColumnName(\"Id\")", configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".HasColumnName(\"Id\")");
         }
 
         [TestMethod]
@@ -77,7 +78,7 @@ using FluentAssertions;
             var configuration = new ColumnConfiguration { Order = 0 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(".HasColumnOrder(0)", configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".HasColumnOrder(0)");
         }
 
         [TestMethod]
@@ -86,7 +87,7 @@ using FluentAssertions;
             var configuration = new ColumnConfiguration { TypeName = "int" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(".HasColumnType(\"int\")", configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".HasColumnType(\"int\")");
         }
 
         [TestMethod]
@@ -95,9 +96,7 @@ using FluentAssertions;
             var configuration = new ColumnConfiguration { Name = "Id", Order = 0, TypeName = "int" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
-                ".HasColumnName(\"Id\").HasColumnOrder(0).HasColumnType(\"int\")",
-                configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".HasColumnName(\"Id\").HasColumnOrder(0).HasColumnType(\"int\")");
         }
     }
 }

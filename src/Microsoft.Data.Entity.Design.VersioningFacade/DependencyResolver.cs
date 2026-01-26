@@ -32,8 +32,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
             ProviderServicesResolver = new DbProviderServicesResolver();
             System.Diagnostics.Debug.WriteLine("[EF6Tools] DependencyResolver static ctor: ProviderServicesResolver initialized");
 
-            // Load SqlProviderServices at runtime - no compile-time dependency on EntityFramework.SqlServer.
-            // This avoids type collisions with EasyAF.Edmx while still supporting SQL Server.
+            // Load SqlProviderServices at runtime to support SQL Server.
             System.Diagnostics.Debug.WriteLine("[EF6Tools] DependencyResolver static ctor: Pre-registering SQL Server providers");
             var sqlProviderType = Type.GetType(
                 "System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer");
@@ -84,9 +83,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
         public static void RegisterProvider(Type type, string invariantName)
         {
             Debug.Assert(type != null, "type != null");
-            Debug.Assert(
-                typeof(DbProviderServices).IsAssignableFrom(type),
-                "expected type derived from DbProviderServices");
+            // Note: The resolver performs its own validation including cross-assembly type checks
             Debug.Assert(!string.IsNullOrWhiteSpace(invariantName), "invariantName cannot be null or empty string");
 
             ProviderServicesResolver.Register(type, invariantName);

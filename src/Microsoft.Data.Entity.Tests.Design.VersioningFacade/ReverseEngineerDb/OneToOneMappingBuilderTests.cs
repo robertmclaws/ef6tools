@@ -6,15 +6,14 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
    using System.Collections.Generic;
    using System.Data.Entity.Core.Common;
    using System.Data.Entity.Core.Metadata.Edm;
-   using System.Data.Entity.SqlServer;
    using System.Globalization;
    using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
 
    public partial class OneToOneMappingBuilderTests
     {
-        private static readonly DbProviderManifest ProviderManifest =
-            SqlProviderServices.Instance.GetProviderManifest("2008");
+        private static DbProviderManifest ProviderManifest =>
+            Utils.SqlProviderServicesInstance.GetProviderManifest("2008");
 
         [TestClass]
     public class BuildTests

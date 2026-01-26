@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
 {
     using System;
     using System.Xml.Linq;
+    using Microsoft.Data.Entity.Design.Model;
+    using Microsoft.Data.Entity.Design.Model.Entity;
     using Microsoft.Data.Entity.Design.VersioningFacade;
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class ConceptualEntityModelTests

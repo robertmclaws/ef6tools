@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
     using System;
     using System.Globalization;
+    using Microsoft.Data.Entity.Design.VersioningFacade;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EntityStoreSchemaFilterEntryTests
@@ -44,18 +46,19 @@ using FluentAssertions;
         [TestMethod]
         public void EntityStoreSchemaFilterEntry_ctor_throws_for_Types_None()
         {
-            Assert.Equal(
+            Action act = () => new EntityStoreSchemaFilterEntry(
+                null,
+                null,
+                null,
+                EntityStoreSchemaFilterObjectTypes.None,
+                EntityStoreSchemaFilterEffect.Exclude);
+
+            var exception = act.Should().Throw<ArgumentException>().Which;
+            exception.Message.Should().Be(
                 string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.InvalidStringArgument,
-                    "types"),
-                Assert.Throws<ArgumentException>(
-                    () => new EntityStoreSchemaFilterEntry(
-                              null,
-                              null,
-                              null,
-                              EntityStoreSchemaFilterObjectTypes.None,
-                              EntityStoreSchemaFilterEffect.Exclude)).Message);
+                    "types"));
         }
     }
 }

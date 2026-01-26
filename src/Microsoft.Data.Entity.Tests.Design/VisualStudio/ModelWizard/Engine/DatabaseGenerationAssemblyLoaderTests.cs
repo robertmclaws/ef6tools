@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
 {
     using System.IO;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
     using Microsoft.Data.Entity.Tests.Design.TestHelpers;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class DatabaseGenerationAssemblyLoaderTests
@@ -15,33 +16,24 @@ using FluentAssertions;
         {
             const string vsInstallPath = @"C:\My\Test\VS\InstallPath";
             var assemblyLoader = new DatabaseGenerationAssemblyLoader(null, vsInstallPath);
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.dll"),
-                assemblyLoader.GetAssemblyPath("EntityFramework"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.dll"),
-                assemblyLoader.GetAssemblyPath("entityframework"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.dll"),
-                assemblyLoader.GetAssemblyPath("ENTITYFRAMEWORK"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"),
-                assemblyLoader.GetAssemblyPath("EntityFramework.SqlServer"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"),
-                assemblyLoader.GetAssemblyPath("entityframework.sqlserver"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"),
-                assemblyLoader.GetAssemblyPath("ENTITYFRAMEWORK.SQLSERVER"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"),
-                assemblyLoader.GetAssemblyPath("EntityFramework.SqlServerCompact"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"),
-                assemblyLoader.GetAssemblyPath("entityframework.sqlservercompact"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"),
-                assemblyLoader.GetAssemblyPath("ENTITYFRAMEWORK.SQLSERVERCOMPACT"));
+            assemblyLoader.GetAssemblyPath("EntityFramework")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.dll"));
+            assemblyLoader.GetAssemblyPath("entityframework")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.dll"));
+            assemblyLoader.GetAssemblyPath("ENTITYFRAMEWORK")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.dll"));
+            assemblyLoader.GetAssemblyPath("EntityFramework.SqlServer")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"));
+            assemblyLoader.GetAssemblyPath("entityframework.sqlserver")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"));
+            assemblyLoader.GetAssemblyPath("ENTITYFRAMEWORK.SQLSERVER")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"));
+            assemblyLoader.GetAssemblyPath("EntityFramework.SqlServerCompact")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"));
+            assemblyLoader.GetAssemblyPath("entityframework.sqlservercompact")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"));
+            assemblyLoader.GetAssemblyPath("ENTITYFRAMEWORK.SQLSERVERCOMPACT")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"));
         }
 
         [TestMethod]
@@ -70,20 +62,16 @@ using FluentAssertions;
             var assemblyLoader = new DatabaseGenerationAssemblyLoader(project, vsInstallPath);
 
             // assert that the DLLs installed under VS are resolved there
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.dll"),
-                assemblyLoader.GetAssemblyPath("EntityFramework"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"),
-                assemblyLoader.GetAssemblyPath("EntityFramework.SqlServer"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"),
-                assemblyLoader.GetAssemblyPath("EntityFramework.SqlServerCompact"));
+            assemblyLoader.GetAssemblyPath("EntityFramework")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.dll"));
+            assemblyLoader.GetAssemblyPath("EntityFramework.SqlServer")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"));
+            assemblyLoader.GetAssemblyPath("EntityFramework.SqlServerCompact")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"));
 
             // assert that other project references are resolved to wherever their reference points to
-            Assert.Equal(
-                Path.Combine(projectPath, "My.Project.Reference.dll"),
-                assemblyLoader.GetAssemblyPath("My.Project.Reference"));
+            assemblyLoader.GetAssemblyPath("My.Project.Reference")
+                .Should().Be(Path.Combine(projectPath, "My.Project.Reference.dll"));
         }
 
         [TestMethod]
@@ -111,20 +99,16 @@ using FluentAssertions;
             var assemblyLoader = new DatabaseGenerationAssemblyLoader(project, vsInstallPath);
 
             // assert that the DLLs installed under VS are resolved there
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.dll"),
-                assemblyLoader.GetAssemblyPath("EntityFramework"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"),
-                assemblyLoader.GetAssemblyPath("EntityFramework.SqlServer"));
-            Assert.Equal(
-                Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"),
-                assemblyLoader.GetAssemblyPath("EntityFramework.SqlServerCompact"));
+            assemblyLoader.GetAssemblyPath("EntityFramework")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.dll"));
+            assemblyLoader.GetAssemblyPath("EntityFramework.SqlServer")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"));
+            assemblyLoader.GetAssemblyPath("EntityFramework.SqlServerCompact")
+                .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"));
 
             // assert that other project references are resolved to wherever their reference points to
-            Assert.Equal(
-                Path.Combine(projectPath, "My.WebsiteProject.Reference.dll"),
-                assemblyLoader.GetAssemblyPath("My.WebsiteProject.Reference"));
+            assemblyLoader.GetAssemblyPath("My.WebsiteProject.Reference")
+                .Should().Be(Path.Combine(projectPath, "My.WebsiteProject.Reference.dll"));
         }
     }
 }

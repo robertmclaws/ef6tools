@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
@@ -7,8 +7,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class MultiplicityDiscovererTests
@@ -31,12 +32,10 @@ using FluentAssertions;
             configuration.Should().NotBeNull();
             configuration.LeftEntityType.Should().BeSameAs(entityType);
             configuration.LeftNavigationProperty.Should().BeSameAs(navigationProperty);
-            Assert.Equal(
-                RelationshipMultiplicity.Many,
-                configuration.LeftNavigationProperty.FromEndMember.RelationshipMultiplicity);
-            Assert.Equal(
-                RelationshipMultiplicity.Many,
-                configuration.RightNavigationProperty.FromEndMember.RelationshipMultiplicity);
+            configuration.LeftNavigationProperty.FromEndMember.RelationshipMultiplicity.Should().Be(
+                RelationshipMultiplicity.Many);
+            configuration.RightNavigationProperty.FromEndMember.RelationshipMultiplicity.Should().Be(
+                RelationshipMultiplicity.Many);
         }
 
         [TestMethod]
@@ -56,12 +55,10 @@ using FluentAssertions;
             configuration.Should().NotBeNull();
             configuration.LeftEntityType.Should().BeSameAs(entityType);
             configuration.LeftNavigationProperty.Should().BeSameAs(navigationProperty);
-            Assert.Equal(
-                RelationshipMultiplicity.Many,
-                configuration.LeftNavigationProperty.FromEndMember.RelationshipMultiplicity);
-            Assert.Equal(
-                RelationshipMultiplicity.Many,
-                configuration.RightNavigationProperty.FromEndMember.RelationshipMultiplicity);
+            configuration.LeftNavigationProperty.FromEndMember.RelationshipMultiplicity.Should().Be(
+                RelationshipMultiplicity.Many);
+            configuration.RightNavigationProperty.FromEndMember.RelationshipMultiplicity.Should().Be(
+                RelationshipMultiplicity.Many);
         }
 
         [TestMethod]
@@ -82,12 +79,10 @@ using FluentAssertions;
             configuration.Should().NotBeNull();
             configuration.LeftEntityType.Should().BeSameAs(entityType);
             configuration.LeftNavigationProperty.Should().BeSameAs(navigationProperty);
-            Assert.Equal(
-                RelationshipMultiplicity.ZeroOrOne,
-                configuration.LeftNavigationProperty.FromEndMember.RelationshipMultiplicity);
-            Assert.Equal(
-                RelationshipMultiplicity.One,
-                configuration.RightNavigationProperty.FromEndMember.RelationshipMultiplicity);
+            configuration.LeftNavigationProperty.FromEndMember.RelationshipMultiplicity.Should().Be(
+                RelationshipMultiplicity.ZeroOrOne);
+            configuration.RightNavigationProperty.FromEndMember.RelationshipMultiplicity.Should().Be(
+                RelationshipMultiplicity.One);
         }
 
         private class Entity1

@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Generators
 {
     using System.Globalization;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
+    using Microsoft.Data.Entity.Design.CodeGeneration.Generators;
     using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class VBCodeFirstEmptyModelGeneratorTests
@@ -13,7 +15,7 @@ using FluentAssertions;
         [TestMethod]
         public void VBCodeFirstEmptyModelGeneratorTests_generates_code()
         {
-            var generatedCode = new 
+            var generatedCode = new
             VBCodeFirstEmptyModelGenerator()
 
                 .Generate(null, "ConsoleApplication.Data", "MyContext", "MyContextConnString");
@@ -25,7 +27,7 @@ using FluentAssertions;
                     "MyContext",
                     "ConsoleApplication.Data");
 
-            Assert.Equal(@"Imports System
+            generatedCode.Should().Be(@"Imports System
 Imports System.Data.Entity
 Imports System.Linq
 
@@ -46,7 +48,7 @@ End Class
 '    Public Property Id() As Int32
 '    Public Property Name() As String
 'End Class
-", generatedCode);
+");
         }
     }
 }

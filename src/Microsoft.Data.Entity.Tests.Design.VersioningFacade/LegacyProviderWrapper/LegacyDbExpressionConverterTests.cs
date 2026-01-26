@@ -11,6 +11,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.LegacyProviderWrap
     using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Linq;
+    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper;
     using Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper.LegacyMetadataExtensions;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
@@ -153,13 +154,9 @@ using FluentAssertions;
 
             legacyPropertyExpression.Should().NotBeNull();
             legacyPropertyExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Property);
-            Assert.Equal(
-                LegacyCommandTrees.DbExpressionKind.VariableReference,
-                legacyPropertyExpression.Instance.ExpressionKind);
-            Assert.Equal(
-                "Table",
-                ((LegacyCommandTrees.DbVariableReferenceExpression)legacyPropertyExpression.Instance)
-                    .VariableName);
+            legacyPropertyExpression.Instance.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.VariableReference);
+            ((LegacyCommandTrees.DbVariableReferenceExpression)legacyPropertyExpression.Instance)
+                    .VariableName.Should().Be("Table");
             legacyPropertyExpression.Property.Name.Should().Be("Id");
 
             TypeUsageVerificationHelper
@@ -187,12 +184,10 @@ using FluentAssertions;
                 LegacyCommandTrees.DbNewInstanceExpression;
 
             legacyNewInstanceExpressionCollection.Should().NotBeNull();
-            Assert.Equal(
-                LegacyCommandTrees.DbExpressionKind.NewInstance,
-                legacyNewInstanceExpressionCollection.ExpressionKind);
+            legacyNewInstanceExpressionCollection.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.NewInstance);
             legacyNewInstanceExpressionCollection.Arguments.Count.Should().Be(2);
-            Assert.IsType<LegacyCommandTrees.DbPropertyExpression>(legacyNewInstanceExpressionCollection.Arguments[0]);
-            Assert.IsType<LegacyCommandTrees.DbConstantExpression>(legacyNewInstanceExpressionCollection.Arguments[1]);
+            legacyNewInstanceExpressionCollection.Arguments[0].Should().BeOfType<LegacyCommandTrees.DbPropertyExpression>();
+            legacyNewInstanceExpressionCollection.Arguments[1].Should().BeOfType<LegacyCommandTrees.DbConstantExpression>();
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyNewInstanceExpressionCollection.ResultType, newInstanceExpressionCollection.ResultType);
@@ -221,12 +216,10 @@ using FluentAssertions;
                 LegacyCommandTrees.DbNewInstanceExpression;
 
             legacyNewInstanceExpressionRowType.Should().NotBeNull();
-            Assert.Equal(
-                LegacyCommandTrees.DbExpressionKind.NewInstance,
-                legacyNewInstanceExpressionRowType.ExpressionKind);
+            legacyNewInstanceExpressionRowType.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.NewInstance);
             legacyNewInstanceExpressionRowType.Arguments.Count.Should().Be(2);
-            Assert.IsType<LegacyCommandTrees.DbPropertyExpression>(legacyNewInstanceExpressionRowType.Arguments[0]);
-            Assert.IsType<LegacyCommandTrees.DbConstantExpression>(legacyNewInstanceExpressionRowType.Arguments[1]);
+            legacyNewInstanceExpressionRowType.Arguments[0].Should().BeOfType<LegacyCommandTrees.DbPropertyExpression>();
+            legacyNewInstanceExpressionRowType.Arguments[1].Should().BeOfType<LegacyCommandTrees.DbConstantExpression>();
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyNewInstanceExpressionRowType.ResultType, newInstanceExpressionRowType.ResultType);
@@ -266,9 +259,7 @@ using FluentAssertions;
 
             legacyProjectExpression.Should().NotBeNull();
             legacyProjectExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Project);
-            Assert.Equal(
-                LegacyCommandTrees.DbExpressionKind.NewInstance,
-                legacyProjectExpression.Projection.ExpressionKind);
+            legacyProjectExpression.Projection.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.NewInstance);
             legacyProjectExpression.Input.VariableName.Should().Be(projectExpression.Input.VariableName);
 
             TypeUsageVerificationHelper
@@ -324,14 +315,14 @@ using FluentAssertions;
                 .VerifyTypeUsagesEquivalent(legacySortExpression.Input.VariableType, sortExpression.Input.VariableType);
 
             legacySortExpression.SortOrder.Count.Should().Be(4);
-            (legacySortExpression.SortOrder.All(
-                    e => e.Expression.ExpressionKind == LegacyCommandTrees.DbExpressionKind.Property));
+            legacySortExpression.SortOrder.All(
+                    e => e.Expression.ExpressionKind == LegacyCommandTrees.DbExpressionKind.Property).Should().BeTrue();
             legacySortExpression.SortOrder[0].Ascending.Should().BeTrue();
-            Assert.Empty(legacySortExpression.SortOrder[0].Collation);
+            legacySortExpression.SortOrder[0].Collation.Should().BeEmpty();
             legacySortExpression.SortOrder[1].Ascending.Should().BeTrue();
             legacySortExpression.SortOrder[1].Collation.Should().Be("testCollationAscending");
             legacySortExpression.SortOrder[2].Ascending.Should().BeFalse();
-            Assert.Empty(legacySortExpression.SortOrder[2].Collation);
+            legacySortExpression.SortOrder[2].Collation.Should().BeEmpty();
             legacySortExpression.SortOrder[3].Ascending.Should().BeFalse();
             legacySortExpression.SortOrder[3].Collation.Should().Be("testCollationDescending");
 
@@ -359,15 +350,13 @@ using FluentAssertions;
                 _legacyDbExpressionConverter.Visit(comparisonExpression) as LegacyCommandTrees.DbComparisonExpression;
 
             legacyComparisonExpression.Should().NotBeNull();
-            Assert.Equal((int)comparisonExpression.ExpressionKind, (int)legacyComparisonExpression.ExpressionKind);
+            ((int)legacyComparisonExpression.ExpressionKind).Should().Be((int)comparisonExpression.ExpressionKind);
             legacyComparisonExpression.Left.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Constant);
-            Assert.Equal(
-                ((DbConstantExpression)comparisonExpression.Left).Value,
-                ((LegacyCommandTrees.DbConstantExpression)legacyComparisonExpression.Left).Value);
+            ((LegacyCommandTrees.DbConstantExpression)legacyComparisonExpression.Left).Value.Should().Be(
+                ((DbConstantExpression)comparisonExpression.Left).Value);
             legacyComparisonExpression.Right.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Constant);
-            Assert.Equal(
-                ((DbConstantExpression)comparisonExpression.Right).Value,
-                ((LegacyCommandTrees.DbConstantExpression)legacyComparisonExpression.Right).Value);
+            ((LegacyCommandTrees.DbConstantExpression)legacyComparisonExpression.Right).Value.Should().Be(
+                ((DbConstantExpression)comparisonExpression.Right).Value);
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyComparisonExpression.ResultType, comparisonExpression.ResultType);
@@ -394,12 +383,12 @@ using FluentAssertions;
 
             arithmeticExpression.Should().NotBeNull();
 
-            Assert.Equal((int)arithmeticExpression.ExpressionKind, (int)legacyArithmeticExpression.ExpressionKind);
+            ((int)legacyArithmeticExpression.ExpressionKind).Should().Be((int)arithmeticExpression.ExpressionKind);
             legacyArithmeticExpression.Arguments.Count.Should().Be(arithmeticExpression.Arguments.Count);
-            (arithmeticExpression.Arguments.Zip(
+            arithmeticExpression.Arguments.Zip(
                     legacyArithmeticExpression.Arguments,
                     (e1, e2) => ((DbConstantExpression)e1).Value == ((LegacyCommandTrees.DbConstantExpression)e2).Value)
-                    .All(r => r));
+                    .All(r => r).Should().BeTrue();
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyArithmeticExpression.ResultType, arithmeticExpression.ResultType);
@@ -435,9 +424,9 @@ using FluentAssertions;
             legacyCaseExpression.When[1].ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Equals);
 
             legacyCaseExpression.Then.Count.Should().Be(2);
-            (bool.Should().BeFalse()((LegacyCommandTrees.DbConstantExpression)legacyCaseExpression.Then[0]).Value);
-            (bool.Should().BeTrue()((LegacyCommandTrees.DbConstantExpression)legacyCaseExpression.Then[1]).Value);
-            (bool.Should().BeFalse()((LegacyCommandTrees.DbConstantExpression)legacyCaseExpression.Else).Value);
+            ((bool)((LegacyCommandTrees.DbConstantExpression)legacyCaseExpression.Then[0]).Value).Should().BeFalse();
+            ((bool)((LegacyCommandTrees.DbConstantExpression)legacyCaseExpression.Then[1]).Value).Should().BeTrue();
+            ((bool)((LegacyCommandTrees.DbConstantExpression)legacyCaseExpression.Else).Value).Should().BeFalse();
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyCaseExpression.ResultType, caseExpression.ResultType);
@@ -505,8 +494,8 @@ using FluentAssertions;
 
             legacyAndExpression.Should().NotBeNull();
             legacyAndExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.And);
-            (bool.Should().BeFalse()((LegacyCommandTrees.DbConstantExpression)legacyAndExpression.Left).Value);
-            (bool.Should().BeTrue()((LegacyCommandTrees.DbConstantExpression)legacyAndExpression.Right).Value);
+            ((bool)((LegacyCommandTrees.DbConstantExpression)legacyAndExpression.Left).Value).Should().BeFalse();
+            ((bool)((LegacyCommandTrees.DbConstantExpression)legacyAndExpression.Right).Value).Should().BeTrue();
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyAndExpression.ResultType, andExpression.ResultType);
@@ -524,8 +513,8 @@ using FluentAssertions;
 
             legacyOrExpression.Should().NotBeNull();
             legacyOrExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Or);
-            (bool.Should().BeFalse()((LegacyCommandTrees.DbConstantExpression)legacyOrExpression.Left).Value);
-            (bool.Should().BeTrue()((LegacyCommandTrees.DbConstantExpression)legacyOrExpression.Right).Value);
+            ((bool)((LegacyCommandTrees.DbConstantExpression)legacyOrExpression.Left).Value).Should().BeFalse();
+            ((bool)((LegacyCommandTrees.DbConstantExpression)legacyOrExpression.Right).Value).Should().BeTrue();
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyOrExpression.ResultType, orExpression.ResultType);
@@ -591,17 +580,17 @@ using FluentAssertions;
                 _legacyDbExpressionConverter.Visit(joinExpression) as LegacyCommandTrees.DbJoinExpression;
 
             legacyJoinExpression.Should().NotBeNull();
-            Assert.Equal((int)joinExpression.ExpressionKind, (int)legacyJoinExpression.ExpressionKind);
+            ((int)legacyJoinExpression.ExpressionKind).Should().Be((int)joinExpression.ExpressionKind);
             legacyJoinExpression.Left.Expression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Scan);
-            Assert.Equal("EntitiesSet", ((LegacyCommandTrees.DbScanExpression)legacyJoinExpression.Left.Expression).Target.Name);
+            ((LegacyCommandTrees.DbScanExpression)legacyJoinExpression.Left.Expression).Target.Name.Should().Be("EntitiesSet");
             legacyJoinExpression.Left.VariableName.Should().Be("leftTable");
             legacyJoinExpression.Right.Expression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Scan);
-            Assert.Equal("OtherEntitiesSet", ((LegacyCommandTrees.DbScanExpression)legacyJoinExpression.Right.Expression).Target.Name);
+            ((LegacyCommandTrees.DbScanExpression)legacyJoinExpression.Right.Expression).Target.Name.Should().Be("OtherEntitiesSet");
             legacyJoinExpression.Right.VariableName.Should().Be("rightTable");
             legacyJoinExpression.JoinCondition.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Equals);
             var comparisonExpression = (LegacyCommandTrees.DbComparisonExpression)legacyJoinExpression.JoinCondition;
-            Assert.Equal("Entities", ((LegacyCommandTrees.DbPropertyExpression)comparisonExpression.Left).Property.DeclaringType.Name);
-            Assert.Equal("OtherEntities", ((LegacyCommandTrees.DbPropertyExpression)comparisonExpression.Right).Property.DeclaringType.Name);
+            ((LegacyCommandTrees.DbPropertyExpression)comparisonExpression.Left).Property.DeclaringType.Name.Should().Be("Entities");
+            ((LegacyCommandTrees.DbPropertyExpression)comparisonExpression.Right).Property.DeclaringType.Name.Should().Be("OtherEntities");
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyJoinExpression.ResultType, joinExpression.ResultType);
         }
@@ -632,11 +621,10 @@ using FluentAssertions;
             legacyCrossJoinExpression.Should().NotBeNull();
             legacyCrossJoinExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.CrossJoin);
             legacyCrossJoinExpression.Inputs[0].Expression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Scan);
-            Assert.Equal("EntitiesSet", ((LegacyCommandTrees.DbScanExpression)legacyCrossJoinExpression.Inputs[0].Expression).Target.Name);
+            ((LegacyCommandTrees.DbScanExpression)legacyCrossJoinExpression.Inputs[0].Expression).Target.Name.Should().Be("EntitiesSet");
             legacyCrossJoinExpression.Inputs[0].VariableName.Should().Be("table1");
             legacyCrossJoinExpression.Inputs[1].Expression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Scan);
-            Assert.Equal(
-                "OtherEntitiesSet", ((LegacyCommandTrees.DbScanExpression)legacyCrossJoinExpression.Inputs[1].Expression).Target.Name);
+            ((LegacyCommandTrees.DbScanExpression)legacyCrossJoinExpression.Inputs[1].Expression).Target.Name.Should().Be("OtherEntitiesSet");
             legacyCrossJoinExpression.Inputs[1].VariableName.Should().Be("table2");
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyCrossJoinExpression.ResultType, crossJoinExpression.ResultType);
@@ -683,7 +671,7 @@ using FluentAssertions;
 
             legacyNotExpression.Should().NotBeNull();
             legacyNotExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Not);
-            (bool.Should().BeTrue()((LegacyCommandTrees.DbConstantExpression)legacyNotExpression.Argument).Value);
+            ((bool)((LegacyCommandTrees.DbConstantExpression)legacyNotExpression.Argument).Value).Should().BeTrue();
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyNotExpression.ResultType, notExpression.ResultType);
         }
@@ -709,8 +697,8 @@ using FluentAssertions;
             legacyLikeExpression.Should().NotBeNull();
             legacyLikeExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Like);
             legacyLikeExpression.Argument.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Property);
-            Assert.Equal("foo", (string)((LegacyCommandTrees.DbConstantExpression)legacyLikeExpression.Pattern).Value);
-            Assert.Equal("bar", (string)((LegacyCommandTrees.DbConstantExpression)legacyLikeExpression.Escape).Value);
+            ((string)((LegacyCommandTrees.DbConstantExpression)legacyLikeExpression.Pattern).Value).Should().Be("foo");
+            ((string)((LegacyCommandTrees.DbConstantExpression)legacyLikeExpression.Escape).Value).Should().Be("bar");
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyLikeExpression.ResultType, likeExpression.ResultType);
         }
@@ -744,7 +732,7 @@ using FluentAssertions;
 
             legacyCastExpression.Should().NotBeNull();
             legacyCastExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Cast);
-            Assert.Equal(42, (int)((LegacyCommandTrees.DbConstantExpression)legacyCastExpression.Argument).Value);
+            ((int)((LegacyCommandTrees.DbConstantExpression)legacyCastExpression.Argument).Value).Should().Be(42);
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyCastExpression.ResultType, castExpression.ResultType);
         }
@@ -765,7 +753,7 @@ using FluentAssertions;
             legacyDistinctExpression.Should().NotBeNull();
             legacyDistinctExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Distinct);
             legacyDistinctExpression.Argument.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Scan);
-            Assert.Equal("EntitiesSet", ((LegacyCommandTrees.DbScanExpression)legacyDistinctExpression.Argument).Target.Name);
+            ((LegacyCommandTrees.DbScanExpression)legacyDistinctExpression.Argument).Target.Name.Should().Be("EntitiesSet");
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyDistinctExpression.ResultType, distinctExpression.ResultType);
         }
@@ -798,10 +786,8 @@ using FluentAssertions;
             legacySkipExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Skip);
             legacySkipExpression.Input.VariableName.Should().Be("Table");
             legacySkipExpression.Input.Expression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Scan);
-            Assert.Equal(
-                "Id",
-                ((LegacyCommandTrees.DbPropertyExpression)legacySkipExpression.SortOrder.Single().Expression).Property.Name);
-            Assert.Equal(42, ((LegacyCommandTrees.DbConstantExpression)legacySkipExpression.Count).Value);
+            ((LegacyCommandTrees.DbPropertyExpression)legacySkipExpression.SortOrder.Single().Expression).Property.Name.Should().Be("Id");
+            ((LegacyCommandTrees.DbConstantExpression)legacySkipExpression.Count).Value.Should().Be(42);
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacySkipExpression.ResultType, skipExpression.ResultType);
         }
@@ -824,8 +810,8 @@ using FluentAssertions;
             legacyLimitExpression.Should().NotBeNull();
             legacyLimitExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Limit);
             legacyLimitExpression.Argument.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Scan);
-            Assert.Equal("EntitiesSet", ((LegacyCommandTrees.DbScanExpression)legacyLimitExpression.Argument).Target.Name);
-            Assert.Equal(42, ((LegacyCommandTrees.DbConstantExpression)legacyLimitExpression.Limit).Value);
+            ((LegacyCommandTrees.DbScanExpression)legacyLimitExpression.Argument).Target.Name.Should().Be("EntitiesSet");
+            ((LegacyCommandTrees.DbConstantExpression)legacyLimitExpression.Limit).Value.Should().Be(42);
             legacyLimitExpression.WithTies.Should().Be(limitExpression.WithTies);
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyLimitExpression.ResultType, limitExpression.ResultType);
@@ -845,17 +831,13 @@ using FluentAssertions;
             legacyExceptExpression.Should().NotBeNull();
             legacyExceptExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Except);
 
-            Assert.Equal(
-                42,
-                ((LegacyCommandTrees.DbConstantExpression)
-                 ((LegacyCommandTrees.DbNewInstanceExpression)legacyExceptExpression.Left).Arguments.Single())
-                    .Value);
+            ((LegacyCommandTrees.DbConstantExpression)
+             ((LegacyCommandTrees.DbNewInstanceExpression)legacyExceptExpression.Left).Arguments.Single())
+                .Value.Should().Be(42);
 
-            Assert.Equal(
-                24,
-                ((LegacyCommandTrees.DbConstantExpression)
-                 ((LegacyCommandTrees.DbNewInstanceExpression)legacyExceptExpression.Right).Arguments.Single())
-                    .Value);
+            ((LegacyCommandTrees.DbConstantExpression)
+             ((LegacyCommandTrees.DbNewInstanceExpression)legacyExceptExpression.Right).Arguments.Single())
+                .Value.Should().Be(24);
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyExceptExpression.ResultType, exceptExpression.ResultType);
@@ -875,17 +857,13 @@ using FluentAssertions;
             legacyIntersectExpression.Should().NotBeNull();
             legacyIntersectExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Intersect);
 
-            Assert.Equal(
-                42,
-                ((LegacyCommandTrees.DbConstantExpression)
-                 ((LegacyCommandTrees.DbNewInstanceExpression)legacyIntersectExpression.Left).Arguments.Single())
-                    .Value);
+            ((LegacyCommandTrees.DbConstantExpression)
+             ((LegacyCommandTrees.DbNewInstanceExpression)legacyIntersectExpression.Left).Arguments.Single())
+                .Value.Should().Be(42);
 
-            Assert.Equal(
-                24,
-                ((LegacyCommandTrees.DbConstantExpression)
-                 ((LegacyCommandTrees.DbNewInstanceExpression)legacyIntersectExpression.Right).Arguments.Single())
-                    .Value);
+            ((LegacyCommandTrees.DbConstantExpression)
+             ((LegacyCommandTrees.DbNewInstanceExpression)legacyIntersectExpression.Right).Arguments.Single())
+                .Value.Should().Be(24);
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyIntersectExpression.ResultType, intersectExpression.ResultType);
@@ -903,11 +881,9 @@ using FluentAssertions;
 
             legacyIsEmptyExpression.Should().NotBeNull();
             legacyIsEmptyExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.IsEmpty);
-            Assert.Equal(
-                42,
-                (((LegacyCommandTrees.DbConstantExpression)
-                  ((LegacyCommandTrees.DbNewInstanceExpression)legacyIsEmptyExpression.Argument).Arguments.Single())
-                    .Value));
+            ((LegacyCommandTrees.DbConstantExpression)
+              ((LegacyCommandTrees.DbNewInstanceExpression)legacyIsEmptyExpression.Argument).Arguments.Single())
+                .Value.Should().Be(42);
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyIsEmptyExpression.ResultType, isEmptyExpression.ResultType);
@@ -925,11 +901,9 @@ using FluentAssertions;
 
             legacyElementExpression.Should().NotBeNull();
             legacyElementExpression.ExpressionKind.Should().Be(LegacyCommandTrees.DbExpressionKind.Element);
-            Assert.Equal(
-                42,
-                (((LegacyCommandTrees.DbConstantExpression)
-                  ((LegacyCommandTrees.DbNewInstanceExpression)legacyElementExpression.Argument).Arguments.Single())
-                    .Value));
+            ((LegacyCommandTrees.DbConstantExpression)
+              ((LegacyCommandTrees.DbNewInstanceExpression)legacyElementExpression.Argument).Arguments.Single())
+                .Value.Should().Be(42);
 
             TypeUsageVerificationHelper
                 .VerifyTypeUsagesEquivalent(legacyElementExpression.ResultType, elementExpression.ResultType);

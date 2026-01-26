@@ -2,8 +2,9 @@
 
 namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
 {
+    using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class SvgStylesheetManagerTests
@@ -117,7 +118,7 @@ using FluentAssertions;
             var result = _manager.GetStyleDefinitions();
 
             // Should start with proper indentation for embedding in SVG defs
-            result.StartsWith("    <style>".Should().BeTrue());
+            result.Should().StartWith("    <style>");
         }
 
         #endregion

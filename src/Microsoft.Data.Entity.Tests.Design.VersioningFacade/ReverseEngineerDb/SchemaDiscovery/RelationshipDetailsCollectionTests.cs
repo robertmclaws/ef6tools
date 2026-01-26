@@ -5,7 +5,8 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
     using System;
     using System.Data;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
 
     [TestClass]
     public class RelationshipDetailsCollectionTests

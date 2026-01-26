@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class FixedLengthDiscovererTests
@@ -20,7 +21,7 @@ using FluentAssertions;
             var entityType = model.ConceptualModel.EntityTypes.First();
             var property = entityType.Properties.First(p => p.Name == "Id");
 
-            new FixedLengthDiscoverer(.Should().BeNull().Discover(property, model));
+            new FixedLengthDiscoverer().Discover(property, model).Should().BeNull();
         }
 
         [TestMethod]
@@ -32,7 +33,7 @@ using FluentAssertions;
             var entityType = model.ConceptualModel.EntityTypes.First();
             var property = entityType.Properties.First(p => p.Name == "Name");
 
-            new FixedLengthDiscoverer(.Should().BeNull().Discover(property, model));
+            new FixedLengthDiscoverer().Discover(property, model).Should().BeNull();
         }
 
         [TestMethod]

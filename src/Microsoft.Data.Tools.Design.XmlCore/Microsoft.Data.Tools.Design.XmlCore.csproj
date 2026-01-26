@@ -44,6 +44,12 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Data.Tools.Design.XmlCore, $(StrongNamePublicKey)" />
     <InternalsVisibleTo Include="Microsoft.Data.Entity.Design.DataSourceWizardExtension, $(StrongNamePublicKey)" />
     <InternalsVisibleTo Include="Microsoft.Data.Entity.Design.Model, $(StrongNamePublicKey)" />
+    <!-- Test projects -->
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.EntityDesigner, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.Model, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.Package, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Data.Tools.Tests.Design.XmlCore, $(StrongNamePublicKey)" />
     <!-- Legacy test projects -->
     <InternalsVisibleTo Include="EFDesigner.InProcTests, $(StrongNamePublicKey)" />
     <InternalsVisibleTo Include="EFDesigner.FunctionalTests, $(StrongNamePublicKey)" />

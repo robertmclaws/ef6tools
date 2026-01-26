@@ -1,17 +1,18 @@
-﻿
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
     using System.Collections;
     using EnvDTE;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.Data.Entity.Design.CodeGeneration.Generators;
     using Microsoft.Data.Entity.Design.Common;
+    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
     using System;
     using System.Linq;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
     using VSLangProj;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class CodeGeneratorFactoryTests
@@ -21,10 +22,10 @@ using FluentAssertions;
         {
             var generatorFactory = new CodeGeneratorFactory(Mock.Of<Project>());
 
-            Assert.IsType<CSharpCodeFirstEmptyModelGenerator>(
-                generatorFactory.GetContextGenerator(LangEnum.CSharp, isEmptyModel: true));
-            Assert.IsType<VBCodeFirstEmptyModelGenerator>(
-                generatorFactory.GetContextGenerator(LangEnum.VisualBasic, isEmptyModel: true));
+            generatorFactory.GetContextGenerator(LangEnum.CSharp, isEmptyModel: true)
+                .Should().BeOfType<CSharpCodeFirstEmptyModelGenerator>();
+            generatorFactory.GetContextGenerator(LangEnum.VisualBasic, isEmptyModel: true)
+                .Should().BeOfType<VBCodeFirstEmptyModelGenerator>();
         }
 
         [TestMethod]
@@ -32,10 +33,10 @@ using FluentAssertions;
         {
             var generatorFactory = new CodeGeneratorFactory(Mock.Of<Project>());
 
-            Assert.IsType<DefaultCSharpContextGenerator>(
-                generatorFactory.GetContextGenerator(LangEnum.CSharp, isEmptyModel: false));
-            Assert.IsType<DefaultVBContextGenerator>(
-                generatorFactory.GetContextGenerator(LangEnum.VisualBasic, isEmptyModel: false));
+            generatorFactory.GetContextGenerator(LangEnum.CSharp, isEmptyModel: false)
+                .Should().BeOfType<DefaultCSharpContextGenerator>();
+            generatorFactory.GetContextGenerator(LangEnum.VisualBasic, isEmptyModel: false)
+                .Should().BeOfType<DefaultVBContextGenerator>();
         }
 
         [TestMethod]
@@ -45,7 +46,8 @@ using FluentAssertions;
 
             var generatorFactory = new CodeGeneratorFactory(mockDte.Project);
 
-            Assert.IsType<CustomGenerator>(generatorFactory.GetContextGenerator(LangEnum.CSharp, isEmptyModel: false));
+            generatorFactory.GetContextGenerator(LangEnum.CSharp, isEmptyModel: false)
+                .Should().BeOfType<CustomGenerator>();
         }
 
         [TestMethod]
@@ -55,7 +57,8 @@ using FluentAssertions;
 
             var generatorFactory = new CodeGeneratorFactory(mockDte.Project);
 
-            Assert.IsType<CustomGenerator>(generatorFactory.GetContextGenerator(LangEnum.VisualBasic, isEmptyModel: false));
+            generatorFactory.GetContextGenerator(LangEnum.VisualBasic, isEmptyModel: false)
+                .Should().BeOfType<CustomGenerator>();
         }
 
         [TestMethod]
@@ -63,10 +66,10 @@ using FluentAssertions;
         {
             var generatorFactory = new CodeGeneratorFactory(Mock.Of<Project>());
 
-            Assert.IsType<DefaultCSharpEntityTypeGenerator>(
-                generatorFactory.GetEntityTypeGenerator(LangEnum.CSharp));
-            Assert.IsType<DefaultVBEntityTypeGenerator>(
-                generatorFactory.GetEntityTypeGenerator(LangEnum.VisualBasic));
+            generatorFactory.GetEntityTypeGenerator(LangEnum.CSharp)
+                .Should().BeOfType<DefaultCSharpEntityTypeGenerator>();
+            generatorFactory.GetEntityTypeGenerator(LangEnum.VisualBasic)
+                .Should().BeOfType<DefaultVBEntityTypeGenerator>();
         }
 
         [TestMethod]
@@ -76,7 +79,8 @@ using FluentAssertions;
 
             var generatorFactory = new CodeGeneratorFactory(mockDte.Project);
 
-            Assert.IsType<CustomGenerator>(generatorFactory.GetEntityTypeGenerator(LangEnum.CSharp));
+            generatorFactory.GetEntityTypeGenerator(LangEnum.CSharp)
+                .Should().BeOfType<CustomGenerator>();
         }
 
         [TestMethod]
@@ -86,14 +90,15 @@ using FluentAssertions;
 
             var generatorFactory = new CodeGeneratorFactory(mockDte.Project);
 
-            Assert.IsType<CustomGenerator>(generatorFactory.GetEntityTypeGenerator(LangEnum.CSharp));
+            generatorFactory.GetEntityTypeGenerator(LangEnum.CSharp)
+                .Should().BeOfType<CustomGenerator>();
         }
 
         private static MockDTE SetupMockProjectWithCustomizedTemplate(string templatePath)
         {
             Mock<ProjectItem> mockChildProjectItem = null;
 
-            foreach (var step in templatePath.Split('\\').Reverse())
+            foreach (var step in Enumerable.Reverse(templatePath.Split('\\')))
             {
                 var mockProjectItem = MockDTE.CreateProjectItem(step);
 
@@ -109,7 +114,7 @@ using FluentAssertions;
                 mockProjectItem.
                     Setup(i => i.Properties)
                     .Returns(mockProperties.Object);
-                    
+
                 mockProjectItem
                     .Setup(p => p.ProjectItems)
                     .Returns(CreateProjectItems(mockChildProjectItem == null ? null : mockChildProjectItem.Object));

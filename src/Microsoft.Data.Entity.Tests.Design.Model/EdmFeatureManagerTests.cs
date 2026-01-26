@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
     using System;
     using Microsoft.Data.Entity.Design.Base.Context;
+    using Microsoft.Data.Entity.Design.Model;
     using Microsoft.Data.Entity.Design.VersioningFacade;
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EdmFeatureManagerTests
@@ -16,49 +17,40 @@ using FluentAssertions;
         [TestMethod]
         public void FunctionImportReturningComplexType_disabled_only_for_v1_schema_version()
         {
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetFunctionImportReturningComplexTypeFeatureState(EntityFrameworkVersion.Version1));
+            EdmFeatureManager.GetFunctionImportReturningComplexTypeFeatureState(EntityFrameworkVersion.Version1)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetFunctionImportReturningComplexTypeFeatureState(EntityFrameworkVersion.Version2));
+            EdmFeatureManager.GetFunctionImportReturningComplexTypeFeatureState(EntityFrameworkVersion.Version2)
+                .Should().Be(FeatureState.VisibleAndEnabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetFunctionImportReturningComplexTypeFeatureState(EntityFrameworkVersion.Version3));
+            EdmFeatureManager.GetFunctionImportReturningComplexTypeFeatureState(EntityFrameworkVersion.Version3)
+                .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
         public void EnumTypes_enabled_only_for_v3_schema_version()
         {
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetEnumTypeFeatureState(EntityFrameworkVersion.Version1));
+            EdmFeatureManager.GetEnumTypeFeatureState(EntityFrameworkVersion.Version1)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetEnumTypeFeatureState(EntityFrameworkVersion.Version2));
+            EdmFeatureManager.GetEnumTypeFeatureState(EntityFrameworkVersion.Version2)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetEnumTypeFeatureState(EntityFrameworkVersion.Version3));
+            EdmFeatureManager.GetEnumTypeFeatureState(EntityFrameworkVersion.Version3)
+                .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
         public void EnumTypes_enabled_only_for_v3_artifacts()
         {
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                IsFeatureEnabledForArtifact(EntityFrameworkVersion.Version1, EdmFeatureManager.GetEnumTypeFeatureState));
+            IsFeatureEnabledForArtifact(EntityFrameworkVersion.Version1, EdmFeatureManager.GetEnumTypeFeatureState)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                IsFeatureEnabledForArtifact(EntityFrameworkVersion.Version2, EdmFeatureManager.GetEnumTypeFeatureState));
+            IsFeatureEnabledForArtifact(EntityFrameworkVersion.Version2, EdmFeatureManager.GetEnumTypeFeatureState)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                IsFeatureEnabledForArtifact(EntityFrameworkVersion.Version3, EdmFeatureManager.GetEnumTypeFeatureState));
+            IsFeatureEnabledForArtifact(EntityFrameworkVersion.Version3, EdmFeatureManager.GetEnumTypeFeatureState)
+                .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
@@ -66,11 +58,10 @@ using FluentAssertions;
         {
             foreach (var targetSchemaVersion in EntityFrameworkVersion.GetAllVersions())
             {
-                Assert.Equal(
-                    FeatureState.VisibleAndEnabled,
-                    IsFeatureEnabledForArtifact(
-                        targetSchemaVersion,
-                        EdmFeatureManager.GetFunctionImportColumnInformationFeatureState));
+                IsFeatureEnabledForArtifact(
+                    targetSchemaVersion,
+                    EdmFeatureManager.GetFunctionImportColumnInformationFeatureState)
+                    .Should().Be(FeatureState.VisibleAndEnabled);
             }
         }
 
@@ -96,113 +87,92 @@ using FluentAssertions;
         [TestMethod]
         public void FunctionImportMapping_disabled_only_for_v1_schema_version()
         {
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetFunctionImportMappingFeatureState(EntityFrameworkVersion.Version1));
+            EdmFeatureManager.GetFunctionImportMappingFeatureState(EntityFrameworkVersion.Version1)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetFunctionImportMappingFeatureState(EntityFrameworkVersion.Version2));
+            EdmFeatureManager.GetFunctionImportMappingFeatureState(EntityFrameworkVersion.Version2)
+                .Should().Be(FeatureState.VisibleAndEnabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetFunctionImportMappingFeatureState(EntityFrameworkVersion.Version3));
+            EdmFeatureManager.GetFunctionImportMappingFeatureState(EntityFrameworkVersion.Version3)
+                .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
         public void ForeignKeys_disabled_only_for_v1_schema_version()
         {
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetForeignKeysInModelFeatureState(EntityFrameworkVersion.Version1));
+            EdmFeatureManager.GetForeignKeysInModelFeatureState(EntityFrameworkVersion.Version1)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetForeignKeysInModelFeatureState(EntityFrameworkVersion.Version2));
+            EdmFeatureManager.GetForeignKeysInModelFeatureState(EntityFrameworkVersion.Version2)
+                .Should().Be(FeatureState.VisibleAndEnabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetForeignKeysInModelFeatureState(EntityFrameworkVersion.Version3));
+            EdmFeatureManager.GetForeignKeysInModelFeatureState(EntityFrameworkVersion.Version3)
+                .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
         public void UpdateViews_disabled_only_for_v1_schema_version()
         {
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetGenerateUpdateViewsFeatureState(EntityFrameworkVersion.Version1));
+            EdmFeatureManager.GetGenerateUpdateViewsFeatureState(EntityFrameworkVersion.Version1)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetGenerateUpdateViewsFeatureState(EntityFrameworkVersion.Version2));
+            EdmFeatureManager.GetGenerateUpdateViewsFeatureState(EntityFrameworkVersion.Version2)
+                .Should().Be(FeatureState.VisibleAndEnabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetGenerateUpdateViewsFeatureState(EntityFrameworkVersion.Version3));
+            EdmFeatureManager.GetGenerateUpdateViewsFeatureState(EntityFrameworkVersion.Version3)
+                .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
         public void EntityContainerTypeAccess_disabled_only_for_v1_schema_version()
         {
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetEntityContainerTypeAccessFeatureState(EntityFrameworkVersion.Version1));
+            EdmFeatureManager.GetEntityContainerTypeAccessFeatureState(EntityFrameworkVersion.Version1)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetEntityContainerTypeAccessFeatureState(EntityFrameworkVersion.Version2));
+            EdmFeatureManager.GetEntityContainerTypeAccessFeatureState(EntityFrameworkVersion.Version2)
+                .Should().Be(FeatureState.VisibleAndEnabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetEntityContainerTypeAccessFeatureState(EntityFrameworkVersion.Version3));
+            EdmFeatureManager.GetEntityContainerTypeAccessFeatureState(EntityFrameworkVersion.Version3)
+                .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
         public void LazyLoading_disabled_only_for_v1_schema_version()
         {
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetLazyLoadingFeatureState(EntityFrameworkVersion.Version1));
+            EdmFeatureManager.GetLazyLoadingFeatureState(EntityFrameworkVersion.Version1)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetLazyLoadingFeatureState(EntityFrameworkVersion.Version2));
+            EdmFeatureManager.GetLazyLoadingFeatureState(EntityFrameworkVersion.Version2)
+                .Should().Be(FeatureState.VisibleAndEnabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetLazyLoadingFeatureState(EntityFrameworkVersion.Version3));
+            EdmFeatureManager.GetLazyLoadingFeatureState(EntityFrameworkVersion.Version3)
+                .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
         public void ComposableFunctionImport_enabled_only_for_v3_schema_version()
         {
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetComposableFunctionImportFeatureState(EntityFrameworkVersion.Version1));
+            EdmFeatureManager.GetComposableFunctionImportFeatureState(EntityFrameworkVersion.Version1)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetComposableFunctionImportFeatureState(EntityFrameworkVersion.Version2));
+            EdmFeatureManager.GetComposableFunctionImportFeatureState(EntityFrameworkVersion.Version2)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetComposableFunctionImportFeatureState(EntityFrameworkVersion.Version3));
+            EdmFeatureManager.GetComposableFunctionImportFeatureState(EntityFrameworkVersion.Version3)
+                .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
         public void SpatialTypes_enabled_only_for_v3_schema_version()
         {
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetUseStrongSpatialTypesFeatureState(EntityFrameworkVersion.Version1));
+            EdmFeatureManager.GetUseStrongSpatialTypesFeatureState(EntityFrameworkVersion.Version1)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleButDisabled,
-                EdmFeatureManager.GetUseStrongSpatialTypesFeatureState(EntityFrameworkVersion.Version2));
+            EdmFeatureManager.GetUseStrongSpatialTypesFeatureState(EntityFrameworkVersion.Version2)
+                .Should().Be(FeatureState.VisibleButDisabled);
 
-            Assert.Equal(
-                FeatureState.VisibleAndEnabled,
-                EdmFeatureManager.GetUseStrongSpatialTypesFeatureState(EntityFrameworkVersion.Version3));
+            EdmFeatureManager.GetUseStrongSpatialTypesFeatureState(EntityFrameworkVersion.Version3)
+                .Should().Be(FeatureState.VisibleAndEnabled);
         }
     }
 }

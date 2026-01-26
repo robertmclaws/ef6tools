@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
@@ -6,8 +6,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class JoinTableDiscovererTests
@@ -22,7 +23,7 @@ using FluentAssertions;
             var entityType = model.ConceptualModel.EntityTypes.First(t => t.Name == "Entity1");
             var navigationProperty = entityType.NavigationProperties.First(p => p.Name == "Entity2s");
 
-            new JoinTableDiscoverer(.Should().BeNull().Discover(navigationProperty, model));
+            new JoinTableDiscoverer().Discover(navigationProperty, model).Should().BeNull();
         }
 
         [TestMethod]
@@ -42,8 +43,8 @@ using FluentAssertions;
             configuration.Should().NotBeNull();
             configuration.Schema.Should().BeNull();
             configuration.Table.Should().Be("Entity1Entity2");
-            Assert.Empty(configuration.LeftKeys);
-            Assert.Empty(configuration.RightKeys);
+            configuration.LeftKeys.Should().BeEmpty();
+            configuration.RightKeys.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -63,8 +64,8 @@ using FluentAssertions;
             configuration.Should().NotBeNull();
             configuration.Schema.Should().BeNull();
             configuration.Table.Should().Be("Entity1Entity2");
-            Assert.Empty(configuration.LeftKeys);
-            Assert.Empty(configuration.RightKeys);
+            configuration.LeftKeys.Should().BeEmpty();
+            configuration.RightKeys.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -85,8 +86,8 @@ using FluentAssertions;
             configuration.Should().NotBeNull();
             configuration.Schema.Should().Be("new");
             configuration.Table.Should().Be("Associations");
-            Assert.Equal<string>(new[] { "Entity1Id" }, configuration.LeftKeys);
-            Assert.Equal<string>(new[] { "Entity2Id" }, configuration.RightKeys);
+            configuration.LeftKeys.Should().BeEquivalentTo(new[] { "Entity1Id" });
+            configuration.RightKeys.Should().BeEquivalentTo(new[] { "Entity2Id" });
         }
 
         private class Entity1

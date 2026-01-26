@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using LegacyMetadata = System.Data.Metadata.Edm;
 
@@ -9,8 +9,9 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.LegacyProviderWrap
     using System.IO;
     using System.Linq;
     using System.Xml;
+    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper.LegacyMetadataExtensions;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class TypeUsageExtensionsTests
@@ -120,7 +121,7 @@ using FluentAssertions;
             {
                 var primitiveTypeKind = (PrimitiveTypeKind)Enum.Parse(typeof(PrimitiveTypeKind), legacyPrimitiveTypeKind.ToString());
 
-                Assert.Equal((int)legacyPrimitiveTypeKind, (int)primitiveTypeKind);
+                ((int)primitiveTypeKind).Should().Be((int)legacyPrimitiveTypeKind);
             }
         }
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
@@ -7,12 +7,13 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
     using System.Linq;
     using System.Xml;
     using EnvDTE;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio;
+    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
     using Moq;
     using Moq.Protected;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using VSLangProj;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using VSLangProj;
 
     [TestClass]
     public class RetargettingHandlerTests
@@ -62,7 +63,7 @@ using FluentAssertions;
                 .Setup("WriteModifiedFiles", ItExpr.IsAny<Project>(), ItExpr.IsAny<Dictionary<string, object>>())
                 .Callback(
                     (Project project, Dictionary<string, object> documentMap) =>
-                    Assert.Equal(fileInfos.Select(f => f.Path), documentMap.Keys));
+                    documentMap.Keys.Should().BeEquivalentTo(fileInfos.Select(f => f.Path)));
 
             mockRetargetingHandler.Object.RetargetFilesInProject();
 
@@ -111,7 +112,7 @@ using FluentAssertions;
                 .Protected()
                 .Setup("WriteModifiedFiles", ItExpr.IsAny<Project>(), ItExpr.IsAny<Dictionary<string, object>>())
                 .Callback(
-                    (Project project, Dictionary<string, object> documentMap) => Assert.Empty(documentMap));
+                    (Project project, Dictionary<string, object> documentMap) => documentMap.Should().BeEmpty());
 
             mockRetargetingHandler.Object.RetargetFilesInProject();
 

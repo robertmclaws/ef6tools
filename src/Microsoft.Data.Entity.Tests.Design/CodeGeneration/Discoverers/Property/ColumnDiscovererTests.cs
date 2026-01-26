@@ -5,8 +5,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class ColumnDiscovererTests
@@ -21,7 +22,9 @@ using FluentAssertions;
             var entityType = model.ConceptualModel.EntityTypes.First();
             var property = entityType.Properties.First(p => p.Name == "Id");
 
-            new ColumnDiscoverer(code.Should().BeNull().Discover(property, model));
+            var configuration = new ColumnDiscoverer(code).Discover(property, model);
+
+            configuration.Should().BeNull();
         }
 
         [TestMethod]

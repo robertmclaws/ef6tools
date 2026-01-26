@@ -6,6 +6,8 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
    using System.Data.Entity.Core.Metadata.Edm;
    using System.Data.Entity.Infrastructure.Pluralization;
    using System.Linq;
+   using Microsoft.Data.Entity.Design.VersioningFacade;
+   using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
    using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
@@ -945,10 +947,10 @@ using FluentAssertions;
 
                var mappingContext = CreateOneToOneMappingBuilder().Build(storeModel);
 
-               Assert.Equal(1, mappingContext.StoreAssociationTypes().Count());
-               Assert.Equal(1, mappingContext.StoreAssociationSets().Count());
-               Assert.Equal(2, mappingContext.StoreAssociationEndMembers().Count());
-               Assert.Equal(2, mappingContext.StoreAssociationSetEnds().Count());
+               mappingContext.StoreAssociationTypes().Count().Should().Be(1);
+               mappingContext.StoreAssociationSets().Count().Should().Be(1);
+               mappingContext.StoreAssociationEndMembers().Count().Should().Be(2);
+               mappingContext.StoreAssociationSetEnds().Count().Should().Be(2);
 
                var storeAssociationType = mappingContext.StoreAssociationTypes().ElementAt(0);
                var storeAssociationSet = mappingContext.StoreAssociationSets().ElementAt(0);
@@ -957,15 +959,13 @@ using FluentAssertions;
                var storeAssociationSetEnd0 = mappingContext.StoreAssociationSetEnds().ElementAt(0);
                var storeAssociationSetEnd1 = mappingContext.StoreAssociationSetEnds().ElementAt(1);
 
-               Assert.Same(mappingContext[storeAssociationType], mappingContext.ConceptualAssociationTypes().ElementAt(0));
-               Assert.Same(mappingContext[storeAssociationSet], mappingContext.ConceptualAssociationSets().ElementAt(0));
-               Assert.Same(mappingContext[storeAssociationEndMember0], mappingContext.ConceptualAssociationEndMembers().ElementAt(0));
-               Assert.Same(mappingContext[storeAssociationEndMember1], mappingContext.ConceptualAssociationEndMembers().ElementAt(1));
-               Assert.Same(mappingContext[storeAssociationSetEnd0], mappingContext.ConceptualAssociationSetEnds().ElementAt(0));
-               Assert.Same(mappingContext[storeAssociationSetEnd1], mappingContext.ConceptualAssociationSetEnds().ElementAt(1));
-               Assert.Equal(
-                   new[] { storeAssociationType.ReferentialConstraints[0].ToProperties[0] },
-                   mappingContext.StoreForeignKeyProperties);
+               mappingContext.ConceptualAssociationTypes().ElementAt(0).Should().BeSameAs(mappingContext[storeAssociationType]);
+               mappingContext.ConceptualAssociationSets().ElementAt(0).Should().BeSameAs(mappingContext[storeAssociationSet]);
+               mappingContext.ConceptualAssociationEndMembers().ElementAt(0).Should().BeSameAs(mappingContext[storeAssociationEndMember0]);
+               mappingContext.ConceptualAssociationEndMembers().ElementAt(1).Should().BeSameAs(mappingContext[storeAssociationEndMember1]);
+               mappingContext.ConceptualAssociationSetEnds().ElementAt(0).Should().BeSameAs(mappingContext[storeAssociationSetEnd0]);
+               mappingContext.ConceptualAssociationSetEnds().ElementAt(1).Should().BeSameAs(mappingContext[storeAssociationSetEnd1]);
+               mappingContext.StoreForeignKeyProperties.Should().Equal(new[] { storeAssociationType.ReferentialConstraints[0].ToProperties[0] });
             }
 
             [TestMethod]
@@ -994,26 +994,26 @@ using FluentAssertions;
 
                var mappingContext = CreateOneToOneMappingBuilder().Build(storeModel);
 
-               Assert.Equal(0, mappingContext.StoreAssociationTypes().Count());
-               Assert.Equal(0, mappingContext.StoreAssociationSets().Count());
-               Assert.Equal(2, mappingContext.StoreAssociationEndMembers().Count());
-               Assert.Equal(2, mappingContext.StoreAssociationSetEnds().Count());
+               mappingContext.StoreAssociationTypes().Count().Should().Be(0);
+               mappingContext.StoreAssociationSets().Count().Should().Be(0);
+               mappingContext.StoreAssociationEndMembers().Count().Should().Be(2);
+               mappingContext.StoreAssociationSetEnds().Count().Should().Be(2);
 
                var storeAssociationEndMember0 = mappingContext.StoreAssociationEndMembers().ElementAt(0);
                var storeAssociationEndMember1 = mappingContext.StoreAssociationEndMembers().ElementAt(1);
                var storeAssociationSetEnd0 = mappingContext.StoreAssociationSetEnds().ElementAt(0);
                var storeAssociationSetEnd1 = mappingContext.StoreAssociationSetEnds().ElementAt(1);
 
-               Assert.Same(mappingContext[storeAssociationEndMember0], mappingContext.ConceptualAssociationEndMembers().ElementAt(0));
-               Assert.Same(mappingContext[storeAssociationEndMember1], mappingContext.ConceptualAssociationEndMembers().ElementAt(1));
-               Assert.Same(mappingContext[storeAssociationSetEnd0], mappingContext.ConceptualAssociationSetEnds().ElementAt(0));
-               Assert.Same(mappingContext[storeAssociationSetEnd1], mappingContext.ConceptualAssociationSetEnds().ElementAt(1));
+               mappingContext.ConceptualAssociationEndMembers().ElementAt(0).Should().BeSameAs(mappingContext[storeAssociationEndMember0]);
+               mappingContext.ConceptualAssociationEndMembers().ElementAt(1).Should().BeSameAs(mappingContext[storeAssociationEndMember1]);
+               mappingContext.ConceptualAssociationSetEnds().ElementAt(0).Should().BeSameAs(mappingContext[storeAssociationSetEnd0]);
+               mappingContext.ConceptualAssociationSetEnds().ElementAt(1).Should().BeSameAs(mappingContext[storeAssociationSetEnd1]);
 
                // the mapping for the collapsed entity set should be replaced with a mapping to a conceptual association set
-               mappingContext.ConceptualEntitySets(.Should().BeTrue().All(e => e.Name != "C"));
-               Assert.Equal(1, mappingContext.ConceptualAssociationSets().Count());
+               mappingContext.ConceptualEntitySets().All(e => e.Name != "C").Should().BeTrue();
+               mappingContext.ConceptualAssociationSets().Count().Should().Be(1);
 
-               Assert.Equal(new[] { "Id", "Col1" }, mappingContext.StoreForeignKeyProperties.Select(p => p.Name));
+               mappingContext.StoreForeignKeyProperties.Select(p => p.Name).Should().Equal(new[] { "Id", "Col1" });
             }
 
             [TestMethod]
@@ -1036,10 +1036,10 @@ using FluentAssertions;
 
                var mappingContext = CreateOneToOneMappingBuilder().Build(storeModel);
 
-               Assert.Equal(1, mappingContext.ConceptualAssociationTypes().Count());
-               Assert.Equal(1, mappingContext.ConceptualAssociationSets().Count());
-               Assert.Equal(2, mappingContext.ConceptualAssociationEndMembers().Count());
-               Assert.Equal(2, mappingContext.ConceptualAssociationSetEnds().Count());
+               mappingContext.ConceptualAssociationTypes().Count().Should().Be(1);
+               mappingContext.ConceptualAssociationSets().Count().Should().Be(1);
+               mappingContext.ConceptualAssociationEndMembers().Count().Should().Be(2);
+               mappingContext.ConceptualAssociationSetEnds().Count().Should().Be(2);
 
                var associationType = mappingContext.ConceptualAssociationTypes().ElementAt(0);
                var associationSet = mappingContext.ConceptualAssociationSets().ElementAt(0);
@@ -1075,9 +1075,7 @@ using FluentAssertions;
                associationSetEnd1.Name.Should().Be("B");
                associationSet.AssociationSetEnds[1].Should().BeSameAs(associationSetEnd1);
 
-               Assert.Equal(
-                   new[] { mappingContext.StoreAssociationTypes().Single().ReferentialConstraints[0].ToProperties[0] },
-                   mappingContext.StoreForeignKeyProperties);
+               mappingContext.StoreForeignKeyProperties.Should().Equal(new[] { mappingContext.StoreAssociationTypes().Single().ReferentialConstraints[0].ToProperties[0] });
             }
 
             [TestMethod]
@@ -1106,15 +1104,15 @@ using FluentAssertions;
 
                var mappingContext = CreateOneToOneMappingBuilder().Build(storeModel);
 
-               Assert.Equal(1, mappingContext.ConceptualContainers().Count());
-               Assert.Equal(0, mappingContext.ConceptualAssociationTypes().Count());
-               Assert.Equal(0, mappingContext.ConceptualAssociationTypes().Count());
-               Assert.Equal(1, mappingContext.ConceptualAssociationSets().Count());
-               Assert.Equal(2, mappingContext.ConceptualAssociationEndMembers().Count());
-               Assert.Equal(2, mappingContext.ConceptualAssociationSetEnds().Count());
+               mappingContext.ConceptualContainers().Count().Should().Be(1);
+               mappingContext.ConceptualAssociationTypes().Count().Should().Be(0);
+               mappingContext.ConceptualAssociationTypes().Count().Should().Be(0);
+               mappingContext.ConceptualAssociationSets().Count().Should().Be(1);
+               mappingContext.ConceptualAssociationEndMembers().Count().Should().Be(2);
+               mappingContext.ConceptualAssociationSetEnds().Count().Should().Be(2);
 
                var container = mappingContext.ConceptualContainers().ElementAt(0);
-               Assert.Equal(1, container.AssociationSets.Count());
+               container.AssociationSets.Count().Should().Be(1);
 
                var associationSet = container.AssociationSets.ElementAt(0);
                var associationType = associationSet.ElementType;
@@ -1146,7 +1144,7 @@ using FluentAssertions;
                associationSetEnd1.Name.Should().Be("B");
                associationSet.AssociationSetEnds[1].Should().BeSameAs(associationSetEnd1);
 
-               Assert.Equal(new[] { "Id", "Col1" }, mappingContext.StoreForeignKeyProperties.Select(p => p.Name));
+               mappingContext.StoreForeignKeyProperties.Select(p => p.Name).Should().Equal(new[] { "Id", "Col1" });
             }
 
             [TestMethod]
@@ -1181,16 +1179,14 @@ using FluentAssertions;
 
                var mappingContext = CreateOneToOneMappingBuilder().Build(storeModel);
 
-               Assert.Equal(1, mappingContext.ConceptualAssociationTypes().Count());
+               mappingContext.ConceptualAssociationTypes().Count().Should().Be(1);
 
                var associationType = mappingContext.ConceptualAssociationTypes().ElementAt(0);
 
                associationType.IsForeignKey.Should().BeFalse();
                associationType.ReferentialConstraints.Count.Should().Be(1);
 
-               Assert.Equal(
-                   new[] { mappingContext.StoreAssociationTypes().Single().ReferentialConstraints[0].ToProperties[0] },
-                   mappingContext.StoreForeignKeyProperties);
+               mappingContext.StoreForeignKeyProperties.Should().Equal(new[] { mappingContext.StoreAssociationTypes().Single().ReferentialConstraints[0].ToProperties[0] });
             }
 
             [TestMethod]
@@ -1216,16 +1212,14 @@ using FluentAssertions;
 
                var mappingContext = CreateOneToOneMappingBuilder(generateForeignKeyProperties: false).Build(storeModel);
 
-               Assert.Equal(1, mappingContext.ConceptualAssociationTypes().Count());
+               mappingContext.ConceptualAssociationTypes().Count().Should().Be(1);
 
                var associationType = mappingContext.ConceptualAssociationTypes().ElementAt(0);
 
                associationType.IsForeignKey.Should().BeFalse();
                associationType.ReferentialConstraints.Count.Should().Be(0);
 
-               Assert.Equal(
-                   new[] { mappingContext.StoreAssociationTypes().Single().ReferentialConstraints[0].ToProperties[0] },
-                   mappingContext.StoreForeignKeyProperties);
+               mappingContext.StoreForeignKeyProperties.Should().Equal(new[] { mappingContext.StoreAssociationTypes().Single().ReferentialConstraints[0].ToProperties[0] });
             }
          }
 

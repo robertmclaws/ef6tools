@@ -7,7 +7,8 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
     using System.Data.Entity.Core.Common;
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Data.Entity.SqlServer;
+    using Microsoft.Data.Entity.Design.VersioningFacade;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
     using System.Linq;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,8 +17,8 @@ using FluentAssertions;
     [TestClass]
     public class EntitySetDefiningQueryConverterTests
     {
-        private static readonly DbProviderManifest ProviderManifest =
-            SqlProviderServices.Instance.GetProviderManifest("2008");
+        private static DbProviderManifest ProviderManifest =>
+            Utils.SqlProviderServicesInstance.GetProviderManifest("2008");
 
         private const string StoreSchemaAttributeNamespace = "http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator";
 
@@ -44,14 +45,12 @@ using FluentAssertions;
             workspace.Should().NotBeNull();
             var storeItemCollection = (StoreItemCollection)workspace.GetItemCollection(DataSpace.SSpace);
             storeItemCollection.Should().NotBeNull();
-            Assert.Equal(1, storeItemCollection.GetEntityContainer("StoreModelContainer").EntitySets.Count);
-            Assert.Equal(
-                "EntityTypeSet",
-                storeItemCollection.GetEntityContainer("StoreModelContainer").EntitySets.Single().Name);
-            Assert.Equal(1, storeItemCollection.GetItems<EntityType>().Count);
-            Assert.Equal("EntityType", storeItemCollection.GetItems<EntityType>().Single().Name);
-            workspace.GetItemCollection(DataSpace.CSpace.Should().NotBeNull());
-            workspace.GetItemCollection(DataSpace.CSSpace.Should().NotBeNull());
+            storeItemCollection.GetEntityContainer("StoreModelContainer").EntitySets.Count.Should().Be(1);
+            storeItemCollection.GetEntityContainer("StoreModelContainer").EntitySets.Single().Name.Should().Be("EntityTypeSet");
+            storeItemCollection.GetItems<EntityType>().Count.Should().Be(1);
+            storeItemCollection.GetItems<EntityType>().Single().Name.Should().Be("EntityType");
+            workspace.GetItemCollection(DataSpace.CSpace).Should().NotBeNull();
+            workspace.GetItemCollection(DataSpace.CSSpace).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -74,7 +73,8 @@ using FluentAssertions;
                     EntityFrameworkVersion.Version3,
                     "System.Data.SqlClient", "2008", ProviderManifest);
 
-            EntitySetDefiningQueryConverter.CreateDefiningQuery(entitySet, workspace, SqlProviderServices.Instance.Should().NotBeNull());
+            var definingQuery = EntitySetDefiningQueryConverter.CreateDefiningQuery(entitySet, workspace, Utils.SqlProviderServicesInstance);
+            definingQuery.Should().NotBeNull();
         }
 
         [TestMethod]
@@ -104,18 +104,13 @@ using FluentAssertions;
             clonedEntitySet.ElementType.Should().BeSameAs(entitySet.ElementType);
             clonedEntitySet.Schema.Should().BeNull();
             clonedEntitySet.Table.Should().BeNull();
-            Assert.Equal(
-                entitySet.Schema,
-                clonedEntitySet.MetadataProperties.Single(p => p.Name == StoreSchemaAttributeNamespace + ":Schema")
-                    .Value);
-            Assert.Equal(
-                entitySet.Table,
-                clonedEntitySet.MetadataProperties.Single(p => p.Name == StoreSchemaAttributeNamespace + ":Name")
-                    .Value);
+            clonedEntitySet.MetadataProperties.Single(p => p.Name == StoreSchemaAttributeNamespace + ":Schema")
+                .Value.Should().Be(entitySet.Schema);
+            clonedEntitySet.MetadataProperties.Single(p => p.Name == StoreSchemaAttributeNamespace + ":Name")
+                .Value.Should().Be(entitySet.Table);
 
-            Assert.Equal(
-                entitySet.MetadataProperties.Single(p => p.Name == "http://tempUri:myProperty").Value,
-                clonedEntitySet.MetadataProperties.Single(p => p.Name == "http://tempUri:myProperty").Value);
+            clonedEntitySet.MetadataProperties.Single(p => p.Name == "http://tempUri:myProperty").Value
+                .Should().Be(entitySet.MetadataProperties.Single(p => p.Name == "http://tempUri:myProperty").Value);
         }
 
         [TestMethod]
@@ -141,8 +136,8 @@ using FluentAssertions;
 
             clonedEntitySet.Schema.Should().BeNull();
             clonedEntitySet.Table.Should().BeNull();
-            entitySet.MetadataProperties.Any(p => p.Name.EndsWith(StoreSchemaAttributeNamespace + ":Schema".Should().BeFalse()));
-            entitySet.MetadataProperties.Any(p => p.Name.EndsWith(StoreSchemaAttributeNamespace + ":Name".Should().BeFalse()));
+            entitySet.MetadataProperties.Any(p => p.Name.EndsWith(StoreSchemaAttributeNamespace + ":Schema")).Should().BeFalse();
+            entitySet.MetadataProperties.Any(p => p.Name.EndsWith(StoreSchemaAttributeNamespace + ":Name")).Should().BeFalse();
         }
 
         [TestMethod]
@@ -177,7 +172,7 @@ using FluentAssertions;
             mockResolver.Setup(
                 r => r.GetService(
                     It.Is<Type>(t => t == typeof(DbProviderServices)),
-                    It.IsAny<string>())).Returns(SqlProviderServices.Instance);
+                    It.IsAny<string>())).Returns(Utils.SqlProviderServicesInstance);
 
             var convertedEntitySets =
                 EntitySetDefiningQueryConverter.Convert(
@@ -188,8 +183,8 @@ using FluentAssertions;
                     mockResolver.Object).ToList();
 
             convertedEntitySets.Should().NotBeNull();
-            Assert.Equal(entitySets.Select(e => e.Name), convertedEntitySets.Select(e => e.Name));
-            convertedEntitySets.All(e => e.DefiningQuery != null.Should().BeTrue());
+            convertedEntitySets.Select(e => e.Name).Should().Equal(entitySets.Select(e => e.Name));
+            convertedEntitySets.All(e => e.DefiningQuery != null).Should().BeTrue();
         }
     }
 }

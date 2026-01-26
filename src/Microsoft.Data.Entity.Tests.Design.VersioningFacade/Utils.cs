@@ -7,20 +7,56 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade
     using System.Data.Entity.Core.Common;
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Data.Entity.SqlServer;
     using System.IO;
+    using System.Reflection;
     using System.Xml;
+    using Microsoft.Data.Entity.Design.VersioningFacade;
     using Moq;
 
     internal class Utils
     {
+        private static DbProviderServices _sqlProviderServices;
+        private static Type _sqlProviderServicesType;
+
+        /// <summary>
+        /// Gets SqlProviderServices via DependencyResolver.
+        /// The DependencyResolver handles provider resolution using LegacyDbProviderServicesWrapper when necessary.
+        /// </summary>
+        public static DbProviderServices SqlProviderServicesInstance
+        {
+            get
+            {
+                if (_sqlProviderServices == null)
+                {
+                    _sqlProviderServices = DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient");
+                }
+                return _sqlProviderServices;
+            }
+        }
+
+        /// <summary>
+        /// Gets the SqlProviderServices type dynamically.
+        /// </summary>
+        public static Type SqlProviderServicesType
+        {
+            get
+            {
+                if (_sqlProviderServicesType == null)
+                {
+                    _sqlProviderServicesType = Type.GetType(
+                        "System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer");
+                }
+                return _sqlProviderServicesType;
+            }
+        }
+
         public static StoreItemCollection CreateStoreItemCollection(string ssdl)
         {
             var mockResolver = new Mock<IDbDependencyResolver>();
             mockResolver.Setup(
                 r => r.GetService(
                     It.Is<Type>(t => t == typeof(DbProviderServices)),
-                    It.IsAny<string>())).Returns(SqlProviderServices.Instance);
+                    It.IsAny<string>())).Returns(SqlProviderServicesInstance);
 
             IList<EdmSchemaError> errors;
 

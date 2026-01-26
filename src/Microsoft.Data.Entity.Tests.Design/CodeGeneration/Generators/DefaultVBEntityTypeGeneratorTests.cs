@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
     using System.Linq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class DefaultVBEntityTypeGeneratorTests : GeneratorTestBase
@@ -18,7 +19,7 @@ using FluentAssertions;
                 Model,
                 "WebApplication1.Models");
 
-            Assert.Equal(
+            result.Should().Be(
                 @"Imports System
 Imports System.Collections.Generic
 Imports System.ComponentModel.DataAnnotations
@@ -28,8 +29,7 @@ Imports System.Data.Entity.Spatial
 Partial Public Class Entity
     Public Property Id As Integer
 End Class
-",
-                result);
+");
         }
     }
 }

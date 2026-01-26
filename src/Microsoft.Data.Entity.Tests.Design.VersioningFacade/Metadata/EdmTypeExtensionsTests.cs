@@ -12,7 +12,7 @@ using FluentAssertions;
         [TestMethod]
         public void EdmType_GetDataSpace_returns_correct_space_for_EdmType()
         {
-            Assert.Equal(DataSpace.CSpace, PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32).GetDataSpace());
+            PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32).GetDataSpace().Should().Be(DataSpace.CSpace);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
@@ -7,7 +7,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
     using System.Linq;
     using Microsoft.Data.Entity.Design.Model;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EdmRuntimeSchemaResolverTests
@@ -50,8 +50,8 @@ using FluentAssertions;
 
             foreach (var schemaName in KnownSchemaNames)
             {
-                Assert.Equal(
-                    new Uri("res://" + schemaName, UriKind.Absolute), schemaResolver.ResolveUri(null, schemaName));
+                schemaResolver.ResolveUri(null, schemaName).Should().Be(
+                    new Uri("res://" + schemaName, UriKind.Absolute));
             }
         }
     }

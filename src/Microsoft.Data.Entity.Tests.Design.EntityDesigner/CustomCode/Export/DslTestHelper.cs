@@ -2,6 +2,7 @@
 
 namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
 {
+    using Microsoft.Data.Entity.Design.EntityDesigner;
     using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
     using Microsoft.VisualStudio.Modeling;
 

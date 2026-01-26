@@ -4,7 +4,8 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
 {
     using System.Text;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
 
     [TestClass]
     public class StringBuilderExtensionsTests
@@ -12,13 +13,13 @@ using FluentAssertions;
         [TestMethod]
         public void StringBuilder_AppendIfNotEmpty_appends_string_to_non_empty_StringBuilder()
         {
-            Assert.Equal("ab", new StringBuilder("a").AppendIfNotEmpty("b").ToString());
+            new StringBuilder("a").AppendIfNotEmpty("b").ToString().Should().Be("ab");
         }
 
         [TestMethod]
         public void StringBuilder_AppendIfNotEmpty_does_not_append_string_to_empty_StringBuilder()
         {
-            Assert.Equal(string.Empty, new StringBuilder().AppendIfNotEmpty("b").ToString());
+            new StringBuilder().AppendIfNotEmpty("b").ToString().Should().Be(string.Empty);
         }
     }
 }

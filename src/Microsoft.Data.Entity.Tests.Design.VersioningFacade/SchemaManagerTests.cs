@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade
 {
     using System;
     using System.Linq;
     using System.Xml;
+    using Microsoft.Data.Entity.Design.VersioningFacade;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class SchemaManagerTests
@@ -38,9 +39,9 @@ using FluentAssertions;
         [TestMethod]
         public void SchemaManager_GetCSDLNamespaceName_returns_correct_Csdl_namespaces_for_requested_version()
         {
-            Assert.Equal(CsdlNsV1, SchemaManager.GetCSDLNamespaceName(new Version(1, 0, 0, 0)));
-            Assert.Equal(CsdlNsV2, SchemaManager.GetCSDLNamespaceName(new Version(2, 0, 0, 0)));
-            Assert.Equal(CsdlNsV3, SchemaManager.GetCSDLNamespaceName(new Version(3, 0, 0, 0)));
+            SchemaManager.GetCSDLNamespaceName(new Version(1, 0, 0, 0)).Should().Be(CsdlNsV1);
+            SchemaManager.GetCSDLNamespaceName(new Version(2, 0, 0, 0)).Should().Be(CsdlNsV2);
+            SchemaManager.GetCSDLNamespaceName(new Version(3, 0, 0, 0)).Should().Be(CsdlNsV3);
         }
 
         [TestMethod]
@@ -48,15 +49,15 @@ using FluentAssertions;
         {
             var csdlNamespaces = SchemaManager.GetCSDLNamespaceNames();
 
-            new[] { CsdlNsV1, CsdlNsV2, CsdlNsV3 }.SequenceEqual(csdlNamespaces.Should().BeTrue());
+            new[] { CsdlNsV1, CsdlNsV2, CsdlNsV3 }.SequenceEqual(csdlNamespaces).Should().BeTrue();
         }
 
         [TestMethod]
         public void SchemaManager_GetSSDLNamespaceName_returns_correct_Ssdl_namespaces_for_requested_version()
         {
-            Assert.Equal(SsdlNsV1, SchemaManager.GetSSDLNamespaceName(new Version(1, 0, 0, 0)));
-            Assert.Equal(SsdlNsV2, SchemaManager.GetSSDLNamespaceName(new Version(2, 0, 0, 0)));
-            Assert.Equal(SsdlNsV3, SchemaManager.GetSSDLNamespaceName(new Version(3, 0, 0, 0)));
+            SchemaManager.GetSSDLNamespaceName(new Version(1, 0, 0, 0)).Should().Be(SsdlNsV1);
+            SchemaManager.GetSSDLNamespaceName(new Version(2, 0, 0, 0)).Should().Be(SsdlNsV2);
+            SchemaManager.GetSSDLNamespaceName(new Version(3, 0, 0, 0)).Should().Be(SsdlNsV3);
         }
 
         [TestMethod]
@@ -64,15 +65,15 @@ using FluentAssertions;
         {
             var csdlNamespaces = SchemaManager.GetSSDLNamespaceNames();
 
-            new[] { SsdlNsV1, SsdlNsV2, SsdlNsV3 }.SequenceEqual(csdlNamespaces.Should().BeTrue());
+            new[] { SsdlNsV1, SsdlNsV2, SsdlNsV3 }.SequenceEqual(csdlNamespaces).Should().BeTrue();
         }
 
         [TestMethod]
         public void SchemaManager_GetMSLNamespaceName_returns_correct_Msl_namespaces_for_requested_version()
         {
-            Assert.Equal(MslNsV1, SchemaManager.GetMSLNamespaceName(new Version(1, 0, 0, 0)));
-            Assert.Equal(MslNsV2, SchemaManager.GetMSLNamespaceName(new Version(2, 0, 0, 0)));
-            Assert.Equal(MslNsV3, SchemaManager.GetMSLNamespaceName(new Version(3, 0, 0, 0)));
+            SchemaManager.GetMSLNamespaceName(new Version(1, 0, 0, 0)).Should().Be(MslNsV1);
+            SchemaManager.GetMSLNamespaceName(new Version(2, 0, 0, 0)).Should().Be(MslNsV2);
+            SchemaManager.GetMSLNamespaceName(new Version(3, 0, 0, 0)).Should().Be(MslNsV3);
         }
 
         [TestMethod]
@@ -80,15 +81,15 @@ using FluentAssertions;
         {
             var csdlNamespaces = SchemaManager.GetMSLNamespaceNames();
 
-            new[] { MslNsV1, MslNsV2, MslNsV3 }.SequenceEqual(csdlNamespaces.Should().BeTrue());
+            new[] { MslNsV1, MslNsV2, MslNsV3 }.SequenceEqual(csdlNamespaces).Should().BeTrue();
         }
 
         [TestMethod]
         public void SchemaManager_GetEDMXNamespaceName_returns_correct_Edmx_namespaces_for_requested_version()
         {
-            Assert.Equal(EdmxNsV1, SchemaManager.GetEDMXNamespaceName(new Version(1, 0, 0, 0)));
-            Assert.Equal(EdmxNsV2, SchemaManager.GetEDMXNamespaceName(new Version(2, 0, 0, 0)));
-            Assert.Equal(EdmxNsV3, SchemaManager.GetEDMXNamespaceName(new Version(3, 0, 0, 0)));
+            SchemaManager.GetEDMXNamespaceName(new Version(1, 0, 0, 0)).Should().Be(EdmxNsV1);
+            SchemaManager.GetEDMXNamespaceName(new Version(2, 0, 0, 0)).Should().Be(EdmxNsV2);
+            SchemaManager.GetEDMXNamespaceName(new Version(3, 0, 0, 0)).Should().Be(EdmxNsV3);
         }
 
         [TestMethod]
@@ -96,32 +97,32 @@ using FluentAssertions;
         {
             var csdlNamespaces = SchemaManager.GetEDMXNamespaceNames();
 
-            new[] { EdmxNsV1, EdmxNsV2, EdmxNsV3 }.SequenceEqual(csdlNamespaces.Should().BeTrue());
+            new[] { EdmxNsV1, EdmxNsV2, EdmxNsV3 }.SequenceEqual(csdlNamespaces).Should().BeTrue();
         }
 
         [TestMethod]
         public void
             SchemaManager_GetEntityStoreSchemaGeneratorNamespaceName_returns_correct_EntityStoreSchemaGenerator_namespace()
         {
-            Assert.Equal(EntityStoreSchemaGeneratorNs, SchemaManager.GetEntityStoreSchemaGeneratorNamespaceName());
+            SchemaManager.GetEntityStoreSchemaGeneratorNamespaceName().Should().Be(EntityStoreSchemaGeneratorNs);
         }
 
         [TestMethod]
         public void SchemaManager_GetCodeGenerationNamespaceName_returns_correct_CodeGeneration_namespace()
         {
-            Assert.Equal(CodeGenerationNs, SchemaManager.GetCodeGenerationNamespaceName());
-       }
+            SchemaManager.GetCodeGenerationNamespaceName().Should().Be(CodeGenerationNs);
+        }
 
         [TestMethod]
         public void SchemaManager_GetProviderManifestNamespaceName_returns_correct_ProviderManifest_namespace()
         {
-            Assert.Equal(ProviderManifestNs, SchemaManager.GetProviderManifestNamespaceName());
+            SchemaManager.GetProviderManifestNamespaceName().Should().Be(ProviderManifestNs);
         }
 
         [TestMethod]
         public void SchemaManager_GetAnnotationNamespaceName_returns_correct_Annotation_namespace()
         {
-            Assert.Equal(AnnotationNs, SchemaManager.GetAnnotationNamespaceName());
+            SchemaManager.GetAnnotationNamespaceName().Should().Be(AnnotationNs);
         }
 
         [TestMethod]
@@ -131,9 +132,9 @@ using FluentAssertions;
             var namespacesV2 = new[] { EdmxNsV2, CsdlNsV2, SsdlNsV2, ProviderManifestNs, CodeGenerationNs, MslNsV2, AnnotationNs };
             var namespacesV3 = new[] { EdmxNsV3, CsdlNsV3, SsdlNsV3, ProviderManifestNs, CodeGenerationNs, MslNsV3, AnnotationNs };
 
-            namespacesV1.SequenceEqual(SchemaManager.GetAllNamespacesForVersion(new Version(1, 0, 0, 0.Should().BeTrue())));
-            namespacesV2.SequenceEqual(SchemaManager.GetAllNamespacesForVersion(new Version(2, 0, 0, 0.Should().BeTrue())));
-            namespacesV3.SequenceEqual(SchemaManager.GetAllNamespacesForVersion(new Version(3, 0, 0, 0.Should().BeTrue())));
+            namespacesV1.SequenceEqual(SchemaManager.GetAllNamespacesForVersion(new Version(1, 0, 0, 0))).Should().BeTrue();
+            namespacesV2.SequenceEqual(SchemaManager.GetAllNamespacesForVersion(new Version(2, 0, 0, 0))).Should().BeTrue();
+            namespacesV3.SequenceEqual(SchemaManager.GetAllNamespacesForVersion(new Version(3, 0, 0, 0))).Should().BeTrue();
         }
 
         [TestMethod]
@@ -144,30 +145,30 @@ using FluentAssertions;
             var v3 = new Version(3, 0, 0, 0);
 
 
-            Assert.Equal(v1, SchemaManager.GetSchemaVersion(CsdlNsV1));
-            Assert.Equal(v2, SchemaManager.GetSchemaVersion(CsdlNsV2));
-            Assert.Equal(v3, SchemaManager.GetSchemaVersion(CsdlNsV3));
+            SchemaManager.GetSchemaVersion(CsdlNsV1).Should().Be(v1);
+            SchemaManager.GetSchemaVersion(CsdlNsV2).Should().Be(v2);
+            SchemaManager.GetSchemaVersion(CsdlNsV3).Should().Be(v3);
 
-            Assert.Equal(v1, SchemaManager.GetSchemaVersion(SsdlNsV1));
-            Assert.Equal(v2, SchemaManager.GetSchemaVersion(SsdlNsV2));
-            Assert.Equal(v3, SchemaManager.GetSchemaVersion(SsdlNsV3));
+            SchemaManager.GetSchemaVersion(SsdlNsV1).Should().Be(v1);
+            SchemaManager.GetSchemaVersion(SsdlNsV2).Should().Be(v2);
+            SchemaManager.GetSchemaVersion(SsdlNsV3).Should().Be(v3);
 
-            Assert.Equal(v1, SchemaManager.GetSchemaVersion(MslNsV1));
-            Assert.Equal(v2, SchemaManager.GetSchemaVersion(MslNsV2));
-            Assert.Equal(v3, SchemaManager.GetSchemaVersion(MslNsV3));
+            SchemaManager.GetSchemaVersion(MslNsV1).Should().Be(v1);
+            SchemaManager.GetSchemaVersion(MslNsV2).Should().Be(v2);
+            SchemaManager.GetSchemaVersion(MslNsV3).Should().Be(v3);
 
-            Assert.Equal(v1, SchemaManager.GetSchemaVersion(EdmxNsV1));
-            Assert.Equal(v2, SchemaManager.GetSchemaVersion(EdmxNsV2));
-            Assert.Equal(v3, SchemaManager.GetSchemaVersion(EdmxNsV3));
+            SchemaManager.GetSchemaVersion(EdmxNsV1).Should().Be(v1);
+            SchemaManager.GetSchemaVersion(EdmxNsV2).Should().Be(v2);
+            SchemaManager.GetSchemaVersion(EdmxNsV3).Should().Be(v3);
 
-            Assert.Equal(v1, SchemaManager.GetSchemaVersion(null));
-            Assert.Equal(v1, SchemaManager.GetSchemaVersion("abc"));
+            SchemaManager.GetSchemaVersion(null).Should().Be(v1);
+            SchemaManager.GetSchemaVersion("abc").Should().Be(v1);
         }
 
         [TestMethod]
         public void SchemaManager_GetSchemaVersion_returns_null_for_unknown_namespace()
         {
-            Assert.Equal(new Version(1, 0, 0, 0), SchemaManager.GetSchemaVersion("http://tempuri.org"));
+            SchemaManager.GetSchemaVersion("http://tempuri.org").Should().Be(new Version(1, 0, 0, 0));
         }
 
         [TestMethod]
@@ -179,11 +180,11 @@ using FluentAssertions;
 
                 var nsMgr = SchemaManager.GetEdmxNamespaceManager(new NameTable(), version);
 
-                Assert.Equal(SchemaManager.GetEDMXNamespaceName(version), nsMgr.LookupNamespace("edmx"));
-                Assert.Equal(SchemaManager.GetCSDLNamespaceName(version), nsMgr.LookupNamespace("csdl"));
-                Assert.Equal(SchemaManager.GetEntityStoreSchemaGeneratorNamespaceName(), nsMgr.LookupNamespace("essg"));
-                Assert.Equal(SchemaManager.GetSSDLNamespaceName(version), nsMgr.LookupNamespace("ssdl"));
-                Assert.Equal(SchemaManager.GetMSLNamespaceName(version), nsMgr.LookupNamespace("msl"));
+                nsMgr.LookupNamespace("edmx").Should().Be(SchemaManager.GetEDMXNamespaceName(version));
+                nsMgr.LookupNamespace("csdl").Should().Be(SchemaManager.GetCSDLNamespaceName(version));
+                nsMgr.LookupNamespace("essg").Should().Be(SchemaManager.GetEntityStoreSchemaGeneratorNamespaceName());
+                nsMgr.LookupNamespace("ssdl").Should().Be(SchemaManager.GetSSDLNamespaceName(version));
+                nsMgr.LookupNamespace("msl").Should().Be(SchemaManager.GetMSLNamespaceName(version));
             }
         }
     }

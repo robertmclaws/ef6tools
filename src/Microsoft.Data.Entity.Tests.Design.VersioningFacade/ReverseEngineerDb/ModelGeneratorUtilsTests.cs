@@ -1,38 +1,39 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class ModelGeneratorUtilsTests
     {
         [TestClass]
-    public class CreateValidEcmaNameTests
+        public class CreateValidEcmaNameTests
         {
             [TestMethod]
             public void CreateValidEcmaName_does_not_change_valid_ECMA_name()
             {
-                Assert.Equal("foo", ModelGeneratorUtils.CreateValidEcmaName("foo", 'a'));
+                ModelGeneratorUtils.CreateValidEcmaName("foo", 'a').Should().Be("foo");
             }
 
             [TestMethod]
             public void CreateValidEcmaName_replaces_invalid_ECMA_chars_with_underscore()
             {
-                Assert.Equal("f_o", ModelGeneratorUtils.CreateValidEcmaName("f#o", 'a'));
+                ModelGeneratorUtils.CreateValidEcmaName("f#o", 'a').Should().Be("f_o");
             }
 
             [TestMethod]
             public void CreateValidEcmaName_can_handle_empty_name()
             {
-                Assert.Equal("a", ModelGeneratorUtils.CreateValidEcmaName(string.Empty, 'a'));
+                ModelGeneratorUtils.CreateValidEcmaName(string.Empty, 'a').Should().Be("a");
             }
 
             [TestMethod]
             public void CreateValidEcmaName_prepends_name_with_ECMA_char_if_the_first_char_was_replaced_with_underscore()
             {
-                Assert.Equal("a_foo", ModelGeneratorUtils.CreateValidEcmaName("@foo", 'a'));
+                ModelGeneratorUtils.CreateValidEcmaName("@foo", 'a').Should().Be("a_foo");
             }
         }
     }

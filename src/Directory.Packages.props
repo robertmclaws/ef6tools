@@ -31,23 +31,27 @@
         <MicrosoftVisualStudioThreadingPackageVersion>17.10.48</MicrosoftVisualStudioThreadingPackageVersion>
         <MicrosoftVisualStudioValidationPackageVersion>17.8.8</MicrosoftVisualStudioValidationPackageVersion>
         <MicrosoftVSDesignerPackageVersion>17.10.40133</MicrosoftVSDesignerPackageVersion>
-        <MicrosoftVSSDKBuildToolsPackageVersion>17.10.2179</MicrosoftVSSDKBuildToolsPackageVersion>
+        <MicrosoftVSSDKBuildToolsPackageVersion>17.10.2185</MicrosoftVSSDKBuildToolsPackageVersion>
         <MicrosoftWizardFrameworkPackageVersion>17.10.40054</MicrosoftWizardFrameworkPackageVersion>
         <MicrosoftXmlEditorPackageVersion>17.10.34810.168</MicrosoftXmlEditorPackageVersion>
         <MoqPackageVersion>4.0.10827</MoqPackageVersion>
         <NerdbankGitVersioningVersion>3.7.115</NerdbankGitVersioningVersion>
         <SystemDataSqlServerCePackageVersion>4.0.8876.1</SystemDataSqlServerCePackageVersion>
         <VsWebSiteInteropPackageVersion>17.10.40086</VsWebSiteInteropPackageVersion>
-        <XunitPackageVersion>1.9.2</XunitPackageVersion>
         <MicrosoftVisualStudioEngMicroBuildCorePackageVersion>1.0.0</MicrosoftVisualStudioEngMicroBuildCorePackageVersion>
     </PropertyGroup>
 
     <!-- Central Package Version definitions -->
     <ItemGroup>
-        <PackageVersion Include="EasyAF.Edmx" Version="4.*-*" />
+        <!-- EntityFramework and providers (merged into VersioningFacade via ILRepack at runtime) -->
         <PackageVersion Include="EntityFramework" Version="$(EntityFrameworkPackageVersion)" />
         <PackageVersion Include="Microsoft.EntityFramework.SqlServer" Version="$(EntityFrameworkPackageVersion)" />
         <PackageVersion Include="EntityFramework.SqlServerCompact" Version="$(EntityFrameworkPackageVersion)" />
+        <PackageVersion Include="EntityFramework6.Npgsql" Version="6.4.3" />
+        <PackageVersion Include="MySql.Data.EntityFramework" Version="9.2.0" />
+        <PackageVersion Include="Oracle.ManagedDataAccess.EntityFramework" Version="23.7.0" />
+        <!-- ILRepack for merging EF assemblies -->
+        <PackageVersion Include="ILRepack.Lib.MSBuild.Task" Version="2.0.34.2" />
         <PackageVersion Include="MessagePack" Version="$(MessagePackPackageVersion)" />
         <PackageVersion Include="Microsoft.Data.ConnectionUI" Version="17.10.40129" />
         <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="$(MicrosoftInternalVisualStudioInteropPackageVersion)" />
@@ -99,12 +103,13 @@
         <PackageVersion Include="System.Text.Json" Version="8.0.5" />
         <PackageVersion Include="VsWebSite.Interop" Version="$(VsWebSiteInteropPackageVersion)" />
         <PackageVersion Include="VsWebSite.Interop90" Version="$(VsWebSiteInteropPackageVersion)" />
-        <PackageVersion Include="xunit" Version="$(XunitPackageVersion)" />
-        <PackageVersion Include="xunit.extensions" Version="$(XunitPackageVersion)" />
-        <PackageVersion Include="xunit.runner.visualstudio" Version="2.0.0" />
         <PackageVersion Include="FluentAssertions" Version="8.2.0" />
-        <PackageVersion Include="FluentAssertions.Analyzers" Version="0.34.0" />
+        <PackageVersion Include="FluentAssertions.Analyzers" Version="0.34.1" />
         <PackageVersion Include="MSTest" Version="3.7.3" />
+        <!-- Transitive dependencies pinned to available versions -->
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+        <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.23.0" />
+        <PackageVersion Include="Microsoft.Data.SqlClient.SNI" Version="6.0.2" />
         <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
         <PackageVersion Include="Microsoft.VisualStudio.QualityTools.Common" Version="$(MicrosoftVisualStudioQualityToolsPackageVersion)" />
         <PackageVersion Include="Microsoft.VisualStudio.QualityTools.ExecutionCommon" Version="$(MicrosoftVisualStudioQualityToolsPackageVersion)" />

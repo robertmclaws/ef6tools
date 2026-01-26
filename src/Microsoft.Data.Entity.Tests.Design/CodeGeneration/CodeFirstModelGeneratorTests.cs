@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
@@ -9,10 +9,11 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
     using System.IO;
     using System.Linq;
     using EnvDTE;
-    using Moq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.Data.Entity.Tests.Design.TestHelpers;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Moq;
     using Resources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
 
     [TestClass]
@@ -43,7 +44,7 @@ using FluentAssertions;
             var files = generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString").ToArray();
 
             files.Length.Should().Be(2);
-            Assert.Equal(new[] { "MyContext.cs", "Entity.cs" }, files.Select(p => p.Key));
+            files.Select(p => p.Key).Should().BeEquivalentTo(new[] { "MyContext.cs", "Entity.cs" });
         }
 
         [TestMethod]
@@ -66,7 +67,7 @@ using FluentAssertions;
             var files = generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString").ToArray();
 
             files.Length.Should().Be(2);
-            Assert.Equal(new[] { "MyContext.vb", "Entity.vb" }, files.Select(p => p.Key));
+            files.Select(p => p.Key).Should().BeEquivalentTo(new[] { "MyContext.vb", "Entity.vb" });
         }
 
         [TestMethod]
@@ -94,8 +95,8 @@ using FluentAssertions;
                 var files = generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString").ToArray();
 
                 files.Length.Should().Be(2);
-                Assert.Equal(new[] { "MyContext.cs", "Entity.cs" }, files.Select(p => p.Key));
-                files.All(p => p.Value == "Customized".Should().BeTrue());
+                files.Select(p => p.Key).Should().BeEquivalentTo(new[] { "MyContext.cs", "Entity.cs" });
+                files.All(p => p.Value == "Customized").Should().BeTrue();
             }
         }
 
@@ -112,8 +113,8 @@ using FluentAssertions;
                 var files = generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString").ToArray();
 
                 files.Length.Should().Be(2);
-                Assert.Equal(new[] { "MyContext.vb", "Entity.vb" }, files.Select(p => p.Key));
-                files.All(p => p.Value == "Customized".Should().BeTrue());
+                files.Select(p => p.Key).Should().BeEquivalentTo(new[] { "MyContext.vb", "Entity.vb" });
+                files.All(p => p.Value == "Customized").Should().BeTrue();
             }
         }
 
@@ -138,13 +139,12 @@ using FluentAssertions;
 
                     var generator = new CodeFirstModelGenerator(project);
 
-                    var ex = Assert.Throws<CodeFirstModelGenerationException>(
-                        () => generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString")
-                            .ToArray());
+                    Action act = () => generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString")
+                        .ToArray();
 
-                    Assert.Equal(
-                        string.Format(Resources.ErrorGeneratingCodeFirstModel, "MyContext.cs"),
-                        ex.Message);
+                    var ex = act.Should().Throw<CodeFirstModelGenerationException>().Which;
+
+                    ex.Message.Should().Be(string.Format(Resources.ErrorGeneratingCodeFirstModel, "MyContext.cs"));
                     ex.InnerException.Message.Should().Contain(token);
                 }
                 finally
@@ -175,13 +175,12 @@ using FluentAssertions;
 
                     var generator = new CodeFirstModelGenerator(project);
 
-                    var ex = Assert.Throws<CodeFirstModelGenerationException>(
-                        () => generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString")
-                            .ToArray());
+                    Action act = () => generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString")
+                        .ToArray();
 
-                    Assert.Equal(
-                        string.Format(Resources.ErrorGeneratingCodeFirstModel, "Entity.cs"),
-                        ex.Message);
+                    var ex = act.Should().Throw<CodeFirstModelGenerationException>().Which;
+
+                    ex.Message.Should().Be(string.Format(Resources.ErrorGeneratingCodeFirstModel, "Entity.cs"));
                     ex.InnerException.Message.Should().Contain(token);
                 }
                 finally

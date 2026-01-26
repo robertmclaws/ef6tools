@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class KeyDiscovererTests
@@ -19,7 +20,7 @@ using FluentAssertions;
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entitySet = model.ConceptualModel.Container.EntitySets.First();
 
-            new KeyDiscoverer(.Should().BeNull().Discover(entitySet, model));
+            new KeyDiscoverer().Discover(entitySet, model).Should().BeNull();
         }
 
         [TestMethod]
@@ -34,7 +35,7 @@ using FluentAssertions;
 
             configuration.Should().NotBeNull();
             configuration.KeyProperties.Count.Should().Be(1);
-            Assert.Equal("Name", configuration.KeyProperties.First().Name);
+            configuration.KeyProperties.First().Name.Should().Be("Name");
         }
 
         private class Entity

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
 {
@@ -10,10 +10,11 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
     using System.Data.Entity.Infrastructure;
     using System.Linq;
     using System.Xml.Linq;
+    using FluentAssertions;
     using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Moq;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Moq;
 
     [TestClass]
     public class EdmxHelperTests
@@ -209,12 +210,11 @@ using FluentAssertions;
             //var conceptualModelsElements =
             //    edmx.Descendants(EdmxV3Namespace + "ConceptualModels").Single();
 
-            //Assert.Equal(1, conceptualModelsElements.Elements().Count());
-            //Assert.Equal(
-            //    XName.Get("Schema", SchemaManager.GetCSDLNamespaceName(EntityFrameworkVersion.Version3)),
-            //    conceptualModelsElements.Elements().Single().Name);
+            //conceptualModelsElements.Elements().Count().Should().Be(1);
+            //conceptualModelsElements.Elements().Single().Name
+            //    .Should().Be(XName.Get("Schema", SchemaManager.GetCSDLNamespaceName(EntityFrameworkVersion.Version3)));
 
-            //Assert.Equal("modelNamespace", (string)conceptualModelsElements.Elements().Single().Attribute("Namespace"));
+            //((string)conceptualModelsElements.Elements().Single().Attribute("Namespace")).Should().Be("modelNamespace");
         }
 
         [TestMethod, Ignore("Different API Visiblity between official dll and locally built")]
@@ -237,10 +237,9 @@ using FluentAssertions;
             //var conceptualModelsElements =
             //    edmx.Descendants(EdmxV3Namespace + "ConceptualModels").Single();
 
-            //Assert.Equal(1, conceptualModelsElements.Elements().Count());
-            //Assert.Equal(
-            //    XNamespace.None + "dummy",
-            //    conceptualModelsElements.Elements().Single().Name);
+            //conceptualModelsElements.Elements().Count().Should().Be(1);
+            //conceptualModelsElements.Elements().Single().Name
+            //    .Should().Be(XNamespace.None + "dummy");
         }
 
         [TestMethod, Ignore("Different API Visiblity between official dll and locally built")]
@@ -257,14 +256,13 @@ using FluentAssertions;
             //var storageModelsElements =
             //    edmx.Descendants(EdmxV3Namespace + "StorageModels").Single();
 
-            //Assert.Equal(1, storageModelsElements.Elements().Count());
-            //Assert.Equal(
-            //    XName.Get("Schema", SchemaManager.GetSSDLNamespaceName(EntityFrameworkVersion.Version3)),
-            //    storageModelsElements.Elements().Single().Name);
+            //storageModelsElements.Elements().Count().Should().Be(1);
+            //storageModelsElements.Elements().Single().Name
+            //    .Should().Be(XName.Get("Schema", SchemaManager.GetSSDLNamespaceName(EntityFrameworkVersion.Version3)));
             //var schemaElement = storageModelsElements.Elements().Single();
-            //Assert.Equal("myNamespace", (string)schemaElement.Attribute("Namespace"));
-            //Assert.Equal("ProviderInvariantName", (string)schemaElement.Attribute("Provider"));
-            //Assert.Equal("20081", (string)schemaElement.Attribute("ProviderManifestToken"));
+            //((string)schemaElement.Attribute("Namespace")).Should().Be("myNamespace");
+            //((string)schemaElement.Attribute("Provider")).Should().Be("ProviderInvariantName");
+            //((string)schemaElement.Attribute("ProviderManifestToken")).Should().Be("20081");
         }
 
         [TestMethod, Ignore("Different API Visiblity between official dll and locally built")]
@@ -282,7 +280,7 @@ using FluentAssertions;
             //new EdmxHelper(edmx)
             //    .UpdateStorageModels(storeModel, "myNamespace", providerInfo, errors);
 
-            //Assert.NotEmpty(errors);
+            //errors.Should().NotBeEmpty();
         }
 
         [TestMethod, Ignore("Different API Visiblity between official dll and locally built")]
@@ -308,10 +306,9 @@ using FluentAssertions;
             //var storageModelsElements =
             //    edmx.Descendants(EdmxV3Namespace + "Mappings").Single();
 
-            //Assert.Equal(1, storageModelsElements.Elements().Count());
-            //Assert.Equal(
-            //    XName.Get("Mapping", SchemaManager.GetMSLNamespaceName(EntityFrameworkVersion.Version3)),
-            //    storageModelsElements.Elements().Single().Name);
+            //storageModelsElements.Elements().Count().Should().Be(1);
+            //storageModelsElements.Elements().Single().Name
+            //    .Should().Be(XName.Get("Mapping", SchemaManager.GetMSLNamespaceName(EntityFrameworkVersion.Version3)));
         }
 
         [TestMethod]
@@ -335,9 +332,8 @@ using FluentAssertions;
 
             new EdmxHelper(edmx).UpdateDesignerOptionProperty("TestProperty", newValue);
 
-            Assert.Equal(
-                newValue,
-                Guid.Parse((string)edmx.Descendants(edmxNs + "DesignerProperty").Single().Attribute("Value")));
+            Guid.Parse((string)edmx.Descendants(edmxNs + "DesignerProperty").Single().Attribute("Value"))
+                .Should().Be(newValue);
         }
 
         [TestMethod]
@@ -354,9 +350,8 @@ using FluentAssertions;
 
             new EdmxHelper(edmx).UpdateDesignerOptionProperty("TestProperty", newValue);
 
-            Assert.Equal(
-                newValue,
-                Guid.Parse((string)edmx.Descendants(edmxNs + "DesignerProperty").Single().Attribute("Value")));
+            Guid.Parse((string)edmx.Descendants(edmxNs + "DesignerProperty").Single().Attribute("Value"))
+                .Should().Be(newValue);
         }
     }
 }

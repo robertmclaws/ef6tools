@@ -17,7 +17,7 @@ namespace Microsoft.Data.Entity.Design.Package
         public const string Id = "a3f44f1e-1863-4e1b-97b7-2f4c4a59ba59";
 
         /// <summary>The version of the extension.</summary>
-        public const string Version = "1.0";
+        public const string Version = "17.0";
 
         /// <summary>The language/locale of the extension.</summary>
         public const string Language = "en-US";

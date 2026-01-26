@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
     using System.Data.Entity.Core.EntityClient;
     using System.Text;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EntityStoreSchemaQueryGeneratorTests
@@ -18,13 +20,12 @@ using FluentAssertions;
         [TestMethod]
         public void AppendComparison_does_not_create_comparison_fragment_or_corresponding_parameter_for_non_value()
         {
-            Assert.Empty(
-                EntityStoreSchemaQueryGenerator.AppendComparison(
-                    new StringBuilder(),
-                    string.Empty,
-                    string.Empty,
-                    /* value */ null,
-                    CreateParameters()).ToString());
+            EntityStoreSchemaQueryGenerator.AppendComparison(
+                new StringBuilder(),
+                string.Empty,
+                string.Empty,
+                /* value */ null,
+                CreateParameters()).ToString().Should().BeEmpty();
         }
 
         [TestMethod]
@@ -32,14 +33,12 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "alias.propertyName LIKE @p0",
-                EntityStoreSchemaQueryGenerator.AppendComparison(
-                    new StringBuilder(),
-                    "alias",
-                    "propertyName",
-                    "Value",
-                    parameters).ToString());
+            EntityStoreSchemaQueryGenerator.AppendComparison(
+                new StringBuilder(),
+                "alias",
+                "propertyName",
+                "Value",
+                parameters).ToString().Should().Be("alias.propertyName LIKE @p0");
 
             parameters.Count.Should().Be(1);
             parameters[0].ParameterName.Should().Be("p0");
@@ -66,9 +65,7 @@ using FluentAssertions;
                 "Value2",
                 parameters);
 
-            Assert.Equal(
-                "alias1.propertyName1 LIKE @p0 AND alias2.propertyName2 LIKE @p1",
-                filterBuilder.ToString());
+            filterBuilder.ToString().Should().Be("alias1.propertyName1 LIKE @p0 AND alias2.propertyName2 LIKE @p1");
 
             parameters.Count.Should().Be(2);
             parameters[0].ParameterName.Should().Be("p0");
@@ -81,13 +78,11 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "(alias.CatalogName LIKE @p0 AND alias.SchemaName LIKE @p1 AND alias.Name LIKE @p2)",
-                EntityStoreSchemaQueryGenerator.AppendFilterEntry(
-                    new StringBuilder(),
-                    "alias",
-                    new EntityStoreSchemaFilterEntry("catalog", "schema", "name"),
-                    parameters).ToString());
+            EntityStoreSchemaQueryGenerator.AppendFilterEntry(
+                new StringBuilder(),
+                "alias",
+                new EntityStoreSchemaFilterEntry("catalog", "schema", "name"),
+                parameters).ToString().Should().Be("(alias.CatalogName LIKE @p0 AND alias.SchemaName LIKE @p1 AND alias.Name LIKE @p2)");
 
             parameters.Count.Should().Be(3);
             parameters[0].ParameterName.Should().Be("p0");
@@ -99,29 +94,23 @@ using FluentAssertions;
         [TestMethod]
         public void AppendFilterEntry_does_not_create_comparison_for_missing_catalog_schema_or_name_if_any_specified()
         {
-            Assert.Equal(
-                "(alias.SchemaName LIKE @p0 AND alias.Name LIKE @p1)",
-                EntityStoreSchemaQueryGenerator.AppendFilterEntry(
-                    new StringBuilder(),
-                    "alias",
-                    new EntityStoreSchemaFilterEntry(null, "schema", "name"),
-                    CreateParameters()).ToString());
+            EntityStoreSchemaQueryGenerator.AppendFilterEntry(
+                new StringBuilder(),
+                "alias",
+                new EntityStoreSchemaFilterEntry(null, "schema", "name"),
+                CreateParameters()).ToString().Should().Be("(alias.SchemaName LIKE @p0 AND alias.Name LIKE @p1)");
 
-            Assert.Equal(
-                "(alias.CatalogName LIKE @p0 AND alias.Name LIKE @p1)",
-                EntityStoreSchemaQueryGenerator.AppendFilterEntry(
-                    new StringBuilder(),
-                    "alias",
-                    new EntityStoreSchemaFilterEntry("catalog", null, "name"),
-                    CreateParameters()).ToString());
+            EntityStoreSchemaQueryGenerator.AppendFilterEntry(
+                new StringBuilder(),
+                "alias",
+                new EntityStoreSchemaFilterEntry("catalog", null, "name"),
+                CreateParameters()).ToString().Should().Be("(alias.CatalogName LIKE @p0 AND alias.Name LIKE @p1)");
 
-            Assert.Equal(
-                "(alias.CatalogName LIKE @p0 AND alias.SchemaName LIKE @p1)",
-                EntityStoreSchemaQueryGenerator.AppendFilterEntry(
-                    new StringBuilder(),
-                    "alias",
-                    new EntityStoreSchemaFilterEntry("catalog", "schema", null),
-                    CreateParameters()).ToString());
+            EntityStoreSchemaQueryGenerator.AppendFilterEntry(
+                new StringBuilder(),
+                "alias",
+                new EntityStoreSchemaFilterEntry("catalog", "schema", null),
+                CreateParameters()).ToString().Should().Be("(alias.CatalogName LIKE @p0 AND alias.SchemaName LIKE @p1)");
         }
 
         [TestMethod]
@@ -129,13 +118,11 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "(alias.Name LIKE @p0)",
-                EntityStoreSchemaQueryGenerator.AppendFilterEntry(
-                    new StringBuilder(),
-                    "alias",
-                    new EntityStoreSchemaFilterEntry(null, null, null),
-                    parameters).ToString());
+            EntityStoreSchemaQueryGenerator.AppendFilterEntry(
+                new StringBuilder(),
+                "alias",
+                new EntityStoreSchemaFilterEntry(null, null, null),
+                parameters).ToString().Should().Be("(alias.Name LIKE @p0)");
 
             parameters.Count.Should().Be(1);
             parameters[0].ParameterName.Should().Be("p0");
@@ -160,9 +147,7 @@ using FluentAssertions;
                 new EntityStoreSchemaFilterEntry("catalog", "schema", null),
                 parameters);
 
-            Assert.Equal(
-                "(alias.Name LIKE @p0) OR (alias.CatalogName LIKE @p1 AND alias.SchemaName LIKE @p2)",
-                filterBuilder.ToString());
+            filterBuilder.ToString().Should().Be("(alias.Name LIKE @p0) OR (alias.CatalogName LIKE @p1 AND alias.SchemaName LIKE @p2)");
 
             parameters.Count.Should().Be(3);
             parameters[0].ParameterName.Should().Be("p0");
@@ -175,35 +160,31 @@ using FluentAssertions;
         [TestMethod]
         public void Where_clause_not_created_for_empty_filter_aliases()
         {
-            Assert.Equal(
+            new EntityStoreSchemaQueryGenerator(
                 string.Empty,
-                new EntityStoreSchemaQueryGenerator(
-                    string.Empty,
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                null, null, null,
-                                EntityStoreSchemaFilterObjectTypes.Table,
-                                EntityStoreSchemaFilterEffect.Allow)
-                        },
-                    filterAliases: new string[0])
-                    .CreateWhereClause(CreateParameters()).ToString());
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            null, null, null,
+                            EntityStoreSchemaFilterObjectTypes.Table,
+                            EntityStoreSchemaFilterEffect.Allow)
+                    },
+                filterAliases: new string[0])
+                .CreateWhereClause(CreateParameters()).ToString().Should().Be(string.Empty);
         }
 
         [TestMethod]
         public void Where_clause_not_created_for_empty_filters()
         {
-            Assert.Equal(
+            new EntityStoreSchemaQueryGenerator(
                 string.Empty,
-                new EntityStoreSchemaQueryGenerator(
-                    string.Empty,
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new EntityStoreSchemaFilterEntry[0],
-                    new[] { "alias" })
-                    .CreateWhereClause(CreateParameters()).ToString());
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new EntityStoreSchemaFilterEntry[0],
+                new[] { "alias" })
+                .CreateWhereClause(CreateParameters()).ToString().Should().Be(string.Empty);
         }
 
         [TestMethod]
@@ -211,30 +192,28 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "((alias.CatalogName LIKE @p0 AND alias.SchemaName LIKE @p1 AND alias.Name LIKE @p2))",
-                new EntityStoreSchemaQueryGenerator(
-                    string.Empty,
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                "catalog",
-                                "schema",
-                                "name",
-                                EntityStoreSchemaFilterObjectTypes.Table,
-                                EntityStoreSchemaFilterEffect.Allow)
-                        },
-                    new[] { "alias" })
-                    .CreateWhereClause(parameters).ToString());
+            new EntityStoreSchemaQueryGenerator(
+                string.Empty,
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            "catalog",
+                            "schema",
+                            "name",
+                            EntityStoreSchemaFilterObjectTypes.Table,
+                            EntityStoreSchemaFilterEffect.Allow)
+                    },
+                new[] { "alias" })
+                .CreateWhereClause(parameters).ToString().Should().Be("((alias.CatalogName LIKE @p0 AND alias.SchemaName LIKE @p1 AND alias.Name LIKE @p2))");
 
             parameters.Count.Should().Be(3);
             parameters[0].ParameterName.Should().Be("p0");
             parameters[1].ParameterName.Should().Be("p1");
-            "catalog".Should().Be(parameters["p0"].Value);
-            "schema".Should().Be(parameters["p1"].Value);
-            "name".Should().Be(parameters["p2"].Value);
+            parameters["p0"].Value.Should().Be("catalog");
+            parameters["p1"].Value.Should().Be("schema");
+            parameters["p2"].Value.Should().Be("name");
         }
 
         [TestMethod]
@@ -242,29 +221,27 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "((alias1.Name LIKE @p0))\r\nAND\r\n((alias2.Name LIKE @p1))",
-                new EntityStoreSchemaQueryGenerator(
-                    string.Empty,
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                null,
-                                null,
-                                "name",
-                                EntityStoreSchemaFilterObjectTypes.Table,
-                                EntityStoreSchemaFilterEffect.Allow),
-                        },
-                    new[] { "alias1", "alias2" })
-                    .CreateWhereClause(parameters).ToString());
+            new EntityStoreSchemaQueryGenerator(
+                string.Empty,
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            null,
+                            null,
+                            "name",
+                            EntityStoreSchemaFilterObjectTypes.Table,
+                            EntityStoreSchemaFilterEffect.Allow),
+                    },
+                new[] { "alias1", "alias2" })
+                .CreateWhereClause(parameters).ToString().Should().Be("((alias1.Name LIKE @p0))\r\nAND\r\n((alias2.Name LIKE @p1))");
 
             parameters.Count.Should().Be(2);
             parameters[0].ParameterName.Should().Be("p0");
             parameters[1].ParameterName.Should().Be("p1");
-            "name".Should().Be(parameters["p0"].Value);
-            "name".Should().Be(parameters["p1"].Value);
+            parameters["p0"].Value.Should().Be("name");
+            parameters["p1"].Value.Should().Be("name");
         }
 
         [TestMethod]
@@ -272,27 +249,25 @@ using FluentAssertions;
         {
             var parameters = CreateParameters(optimized: true);
 
-            Assert.Equal(
-                "((alias1.Name LIKE @p0))\r\nAND\r\n((alias2.Name LIKE @p0))",
-                new EntityStoreSchemaQueryGenerator(
-                    string.Empty,
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                null,
-                                null,
-                                "name",
-                                EntityStoreSchemaFilterObjectTypes.Table,
-                                EntityStoreSchemaFilterEffect.Allow),
-                        },
-                    new[] { "alias1", "alias2" })
-                    .CreateWhereClause(parameters).ToString());
+            new EntityStoreSchemaQueryGenerator(
+                string.Empty,
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            null,
+                            null,
+                            "name",
+                            EntityStoreSchemaFilterObjectTypes.Table,
+                            EntityStoreSchemaFilterEffect.Allow),
+                    },
+                new[] { "alias1", "alias2" })
+                .CreateWhereClause(parameters).ToString().Should().Be("((alias1.Name LIKE @p0))\r\nAND\r\n((alias2.Name LIKE @p0))");
 
             parameters.Count.Should().Be(1);
             parameters[0].ParameterName.Should().Be("p0");
-            "name".Should().Be(parameters["p0"].Value);
+            parameters["p0"].Value.Should().Be("name");
         }
 
         [TestMethod]
@@ -300,30 +275,28 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "NOT ((alias.CatalogName LIKE @p0 AND alias.SchemaName LIKE @p1 AND alias.Name LIKE @p2))",
-                new EntityStoreSchemaQueryGenerator(
-                    string.Empty,
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                "catalog",
-                                "schema",
-                                "name",
-                                EntityStoreSchemaFilterObjectTypes.Table,
-                                EntityStoreSchemaFilterEffect.Exclude)
-                        },
-                    new[] { "alias" })
-                    .CreateWhereClause(parameters).ToString());
+            new EntityStoreSchemaQueryGenerator(
+                string.Empty,
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            "catalog",
+                            "schema",
+                            "name",
+                            EntityStoreSchemaFilterObjectTypes.Table,
+                            EntityStoreSchemaFilterEffect.Exclude)
+                    },
+                new[] { "alias" })
+                .CreateWhereClause(parameters).ToString().Should().Be("NOT ((alias.CatalogName LIKE @p0 AND alias.SchemaName LIKE @p1 AND alias.Name LIKE @p2))");
 
             parameters.Count.Should().Be(3);
             parameters[0].ParameterName.Should().Be("p0");
             parameters[1].ParameterName.Should().Be("p1");
-            "catalog".Should().Be(parameters["p0"].Value);
-            "schema".Should().Be(parameters["p1"].Value);
-            "name".Should().Be(parameters["p2"].Value);
+            parameters["p0"].Value.Should().Be("catalog");
+            parameters["p1"].Value.Should().Be("schema");
+            parameters["p2"].Value.Should().Be("name");
         }
 
         [TestMethod]
@@ -331,29 +304,27 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "NOT ((alias1.Name LIKE @p0))\r\nAND\r\nNOT ((alias2.Name LIKE @p1))",
-                new EntityStoreSchemaQueryGenerator(
-                    string.Empty,
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                null,
-                                null,
-                                "name",
-                                EntityStoreSchemaFilterObjectTypes.Table,
-                                EntityStoreSchemaFilterEffect.Exclude),
-                        },
-                    new[] { "alias1", "alias2" })
-                    .CreateWhereClause(parameters).ToString());
+            new EntityStoreSchemaQueryGenerator(
+                string.Empty,
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            null,
+                            null,
+                            "name",
+                            EntityStoreSchemaFilterObjectTypes.Table,
+                            EntityStoreSchemaFilterEffect.Exclude),
+                    },
+                new[] { "alias1", "alias2" })
+                .CreateWhereClause(parameters).ToString().Should().Be("NOT ((alias1.Name LIKE @p0))\r\nAND\r\nNOT ((alias2.Name LIKE @p1))");
 
             parameters.Count.Should().Be(2);
             parameters[0].ParameterName.Should().Be("p0");
             parameters[1].ParameterName.Should().Be("p1");
-            "name".Should().Be(parameters["p0"].Value);
-            "name".Should().Be(parameters["p1"].Value);
+            parameters["p0"].Value.Should().Be("name");
+            parameters["p1"].Value.Should().Be("name");
         }
 
         [TestMethod]
@@ -361,27 +332,25 @@ using FluentAssertions;
         {
             var parameters = CreateParameters(optimized: true);
 
-            Assert.Equal(
-                "NOT ((alias1.Name LIKE @p0))\r\nAND\r\nNOT ((alias2.Name LIKE @p0))",
-                new EntityStoreSchemaQueryGenerator(
-                    string.Empty,
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                null,
-                                null,
-                                "name",
-                                EntityStoreSchemaFilterObjectTypes.Table,
-                                EntityStoreSchemaFilterEffect.Exclude),
-                        },
-                    new[] { "alias1", "alias2" })
-                    .CreateWhereClause(parameters).ToString());
+            new EntityStoreSchemaQueryGenerator(
+                string.Empty,
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            null,
+                            null,
+                            "name",
+                            EntityStoreSchemaFilterObjectTypes.Table,
+                            EntityStoreSchemaFilterEffect.Exclude),
+                    },
+                new[] { "alias1", "alias2" })
+                .CreateWhereClause(parameters).ToString().Should().Be("NOT ((alias1.Name LIKE @p0))\r\nAND\r\nNOT ((alias2.Name LIKE @p0))");
 
             parameters.Count.Should().Be(1);
             parameters[0].ParameterName.Should().Be("p0");
-            "name".Should().Be(parameters["p0"].Value);
+            parameters["p0"].Value.Should().Be("name");
         }
 
         [TestMethod]
@@ -389,35 +358,33 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "NOT ((alias.Name LIKE @p0) OR (alias.Name LIKE @p1))",
-                new EntityStoreSchemaQueryGenerator(
-                    string.Empty,
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                null,
-                                null,
-                                "nameAllowed",
-                                EntityStoreSchemaFilterObjectTypes.Table,
-                                EntityStoreSchemaFilterEffect.Exclude),
-                            new EntityStoreSchemaFilterEntry(
-                                null,
-                                null,
-                                "nameExcluded",
-                                EntityStoreSchemaFilterObjectTypes.Table,
-                                EntityStoreSchemaFilterEffect.Exclude)
-                        },
-                    new[] { "alias" })
-                    .CreateWhereClause(parameters).ToString());
+            new EntityStoreSchemaQueryGenerator(
+                string.Empty,
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            null,
+                            null,
+                            "nameAllowed",
+                            EntityStoreSchemaFilterObjectTypes.Table,
+                            EntityStoreSchemaFilterEffect.Exclude),
+                        new EntityStoreSchemaFilterEntry(
+                            null,
+                            null,
+                            "nameExcluded",
+                            EntityStoreSchemaFilterObjectTypes.Table,
+                            EntityStoreSchemaFilterEffect.Exclude)
+                    },
+                new[] { "alias" })
+                .CreateWhereClause(parameters).ToString().Should().Be("NOT ((alias.Name LIKE @p0) OR (alias.Name LIKE @p1))");
 
             parameters.Count.Should().Be(2);
             parameters[0].ParameterName.Should().Be("p0");
             parameters[1].ParameterName.Should().Be("p1");
-            "nameAllowed".Should().Be(parameters["p0"].Value);
-            "nameExcluded".Should().Be(parameters["p1"].Value);
+            parameters["p0"].Value.Should().Be("nameAllowed");
+            parameters["p1"].Value.Should().Be("nameExcluded");
         }
 
         [TestMethod]
@@ -425,15 +392,13 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
+            new EntityStoreSchemaQueryGenerator(
                 "baseQuery",
-                new EntityStoreSchemaQueryGenerator(
-                    "baseQuery",
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new EntityStoreSchemaFilterEntry[0],
-                    new string[0])
-                    .GenerateQuery(parameters));
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new EntityStoreSchemaFilterEntry[0],
+                new string[0])
+                .GenerateQuery(parameters).Should().Be("baseQuery");
 
             parameters.Count.Should().Be(0);
         }
@@ -443,23 +408,21 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
+            new EntityStoreSchemaQueryGenerator(
                 "baseQuery",
-                new EntityStoreSchemaQueryGenerator(
-                    "baseQuery",
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                null,
-                                null,
-                                "name",
-                                EntityStoreSchemaFilterObjectTypes.Function,
-                                EntityStoreSchemaFilterEffect.Exclude),
-                        },
-                    new string[0])
-                    .GenerateQuery(parameters));
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            null,
+                            null,
+                            "name",
+                            EntityStoreSchemaFilterObjectTypes.Function,
+                            EntityStoreSchemaFilterEffect.Exclude),
+                    },
+                new string[0])
+                .GenerateQuery(parameters).Should().Be("baseQuery");
 
             parameters.Count.Should().Be(0);
         }
@@ -469,23 +432,21 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "baseQuery\r\nWHERE\r\nNOT ((alias.Name LIKE @p0))",
-                new EntityStoreSchemaQueryGenerator(
-                    "baseQuery",
-                    string.Empty,
-                    EntityStoreSchemaFilterObjectTypes.Function,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                null,
-                                null,
-                                "name",
-                                EntityStoreSchemaFilterObjectTypes.Function,
-                                EntityStoreSchemaFilterEffect.Exclude),
-                        },
-                    new[] { "alias" })
-                    .GenerateQuery(parameters));
+            new EntityStoreSchemaQueryGenerator(
+                "baseQuery",
+                string.Empty,
+                EntityStoreSchemaFilterObjectTypes.Function,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            null,
+                            null,
+                            "name",
+                            EntityStoreSchemaFilterObjectTypes.Function,
+                            EntityStoreSchemaFilterEffect.Exclude),
+                    },
+                new[] { "alias" })
+                .GenerateQuery(parameters).Should().Be("baseQuery\r\nWHERE\r\nNOT ((alias.Name LIKE @p0))");
 
             parameters.Count.Should().Be(1);
             parameters[0].ParameterName.Should().Be("p0");
@@ -497,15 +458,13 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "baseQuery\r\norderBy",
-                new EntityStoreSchemaQueryGenerator(
-                    "baseQuery",
-                    "orderBy",
-                    EntityStoreSchemaFilterObjectTypes.Table,
-                    new EntityStoreSchemaFilterEntry[0],
-                    new string[0])
-                    .GenerateQuery(parameters));
+            new EntityStoreSchemaQueryGenerator(
+                "baseQuery",
+                "orderBy",
+                EntityStoreSchemaFilterObjectTypes.Table,
+                new EntityStoreSchemaFilterEntry[0],
+                new string[0])
+                .GenerateQuery(parameters).Should().Be("baseQuery\r\norderBy");
 
             parameters.Count.Should().Be(0);
         }
@@ -515,23 +474,21 @@ using FluentAssertions;
         {
             var parameters = CreateParameters();
 
-            Assert.Equal(
-                "baseQuery\r\nWHERE\r\nNOT ((alias.Name LIKE @p0))\r\norderby",
-                new EntityStoreSchemaQueryGenerator(
-                    "baseQuery",
-                    "orderby",
-                    EntityStoreSchemaFilterObjectTypes.Function,
-                    new[]
-                        {
-                            new EntityStoreSchemaFilterEntry(
-                                null,
-                                null,
-                                "name",
-                                EntityStoreSchemaFilterObjectTypes.Function,
-                                EntityStoreSchemaFilterEffect.Exclude),
-                        },
-                    new[] { "alias" })
-                    .GenerateQuery(parameters));
+            new EntityStoreSchemaQueryGenerator(
+                "baseQuery",
+                "orderby",
+                EntityStoreSchemaFilterObjectTypes.Function,
+                new[]
+                    {
+                        new EntityStoreSchemaFilterEntry(
+                            null,
+                            null,
+                            "name",
+                            EntityStoreSchemaFilterObjectTypes.Function,
+                            EntityStoreSchemaFilterEffect.Exclude),
+                    },
+                new[] { "alias" })
+                .GenerateQuery(parameters).Should().Be("baseQuery\r\nWHERE\r\nNOT ((alias.Name LIKE @p0))\r\norderby");
 
             parameters.Count.Should().Be(1);
             parameters[0].ParameterName.Should().Be("p0");

@@ -26,6 +26,12 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <!-- InternalsVisibleTo for projects that need access to internal types -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Design.Package, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.EntityDesigner, $(StrongNamePublicKey)" />
+  </ItemGroup>
+
   <ItemGroup>
     <Reference Include="Accessibility" />
     <Reference Include="WindowsFormsIntegration" />

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
@@ -7,8 +7,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class PrecisionDateTimeDiscovererTests
@@ -22,7 +23,7 @@ using FluentAssertions;
             var entityType = model.ConceptualModel.EntityTypes.First();
             var property = entityType.Properties.First(p => p.Name == "Id");
 
-            new PrecisionDateTimeDiscoverer(.Should().BeNull().Discover(property, model));
+            new PrecisionDateTimeDiscoverer().Discover(property, model).Should().BeNull();
         }
 
         [TestMethod]
@@ -34,7 +35,7 @@ using FluentAssertions;
             var entityType = model.ConceptualModel.EntityTypes.First();
             var property = entityType.Properties.First(p => p.Name == "DateCreated");
 
-            new PrecisionDateTimeDiscoverer(.Should().BeNull().Discover(property, model));
+            new PrecisionDateTimeDiscoverer().Discover(property, model).Should().BeNull();
         }
 
         [TestMethod]

@@ -2,8 +2,9 @@
 
 namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
 {
+    using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class SvgConnectorRendererTests
@@ -53,8 +54,8 @@ using FluentAssertions;
             var result = _renderer.GetMarkerDefinitionsContent();
 
             result.Should().Contain("<marker");
-            Assert.DoesNotContain("<defs>", result);
-            Assert.DoesNotContain("</defs>", result);
+            result.Should().NotContain("<defs>");
+            result.Should().NotContain("</defs>");
         }
 
         [TestMethod]
@@ -72,7 +73,7 @@ using FluentAssertions;
             var result = _renderer.GetMarkerDefinitionsContent();
 
             // Diamond shape polygon points
-            Assert.Contains("points=\"6,1 11,6 6,11 1,6\"", result);
+            result.Should().Contain("points=\"6,1 11,6 6,11 1,6\"");
         }
 
         [TestMethod]

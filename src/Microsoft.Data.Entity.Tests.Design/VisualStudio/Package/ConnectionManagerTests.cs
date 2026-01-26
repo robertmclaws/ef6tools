@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
 {
@@ -12,10 +12,12 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
     using System.Collections.Generic;
     using System.Reflection;
     using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+    using Microsoft.Data.Entity.Design;
+    using Microsoft.Data.Entity.Design.VisualStudio;
+    using Microsoft.Data.Entity.Design.VisualStudio.Package;
     using VSLangProj;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
-    using Xunit.Extensions;
+    using FluentAssertions;
 
     [TestClass]
     public class ConnectionManagerTests
@@ -23,9 +25,8 @@ using FluentAssertions;
         [TestMethod]
         public void InjectEFAttributesIntoConnectionString_adds_App_MARS_for_SqlServer()
         {
-            Assert.Equal(
-                "integrated security=SSPI;MultipleActiveResultSets=True;App=EntityFramework",
-                ConnectionManager.InjectEFAttributesIntoConnectionString("Integrated Security=SSPI", "System.Data.SqlClient"));
+            ConnectionManager.InjectEFAttributesIntoConnectionString("Integrated Security=SSPI", "System.Data.SqlClient")
+                .Should().Be("integrated security=SSPI;MultipleActiveResultSets=True;App=EntityFramework");
         }
 
         [TestMethod]
@@ -33,29 +34,26 @@ using FluentAssertions;
             InjectEFAttributesIntoConnectionString_does_not_touch_connection_string_if_not_SqlServer()
         {
             const string connectionString = "dummy";
-            Assert.Same(
-                connectionString,
-                ConnectionManager.InjectEFAttributesIntoConnectionString(connectionString, "fakeProvider"));
+            ConnectionManager.InjectEFAttributesIntoConnectionString(connectionString, "fakeProvider")
+                .Should().BeSameAs(connectionString);
         }
 
         [TestMethod]
         public void
             InjectEFAttributesIntoConnectionString_does_not_app_App_MARS_to_connection_string_if_they_already_exist()
         {
-            Assert.Equal(
-                "integrated security=SSPI;multipleactiveresultsets=True;app=XYZ", 
-                ConnectionManager.InjectEFAttributesIntoConnectionString(
-                    "Integrated Security=SSPI;MultipleActiveResultSets=True;App=XYZ", "System.Data.SqlClient"));
+            ConnectionManager.InjectEFAttributesIntoConnectionString(
+                    "Integrated Security=SSPI;MultipleActiveResultSets=True;App=XYZ", "System.Data.SqlClient")
+                .Should().Be("integrated security=SSPI;multipleactiveresultsets=True;app=XYZ");
         }
 
         [TestMethod]
         public void
             InjectEFAttributesIntoConnectionString_does_not_add_App_attribute_to_connection_string_if_Application_Name_attribute_already_exists()
         {
-            Assert.Equal(
-                "integrated security=SSPI;multipleactiveresultsets=True;application name=XYZ",
-                ConnectionManager.InjectEFAttributesIntoConnectionString(
-                    "Integrated Security=SSPI;MultipleActiveResultSets=True;Application Name=XYZ", "System.Data.SqlClient"));
+            ConnectionManager.InjectEFAttributesIntoConnectionString(
+                    "Integrated Security=SSPI;MultipleActiveResultSets=True;Application Name=XYZ", "System.Data.SqlClient")
+                .Should().Be("integrated security=SSPI;multipleactiveresultsets=True;application name=XYZ");
         }
 
         [TestMethod]
@@ -63,9 +61,8 @@ using FluentAssertions;
         {
             const string connectionString = "dummy";
 
-            Assert.Same(
-                connectionString,
-                ConnectionManager.InjectEFAttributesIntoConnectionString(connectionString, "System.Data.SqlClient"));
+            ConnectionManager.InjectEFAttributesIntoConnectionString(connectionString, "System.Data.SqlClient")
+                .Should().BeSameAs(connectionString);
         }
 
         [TestMethod]
@@ -96,7 +93,7 @@ using FluentAssertions;
         {
             var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
             mockDte.SetProjectProperties(new Dictionary<string, object> { { "FullPath", @"C:\Projects\Project\Folder" } });
-            
+
             var metadataFileNames =
                 ConnectionManager.GetMetadataFileNamesFromArtifactFileName(
                 mockDte.Project, @"c:\temp\myModel.edmx", mockDte.ServiceProvider, (_, __) => null);
@@ -111,28 +108,25 @@ using FluentAssertions;
         {
             const string connString = "fakeConnString";
 
-            Assert.Same(
-                connString,
-                ConnectionManager.TranslateConnectionStringFromDesignTime(
-                    Mock.Of<IServiceProvider>(), Mock.Of<Project>(), "invariantName", connString));
+            ConnectionManager.TranslateConnectionStringFromDesignTime(
+                    Mock.Of<IServiceProvider>(), Mock.Of<Project>(), "invariantName", connString)
+                .Should().BeSameAs(connString);
 
-            Assert.Same(
-                connString,
-                ConnectionManager.TranslateConnectionStringFromRunTime(
-                    Mock.Of<IServiceProvider>(), Mock.Of<Project>(), "invariantName", connString));
+            ConnectionManager.TranslateConnectionStringFromRunTime(
+                    Mock.Of<IServiceProvider>(), Mock.Of<Project>(), "invariantName", connString)
+                .Should().BeSameAs(connString);
         }
 
         [TestMethod]
         public void TranslateConnectionString_returns_connection_string_if_connection_string_null_or_empty()
         {
-            Assert.Null(
-                ConnectionManager.TranslateConnectionStringFromDesignTime(
-                    Mock.Of<IServiceProvider>(), Mock.Of<Project>(), "invariantName", null));
+            ConnectionManager.TranslateConnectionStringFromDesignTime(
+                    Mock.Of<IServiceProvider>(), Mock.Of<Project>(), "invariantName", null)
+                .Should().BeNull();
 
-            Assert.Same(
-                string.Empty,
-                ConnectionManager.TranslateConnectionStringFromRunTime(
-                    Mock.Of<IServiceProvider>(), Mock.Of<Project>(), "invariantName", string.Empty));
+            ConnectionManager.TranslateConnectionStringFromRunTime(
+                    Mock.Of<IServiceProvider>(), Mock.Of<Project>(), "invariantName", string.Empty)
+                .Should().BeSameAs(string.Empty);
         }
 
         [TestMethod]
@@ -150,10 +144,9 @@ using FluentAssertions;
                 .Setup(p => p.GetService(typeof(IConnectionStringConverterService)))
                 .Returns(mockConverter.Object);
 
-            Assert.Same(
-                runtimeConnString,
-                ConnectionManager.TranslateConnectionStringFromDesignTime(
-                    mockServiceProvider.Object, Mock.Of<Project>(), "My.Db", "designTimeConnString"));
+            ConnectionManager.TranslateConnectionStringFromDesignTime(
+                    mockServiceProvider.Object, Mock.Of<Project>(), "My.Db", "designTimeConnString")
+                .Should().BeSameAs(runtimeConnString);
         }
 
         [TestMethod]
@@ -171,10 +164,9 @@ using FluentAssertions;
                 .Setup(p => p.GetService(typeof(IConnectionStringConverterService)))
                 .Returns(mockConverter.Object);
 
-            Assert.Same(
-                designTimeConnString,
-                ConnectionManager.TranslateConnectionStringFromRunTime(
-                    mockServiceProvider.Object, Mock.Of<Project>(), "My.Db", "runtimeTimeConnString"));
+            ConnectionManager.TranslateConnectionStringFromRunTime(
+                    mockServiceProvider.Object, Mock.Of<Project>(), "My.Db", "runtimeTimeConnString")
+                .Should().BeSameAs(designTimeConnString);
         }
 
         [TestMethod]
@@ -212,17 +204,15 @@ using FluentAssertions;
                 .Setup(p => p.GetService(typeof(IVsDataProviderManager)))
                 .Returns(mockProviderManager.Object);
 
-            Assert.Equal(
-                string.Format(Resources.CannotTranslateRuntimeConnectionString, string.Empty, "connectionString"),
-                Assert.Throws<ArgumentException>(
-                    () => ConnectionManager.TranslateConnectionStringFromRunTime(mockServiceProvider.Object,
-                        Mock.Of<Project>(), "My.Db", "connectionString")).Message);
+            Action actRuntime = () => ConnectionManager.TranslateConnectionStringFromRunTime(mockServiceProvider.Object,
+                Mock.Of<Project>(), "My.Db", "connectionString");
+            actRuntime.Should().Throw<ArgumentException>()
+                .WithMessage(string.Format(Resources.CannotTranslateRuntimeConnectionString, string.Empty, "connectionString"));
 
-            Assert.Equal(
-                string.Format(Resources.CannotTranslateDesignTimeConnectionString, string.Empty, "connectionString"),
-                Assert.Throws<ArgumentException>(
-                    () => ConnectionManager.TranslateConnectionStringFromDesignTime(mockServiceProvider.Object,
-                        Mock.Of<Project>(), "My.Db", "connectionString")).Message);
+            Action actDesignTime = () => ConnectionManager.TranslateConnectionStringFromDesignTime(mockServiceProvider.Object,
+                Mock.Of<Project>(), "My.Db", "connectionString");
+            actDesignTime.Should().Throw<ArgumentException>()
+                .WithMessage(string.Format(Resources.CannotTranslateDesignTimeConnectionString, string.Empty, "connectionString"));
         }
 
         [TestMethod]
@@ -247,7 +237,7 @@ using FluentAssertions;
                 .Setup(m => m.Providers)
                 .Returns(new Dictionary<Guid, IVsDataProvider>());
 
-            // this is to ensure that even if the translation of the provider invariant name succeeded 
+            // this is to ensure that even if the translation of the provider invariant name succeeded
             // we will use the runtime provider invariant name in the message
             var mockProviderMapper = new Mock<IDTAdoDotNetProviderMapper2>();
             mockProviderMapper
@@ -267,30 +257,28 @@ using FluentAssertions;
 
             var ddexNotInstalledMessage = string.Format(Resources.DDEXNotInstalled, "My.Db");
 
-            Assert.Equal(
-                string.Format(Resources.CannotTranslateRuntimeConnectionString, ddexNotInstalledMessage, "connectionString"),
-                Assert.Throws<ArgumentException>(
-                    () => ConnectionManager.TranslateConnectionStringFromRunTime(mockServiceProvider.Object,
-                        Mock.Of<Project>(), "My.Db", "connectionString")).Message);
+            Action actRuntime = () => ConnectionManager.TranslateConnectionStringFromRunTime(mockServiceProvider.Object,
+                Mock.Of<Project>(), "My.Db", "connectionString");
+            actRuntime.Should().Throw<ArgumentException>()
+                .WithMessage(string.Format(Resources.CannotTranslateRuntimeConnectionString, ddexNotInstalledMessage, "connectionString"));
 
             mockProviderMapper
                 .Verify(
-                    m => m.MapRuntimeInvariantToInvariantName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), 
+                    m => m.MapRuntimeInvariantToInvariantName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()),
                     Times.Once());
 
-            Assert.Equal(
-                string.Format(Resources.CannotTranslateDesignTimeConnectionString, ddexNotInstalledMessage, "connectionString"),
-                Assert.Throws<ArgumentException>(
-                    () => ConnectionManager.TranslateConnectionStringFromDesignTime(mockServiceProvider.Object,
-                        Mock.Of<Project>(), "My.Db", "connectionString")).Message);
+            Action actDesignTime = () => ConnectionManager.TranslateConnectionStringFromDesignTime(mockServiceProvider.Object,
+                Mock.Of<Project>(), "My.Db", "connectionString");
+            actDesignTime.Should().Throw<ArgumentException>()
+                .WithMessage(string.Format(Resources.CannotTranslateDesignTimeConnectionString, ddexNotInstalledMessage, "connectionString"));
         }
 
         [TestMethod]
         public void GetUniqueConnectionStringName_returns_candidate_connection_string_name_if_config_does_not_exist()
         {
-            Assert.Equal("myModel", ConnectionManager.GetUniqueConnectionStringName(
+            ConnectionManager.GetUniqueConnectionStringName(
                 new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, Mock.Of<IVsUtils>(), null).Object,
-                "myModel"));
+                "myModel").Should().Be("myModel");
         }
 
         [TestMethod]
@@ -298,7 +286,7 @@ using FluentAssertions;
         {
             var configXml = new XmlDocument();
             configXml.LoadXml(@"<configuration>
-  <connectionStrings>    
+  <connectionStrings>
     <add name=""myModel"" connectionString=""Data Source=(localdb)\v11.0;"" providerName=""System.Data.SqlClient"" />
     <add name=""myModel1"" connectionString=""metadata=res://*;"" providerName=""System.Data.EntityClient"" />
     <add name=""myModel2"" connectionString=""metadata=res://*;"" providerName=""System.Data.SqlCe"" />
@@ -311,16 +299,15 @@ using FluentAssertions;
                 .Setup(c => c.LoadConfig())
                 .Returns(configXml);
 
-            Assert.Equal("myModel3", ConnectionManager.GetUniqueConnectionStringName(mockConfig.Object, "myModel"));
+            ConnectionManager.GetUniqueConnectionStringName(mockConfig.Object, "myModel").Should().Be("myModel3");
         }
 
         [TestMethod]
         public void CreateDefaultLocalDbConnectionString_returns_correct_default_connection_string()
         {
             // MSSQLLocalDB is the standard LocalDB instance name for VS2015+ (VS14 and later)
-            Assert.Equal(
-                @"Data Source=(LocalDb)\MSSQLLocalDB;Initial Catalog=App.MyContext;Integrated Security=True",
-                ConnectionManager.CreateDefaultLocalDbConnectionString("App.MyContext"));
+            ConnectionManager.CreateDefaultLocalDbConnectionString("App.MyContext")
+                .Should().Be(@"Data Source=(LocalDb)\MSSQLLocalDB;Initial Catalog=App.MyContext;Integrated Security=True");
         }
 
         [TestMethod]
@@ -328,7 +315,7 @@ using FluentAssertions;
         {
             var configXml = new XmlDocument();
             configXml.LoadXml(@"<configuration>
-  <connectionStrings>    
+  <connectionStrings>
     <add name=""myModel"" connectionString=""Data Source=(localdb)\v11.0;"" providerName=""System.Data.SqlClient"" />
   </connectionStrings>
 </configuration>");
@@ -337,8 +324,8 @@ using FluentAssertions;
 
             var addElement = configXml.SelectSingleNode("/configuration/connectionStrings/add[@name='MyDb']") as XmlElement;
             addElement.Should().NotBeNull();
-            Assert.Equal("db=mydb", addElement.GetAttribute("connectionString"));
-            Assert.Equal("fancyDb", addElement.GetAttribute("providerName"));
+            addElement.GetAttribute("connectionString").Should().Be("db=mydb");
+            addElement.GetAttribute("providerName").Should().Be("fancyDb");
         }
 
         [TestMethod]
@@ -356,10 +343,8 @@ using FluentAssertions;
                 var configXml = new XmlDocument();
                 configXml.LoadXml(config);
 
-                Assert.Equal(
-                    Assert.Throws<XmlException>(
-                        () => ConnectionManager.AddConnectionStringElement(configXml, "MyDb", "db=mydb", "fancyDb")).Message,
-                    Resources.ConnectionManager_CorruptConfig);
+                Action act = () => ConnectionManager.AddConnectionStringElement(configXml, "MyDb", "db=mydb", "fancyDb");
+                act.Should().Throw<XmlException>().WithMessage(Resources.ConnectionManager_CorruptConfig);
             }
         }
 
@@ -386,9 +371,9 @@ using FluentAssertions;
 
             ConnectionManager.UpdateEntityConnectionStringsInConfig(configXml, entityConnectionStrings);
 
-            configXml.SelectSingleNode("/configuration/connectionStrings/add[@name = 'shouldNotBeTouched']".Should().NotBeNull());
-            configXml.SelectSingleNode("/configuration/connectionStrings/add[@name = 'newEntityConnStr']".Should().NotBeNull());
-            configXml.SelectSingleNode("/configuration/connectionStrings/add[@name = 'toBeRemoved']".Should().BeNull());
+            configXml.SelectSingleNode("/configuration/connectionStrings/add[@name = 'shouldNotBeTouched']").Should().NotBeNull();
+            configXml.SelectSingleNode("/configuration/connectionStrings/add[@name = 'newEntityConnStr']").Should().NotBeNull();
+            configXml.SelectSingleNode("/configuration/connectionStrings/add[@name = 'toBeRemoved']").Should().BeNull();
         }
     }
 }

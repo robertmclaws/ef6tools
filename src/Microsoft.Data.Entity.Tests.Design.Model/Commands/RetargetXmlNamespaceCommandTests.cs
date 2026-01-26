@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model.Commands
 {
     using System;
     using System.Xml;
     using System.Xml.Linq;
+    using Microsoft.Data.Entity.Design.Model;
+    using Microsoft.Data.Entity.Design.Model.Commands;
     using Microsoft.Data.Entity.Design.VersioningFacade;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class RetargetXmlNamespaceCommandTests
@@ -54,7 +56,7 @@ using FluentAssertions;
                         });
 
             RetargetXmlNamespaceCommand.RetargetWithMetadataConverter(model, EntityFrameworkVersion.Version2, mockConverter.Object);
-            XNode.DeepEquals(XDocument.Parse("<!---->\n" + convertedModelXml.Should().BeTrue(), model));
+            XNode.DeepEquals(XDocument.Parse("<!---->\n" + convertedModelXml), model).Should().BeTrue();
         }
     }
 }

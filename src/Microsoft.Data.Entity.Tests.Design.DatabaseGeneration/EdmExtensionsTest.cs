@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using Legacy = System.Data.Common;
 
@@ -18,7 +18,7 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
     using Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
     using Microsoft.Data.Entity.Design.DatabaseGeneration;
 
     [TestClass]
@@ -91,30 +91,27 @@ using FluentAssertions;
         [TestMethod]
         public void CreateAndValidateEdmItemCollection_throws_ArgumentNullException_for_null_csdl()
         {
-            Assert.Equal(
-                "csdl",
-                Assert.Throws<ArgumentNullException>(
-                    () => EdmExtension.CreateAndValidateEdmItemCollection(null, new Version(1, 0, 0, 0))).ParamName);
+            Action act = () => EdmExtension.CreateAndValidateEdmItemCollection(null, new Version(1, 0, 0, 0));
+            var exception = act.Should().Throw<ArgumentNullException>().Which;
+            exception.ParamName.Should().Be("csdl");
         }
 
         [TestMethod]
         public void CreateAndValidateEdmItemCollection_throws_ArgumentNullException_for_null_targetFrameworkVersion()
         {
-            Assert.Equal(
-                "targetFrameworkVersion",
-                Assert.Throws<ArgumentNullException>(
-                    () => EdmExtension.CreateAndValidateEdmItemCollection(string.Empty, null)).ParamName);
+            Action act = () => EdmExtension.CreateAndValidateEdmItemCollection(string.Empty, null);
+            var exception = act.Should().Throw<ArgumentNullException>().Which;
+            exception.ParamName.Should().Be("targetFrameworkVersion");
         }
 
         [TestMethod]
         public void CreateAndValidateEdmItemCollection_throws_ArgumentException_for_incorrect_targetFrameworkVersion()
         {
-            var exception = Assert.Throws<ArgumentException>(
-                () => EdmExtension.CreateAndValidateEdmItemCollection(string.Empty, new Version(0, 0)));
-
+            Action act = () => EdmExtension.CreateAndValidateEdmItemCollection(string.Empty, new Version(0, 0));
+            var exception = act.Should().Throw<ArgumentException>().Which;
             exception.ParamName.Should().Be("targetFrameworkVersion");
-            (exception.Message.StartsWith(
-                    string.Format(CultureInfo.CurrentCulture, Resources.ErrorNonValidTargetVersion, "0.0")));
+            exception.Message.Should().StartWith(
+                string.Format(CultureInfo.CurrentCulture, Resources.ErrorNonValidTargetVersion, "0.0"));
         }
 
         [TestMethod]
@@ -127,10 +124,10 @@ using FluentAssertions;
                 .Single()
                 .Add(new XElement("{http://schemas.microsoft.com/ado/2009/11/edm}InvalidElement"));
 
-            var exception = Assert.Throws<InvalidOperationException>(
-                () => EdmExtension.CreateAndValidateEdmItemCollection(invalidCsdl.ToString(), new Version(3, 0, 0, 0)));
+            Action act = () => EdmExtension.CreateAndValidateEdmItemCollection(invalidCsdl.ToString(), new Version(3, 0, 0, 0));
+            var exception = act.Should().Throw<InvalidOperationException>().Which;
 
-            exception.Message.StartsWith(Resources.ErrorCsdlNotValid.Replace("{0}", string.Empty.Should().BeTrue()));
+            exception.Message.Should().StartWith(Resources.ErrorCsdlNotValid.Replace("{0}", string.Empty));
             var errorMessages = exception.Message.Split('\n');
             errorMessages.Length.Should().Be(3);
             errorMessages[0].Should().Contain("PropertyRef");
@@ -141,11 +138,10 @@ using FluentAssertions;
         [TestMethod]
         public void CreateAndValidateEdmItemCollection_throws_for_valid_csdl_whose_version_is_newer_than_targetFrameworkVersion()
         {
-            var exception = Assert.Throws<InvalidOperationException>(
-                () => EdmExtension.CreateAndValidateEdmItemCollection(Csdl, new Version(2, 0, 0, 0)));
+            Action act = () => EdmExtension.CreateAndValidateEdmItemCollection(Csdl, new Version(2, 0, 0, 0));
+            var exception = act.Should().Throw<InvalidOperationException>().Which;
 
-            Assert.Contains(
-                exception.Message,
+            exception.Message.Should().Contain(
                 string.Format(
                     CultureInfo.CurrentCulture,
                     Resources.TargetVersionSchemaVersionMismatch,
@@ -163,10 +159,10 @@ using FluentAssertions;
                 .Single()
                 .Add(new XElement("{http://schemas.microsoft.com/ado/2009/11/edm}InvalidElement"));
 
-            var exception = Assert.Throws<InvalidOperationException>(
-                () => EdmExtension.CreateAndValidateEdmItemCollection(invalidCsdl.ToString(), new Version(2, 0, 0, 0)));
+            Action act = () => EdmExtension.CreateAndValidateEdmItemCollection(invalidCsdl.ToString(), new Version(2, 0, 0, 0));
+            var exception = act.Should().Throw<InvalidOperationException>().Which;
 
-            exception.Message.StartsWith(Resources.ErrorCsdlNotValid.Replace("{0}", string.Empty.Should().BeTrue()));
+            exception.Message.Should().StartWith(Resources.ErrorCsdlNotValid.Replace("{0}", string.Empty));
             var errorMessages = exception.Message.Split('\n');
             errorMessages.Length.Should().Be(3);
             errorMessages[0].Should().Contain("PropertyRef");
@@ -180,21 +176,20 @@ using FluentAssertions;
             var edmItemCollection = EdmExtension.CreateAndValidateEdmItemCollection(Csdl, new Version(3, 0, 0, 0));
 
             edmItemCollection.Should().NotBeNull();
-            edmItemCollection.GetItem<EntityType>("AdventureWorksModel.Entity".Should().NotBeNull());
+            edmItemCollection.GetItem<EntityType>("AdventureWorksModel.Entity").Should().NotBeNull();
         }
 
         [TestMethod]
         public void CreateStoreItemCollection_throws_ArgumentNullException_for_null_ssdl()
         {
             IList<EdmSchemaError> schemaErrors;
-            Assert.Equal(
-                "ssdl",
-                Assert.Throws<ArgumentNullException>(
-                    () => EdmExtension.CreateStoreItemCollection(
-                        null,
-                        new Version(1, 0, 0, 0),
-                        null,
-                        out schemaErrors)).ParamName);
+            Action act = () => EdmExtension.CreateStoreItemCollection(
+                null,
+                new Version(1, 0, 0, 0),
+                null,
+                out schemaErrors);
+            var exception = act.Should().Throw<ArgumentNullException>().Which;
+            exception.ParamName.Should().Be("ssdl");
         }
 
         [TestMethod]
@@ -202,14 +197,13 @@ using FluentAssertions;
         {
             IList<EdmSchemaError> schemaErrors;
 
-            Assert.Equal(
-                "targetFrameworkVersion",
-                Assert.Throws<ArgumentNullException>(
-                    () => EdmExtension.CreateStoreItemCollection(
-                        string.Empty,
-                        null,
-                        null,
-                        out schemaErrors)).ParamName);
+            Action act = () => EdmExtension.CreateStoreItemCollection(
+                string.Empty,
+                null,
+                null,
+                out schemaErrors);
+            var exception = act.Should().Throw<ArgumentNullException>().Which;
+            exception.ParamName.Should().Be("targetFrameworkVersion");
         }
 
         [TestMethod]
@@ -217,16 +211,15 @@ using FluentAssertions;
         {
             IList<EdmSchemaError> schemaErrors;
 
-            var exception = Assert.Throws<ArgumentException>(
-                () => EdmExtension.CreateStoreItemCollection(
-                    string.Empty,
-                    new Version(0, 0),
-                    null,
-                    out schemaErrors));
-
+            Action act = () => EdmExtension.CreateStoreItemCollection(
+                string.Empty,
+                new Version(0, 0),
+                null,
+                out schemaErrors);
+            var exception = act.Should().Throw<ArgumentException>().Which;
             exception.ParamName.Should().Be("targetFrameworkVersion");
-            (exception.Message.StartsWith(
-                    string.Format(CultureInfo.CurrentCulture, Resources.ErrorNonValidTargetVersion, "0.0")));
+            exception.Message.Should().StartWith(
+                string.Format(CultureInfo.CurrentCulture, Resources.ErrorNonValidTargetVersion, "0.0"));
         }
 
         [TestMethod]
@@ -260,36 +253,33 @@ using FluentAssertions;
 
             storeItemCollection.Should().NotBeNull();
             schemaErrors.Count.Should().Be(0);
-            storeItemCollection.GetItem<EntityType>("AdventureWorksModel.Store.Entities".Should().NotBeNull());
+            storeItemCollection.GetItem<EntityType>("AdventureWorksModel.Store.Entities").Should().NotBeNull();
         }
 
         [TestMethod]
         public void CreateAndValidateStoreItemCollection_throws_ArgumentNullException_for_null_ssdl()
         {
-            Assert.Equal(
-                "ssdl",
-                Assert.Throws<ArgumentNullException>(
-                    () => EdmExtension.CreateAndValidateStoreItemCollection(null, new Version(1, 0, 0, 0), null, true)).ParamName);
+            Action act = () => EdmExtension.CreateAndValidateStoreItemCollection(null, new Version(1, 0, 0, 0), null, true);
+            var exception = act.Should().Throw<ArgumentNullException>().Which;
+            exception.ParamName.Should().Be("ssdl");
         }
 
         [TestMethod]
         public void CreateAndValidateStoreItemCollection_throws_ArgumentNullException_for_null_targetFrameworkVersion()
         {
-            Assert.Equal(
-                "targetFrameworkVersion",
-                Assert.Throws<ArgumentNullException>(
-                    () => EdmExtension.CreateAndValidateStoreItemCollection(string.Empty, null, null, true)).ParamName);
+            Action act = () => EdmExtension.CreateAndValidateStoreItemCollection(string.Empty, null, null, true);
+            var exception = act.Should().Throw<ArgumentNullException>().Which;
+            exception.ParamName.Should().Be("targetFrameworkVersion");
         }
 
         [TestMethod]
         public void CreateAndValidateStoreItemCollection_throws_ArgumentException_for_incorrect_targetFrameworkVersion()
         {
-            var exception = Assert.Throws<ArgumentException>(
-                () => EdmExtension.CreateAndValidateStoreItemCollection(string.Empty, new Version(0, 0), null, true));
-
+            Action act = () => EdmExtension.CreateAndValidateStoreItemCollection(string.Empty, new Version(0, 0), null, true);
+            var exception = act.Should().Throw<ArgumentException>().Which;
             exception.ParamName.Should().Be("targetFrameworkVersion");
-            (exception.Message.StartsWith(
-                    string.Format(CultureInfo.CurrentCulture, Resources.ErrorNonValidTargetVersion, "0.0")));
+            exception.Message.Should().StartWith(
+                string.Format(CultureInfo.CurrentCulture, Resources.ErrorNonValidTargetVersion, "0.0"));
         }
 
         [TestMethod]
@@ -301,17 +291,17 @@ using FluentAssertions;
             entityTypeElement.AddAfterSelf(new XElement("{http://schemas.microsoft.com/ado/2009/11/edm/ssdl}InvalidElement"));
             entityTypeElement.AddAfterSelf(entityTypeElement);
 
-            var exception = Assert.Throws<InvalidOperationException>(
-                () => EdmExtension.CreateAndValidateStoreItemCollection(
-                    invalidSsdl.ToString(),
-                    new Version(3, 0, 0, 0),
-                    resolver,
-                    catchThrowNamingConflicts: false));
+            Action act = () => EdmExtension.CreateAndValidateStoreItemCollection(
+                invalidSsdl.ToString(),
+                new Version(3, 0, 0, 0),
+                resolver,
+                catchThrowNamingConflicts: false);
+            var exception = act.Should().Throw<InvalidOperationException>().Which;
 
-            exception.Message.StartsWith(Resources.ErrorNonValidSsdl.Replace("{0}", string.Empty.Should().BeTrue()));
+            exception.Message.Should().StartWith(Resources.ErrorNonValidSsdl.Replace("{0}", string.Empty));
             var exceptionData = (IList<EdmSchemaError>)exception.Data["ssdlErrors"];
             exceptionData.Count.Should().Be(3);
-            exceptionData.All(e => exception.Message.Contains(e.Message.Should().BeTrue()));
+            exceptionData.All(e => exception.Message.Contains(e.Message)).Should().BeTrue();
         }
 
         [TestMethod]
@@ -323,15 +313,15 @@ using FluentAssertions;
             entityTypeElement.AddAfterSelf(new XElement("{http://schemas.microsoft.com/ado/2009/11/edm/ssdl}InvalidElement"));
             entityTypeElement.AddAfterSelf(entityTypeElement);
 
-            var exception = Assert.Throws<InvalidOperationException>(
-                () => EdmExtension.CreateAndValidateStoreItemCollection(
-                    invalidSsdl.ToString(),
-                    new Version(3, 0, 0, 0),
-                    resolver,
-                    catchThrowNamingConflicts: true));
+            Action act = () => EdmExtension.CreateAndValidateStoreItemCollection(
+                invalidSsdl.ToString(),
+                new Version(3, 0, 0, 0),
+                resolver,
+                catchThrowNamingConflicts: true);
+            var exception = act.Should().Throw<InvalidOperationException>().Which;
 
             var exceptionData = (IList<EdmSchemaError>)exception.Data["ssdlErrors"];
-            Assert.Equal(string.Format(Resources.ErrorNameCollision, exceptionData[0].Message), exception.Message);
+            exception.Message.Should().Be(string.Format(Resources.ErrorNameCollision, exceptionData[0].Message));
             exceptionData.Count.Should().Be(3);
             exceptionData[0].Message.Should().Contain("'AdventureWorksModel.Store.Entities'");
             exceptionData[1].Message.Should().Contain("InvalidElement");
@@ -349,7 +339,7 @@ using FluentAssertions;
                     catchThrowNamingConflicts: true);
 
             storeItemCollection.Should().NotBeNull();
-            storeItemCollection.GetItem<EntityType>("AdventureWorksModel.Store.Entities".Should().NotBeNull());
+            storeItemCollection.GetItem<EntityType>("AdventureWorksModel.Store.Entities").Should().NotBeNull();
         }
 
         [TestMethod]
@@ -401,11 +391,11 @@ using FluentAssertions;
 
             storageMappingItemCollection.Should().NotBeNull();
             edmErrors.Count.Should().Be(0);
-            storageMappingItemCollection.GetItem<GlobalItem>("AdventureWorksEntities3".Should().NotBeNull());
+            storageMappingItemCollection.GetItem<GlobalItem>("AdventureWorksEntities3").Should().NotBeNull();
         }
 
         [TestClass]
-    public class CopyToSSDLTests
+        public class CopyToSSDLTests
         {
             [TestMethod]
             public void CopyToSSDL_true_causes_CopyExtendedPropertiesToSsdlElement_to_copy_property()
@@ -419,9 +409,8 @@ using FluentAssertions;
                         new XAttribute("Name", "TestEntityType"));
                     OutputGeneratorHelpers.CopyExtendedPropertiesToSsdlElement(
                         csdlEntityTypeWithVersionedEdmxNamespaceCopyToSSDL, ssdlEntityTypeElement);
-                    Assert.Equal(
-                        "<MyProp p1:MyAttribute=\"MyValue\" xmlns:p1=\"http://myExtendedProperties\" xmlns=\"http://myExtendedProperties\" />",
-                        ssdlEntityTypeElement.Elements().First().ToString());
+                    ssdlEntityTypeElement.Elements().First().ToString().Should().Be(
+                        "<MyProp p1:MyAttribute=\"MyValue\" xmlns:p1=\"http://myExtendedProperties\" xmlns=\"http://myExtendedProperties\" />");
                 }
             }
 
@@ -437,7 +426,7 @@ using FluentAssertions;
                         new XAttribute("Name", "TestEntityType"));
                     OutputGeneratorHelpers.CopyExtendedPropertiesToSsdlElement(
                         csdlEntityTypeWithVersionedEdmxNamespaceCopyToSSDL, ssdlEntityTypeElement);
-                    Assert.Empty(ssdlEntityTypeElement.Elements());
+                    ssdlEntityTypeElement.Elements().Should().BeEmpty();
                 }
             }
 
@@ -454,7 +443,7 @@ using FluentAssertions;
                         new XAttribute("Name", "TestEntityType"));
                     OutputGeneratorHelpers.CopyExtendedPropertiesToSsdlElement(
                         csdlEntityTypeWithNonEdmxNamespaceCopyToSSDL, ssdlEntityTypeElement);
-                    Assert.Empty(ssdlEntityTypeElement.Elements());
+                    ssdlEntityTypeElement.Elements().Should().BeEmpty();
                 }
             }
 

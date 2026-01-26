@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <RootNamespace>Microsoft.Data.Entity.Design.VersioningFacade</RootNamespace>
-    <AssemblyName>Microsoft.Data.Entity.Design.VersioningFacade</AssemblyName>
     <!-- Override default - this assembly is CLS compliant -->
     <CLSCompliant>true</CLSCompliant>
   </PropertyGroup>
@@ -14,9 +13,42 @@
     <Reference Include="System.Data.Entity.Design" />
   </ItemGroup>
 
+  <!-- EntityFramework and all providers -->
   <ItemGroup>
-    <PackageReference Include="EasyAF.Edmx" />
+    <!-- Exclude compile assets - we use publicized version for compilation -->
+    <PackageReference Include="EntityFramework" ExcludeAssets="compile" />
+    <PackageReference Include="Microsoft.EntityFramework.SqlServer" />
+    <PackageReference Include="EntityFramework.SqlServerCompact" />
+    <PackageReference Include="EntityFramework6.Npgsql" />
+    <PackageReference Include="MySql.Data.EntityFramework" />
+    <PackageReference Include="Oracle.ManagedDataAccess.EntityFramework" />
+    <!-- ILRepack for merging -->
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" />
   </ItemGroup>
+
+  <!-- Add publicized EntityFramework as a direct reference for compilation -->
+  <ItemGroup>
+    <Reference Include="EntityFramework">
+      <HintPath>$(EFPublicizedPath)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Publicize EntityFramework to access internal types at compile-time -->
+  <PropertyGroup>
+    <PublicizedDir>$(MSBuildThisFileDirectory)..\..\obj\publicized\</PublicizedDir>
+    <EFSourcePath>$(NuGetPackageRoot)entityframework\$(EntityFrameworkPackageVersion)\lib\net45\EntityFramework.dll</EFSourcePath>
+    <EFPublicizedPath>$(PublicizedDir)EntityFramework.dll</EFPublicizedPath>
+    <PublicizeScript>$(MSBuildThisFileDirectory)..\..\tools\PublicizeAssembly.cs</PublicizeScript>
+  </PropertyGroup>
+
+  <!-- Generate publicized EF only if it doesn't exist -->
+  <Target Name="GeneratePublicizedEntityFramework" BeforeTargets="ResolveAssemblyReferences"
+          Condition="!Exists('$(EFPublicizedPath)')">
+    <MakeDir Directories="$(PublicizedDir)" />
+    <Exec Command="dotnet run &quot;$(PublicizeScript)&quot; -- &quot;$(EFSourcePath)&quot; &quot;$(EFPublicizedPath)&quot;" />
+  </Target>
+
 
   <ItemGroup>
     <EmbeddedResource Update="Resources.VersioningFacade.resx">
@@ -30,6 +62,14 @@
     <InternalsVisibleTo Include="Microsoft.Data.Entity.Design.Model, $(StrongNamePublicKey)" />
     <InternalsVisibleTo Include="Microsoft.Data.Entity.Design, $(StrongNamePublicKey)" />
     <InternalsVisibleTo Include="Microsoft.Data.Entity.Design.DatabaseGeneration, $(StrongNamePublicKey)" />
+    <!-- Test projects -->
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.EntityDesigner, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.Model, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.Package, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.VersioningFacade, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.DatabaseGeneration, $(StrongNamePublicKey)" />
   </ItemGroup>
+
 
 </Project>

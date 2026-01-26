@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EasyAF.Edmx" />
     <PackageReference Include="Microsoft.VisualStudio.Modeling.Sdk" />
     <PackageReference Include="Microsoft.VisualStudio.Modeling.Sdk.Diagrams" />
   </ItemGroup>
@@ -17,7 +16,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Data.Entity.Design\Microsoft.Data.Entity.Design.csproj" />
     <ProjectReference Include="..\Microsoft.Data.Entity.Design.EntityDesigner\Microsoft.Data.Entity.Design.EntityDesigner.csproj" />
+    <ProjectReference Include="..\Microsoft.Data.Entity.Design.Model\Microsoft.Data.Entity.Design.Model.csproj" />
+    <ProjectReference Include="..\Microsoft.Data.Entity.Design.VersioningFacade\Microsoft.Data.Entity.Design.VersioningFacade.csproj" />
+    <ProjectReference Include="..\Microsoft.Data.Tools.Design.XmlCore\Microsoft.Data.Tools.Design.XmlCore.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Data.Tools.Design.XmlCore\Microsoft.VisualStudio.Data.Tools.Design.XmlCore.csproj" />
   </ItemGroup>
 
 </Project>

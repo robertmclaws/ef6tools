@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
@@ -8,9 +8,10 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
-    using Moq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Moq;
 
     [TestClass]
     public class CSharpCodeHelperTests
@@ -39,16 +40,16 @@ using FluentAssertions;
             ArgumentException ex;
             var code = new CSharpCodeHelper();
 
-            ex = Assert.Throws<ArgumentNullException>(() => code.Type((EntityContainer)null));
+            ex = ((Action)(() => code.Type((EntityContainer)null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("container");
 
-            ex = Assert.Throws<ArgumentNullException>(() => code.Type((EdmType)null));
+            ex = ((Action)(() => code.Type((EdmType)null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("edmType");
 
-            ex = Assert.Throws<ArgumentNullException>(() => code.Type((EdmProperty)null));
+            ex = ((Action)(() => code.Type((EdmProperty)null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("property");
 
-            ex = Assert.Throws<ArgumentNullException>(() => code.Type((NavigationProperty)null));
+            ex = ((Action)(() => code.Type((NavigationProperty)null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("navigationProperty");
         }
 
@@ -58,7 +59,7 @@ using FluentAssertions;
             var container = Model.ConceptualModel.Container;
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("CodeFirstContainer", code.Type(container));
+            code.Type(container).Should().Be("CodeFirstContainer");
         }
 
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
@@ -68,7 +69,7 @@ using FluentAssertions;
             container.SetupGet(c => c.Name).Returns("null");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("_null", code.Type(container.Object));
+            code.Type(container.Object).Should().Be("_null");
         }
 
         [TestMethod]
@@ -77,7 +78,7 @@ using FluentAssertions;
             var container = Model.ConceptualModel.EntityTypes.First();
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Entity", code.Type(container));
+            code.Type(container).Should().Be("Entity");
         }
 
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
@@ -87,7 +88,7 @@ using FluentAssertions;
             type.SetupGet(c => c.Name).Returns("null");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("_null", code.Type(type.Object));
+            code.Type(type.Object).Should().Be("_null");
         }
 
         [TestMethod]
@@ -97,7 +98,7 @@ using FluentAssertions;
                 p => p.Name == "Name");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("string", code.Type(property));
+            code.Type(property).Should().Be("string");
         }
 
         [TestMethod]
@@ -107,7 +108,7 @@ using FluentAssertions;
                 p => p.Name == "Id");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("int", code.Type(property));
+            code.Type(property).Should().Be("int");
         }
 
         [TestMethod]
@@ -117,7 +118,7 @@ using FluentAssertions;
                 p => p.Name == "ParentId");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("int?", code.Type(property));
+            code.Type(property).Should().Be("int?");
         }
 
         [TestMethod]
@@ -127,7 +128,7 @@ using FluentAssertions;
                 p => p.Name == "Guid");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Guid", code.Type(property));
+            code.Type(property).Should().Be("Guid");
         }
 
         [TestMethod]
@@ -137,7 +138,7 @@ using FluentAssertions;
                 p => p.Name == "Parent");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Entity", code.Type(property));
+            code.Type(property).Should().Be("Entity");
         }
 
         [TestMethod]
@@ -147,7 +148,7 @@ using FluentAssertions;
                 p => p.Name == "Children");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("ICollection<Entity>", code.Type(property));
+            code.Type(property).Should().Be("ICollection<Entity>");
         }
 
         [TestMethod]
@@ -156,10 +157,10 @@ using FluentAssertions;
             ArgumentException ex;
             var code = new CSharpCodeHelper();
 
-            ex = Assert.Throws<ArgumentNullException>(() => code.Property((EntitySetBase)null));
+            ex = ((Action)(() => code.Property((EntitySetBase)null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("entitySet");
 
-            ex = Assert.Throws<ArgumentNullException>(() => code.Property((EdmMember)null));
+            ex = ((Action)(() => code.Property((EdmMember)null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("member");
         }
 
@@ -169,7 +170,7 @@ using FluentAssertions;
             var entitySet = Model.ConceptualModel.Container.EntitySets.First();
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Entities", code.Property(entitySet));
+            code.Property(entitySet).Should().Be("Entities");
         }
 
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
@@ -179,7 +180,7 @@ using FluentAssertions;
             set.SetupGet(s => s.Name).Returns("null");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("_null", code.Property(set.Object));
+            code.Property(set.Object).Should().Be("_null");
         }
 
         [TestMethod]
@@ -188,7 +189,7 @@ using FluentAssertions;
             var member = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Id");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Id", code.Property(member));
+            code.Property(member).Should().Be("Id");
         }
 
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
@@ -198,7 +199,7 @@ using FluentAssertions;
             member.SetupGet(m => m.Name).Returns("null");
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("_null", code.Property(member.Object));
+            code.Property(member.Object).Should().Be("_null");
         }
 
         [TestMethod]
@@ -206,7 +207,7 @@ using FluentAssertions;
         {
             var code = new CSharpCodeHelper();
 
-            var ex = Assert.Throws<ArgumentNullException>(() => code.Attribute(null));
+            var ex = ((Action)(() => code.Attribute(null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("configuration");
         }
 
@@ -217,7 +218,7 @@ using FluentAssertions;
             var configuration = new Mock<IAttributeConfiguration>();
             configuration.Setup(c => c.GetAttributeBody(code)).Returns("Required");
 
-            Assert.Equal("[Required]", code.Attribute(configuration.Object));
+            code.Attribute(configuration.Object).Should().Be("[Required]");
         }
 
         [TestMethod]
@@ -225,7 +226,7 @@ using FluentAssertions;
         {
             var code = new CSharpCodeHelper();
 
-            var ex = Assert.Throws<ArgumentNullException>(() => code.MethodChain(null));
+            var ex = ((Action)(() => code.MethodChain(null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("configuration");
         }
 
@@ -245,7 +246,7 @@ using FluentAssertions;
         {
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("\"One\"", code.Literal(new[] { "One" }));
+            code.Literal(new[] { "One" }).Should().Be("\"One\"");
         }
 
         [TestMethod]
@@ -253,7 +254,7 @@ using FluentAssertions;
         {
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("new[] { \"One\", \"Two\" }", code.Literal(new[] { "One", "Two" }));
+            code.Literal(new[] { "One", "Two" }).Should().Be("new[] { \"One\", \"Two\" }");
         }
 
         [TestMethod]
@@ -261,7 +262,7 @@ using FluentAssertions;
         {
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("\"One\"", code.Literal("One"));
+            code.Literal("One").Should().Be("\"One\"");
         }
 
         [TestMethod]
@@ -269,7 +270,7 @@ using FluentAssertions;
         {
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("42", code.Literal(42));
+            code.Literal(42).Should().Be("42");
         }
 
         [TestMethod]
@@ -277,8 +278,8 @@ using FluentAssertions;
         {
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("true", code.Literal(true));
-            Assert.Equal("false", code.Literal(false));
+            code.Literal(true).Should().Be("true");
+            code.Literal(false).Should().Be("false");
         }
 
         [TestMethod]
@@ -286,7 +287,7 @@ using FluentAssertions;
         {
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("x => ", code.BeginLambda("x"));
+            code.BeginLambda("x").Should().Be("x => ");
         }
 
         [TestMethod]
@@ -295,7 +296,7 @@ using FluentAssertions;
             var code = new CSharpCodeHelper();
             var member = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Id");
 
-            Assert.Equal("e => e.Id", code.Lambda(member));
+            code.Lambda(member).Should().Be("e => e.Id");
         }
 
         [TestMethod]
@@ -305,7 +306,7 @@ using FluentAssertions;
             var id = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Id");
             var name = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Name");
 
-            Assert.Equal("e => new { e.Id, e.Name }", code.Lambda(new[] { id, name }));
+            code.Lambda(new[] { id, name }).Should().Be("e => new { e.Id, e.Name }");
         }
 
         [TestMethod]
@@ -313,7 +314,7 @@ using FluentAssertions;
         {
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("<Entity>", code.TypeArgument("Entity"));
+            code.TypeArgument("Entity").Should().Be("<Entity>");
         }
 
         private class Entity

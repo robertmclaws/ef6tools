@@ -1,15 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.VisualStudio.Data.Tools.Tests.Design.XmlCore.VisualStudio.Package
 {
     using System;
     using Microsoft.Data.Entity.Design.Model;
+    using Microsoft.Data.Entity.Design.VisualStudio.Package;
     using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Moq.Protected;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EditingContextManagerTests
@@ -39,11 +40,11 @@ using FluentAssertions;
                 .Returns(mockArtifact.Object);
 
             var editingContext = mockEditingContextMgr.Object.GetNewOrExistingContext(artifactUri);
-            
-            editingContext.GetEFArtifactService(.Should().NotBeNull());
+
+            editingContext.GetEFArtifactService().Should().NotBeNull();
             mockEditingContextMgr.Object.CloseArtifact(artifactUri);
             mockModelManager.Verify(m => m.ClearArtifact(artifactUri), Times.Once());
-            editingContext.GetEFArtifactService(.Should().BeNull());
+            editingContext.GetEFArtifactService().Should().BeNull();
         }
     }
 }

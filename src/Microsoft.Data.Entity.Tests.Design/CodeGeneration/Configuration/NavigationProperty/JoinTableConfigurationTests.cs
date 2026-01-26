@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class JoinTableConfigurationTests
@@ -14,7 +15,7 @@ using FluentAssertions;
             var configuration = new JoinTableConfiguration { Table = "Subscriptions" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(".Map(m => m.ToTable(\"Subscriptions\"))", configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".Map(m => m.ToTable(\"Subscriptions\"))");
         }
 
         [TestMethod]
@@ -23,7 +24,7 @@ using FluentAssertions;
             var configuration = new JoinTableConfiguration { Table = "Subscriptions", Schema = "Sales" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(".Map(m => m.ToTable(\"Subscriptions\", \"Sales\"))", configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".Map(m => m.ToTable(\"Subscriptions\", \"Sales\"))");
         }
 
         [TestMethod]
@@ -32,7 +33,7 @@ using FluentAssertions;
             var configuration = new JoinTableConfiguration { LeftKeys = { "CustomerId" } };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(".Map(m => m.MapLeftKey(\"CustomerId\"))", configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".Map(m => m.MapLeftKey(\"CustomerId\"))");
         }
 
         [TestMethod]
@@ -41,9 +42,7 @@ using FluentAssertions;
             var configuration = new JoinTableConfiguration { LeftKeys = { "CustomerId1", "CustomerId2" } };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
-                ".Map(m => m.MapLeftKey(new[] { \"CustomerId1\", \"CustomerId2\" }))",
-                configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".Map(m => m.MapLeftKey(new[] { \"CustomerId1\", \"CustomerId2\" }))");
         }
 
         [TestMethod]
@@ -52,7 +51,7 @@ using FluentAssertions;
             var configuration = new JoinTableConfiguration { RightKeys = { "ServiceId" } };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(".Map(m => m.MapRightKey(\"ServiceId\"))", configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".Map(m => m.MapRightKey(\"ServiceId\"))");
         }
 
         [TestMethod]
@@ -61,9 +60,7 @@ using FluentAssertions;
             var configuration = new JoinTableConfiguration { RightKeys = { "ServiceId1", "ServiceId2" } };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
-                ".Map(m => m.MapRightKey(new[] { \"ServiceId1\", \"ServiceId2\" }))",
-                configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".Map(m => m.MapRightKey(new[] { \"ServiceId1\", \"ServiceId2\" }))");
         }
 
         [TestMethod]
@@ -77,9 +74,7 @@ using FluentAssertions;
                 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
-                ".Map(m => m.ToTable(\"Subscriptions\").MapLeftKey(\"CustomerId\").MapRightKey(\"ServiceId\"))",
-                configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".Map(m => m.ToTable(\"Subscriptions\").MapLeftKey(\"CustomerId\").MapRightKey(\"ServiceId\"))");
         }
     }
 }

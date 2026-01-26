@@ -1,13 +1,14 @@
-﻿namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
+namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
     using System;
     using System.CodeDom.Compiler;
     using System.Text;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TextTemplating;
     using Microsoft.VisualStudio.TextTemplating.VSHost;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class TextTemplatingHostTests
@@ -15,19 +16,19 @@ using FluentAssertions;
         [TestMethod]
         public void StandardAssemblyReferences_returns_references()
         {
-            Assert.Equal(new[] { "System" }, new TextTemplatingHost().StandardAssemblyReferences);
+            new TextTemplatingHost().StandardAssemblyReferences.Should().BeEquivalentTo(new[] { "System" });
         }
 
         [TestMethod]
         public void StandardImports_returns_imports()
         {
-            Assert.Equal(new[] { "System" }, new TextTemplatingHost().StandardImports);
+            new TextTemplatingHost().StandardImports.Should().BeEquivalentTo(new[] { "System" });
         }
 
         [TestMethod]
         public void GetHostOption_returns_null()
         {
-            new TextTemplatingHost(.Should().BeNull().GetHostOption("CacheAssemblies"));
+            new TextTemplatingHost().GetHostOption("CacheAssemblies").Should().BeNull();
         }
 
         [TestMethod]
@@ -56,25 +57,21 @@ using FluentAssertions;
         [TestMethod]
         public void ProvideTemplatingAppDomain_returns_current_domain()
         {
-            Assert.Same(
-                AppDomain.CurrentDomain,
-                new TextTemplatingHost().ProvideTemplatingAppDomain("Content1"));
+            new TextTemplatingHost().ProvideTemplatingAppDomain("Content1").Should().BeSameAs(AppDomain.CurrentDomain);
         }
 
         [TestMethod]
         public void ResolveAssemblyReference_resolves_simple_reference()
         {
-            Assert.Equal(
-                GetType().Assembly.Location,
-                new TextTemplatingHost().ResolveAssemblyReference(GetType().Assembly.GetName().Name));
+            new TextTemplatingHost().ResolveAssemblyReference(GetType().Assembly.GetName().Name)
+                .Should().Be(GetType().Assembly.Location);
         }
 
         [TestMethod]
         public void ResolveAssemblyReference_resolves_qualified_reference()
         {
-            Assert.Equal(
-                GetType().Assembly.Location,
-                new TextTemplatingHost().ResolveAssemblyReference(GetType().Assembly.FullName));
+            new TextTemplatingHost().ResolveAssemblyReference(GetType().Assembly.FullName)
+                .Should().Be(GetType().Assembly.Location);
         }
 
         [TestMethod]
@@ -118,14 +115,14 @@ using FluentAssertions;
         [TestMethod]
         public void CreateSession_returns_session()
         {
-            Assert.IsType<TextTemplatingSession>(new TextTemplatingHost().CreateSession());
+            new TextTemplatingHost().CreateSession().Should().BeOfType<TextTemplatingSession>();
         }
 
         // Test stopped working with 15.6 Preview 7 - plan to re-enable with https://github.com/aspnet/EntityFramework6/issues/541
         // [TestMethod]
         public void ProcessTemplate_returns_result()
         {
-            Assert.Equal("Result", new TextTemplatingHost().ProcessTemplate("Dummy.tt", "<#= \"Result\" #>"));
+            new TextTemplatingHost().ProcessTemplate("Dummy.tt", "<#= \"Result\" #>").Should().Be("Result");
         }
     }
 }

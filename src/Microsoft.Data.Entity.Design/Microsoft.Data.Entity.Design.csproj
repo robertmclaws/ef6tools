@@ -26,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="EasyAF.Edmx" />
     <PackageReference Include="Microsoft.Data.ConnectionUI" />
     <PackageReference Include="System.Resources.Extensions" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" />
@@ -214,6 +213,10 @@
     <InternalsVisibleTo Include="Microsoft.Data.Entity.Design.Package, $(StrongNamePublicKey)" />
     <InternalsVisibleTo Include="Microsoft.Data.Entity.Design.EntityDesigner, $(StrongNamePublicKey)" />
     <InternalsVisibleTo Include="Microsoft.Data.Entity.Design.DataSourceWizardExtension, $(StrongNamePublicKey)" />
+    <!-- Test projects -->
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.EntityDesigner, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.Package, $(StrongNamePublicKey)" />
     <!-- Legacy test projects -->
     <InternalsVisibleTo Include="EFDesigner.InProcTests, $(StrongNamePublicKey)" />
     <InternalsVisibleTo Include="EFDesigner.FunctionalTests, $(StrongNamePublicKey)" />

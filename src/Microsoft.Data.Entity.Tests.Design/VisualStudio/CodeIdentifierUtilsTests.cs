@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
+    using FluentAssertions;
     using Microsoft.Data.Entity.Design.Common;
+    using Microsoft.Data.Entity.Design.VisualStudio;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class CodeIdentifierUtilsTests
@@ -12,29 +13,24 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void IsValidIdentifier_returns_true_for_valid_identifier()
         {
-            (new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).IsValidIdentifier("@abc"));
-            (new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).IsValidIdentifier("_abc"));
-            (new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).IsValidIdentifier("abc1"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).IsValidIdentifier("@abc").Should().BeTrue();
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).IsValidIdentifier("_abc").Should().BeTrue();
+            new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).IsValidIdentifier("abc1").Should().BeTrue();
         }
 
         [TestMethod]
         public void IsValidIdentifier_returns_false_for_invalid_identifier()
         {
-            Assert.False(
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).IsValidIdentifier("class"));
-            Assert.False(
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).IsValidIdentifier("abc.def"));
-            Assert.False(
-                new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).IsValidIdentifier("a bc"));
-            Assert.False(
-                new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).IsValidIdentifier("3abc"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).IsValidIdentifier("class").Should().BeFalse();
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).IsValidIdentifier("abc.def").Should().BeFalse();
+            new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).IsValidIdentifier("a bc").Should().BeFalse();
+            new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).IsValidIdentifier("3abc").Should().BeFalse();
         }
 
         [TestMethod]
         public void IsValidIdentifier_returns_false_if_identifier_not_valid_for_CSharp_and_VB_for_Website_project()
         {
-            Assert.False(
-                new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).IsValidIdentifier("@abc"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).IsValidIdentifier("@abc").Should().BeFalse();
         }
 
         [TestMethod]
@@ -42,89 +38,63 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             const string identifier = "testId";
 
-            Assert.Same(identifier,
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier(identifier));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier(identifier).Should().BeSameAs(identifier);
 
-            Assert.Same(identifier,
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier(identifier));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier(identifier).Should().BeSameAs(identifier);
 
-            Assert.Same(identifier,
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WindowsApplication, LangEnum.CSharp).CreateValidIdentifier(identifier));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WindowsApplication, LangEnum.CSharp).CreateValidIdentifier(identifier).Should().BeSameAs(identifier);
 
-            Assert.Same(identifier,
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WindowsApplication, LangEnum.VisualBasic).CreateValidIdentifier(identifier));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WindowsApplication, LangEnum.VisualBasic).CreateValidIdentifier(identifier).Should().BeSameAs(identifier);
 
-            Assert.Same(identifier,
-                new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.CSharp).CreateValidIdentifier(identifier));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.CSharp).CreateValidIdentifier(identifier).Should().BeSameAs(identifier);
 
-            Assert.Same(identifier,
-                new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).CreateValidIdentifier(identifier));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).CreateValidIdentifier(identifier).Should().BeSameAs(identifier);
         }
 
         [TestMethod]
         public void CreateValidIdentifier_creates_valid_identifiers()
         {
-            Assert.Equal("ab", 
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("a b"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("a b").Should().Be("ab");
 
-            Assert.Equal("ab",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("a b"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("a b").Should().Be("ab");
 
-            Assert.Equal("ab",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("a.b"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("a.b").Should().Be("ab");
 
-            Assert.Equal("ab",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("a.b"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("a.b").Should().Be("ab");
 
-            Assert.Equal("_for",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("for"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("for").Should().Be("_for");
 
-            Assert.Equal("_For",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("For"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("For").Should().Be("_For");
 
-            Assert.Equal("model",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("'model'"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("'model'").Should().Be("model");
 
-            Assert.Equal("model",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("'model'"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("'model'").Should().Be("model");
 
-            Assert.Equal("@class",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("@class"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("@class").Should().Be("@class");
 
-            Assert.Equal("_class",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("@class"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("@class").Should().Be("_class");
 
-            Assert.Equal("_123",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("123"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("123").Should().Be("_123");
 
-            Assert.Equal("_123",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("123"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("123").Should().Be("_123");
 
-            Assert.Equal("_",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("_"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("_").Should().Be("_");
 
-            Assert.Equal("_",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("_"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("_").Should().Be("_");
 
-            Assert.Equal("_",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("..."));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.CSharp).CreateValidIdentifier("...").Should().Be("_");
 
-            Assert.Equal("_",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("..."));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.WebApplication, LangEnum.VisualBasic).CreateValidIdentifier("...").Should().Be("_");
 
 
 
-            Assert.Equal("_class",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.CSharp).CreateValidIdentifier("@class"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.CSharp).CreateValidIdentifier("@class").Should().Be("_class");
 
-            Assert.Equal("_Dim",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).CreateValidIdentifier("@Dim"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).CreateValidIdentifier("@Dim").Should().Be("_Dim");
 
-            Assert.Equal("_Dim",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.CSharp).CreateValidIdentifier("Dim"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.CSharp).CreateValidIdentifier("Dim").Should().Be("_Dim");
 
-            Assert.Equal("_Dim",
-                new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).CreateValidIdentifier("Dim"));
+            new CodeIdentifierUtils(VisualStudioProjectSystem.Website, LangEnum.VisualBasic).CreateValidIdentifier("Dim").Should().Be("_Dim");
         }
     }
 }

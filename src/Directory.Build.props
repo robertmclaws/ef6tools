@@ -1,8 +1,36 @@
 <Project>
 
-    <!-- Repository root -->
+    <!-- Folder layout -->
     <PropertyGroup>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\</RepoRoot>
+        <IsBenchmarkProject Condition="$(MSBuildProjectName.ToLower().EndsWith('.benchmarks'))">true</IsBenchmarkProject>
+        <IsTestProject Condition="$(MSBuildProjectName.ToLower().Contains('.tests'))">true</IsTestProject>
+        <IsTestAssetProject Condition="$(RepoRelativeProjectDir.Contains('.resources'))">true</IsTestAssetProject>
+        <IsSampleProject Condition="$(MSBuildProjectName.ToLower().Contains('.samples.'))">true</IsSampleProject>
+        <IsTemplateProject Condition="$(MSBuildProjectName.ToLower().Contains('.templates.'))">true</IsTemplateProject>
+        <IsTemplatePackageProject Condition="$(MSBuildProjectName.ToLower().Contains('.templates.package'))">true</IsTemplatePackageProject>
+        <IsNetCore Condition=" '$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net9.0' OR '$(TargetFramework)' == 'net10.0' ">true</IsNetCore>
+        <IsPrimaryProject Condition=" ('$(IsBenchmarkProject)' != 'true' And '$(IsTestProject)' != 'true' And '$(IsTestAssetProject)' != 'true' And '$(IsSampleProject)' != 'true' And '$(IsSampleProject)' != 'true') or '$(IsTemplatePackageProject)' == 'true' ">true</IsPrimaryProject>
+        <IncludeReadmeFile Condition="Exists('$(MSBuildProjectDirectory)\readme.md')">true</IncludeReadmeFile>
+
+        <IncludeSource>false</IncludeSource>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <LangVersion>latest</LangVersion>
+
+        <DefaultItemExcludes>$(DefaultItemExcludes);*.csproj.vspscc</DefaultItemExcludes>
+        <Configurations>Debug;Release;</Configurations>
+
+        <!-- Default to Debug configuration if none is specified -->
+        <!--<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>-->
+        <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    </PropertyGroup>
+
+    <!-- Assembly signing (applies to all projects) -->
+    <PropertyGroup>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)easyaf.snk</AssemblyOriginatorKeyFile>
+        <StrongNamePublicKey>PublicKey=0024000004800000940000000602000000240000525341310004000001000100e172643e638d594b6f6172dd483884b936afc42f04816f78e687d02ce85647acec0b03d8632166230e4425a336ea8be9e1bf1896fe114e0049f88770c1707f9432cbab03b37a0761acdf05c940e2f7e87ea54dbf8cfbbd92b3361cc37712c18172a204e0ec04aaefbaee6b838c55dd56c0862f4436db8d48769ea63aaea632de</StrongNamePublicKey>
     </PropertyGroup>
 
     <!-- Common assembly attributes for all projects -->
@@ -38,6 +66,7 @@
 
     <!-- Test project settings -->
     <PropertyGroup Condition=" '$(IsTestProject)' == 'true' ">
+
         <TargetFramework>net48</TargetFramework>
         <RuntimeIdentifier>win</RuntimeIdentifier>
         <IsPackable>false</IsPackable>
@@ -103,5 +132,6 @@
             <_Parameter2_IsLiteral>true</_Parameter2_IsLiteral>
         </AssemblyAttribute>
     </ItemGroup>
+
 
 </Project>

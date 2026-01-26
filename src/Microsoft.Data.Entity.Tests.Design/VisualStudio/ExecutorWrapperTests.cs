@@ -3,10 +3,10 @@
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
     using System;
-    using System.Data.Entity.SqlServer;
     using System.IO;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class ExecutorWrapperTests
@@ -23,7 +23,11 @@ using FluentAssertions;
 
                 var typeName = executor.GetProviderServices("System.Data.SqlClient");
 
-                typeName.Should().Be(typeof(SqlProviderServices).AssemblyQualifiedName);
+                // Use reflection to get SqlProviderServices type since compile assets are excluded
+                var sqlProviderServicesType = Type.GetType(
+                    "System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer",
+                    throwOnError: true);
+                typeName.Should().Be(sqlProviderServicesType.AssemblyQualifiedName);
             }
             finally
             {
@@ -41,7 +45,7 @@ using FluentAssertions;
                     domain,
                     Path.GetFileName(GetType().Assembly.CodeBase));
 
-                executor.GetProviderServices("My.Fake.Provider".Should().BeNull());
+                executor.GetProviderServices("My.Fake.Provider").Should().BeNull();
             }
             finally
             {

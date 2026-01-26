@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
@@ -9,9 +9,12 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
     using System.Data.Entity.Core.EntityClient;
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Linq;
+    using Microsoft.Data.Entity.Design.VersioningFacade;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EntityStoreSchemaGeneratorDatabaseSchemaLoaderTests
@@ -44,9 +47,8 @@ using FluentAssertions;
 
             command.Should().NotBeNull();
             command.CommandType.Should().Be(CommandType.Text);
-            Assert.Equal(
-                "baseQuery\r\nWHERE\r\n((alias.CatalogName LIKE @p0 AND alias.SchemaName LIKE @p1 AND alias.Name LIKE @p2))\r\norderbyClause",
-                command.CommandText);
+            command.CommandText.Should().Be(
+                "baseQuery\r\nWHERE\r\n((alias.CatalogName LIKE @p0 AND alias.SchemaName LIKE @p1 AND alias.Name LIKE @p2))\r\norderbyClause");
             command.Parameters.Count.Should().Be(3);
             command.CommandTimeout.Should().Be(0);
         }
@@ -62,9 +64,9 @@ using FluentAssertions;
                                                        .CreateFunctionDetailsCommand(Enumerable.Empty<EntityStoreSchemaFilterEntry>())
                                                        .CommandText;
 
-            Assert.DoesNotContain("sp.IsTvf", getCommandText(EntityFrameworkVersion.Version1));
-            Assert.DoesNotContain("sp.IsTvf", getCommandText(EntityFrameworkVersion.Version2));
-            Assert.Contains("sp.IsTvf", getCommandText(EntityFrameworkVersion.Version3));
+            getCommandText(EntityFrameworkVersion.Version1).Should().NotContain("sp.IsTvf");
+            getCommandText(EntityFrameworkVersion.Version2).Should().NotContain("sp.IsTvf");
+            getCommandText(EntityFrameworkVersion.Version3).Should().Contain("sp.IsTvf");
         }
 
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
@@ -145,13 +147,13 @@ using FluentAssertions;
 
             results.Length.Should().Be(4);
 
-            (input
-                    .OrderBy(t => t[9])
-                    .ThenBy(t => t[10])
-                    .ThenBy(t => t[8])
-                    .Zip(results, (i, r) => i[9] == r["RelationshipName"] && i[10] == r["RelationshipId"] && (int)i[8] == (int)r["Ordinal"])
-                    .All(z => z)
-                );
+            input
+                .OrderBy(t => t[9])
+                .ThenBy(t => t[10])
+                .ThenBy(t => t[8])
+                .Zip(results, (i, r) => i[9] == r["RelationshipName"] && i[10] == r["RelationshipId"] && (int)i[8] == (int)r["Ordinal"])
+                .All(z => z)
+                .Should().BeTrue();
         }
 
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
@@ -253,11 +255,11 @@ using FluentAssertions;
                     .LoadStoreSchemaDetails(new List<EntityStoreSchemaFilterEntry>());
 
             storeSchemaDetails.Should().NotBeNull();
-            Assert.Equal("table", storeSchemaDetails.TableDetails.Single().TableName);
-            Assert.Equal("view", storeSchemaDetails.ViewDetails.Single().TableName);
-            Assert.Equal("relationship", storeSchemaDetails.RelationshipDetails.Single().RelationshipName);
-            Assert.Equal("f2", storeSchemaDetails.FunctionDetails.Single().ProcedureName);
-            Assert.Equal("function", storeSchemaDetails.TVFReturnTypeDetails.Single().TableName);
+            storeSchemaDetails.TableDetails.Single().TableName.Should().Be("table");
+            storeSchemaDetails.ViewDetails.Single().TableName.Should().Be("view");
+            storeSchemaDetails.RelationshipDetails.Single().RelationshipName.Should().Be("relationship");
+            storeSchemaDetails.FunctionDetails.Single().ProcedureName.Should().Be("f2");
+            storeSchemaDetails.TVFReturnTypeDetails.Single().TableName.Should().Be("function");
         }
 
         [TestMethod]
@@ -340,13 +342,13 @@ using FluentAssertions;
 
             results.Length.Should().Be(4);
 
-            (input
-                    .OrderBy(t => t[1])
-                    .ThenBy(t => t[2])
-                    .ThenBy(t => t[4])
-                    .Zip(results, (i, r) => i[1] == r["SchemaName"] && i[2] == r["TableName"] && i[3] == r["ColumnName"])
-                    .All(z => z)
-                );
+            input
+                .OrderBy(t => t[1])
+                .ThenBy(t => t[2])
+                .ThenBy(t => t[4])
+                .Zip(results, (i, r) => i[1] == r["SchemaName"] && i[2] == r["TableName"] && i[3] == r["ColumnName"])
+                .All(z => z)
+                .Should().BeTrue();
         }
 
         private Mock<EntityConnection> GetMockEntityConnection(

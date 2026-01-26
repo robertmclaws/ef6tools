@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui.ViewModels
 {
     using System;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui.ViewModels;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Resources = Microsoft.Data.Entity.Design.Resources;
 
     [TestClass]
     public class EntityFrameworkVersionOptionTests
@@ -15,9 +17,8 @@ using FluentAssertions;
             var version = new Version(4, 3, 0, 0);
             var option = new EntityFrameworkVersionOption(version);
 
-            Assert.Equal(
-                string.Format(Resources.EntityFrameworkVersionName, new Version(version.Major, version.Minor)),
-                option.Name);
+            option.Name.Should().Be(
+                string.Format(Resources.EntityFrameworkVersionName, new Version(version.Major, version.Minor)));
             option.Version.Should().BeSameAs(version);
         }
 
@@ -27,9 +28,8 @@ using FluentAssertions;
             var version = new Version(6, 0, 0, 0);
             var option = new EntityFrameworkVersionOption(version);
 
-            Assert.Equal(
-                string.Format(Resources.EntityFrameworkVersionName, "6.x"),
-                option.Name);
+            option.Name.Should().Be(
+                string.Format(Resources.EntityFrameworkVersionName, "6.x"));
             option.Version.Should().BeSameAs(version);
         }
 

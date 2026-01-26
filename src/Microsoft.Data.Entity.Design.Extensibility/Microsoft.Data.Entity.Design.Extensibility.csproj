@@ -8,7 +8,11 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.Data.Entity.Design, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Design.Package, $(StrongNamePublicKey)" />
     <InternalsVisibleTo Include="Microsoft.Data.Entity.Design.VersioningFacade, $(StrongNamePublicKey)" />
+    <!-- Test projects -->
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.Package, $(StrongNamePublicKey)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,7 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="EasyAF.Edmx" />
     <PackageReference Include="Microsoft.VisualStudio.Interop" />
   </ItemGroup>
 

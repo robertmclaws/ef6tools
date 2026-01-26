@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
 {
     using System.Linq;
     using System.Xml.Linq;
+    using Microsoft.Data.Entity.Design.Model.Entity;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class PropertyBaseTests
@@ -21,7 +22,8 @@ using FluentAssertions;
         [TestMethod]
         public void PreviousSiblingInPropertyXElementOrder_returns_null_if_previous_property_does_not_exist()
         {
-            CreateProperties(.Should().BeNull()[0].PreviousSiblingInPropertyXElementOrder);
+            var properties = CreateProperties();
+            properties[0].PreviousSiblingInPropertyXElementOrder.Should().BeNull();
         }
 
         [TestMethod]
@@ -34,7 +36,8 @@ using FluentAssertions;
         [TestMethod]
         public void NextSiblingInPropertyXElementOrder_returns_null_if_next_property_does_not_exist()
         {
-            CreateProperties(.Should().BeNull()[1].NextSiblingInPropertyXElementOrder);
+            var properties = CreateProperties();
+            properties[1].NextSiblingInPropertyXElementOrder.Should().BeNull();
         }
 
         private static PropertyBase[] CreateProperties()

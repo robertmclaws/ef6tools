@@ -5,8 +5,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class TableDiscovererTests
@@ -20,7 +21,9 @@ using FluentAssertions;
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entitySet = model.ConceptualModel.Container.EntitySets.First();
 
-            new TableDiscoverer(code.Should().BeNull().Discover(entitySet, model));
+            var configuration = new TableDiscoverer(code).Discover(entitySet, model);
+
+            configuration.Should().BeNull();
         }
 
         [TestMethod]

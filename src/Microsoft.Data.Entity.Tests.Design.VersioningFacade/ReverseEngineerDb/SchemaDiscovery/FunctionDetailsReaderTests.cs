@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
     using System.Collections.Generic;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VersioningFacade;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
 
     [TestClass]
     public class FunctionDetailsReaderTests
@@ -21,7 +23,7 @@ using FluentAssertions;
                     EntityFrameworkVersion.Version3))
             {
                 functionDetailsReader.CurrentRow.Should().BeNull();
-                functionDetailsReader.Read(.Should().BeFalse());
+                functionDetailsReader.Read().Should().BeFalse();
                 functionDetailsReader.CurrentRow.Should().BeNull();
             }
         }
@@ -39,10 +41,10 @@ using FluentAssertions;
                     EntityFrameworkVersion.Version3))
             {
                 functionDetailsReader.CurrentRow.Should().BeNull();
-                functionDetailsReader.Read(.Should().BeTrue());
+                functionDetailsReader.Read().Should().BeTrue();
                 functionDetailsReader.CurrentRow.Should().NotBeNull();
                 functionDetailsReader.CurrentRow.Catalog.Should().Be("catalog");
-                functionDetailsReader.Read(.Should().BeFalse());
+                functionDetailsReader.Read().Should().BeFalse();
                 functionDetailsReader.CurrentRow.Should().BeNull();
             }
         }

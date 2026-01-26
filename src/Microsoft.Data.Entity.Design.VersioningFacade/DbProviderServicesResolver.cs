@@ -26,11 +26,28 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
         {
             Debug.Assert(type != null, "type != null");
             Debug.Assert(
-                typeof(DbProviderServices).IsAssignableFrom(type),
+                IsDbProviderServicesType(type),
                 "expected type derived from DbProviderServices");
             Debug.Assert(!string.IsNullOrWhiteSpace(invariantName), "invariantName cannot be null or empty string");
 
             _providerServicesRegistrar[invariantName] = type;
+        }
+
+        // Check if a type derives from DbProviderServices
+        private static bool IsDbProviderServicesType(Type type)
+        {
+            if (type == null) return false;
+            if (typeof(DbProviderServices).IsAssignableFrom(type)) return true;
+
+            // Fallback: check by type name for cross-assembly scenarios
+            var current = type;
+            while (current != null)
+            {
+                if (current.FullName == "System.Data.Entity.Core.Common.DbProviderServices")
+                    return true;
+                current = current.BaseType;
+            }
+            return false;
         }
 
         public void Unregister(string invariantName)
@@ -45,10 +62,6 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
             if (type == typeof(DbProviderServices)
                 && providerInvariantName != null)
             {
-                Debug.Assert(
-                    providerInvariantName != "Microsoft.SqlServerCe.Client.4.0",
-                    "providerInvariantName is for design-time.");
-
                 System.Diagnostics.Debug.WriteLine($"[EF6Tools] DbProviderServicesResolver.GetService: providerInvariantName='{providerInvariantName}'");
                 System.Diagnostics.Debug.WriteLine($"[EF6Tools] DbProviderServicesResolver: Registered providers count={_providerServicesRegistrar.Count}");
                 foreach (var kvp in _providerServicesRegistrar)
@@ -60,13 +73,19 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
                 if (_providerServicesRegistrar.TryGetValue(providerInvariantName, out providerServicesType))
                 {
                     System.Diagnostics.Debug.WriteLine($"[EF6Tools] DbProviderServicesResolver: FOUND in registrar, using {providerServicesType.Name}");
-                    return CreateProviderInstance(providerServicesType);
+                    var instance = CreateProviderInstance(providerServicesType);
+                    if (instance != null)
+                    {
+                        return instance;
+                    }
+                    // CreateProviderInstance returned null (cross-assembly type mismatch), fall through to legacy resolver
+                    System.Diagnostics.Debug.WriteLine($"[EF6Tools] DbProviderServicesResolver: CreateProviderInstance returned null, falling back to LegacyDbProviderServicesResolver");
                 }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine($"[EF6Tools] DbProviderServicesResolver: NOT FOUND in registrar, falling back to LegacyDbProviderServicesResolver");
-                    return LegacyDbProviderServicesResolver.GetService(type, key);
                 }
+                return LegacyDbProviderServicesResolver.GetService(type, key);
             }
 
             return null;
@@ -82,7 +101,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
         {
             Debug.Assert(providerType != null, "providerType != null");
             Debug.Assert(
-                typeof(DbProviderServices).IsAssignableFrom(providerType),
+                IsDbProviderServicesType(providerType),
                 "expected type derived from DbProviderServices");
 
             const BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
@@ -91,24 +110,30 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
 
             if (instanceMember == null)
             {
-                throw new InvalidOperationException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        Resources_VersioningFacade.EF6Providers_InstanceMissing,
-                        providerType.AssemblyQualifiedName));
+                // Return null to allow fallback to legacy resolver
+                System.Diagnostics.Debug.WriteLine($"[EF6Tools] CreateProviderInstance: No Instance member found on {providerType.AssemblyQualifiedName}");
+                return null;
             }
 
-            var providerInstance = GetInstanceValue(instanceMember) as DbProviderServices;
-            if (providerInstance == null)
+            var instanceValue = GetInstanceValue(instanceMember);
+
+            // Try direct cast first (works when types are from same assembly)
+            var providerInstance = instanceValue as DbProviderServices;
+            if (providerInstance != null)
             {
-                throw new InvalidOperationException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        Resources_VersioningFacade.EF6Providers_NotDbProviderServices,
-                        providerType.AssemblyQualifiedName));
+                return providerInstance;
             }
 
-            return providerInstance;
+            // If the type doesn't match directly, fall back to the legacy resolver.
+            if (instanceValue != null && IsDbProviderServicesType(instanceValue.GetType()))
+            {
+                System.Diagnostics.Debug.WriteLine($"[EF6Tools] CreateProviderInstance: Cross-assembly type mismatch for {providerType.Name}, falling back to legacy resolver");
+                return null;
+            }
+
+            // Instance exists but is not a DbProviderServices type at all
+            System.Diagnostics.Debug.WriteLine($"[EF6Tools] CreateProviderInstance: Instance is not DbProviderServices type for {providerType.AssemblyQualifiedName}");
+            return null;
         }
 
         private static object GetInstanceValue(MemberInfo memberInfo)

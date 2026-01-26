@@ -2,8 +2,9 @@
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
 {
+    using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class StringExtensionsTests
@@ -13,15 +14,15 @@ using FluentAssertions;
         {
             var source = new[] { "AAA", "BBB" };
 
-            source.ContainsIgnoreCase("aaa".Should().BeTrue());
-            source.ContainsIgnoreCase("Aaa".Should().BeTrue());
-            source.ContainsIgnoreCase("AAA".Should().BeTrue());
+            source.ContainsIgnoreCase("aaa").Should().BeTrue();
+            source.ContainsIgnoreCase("Aaa").Should().BeTrue();
+            source.ContainsIgnoreCase("AAA").Should().BeTrue();
         }
 
         [TestMethod]
         public void ContainsIgnoreCase_returns_false_when_not_found()
         {
-            new[] { "AAA", "BBB" }.ContainsIgnoreCase("CCC".Should().BeFalse());
+            new[] { "AAA", "BBB" }.ContainsIgnoreCase("CCC").Should().BeFalse();
         }
     }
 }

@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class NonUnicodeConfigurationTests
@@ -14,7 +15,7 @@ using FluentAssertions;
             var configuration = new NonUnicodeConfiguration();
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(".IsUnicode(false)", configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".IsUnicode(false)");
         }
     }
 }

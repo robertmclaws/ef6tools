@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
@@ -17,9 +17,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
     using Microsoft.VisualStudio.Shell.Interop;
     using Moq;
     using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+    using Microsoft.Data.Entity.Design.VisualStudio;
     using VSLangProj;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
     using Resources = Microsoft.Data.Entity.Design.Resources;
 
     [TestClass]
@@ -28,15 +29,15 @@ using FluentAssertions;
         [TestMethod]
         public void IsDataServicesEdmx_returns_false_for_invalid_or_non_existing_path()
         {
-            EdmUtils.IsDataServicesEdmx((string.Should().BeFalse()null));
-            EdmUtils.IsDataServicesEdmx(string.Empty.Should().BeFalse());
-            EdmUtils.IsDataServicesEdmx(Guid.NewGuid(.Should().BeFalse().ToString()));
+            EdmUtils.IsDataServicesEdmx((string)null).Should().BeFalse();
+            EdmUtils.IsDataServicesEdmx(string.Empty).Should().BeFalse();
+            EdmUtils.IsDataServicesEdmx(Guid.NewGuid().ToString()).Should().BeFalse();
         }
 
         [TestMethod]
         public void IsDataServicesEdmx_returns_false_for_invalid_Xml_file()
         {
-            EdmUtils.IsDataServicesEdmx(GetType(.Should().BeFalse().Assembly.Location));
+            EdmUtils.IsDataServicesEdmx(GetType().Assembly.Location).Should().BeFalse();
         }
 
         [TestMethod]
@@ -46,33 +47,31 @@ using FluentAssertions;
 
             foreach (var edmxNs in SchemaManager.GetEDMXNamespaceNames())
             {
-                (EdmUtils.IsDataServicesEdmx(
-                        XDocument.Parse(
-                            string.Format(edmxTemplate, edmxNs))));
+                EdmUtils.IsDataServicesEdmx(
+                    XDocument.Parse(
+                        string.Format(edmxTemplate, edmxNs))).Should().BeTrue();
             }
         }
 
         [TestMethod]
         public void IsDataServicesEdmx_returns_false_for_no_data_services_edmx()
         {
-            Assert.False(
-                EdmUtils.IsDataServicesEdmx(XDocument.Parse("<Edmx xmlns=\"abc\"><DataServices /></Edmx>")));
+            EdmUtils.IsDataServicesEdmx(XDocument.Parse("<Edmx xmlns=\"abc\"><DataServices /></Edmx>")).Should().BeFalse();
 
-            Assert.False(
-                EdmUtils.IsDataServicesEdmx(
-                    XDocument.Parse("<Edmx xmlns=\"http://schemas.microsoft.com/ado/2009/11/edmx\" />")));
+            EdmUtils.IsDataServicesEdmx(
+                XDocument.Parse("<Edmx xmlns=\"http://schemas.microsoft.com/ado/2009/11/edmx\" />")).Should().BeFalse();
         }
 
         [TestMethod]
         public void SafeLoadXmlFromString_throws_if_xml_contains_entities()
         {
-            var message = Assert.Throws<XmlException>(
-                () => EdmUtils.SafeLoadXmlFromString(
-                    "<!ENTITY network \"network\">\n<entity-framework>&network;</entity-framework>")).Message;
+            Action act = () => EdmUtils.SafeLoadXmlFromString(
+                "<!ENTITY network \"network\">\n<entity-framework>&network;</entity-framework>");
+            var exception = act.Should().Throw<XmlException>().Which;
 
-            message.Should().Contain("DTD");
-            message.Should().Contain("DtdProcessing");
-            message.Should().Contain("Parse");
+            exception.Message.Should().Contain("DTD");
+            exception.Message.Should().Contain("DtdProcessing");
+            exception.Message.Should().Contain("Parse");
         }
 
         [TestMethod]
@@ -89,12 +88,12 @@ using FluentAssertions;
             var filePath = Path.GetTempFileName();
             File.WriteAllText(filePath, "<!ENTITY network \"network\">\n<entity-framework>&network;</entity-framework>");
 
-            var message = Assert.Throws<XmlException>(
-                () => EdmUtils.SafeLoadXmlFromPath(filePath)).Message;
+            Action act = () => EdmUtils.SafeLoadXmlFromPath(filePath);
+            var exception = act.Should().Throw<XmlException>().Which;
 
-            message.Should().Contain("DTD");
-            message.Should().Contain("DtdProcessing");
-            message.Should().Contain("Parse");
+            exception.Message.Should().Contain("DTD");
+            exception.Message.Should().Contain("DtdProcessing");
+            exception.Message.Should().Contain("Parse");
         }
 
         [TestMethod]
@@ -111,84 +110,61 @@ using FluentAssertions;
         [TestMethod]
         public void IsValidModelNamespace_returns_false_for_invalid_namespaces()
         {
-            // the version does not matter since the definition 
+            // the version does not matter since the definition
             // of allowed strings for namespaces have not changed since v1
-            EdmUtils.IsValidModelNamespace(null.Should().BeFalse());
-            EdmUtils.IsValidModelNamespace(string.Empty.Should().BeFalse());
-            EdmUtils.IsValidModelNamespace("\u0001\u0002".Should().BeFalse());
-            EdmUtils.IsValidModelNamespace("<>".Should().BeFalse());
+            EdmUtils.IsValidModelNamespace(null).Should().BeFalse();
+            EdmUtils.IsValidModelNamespace(string.Empty).Should().BeFalse();
+            EdmUtils.IsValidModelNamespace("\u0001\u0002").Should().BeFalse();
+            EdmUtils.IsValidModelNamespace("<>").Should().BeFalse();
         }
 
         [TestMethod]
         public void IsValidModelNamespace_returns_true_for_valid_namespaces()
         {
-            // the version does not matter since the definition 
+            // the version does not matter since the definition
             // of allowed strings for namespaces have not changed since v1
-            EdmUtils.IsValidModelNamespace("abc".Should().BeTrue());
+            EdmUtils.IsValidModelNamespace("abc").Should().BeTrue();
         }
 
         [TestMethod]
         public void ConstructUniqueNamespaces_returns_proposed_namespace_if_existing_namespaces_null()
         {
-            Assert.Equal("testNamespace", EdmUtils.ConstructUniqueNamespace("testNamespace", null));
+            EdmUtils.ConstructUniqueNamespace("testNamespace", null).Should().Be("testNamespace");
         }
 
         [TestMethod]
         public void ConstructUniqueNamespaces_returns_uniquified_namespace_()
         {
-            Assert.Equal("Model1", EdmUtils.ConstructUniqueNamespace("Model", new HashSet<string> { "Model" }));
+            EdmUtils.ConstructUniqueNamespace("Model", new HashSet<string> { "Model" }).Should().Be("Model1");
         }
 
         [TestMethod]
         public void ConstructValidModelNamespace_returns_proposed_namespace_if_valid()
         {
-            Assert.Equal(
-                "proposed",
-                EdmUtils.ConstructValidModelNamespace("proposed", "default"));
+            EdmUtils.ConstructValidModelNamespace("proposed", "default").Should().Be("proposed");
         }
 
         [TestMethod]
         public void ConstructValidModelNamespace_returns_default_namespace_if_proposed_namespace_null_or_empty_string()
         {
-            Assert.Equal(
-                "default",
-                EdmUtils.ConstructValidModelNamespace(null, "default"));
-
-            Assert.Equal(
-                "default",
-                EdmUtils.ConstructValidModelNamespace(string.Empty, "default"));
+            EdmUtils.ConstructValidModelNamespace(null, "default").Should().Be("default");
+            EdmUtils.ConstructValidModelNamespace(string.Empty, "default").Should().Be("default");
         }
 
         [TestMethod]
         public void ConstructValidModelNamespace_returns_default_namespace_if_sanitized_proposed_namespace_invalid_or_empty_string()
         {
-            Assert.Equal(
-                "default",
-                EdmUtils.ConstructValidModelNamespace("&", "default"));
-
-            Assert.Equal(
-                "default",
-                EdmUtils.ConstructValidModelNamespace("&\u0001", "default"));
-
-            Assert.Equal(
-                "default",
-                EdmUtils.ConstructValidModelNamespace("&123", "default"));
-
-            Assert.Equal(
-                "default",
-                EdmUtils.ConstructValidModelNamespace("_a a", "default"));
+            EdmUtils.ConstructValidModelNamespace("&", "default").Should().Be("default");
+            EdmUtils.ConstructValidModelNamespace("&\u0001", "default").Should().Be("default");
+            EdmUtils.ConstructValidModelNamespace("&123", "default").Should().Be("default");
+            EdmUtils.ConstructValidModelNamespace("_a a", "default").Should().Be("default");
         }
 
         [TestMethod]
         public void ConstructValidModelNamespace_returns_sanitized_proposed_namespace_if_sanitized_proposed_namespace_valid()
         {
-            Assert.Equal(
-                "proposed",
-                EdmUtils.ConstructValidModelNamespace("<proposed>", "default"));
-
-            Assert.Equal(
-                "proposed",
-                EdmUtils.ConstructValidModelNamespace("<123_proposed>", "default"));
+            EdmUtils.ConstructValidModelNamespace("<proposed>", "default").Should().Be("proposed");
+            EdmUtils.ConstructValidModelNamespace("<123_proposed>", "default").Should().Be("proposed");
         }
 
         [TestMethod]
@@ -274,8 +250,8 @@ using FluentAssertions;
                     .Setup(a => a.DesignerInfo)
                     .Returns(designerInfoRoot);
 
-                Assert.IsType<UpdateDefaultableValueCommand<string>>(
-                    EdmUtils.SetCodeGenStrategyToNoneCommand(entityDesignArtifactMock.Object));
+                EdmUtils.SetCodeGenStrategyToNoneCommand(entityDesignArtifactMock.Object)
+                    .Should().BeOfType<UpdateDefaultableValueCommand<string>>();
             }
         }
 
@@ -301,8 +277,8 @@ using FluentAssertions;
                     .Setup(a => a.DesignerInfo)
                     .Returns(designerInfoRoot);
 
-                Assert.IsType<UpdateDefaultableValueCommand<string>>(
-                    EdmUtils.SetCodeGenStrategyToNoneCommand(entityDesignArtifactMock.Object));
+                EdmUtils.SetCodeGenStrategyToNoneCommand(entityDesignArtifactMock.Object)
+                    .Should().BeOfType<UpdateDefaultableValueCommand<string>>();
             }
         }
 
@@ -326,7 +302,7 @@ using FluentAssertions;
                     .Setup(a => a.DesignerInfo)
                     .Returns(designerInfoRoot);
 
-                EdmUtils.SetCodeGenStrategyToNoneCommand(entityDesignArtifactMock.Object.Should().BeNull());
+                EdmUtils.SetCodeGenStrategyToNoneCommand(entityDesignArtifactMock.Object).Should().BeNull();
             }
         }
 
@@ -369,15 +345,15 @@ using FluentAssertions;
                 "  </connectionStrings>" +
                 "</configuration>");
 
-            var mockConfigFileUtils = 
+            var mockConfigFileUtils =
                 new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, Mock.Of<IVsUtils>(), null);
             mockConfigFileUtils
                 .Setup(u => u.LoadConfig())
                 .Returns(xmlDoc);
 
             EdmUtils.UpdateConfigForSqlDbFileUpgrade(
-                mockConfigFileUtils.Object, 
-                Mock.Of<Project>(), 
+                mockConfigFileUtils.Object,
+                Mock.Of<Project>(),
                 Mock.Of<IVsUpgradeLogger>());
 
             mockConfigFileUtils.Verify(u => u.SaveConfig(It.IsAny<XmlDocument>()), Times.Once());

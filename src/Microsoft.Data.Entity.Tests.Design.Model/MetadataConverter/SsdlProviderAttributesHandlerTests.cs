@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
     using System;
     using System.Xml;
+    using Microsoft.Data.Entity.Design.Model;
     using Microsoft.Data.Entity.Design.VersioningFacade;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class SsdlProviderAttributesHandlerTests
@@ -37,13 +38,11 @@ using FluentAssertions;
 
                 new SsdlProviderAttributesHandler(schemaVersion).HandleConversion(xmlDoc);
 
-                Assert.Equal(
-                    "System.Data.SqlServerCe.4.0",
-                    xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@Provider").Value);
+                xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@Provider").Value.Should().Be(
+                    "System.Data.SqlServerCe.4.0");
 
-                Assert.Equal(
-                    "4.0",
-                    xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@ProviderManifestToken").Value);
+                xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@ProviderManifestToken").Value.Should().Be(
+                    "4.0");
             }
         }
 
@@ -62,13 +61,11 @@ using FluentAssertions;
 
             new SsdlProviderAttributesHandler(schemaVersion).HandleConversion(xmlDoc);
 
-            Assert.Equal(
-                "MyProvider",
-                xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@Provider").Value);
+            xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@Provider").Value.Should().Be(
+                "MyProvider");
 
-            Assert.Equal(
-                "3.5",
-                xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@ProviderManifestToken").Value);
+            xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@ProviderManifestToken").Value.Should().Be(
+                "3.5");
         }
 
         [TestMethod]
@@ -86,13 +83,11 @@ using FluentAssertions;
 
             new SsdlProviderAttributesHandler(schemaVersion).HandleConversion(xmlDoc);
 
-            Assert.Equal(
-                "System.Data.SqlServerCe.4.0",
-                xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@Provider").Value);
+            xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@Provider").Value.Should().Be(
+                "System.Data.SqlServerCe.4.0");
 
-            Assert.Equal(
-                "17.0",
-                xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@ProviderManifestToken").Value);
+            xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@ProviderManifestToken").Value.Should().Be(
+                "17.0");
         }
     }
 }

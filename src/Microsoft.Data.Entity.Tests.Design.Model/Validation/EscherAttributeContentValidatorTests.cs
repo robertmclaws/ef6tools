@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
 {
     using System;
+    using Microsoft.Data.Entity.Design.Model.Validation;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EscherAttributeContentValidatorTests
@@ -12,31 +13,31 @@ using FluentAssertions;
         [TestMethod]
         public void IsValidAttributeValue_returns_false_if_the_value_contains_invalid_xml_characters()
         {
-            EscherAttributeContentValidator.IsValidXmlAttributeValue("\u0000".Should().BeFalse());
+            EscherAttributeContentValidator.IsValidXmlAttributeValue("\u0000").Should().BeFalse();
         }
 
         [TestMethod]
         public void IsValidAttributeValue_returns_true_if_the_value_contains_only_valid_xml_characters()
         {
-            EscherAttributeContentValidator.IsValidXmlAttributeValue("<>&AAA".Should().BeTrue());
+            EscherAttributeContentValidator.IsValidXmlAttributeValue("<>&AAA").Should().BeTrue();
         }
 
         [TestMethod]
         public void IsValidCsdlNamespaceName_returns_true_for_valid_Csdl_namespace()
         {
-            EscherAttributeContentValidator.IsValidCsdlNamespaceName("Model1.Namespace.Edm".Should().BeTrue());
-            EscherAttributeContentValidator.IsValidCsdlNamespaceName("Model1NamespaceEdm".Should().BeTrue());
-            EscherAttributeContentValidator.IsValidCsdlNamespaceName(new string('a', 512.Should().BeTrue()));
+            EscherAttributeContentValidator.IsValidCsdlNamespaceName("Model1.Namespace.Edm").Should().BeTrue();
+            EscherAttributeContentValidator.IsValidCsdlNamespaceName("Model1NamespaceEdm").Should().BeTrue();
+            EscherAttributeContentValidator.IsValidCsdlNamespaceName(new string('a', 512)).Should().BeTrue();
         }
 
         [TestMethod]
         public void IsValidCsdlNamespaceName_returns_false_for_invalid_Csdl_namespace()
         {
-            EscherAttributeContentValidator.IsValidCsdlNamespaceName(new string('a', 513.Should().BeFalse()));
-            EscherAttributeContentValidator.IsValidCsdlNamespaceName("Name\u0000space".Should().BeFalse());
-            EscherAttributeContentValidator.IsValidCsdlNamespaceName("".Should().BeFalse());
-            EscherAttributeContentValidator.IsValidCsdlNamespaceName(".Namespace".Should().BeFalse());
-            EscherAttributeContentValidator.IsValidCsdlNamespaceName("Namespace.".Should().BeFalse());
+            EscherAttributeContentValidator.IsValidCsdlNamespaceName(new string('a', 513)).Should().BeFalse();
+            EscherAttributeContentValidator.IsValidCsdlNamespaceName("Name\u0000space").Should().BeFalse();
+            EscherAttributeContentValidator.IsValidCsdlNamespaceName("").Should().BeFalse();
+            EscherAttributeContentValidator.IsValidCsdlNamespaceName(".Namespace").Should().BeFalse();
+            EscherAttributeContentValidator.IsValidCsdlNamespaceName("Namespace.").Should().BeFalse();
         }
 
         [TestMethod]
@@ -181,16 +182,16 @@ using FluentAssertions;
 
         private static void NameVerificationReturnsTrueForFunction(Func<string, bool> nameVerificationFunc)
         {
-            nameVerificationFunc(new string('c', 480.Should().BeTrue()));
+            nameVerificationFunc(new string('c', 480)).Should().BeTrue();
         }
 
         private static void NameVerificationReturnsFalseForFunction(Func<string, bool> nameVerificationFunc)
         {
-            nameVerificationFunc(string.Empty.Should().BeFalse());
-            nameVerificationFunc(new string('c', 481.Should().BeFalse()));
-            nameVerificationFunc("na\0000me".Should().BeFalse());
-            nameVerificationFunc(".name".Should().BeFalse());
-            nameVerificationFunc("na.me".Should().BeFalse());
+            nameVerificationFunc(string.Empty).Should().BeFalse();
+            nameVerificationFunc(new string('c', 481)).Should().BeFalse();
+            nameVerificationFunc("na\0000me").Should().BeFalse();
+            nameVerificationFunc(".name").Should().BeFalse();
+            nameVerificationFunc("na.me").Should().BeFalse();
         }
     }
 }

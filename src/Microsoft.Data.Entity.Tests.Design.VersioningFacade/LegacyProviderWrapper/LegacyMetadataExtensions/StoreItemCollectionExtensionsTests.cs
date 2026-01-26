@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using LegacyMetadata = System.Data.Metadata.Edm;
 
@@ -6,8 +6,9 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.LegacyProviderWrap
 {
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Linq;
+    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper.LegacyMetadataExtensions;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class StoreItemCollectionExtensionsTests
@@ -35,9 +36,8 @@ using FluentAssertions;
 
                 legacyStoreItemCollection.StoreSchemaVersion.Should().Be(storeItemCollection.StoreSchemaVersion);
 
-                Assert.Equal(
-                    storeItemCollection.GetItems<GlobalItem>().Count,
-                    legacyStoreItemCollection.GetItems<LegacyMetadata.GlobalItem>().Count);
+                legacyStoreItemCollection.GetItems<LegacyMetadata.GlobalItem>().Count
+                    .Should().Be(storeItemCollection.GetItems<GlobalItem>().Count);
             }
         }
 
@@ -90,7 +90,7 @@ using FluentAssertions;
             var legacyGlobalItems = legacyStoreItemCollection.GetItems<LegacyMetadata.EdmType>();
 
             legacyGlobalItems.Count.Should().Be(sourceGlobalItems.Count);
-            sourceGlobalItems.All(i => legacyGlobalItems.Any(j => j.FullName == i.FullName.Should().BeTrue()));
+            sourceGlobalItems.All(i => legacyGlobalItems.Any(j => j.FullName == i.FullName)).Should().BeTrue();
         }
     }
 }

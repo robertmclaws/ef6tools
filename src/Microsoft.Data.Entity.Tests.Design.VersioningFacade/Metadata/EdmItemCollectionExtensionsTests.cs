@@ -5,8 +5,9 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
     using System;
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Xml.Linq;
+    using Microsoft.Data.Entity.Design.VersioningFacade.Metadata;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EdmItemCollectionExtensionsTests
@@ -33,7 +34,7 @@ using FluentAssertions;
                             XDocument.Parse(string.Format(csdlTemplate, csdlVersion.Item2)).CreateReader()
                         });
 
-                Assert.Equal(csdlVersion.Item1, edmItemCollection.CsdlVersion());
+                edmItemCollection.CsdlVersion().Should().Be(csdlVersion.Item1);
             }
         }
     }

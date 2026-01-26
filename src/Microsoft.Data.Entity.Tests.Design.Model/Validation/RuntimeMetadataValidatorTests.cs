@@ -3,33 +3,48 @@
 namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
 {
     extern alias EntityDesignModel;
-// Resharper wants to remove the below but do not - it causes build errors 
-    using EntityDesignModel::System.Data.Entity.Core.Mapping;
-    using EntityDesignModel::System.Data.Entity.Core.SchemaObjectModel;
-// Resharper wants to remove the above but do not - it causes build errors 
+    // Resharper wants to remove the below but do not - it causes build errors
+    // Resharper wants to remove the above but do not - it causes build errors
 
     using System;
     using System.Collections.Generic;
     using System.Data.Entity.Core.Common;
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Data.Entity.SqlServer;
     using System.Linq;
+    using System.Reflection;
     using System.Xml.Linq;
     using Microsoft.Data.Entity.Design.Common;
+    using Microsoft.Data.Entity.Design.Model;
     using Microsoft.Data.Entity.Design.Model.Entity;
     using Microsoft.Data.Entity.Design.Model.Mapping;
+    using Microsoft.Data.Entity.Design.Model.Validation;
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
     using ComplexType = Microsoft.Data.Entity.Design.Model.Entity.ComplexType;
-    using ReferentialConstraint = Microsoft.Data.Entity.Design.Model.Entity.ReferentialConstraint;
+    using DesignAssociationSetMapping = Microsoft.Data.Entity.Design.Model.Mapping.AssociationSetMapping;
 
     [TestClass]
     public class RuntimeMetadataValidatorTests
     {
         private readonly IDbDependencyResolver _resolver;
+
+        // Load SqlProviderServices dynamically
+        private static DbProviderServices SqlProviderServicesInstance
+        {
+            get
+            {
+                var type = Type.GetType("System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer");
+                if (type != null)
+                {
+                    var instanceProperty = type.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static);
+                    return (DbProviderServices)instanceProperty?.GetValue(null);
+                }
+                return null;
+            }
+        }
 
         public RuntimeMetadataValidatorTests()
         {
@@ -37,7 +52,7 @@ using FluentAssertions;
             mockResolver.Setup(
                 r => r.GetService(
                     It.Is<Type>(t => t == typeof(DbProviderServices)),
-                    It.IsAny<string>())).Returns(SqlProviderServices.Instance);
+                    It.IsAny<string>())).Returns(SqlProviderServicesInstance);
 
             _resolver = mockResolver.Object;
         }
@@ -76,14 +91,14 @@ using FluentAssertions;
 
                         var errors = artifactSet.GetAllErrors();
                         errors.Count.Should().Be(2);
-                        Assert.Equal(ErrorCodes.ErrorValidatingArtifact_StorageModelMissing, errors.First().ErrorCode);
-                        Assert.Contains(Resources.ErrorValidatingArtifact_StorageModelMissing, errors.First().Message);
-                        Assert.Equal(ErrorCodes.ErrorValidatingArtifact_ConceptualModelMissing, errors.Last().ErrorCode);
-                        Assert.Contains(Resources.ErrorValidatingArtifact_ConceptualModelMissing, errors.Last().Message);
-                        errors.All(e => ReferenceEquals(e.Item, artifactSet.GetEntityDesignArtifact(.Should().BeTrue())));
+                        errors.First().ErrorCode.Should().Be(ErrorCodes.ErrorValidatingArtifact_StorageModelMissing);
+                        errors.First().Message.Should().Contain(Resources.ErrorValidatingArtifact_StorageModelMissing);
+                        errors.Last().ErrorCode.Should().Be(ErrorCodes.ErrorValidatingArtifact_ConceptualModelMissing);
+                        errors.Last().Message.Should().Contain(Resources.ErrorValidatingArtifact_ConceptualModelMissing);
+                        errors.All(e => ReferenceEquals(e.Item, artifactSet.GetEntityDesignArtifact())).Should().BeTrue();
 
                         // these errors should not clear error class flags
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_All.Should().BeTrue());
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_All).Should().BeTrue();
 
                         mockArtifactSet.Verify(m => m.AddError(It.IsAny<ErrorInfo>()), Times.Exactly(2));
                     });
@@ -105,19 +120,15 @@ using FluentAssertions;
 
                         var errors = artifactSet.GetAllErrors();
                         errors.Count.Should().Be(2);
-                        Assert.Equal(
-                            ErrorCodes.ErrorValidatingArtifact_InvalidSSDLNamespaceForTargetFrameworkVersion, errors.First().ErrorCode);
-                        Assert.Contains(
-                            Resources.ErrorValidatingArtifact_InvalidSSDLNamespaceForTargetFrameworkVersion, errors.First().Message);
-                        Assert.Equal(artifactSet.GetEntityDesignArtifact().StorageModel, errors.First().Item);
-                        Assert.Equal(
-                            ErrorCodes.ErrorValidatingArtifact_InvalidCSDLNamespaceForTargetFrameworkVersion, errors.Last().ErrorCode);
-                        Assert.Contains(
-                            Resources.ErrorValidatingArtifact_InvalidCSDLNamespaceForTargetFrameworkVersion, errors.Last().Message);
-                        Assert.Equal(artifactSet.GetEntityDesignArtifact().ConceptualModel, errors.Last().Item);
+                        errors.First().ErrorCode.Should().Be(ErrorCodes.ErrorValidatingArtifact_InvalidSSDLNamespaceForTargetFrameworkVersion);
+                        errors.First().Message.Should().Contain(Resources.ErrorValidatingArtifact_InvalidSSDLNamespaceForTargetFrameworkVersion);
+                        errors.First().Item.Should().Be(artifactSet.GetEntityDesignArtifact().StorageModel);
+                        errors.Last().ErrorCode.Should().Be(ErrorCodes.ErrorValidatingArtifact_InvalidCSDLNamespaceForTargetFrameworkVersion);
+                        errors.Last().Message.Should().Contain(Resources.ErrorValidatingArtifact_InvalidCSDLNamespaceForTargetFrameworkVersion);
+                        errors.Last().Item.Should().Be(artifactSet.GetEntityDesignArtifact().ConceptualModel);
 
                         // these error should not clear error class flags
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_All.Should().BeTrue());
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_All).Should().BeTrue();
 
                         mockArtifactSet.Verify(m => m.AddError(It.IsAny<ErrorInfo>()), Times.Exactly(2));
                     });
@@ -126,8 +137,8 @@ using FluentAssertions;
         [TestMethod]
         public void ValidateArtifactSet_returns_errors_for_invalid_conceptual_and_storage_model()
         {
-            // Both Csdl and Ssdl are missing the 'Namespace' attribute and therefore are invalid. 
-            // We don't really care about what errors we will get as long as they are thrown by 
+            // Both Csdl and Ssdl are missing the 'Namespace' attribute and therefore are invalid.
+            // We don't really care about what errors we will get as long as they are thrown by
             // the runtime and one is for Csdl and the other one is for Ssdl.
             SetupModelAndInvokeAction(
                 "<Schema xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm\" />",
@@ -141,11 +152,11 @@ using FluentAssertions;
 
                         var errors = artifactSet.GetAllErrors();
                         errors.Count.Should().Be(2);
-                        Assert.Equal(1, errors.Count(e => e.ErrorClass == ErrorClass.Runtime_CSDL));
-                        Assert.Equal(1, errors.Count(e => e.ErrorClass == ErrorClass.Runtime_SSDL));
+                        errors.Count(e => e.ErrorClass == ErrorClass.Runtime_CSDL).Should().Be(1);
+                        errors.Count(e => e.ErrorClass == ErrorClass.Runtime_SSDL).Should().Be(1);
 
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_CSDL | ErrorClass.Runtime_SSDL.Should().BeFalse());
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_MSL | ErrorClass.Runtime_ViewGen.Should().BeTrue());
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_CSDL | ErrorClass.Runtime_SSDL).Should().BeFalse();
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_MSL | ErrorClass.Runtime_ViewGen).Should().BeTrue();
 
                         mockArtifactSet.Verify(m => m.AddError(It.IsAny<ErrorInfo>()), Times.Exactly(2));
                     });
@@ -180,8 +191,8 @@ using FluentAssertions;
 
                         var errors = artifactSet.GetAllErrors();
                         errors.Count.Should().Be(1);
-                        Assert.Equal(1, errors.Count(e => e.ErrorClass == ErrorClass.Runtime_SSDL));
-                        Assert.Contains(error.Message, errors.Single().Message);
+                        errors.Count(e => e.ErrorClass == ErrorClass.Runtime_SSDL).Should().Be(1);
+                        errors.Single().Message.Should().Contain(error.Message);
 
                         mockArtifactSet.Verify(m => m.AddError(It.IsAny<ErrorInfo>()), Times.Exactly(1));
                     });
@@ -200,10 +211,10 @@ using FluentAssertions;
                         new RuntimeMetadataValidator(mockModelManager.Object, new Version(3, 0, 0, 0), _resolver)
                             .ValidateArtifactSet(artifactSet, forceValidation: true, validateMsl: false, runViewGen: false);
 
-                        Assert.Empty(artifactSet.GetAllErrors());
+                        artifactSet.GetAllErrors().Should().BeEmpty();
 
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_CSDL | ErrorClass.Runtime_SSDL.Should().BeFalse());
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_MSL | ErrorClass.Runtime_ViewGen.Should().BeTrue());
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_CSDL | ErrorClass.Runtime_SSDL).Should().BeFalse();
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_MSL | ErrorClass.Runtime_ViewGen).Should().BeTrue();
                     });
         }
 
@@ -222,11 +233,11 @@ using FluentAssertions;
 
                         var errors = artifactSet.GetAllErrors();
                         errors.Count.Should().Be(1);
-                        Assert.Equal(ErrorCodes.ErrorValidatingArtifact_MappingModelMissing, errors.First().ErrorCode);
-                        Assert.Same(artifactSet.GetEntityDesignArtifact(), errors.First().Item);
+                        errors.First().ErrorCode.Should().Be(ErrorCodes.ErrorValidatingArtifact_MappingModelMissing);
+                        errors.First().Item.Should().BeSameAs(artifactSet.GetEntityDesignArtifact());
 
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Escher_CSDL | ErrorClass.Escher_SSDL.Should().BeFalse());
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Escher_MSL | ErrorClass.Runtime_ViewGen.Should().BeTrue());
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Escher_CSDL | ErrorClass.Escher_SSDL).Should().BeFalse();
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Escher_MSL | ErrorClass.Runtime_ViewGen).Should().BeTrue();
 
                         mockArtifactSet.Verify(m => m.AddError(It.IsAny<ErrorInfo>()), Times.Once());
                     });
@@ -247,14 +258,12 @@ using FluentAssertions;
 
                         var errors = artifactSet.GetAllErrors();
                         errors.Count.Should().Be(1);
-                        Assert.Equal(
-                            ErrorCodes.ErrorValidatingArtifact_InvalidMSLNamespaceForTargetFrameworkVersion, errors.First().ErrorCode);
-                        Assert.Contains(
-                            Resources.ErrorValidatingArtifact_InvalidMSLNamespaceForTargetFrameworkVersion, errors.First().Message);
-                        Assert.Equal(artifactSet.GetEntityDesignArtifact().MappingModel, errors.First().Item);
+                        errors.First().ErrorCode.Should().Be(ErrorCodes.ErrorValidatingArtifact_InvalidMSLNamespaceForTargetFrameworkVersion);
+                        errors.First().Message.Should().Contain(Resources.ErrorValidatingArtifact_InvalidMSLNamespaceForTargetFrameworkVersion);
+                        errors.First().Item.Should().Be(artifactSet.GetEntityDesignArtifact().MappingModel);
 
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Escher_CSDL | ErrorClass.Escher_SSDL.Should().BeFalse());
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Escher_MSL | ErrorClass.Runtime_ViewGen.Should().BeTrue());
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Escher_CSDL | ErrorClass.Escher_SSDL).Should().BeFalse();
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Escher_MSL | ErrorClass.Runtime_ViewGen).Should().BeTrue();
 
                         mockArtifactSet.Verify(m => m.AddError(It.IsAny<ErrorInfo>()), Times.Once());
                     });
@@ -276,13 +285,12 @@ using FluentAssertions;
 
                         var errors = artifactSet.GetAllErrors();
                         errors.Count.Should().Be(1);
-                        errors.All(e => e.ErrorClass == ErrorClass.Runtime_MSL.Should().BeTrue());
+                        errors.All(e => e.ErrorClass == ErrorClass.Runtime_MSL).Should().BeTrue();
 
-                        Assert.False(
-                            artifactSet.IsValidityDirtyForErrorClass(
-                                ErrorClass.Runtime_CSDL | ErrorClass.Runtime_SSDL | ErrorClass.Runtime_MSL));
+                        artifactSet.IsValidityDirtyForErrorClass(
+                            ErrorClass.Runtime_CSDL | ErrorClass.Runtime_SSDL | ErrorClass.Runtime_MSL).Should().BeFalse();
 
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_ViewGen.Should().BeTrue());
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_ViewGen).Should().BeTrue();
                     });
         }
 
@@ -291,7 +299,7 @@ using FluentAssertions;
         {
             // The mapping here is invalid - both C-Space properties are mapped to one S-Space property.
             // This condition is not detected when loading StorageMappingItemCollection but it make view gen
-            // throw. In this case we don't really care about what error will be thrown as long as it is 
+            // throw. In this case we don't really care about what error will be thrown as long as it is
             // thrown by view gen
             SetupModelAndInvokeAction(
                 "<Schema xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm\" xmlns:cg=\"http://schemas.microsoft.com/ado/2006/04/codegeneration\" xmlns:store=\"http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator\" Namespace=\"Model\" Alias=\"Self\" xmlns:annotation=\"http://schemas.microsoft.com/ado/2009/02/edm/annotation\" annotation:UseStrongSpatialTypes=\"false\">"
@@ -339,9 +347,9 @@ using FluentAssertions;
 
                         var errors = mockArtifactSet.Object.GetAllErrors();
                         errors.Count.Should().Be(1);
-                        errors.All(e => e.ErrorClass == ErrorClass.Runtime_ViewGen.Should().BeTrue());
+                        errors.All(e => e.ErrorClass == ErrorClass.Runtime_ViewGen).Should().BeTrue();
 
-                        mockArtifactSet.Object.IsValidityDirtyForErrorClass(ErrorClass.Runtime_All.Should().BeFalse());
+                        mockArtifactSet.Object.IsValidityDirtyForErrorClass(ErrorClass.Runtime_All).Should().BeFalse();
                     });
         }
 
@@ -366,8 +374,8 @@ using FluentAssertions;
                         new RuntimeMetadataValidator(mockModelManager.Object, new Version(3, 0, 0, 0), _resolver)
                             .ValidateArtifactSet(artifactSet, forceValidation: true, validateMsl: true, runViewGen: true);
 
-                        Assert.Empty(artifactSet.GetAllErrors());
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_All.Should().BeFalse());
+                        artifactSet.GetAllErrors().Should().BeEmpty();
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_All).Should().BeFalse();
 
                         mockArtifactSet.Verify(m => m.AddError(It.IsAny<ErrorInfo>()), Times.Never());
                     });
@@ -432,14 +440,14 @@ using FluentAssertions;
                                     },
                                 artifact, ErrorClass.Runtime_CSDL);
 
-                        Assert.Equal(1, artifactSet.GetAllErrors().Count);
+                        artifactSet.GetAllErrors().Count.Should().Be(1);
                         var error = artifactSet.GetAllErrors().Single();
                         error.Message.Should().Contain("abc");
                         error.ErrorCode.Should().Be(42);
                         error.ErrorClass.Should().Be(ErrorClass.Runtime_CSDL);
                         error.Level.Should().Be(ErrorInfo.Severity.ERROR);
 
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_CSDL.Should().BeFalse());
+                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Runtime_CSDL).Should().BeFalse();
                     });
         }
 
@@ -472,7 +480,7 @@ using FluentAssertions;
                                     },
                                 artifact, ErrorClass.Runtime_CSDL);
 
-                        Assert.Equal(1, artifactSet.GetAllErrors().Count);
+                        artifactSet.GetAllErrors().Count.Should().Be(1);
                         var error = artifactSet.GetAllErrors().Single();
                         error.Message.Should().Contain("abc");
                         error.ErrorCode.Should().Be(NotSpecifiedInstanceForEntitySetOrAssociationSet);
@@ -520,13 +528,12 @@ using FluentAssertions;
                                         },
                                     artifact, ErrorClass.Runtime_CSDL);
 
-                            Assert.Equal(1, artifactSet.GetAllErrors().Count);
+                            artifactSet.GetAllErrors().Count.Should().Be(1);
                             var error = artifactSet.GetAllErrors().Single();
-                            Assert.Contains(
-                                string.Format(Resources.EscherValidation_UndefinedComplexPropertyType, string.Empty),
-                                error.Message);
+                            error.Message.Should().Contain(
+                                string.Format(Resources.EscherValidation_UndefinedComplexPropertyType, string.Empty));
                             error.ErrorCode.Should().Be(ErrorCodes.ESCHER_VALIDATOR_UNDEFINED_COMPLEX_PROPERTY_TYPE);
-                            property.Should().Be(error.Item);
+                            error.Item.Should().Be(property);
                             error.Level.Should().Be(ErrorInfo.Severity.ERROR);
                         }
                         finally
@@ -551,7 +558,7 @@ using FluentAssertions;
                         var artifactSet = mockArtifactSet.Object;
                         var artifact = artifactSet.GetEntityDesignArtifact();
 
-                        var mockAssociationSetMapping = new Mock<AssociationSetMapping>(null, new XElement("dummy"));
+                        var mockAssociationSetMapping = new Mock<DesignAssociationSetMapping>(null, new XElement("dummy"));
                         mockAssociationSetMapping
                             .Setup(m => m.Artifact)
                             .Returns(artifact);
@@ -574,11 +581,10 @@ using FluentAssertions;
                                         },
                                     artifact, ErrorClass.Runtime_CSDL);
 
-                            Assert.Equal(1, artifactSet.GetAllErrors().Count);
+                            artifactSet.GetAllErrors().Count.Should().Be(1);
                             var error = artifactSet.GetAllErrors().Single();
-                            Assert.Contains(
-                                string.Format(Resources.EscherValidation_IgnoreMappedFKAssociation, string.Empty),
-                                error.Message);
+                            error.Message.Should().Contain(
+                                string.Format(Resources.EscherValidation_IgnoreMappedFKAssociation, string.Empty));
                             error.ErrorCode.Should().Be(NonValidAssociationSet);
                             error.Level.Should().Be(ErrorInfo.Severity.WARNING);
                         }
@@ -599,8 +605,8 @@ using FluentAssertions;
                         var error = new ErrorInfo(
                             ErrorInfo.Severity.ERROR, null, mockArtifactSet.Object.GetEntityDesignArtifact(),
                             42, ErrorClass.ParseError);
-                        Assert.False(
-                            RuntimeMetadataValidator.IsOpenInEditorError(error, mockArtifactSet.Object.Artifacts.First()));
+                        RuntimeMetadataValidator.IsOpenInEditorError(error, mockArtifactSet.Object.Artifacts.First())
+                            .Should().BeFalse();
                     });
         }
 
@@ -608,7 +614,7 @@ using FluentAssertions;
         [TestMethod]
         public void IsOpenInEditorError_returns_false_for_recoverable_runtime_errors()
         {
-            IsOpenInEditorError<EFObject>(-1.Should().BeFalse());
+            IsOpenInEditorError<EFObject>(-1).Should().BeFalse();
         }
 #endif
 
@@ -634,7 +640,7 @@ using FluentAssertions;
                             var error = new ErrorInfo(
                                 ErrorInfo.Severity.ERROR, null, mockEfObject.Object, errorCode, ErrorClass.Runtime_CSDL);
 
-                            RuntimeMetadataValidator.IsOpenInEditorError(error, artifact.Should().BeTrue());
+                            RuntimeMetadataValidator.IsOpenInEditorError(error, artifact).Should().BeTrue();
                         }
                     });
         }
@@ -643,43 +649,37 @@ using FluentAssertions;
         [TestMethod]
         public void IsOpenInEditorError_returns_false_for_SchemaValidationError_for_ModificationFunctionMapping()
         {
-            Assert.False(
-                IsOpenInEditorError<ModificationFunctionMapping>((int)MappingErrorCode.XmlSchemaValidationError));
+            IsOpenInEditorError<ModificationFunctionMapping>((int)MappingErrorCode.XmlSchemaValidationError).Should().BeFalse();
         }
 
         [TestMethod]
         public void IsOpenInEditorError_returns_false_for_XmlError_for_ReferentialConstraintRole()
         {
-            Assert.False(
-                IsOpenInEditorError<ReferentialConstraintRole>((int)ErrorCode.XmlError));
+            IsOpenInEditorError<ReferentialConstraintRole>((int)ErrorCode.XmlError).Should().BeFalse();
         }
 
         [TestMethod]
         public void IsOpenInEditorError_returns_false_for_ConditionError_for_Condition()
         {
-            Assert.False(
-                IsOpenInEditorError<Condition>((int)MappingErrorCode.ConditionError));
+            IsOpenInEditorError<Condition>((int)MappingErrorCode.ConditionError).Should().BeFalse();
         }
 
         [TestMethod]
         public void IsOpenInEditorError_returns_false_for_InvalidPropertyInRelationshipConstraint_for_ReferentialConstraint()
         {
-            Assert.False(
-                IsOpenInEditorError<ReferentialConstraint>((int)ErrorCode.InvalidPropertyInRelationshipConstraint));
+            IsOpenInEditorError<ReferentialConstraint>((int)ErrorCode.InvalidPropertyInRelationshipConstraint).Should().BeFalse();
         }
 
         [TestMethod]
         public void IsOpenInEditorError_returns_false_for_ESCHER_VALIDATOR_UNDEFINED_COMPLEX_PROPERTY_TYPE()
         {
-            Assert.False(
-                IsOpenInEditorError<EFObject>(ErrorCodes.ESCHER_VALIDATOR_UNDEFINED_COMPLEX_PROPERTY_TYPE));
+            IsOpenInEditorError<EFObject>(ErrorCodes.ESCHER_VALIDATOR_UNDEFINED_COMPLEX_PROPERTY_TYPE).Should().BeFalse();
         }
 
         [TestMethod]
         public void IsOpenInEditorError_returns_false_for_NotInNamespace_for_ComplexConceptualProperty()
         {
-            Assert.False(
-                IsOpenInEditorError<ComplexConceptualProperty>((int)ErrorCode.NotInNamespace));
+            IsOpenInEditorError<ComplexConceptualProperty>((int)ErrorCode.NotInNamespace).Should().BeFalse();
         }
 #endif
 

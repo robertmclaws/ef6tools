@@ -2170,10 +2170,27 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Debug.Assert(
                 modernProvider == null
                 || (modernProvider != typeof(DbProviderServices)
-                    && typeof(DbProviderServices).IsAssignableFrom(modernProvider)),
+                    && IsDbProviderServicesType(modernProvider)),
                 "modernProvider does not a derive from DbProviderServices");
 
             return modernProvider;
+        }
+
+        // Check if a type derives from DbProviderServices
+        private static bool IsDbProviderServicesType(Type type)
+        {
+            if (type == null) return false;
+            if (typeof(DbProviderServices).IsAssignableFrom(type)) return true;
+
+            // Fallback: check by type name for cross-assembly scenarios
+            var current = type;
+            while (current != null)
+            {
+                if (current.FullName == "System.Data.Entity.Core.Common.DbProviderServices")
+                    return true;
+                current = current.BaseType;
+            }
+            return false;
         }
 
         public static void EnsureProvider(EFArtifact artifact)
@@ -2219,8 +2236,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
             if (ProviderNames.IsSqlServerProvider(providerInvariantName))
             {
-                // Load SqlProviderServices at runtime - no compile-time dependency on EntityFramework.SqlServer
-                // This avoids type collisions with EasyAF.Edmx while still supporting SQL Server
+                // Load SqlProviderServices at runtime to support SQL Server
                 return Type.GetType("System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer");
             }
 

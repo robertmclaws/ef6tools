@@ -6,7 +6,8 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
 
     [TestClass]
     public class FunctionDetailsV1RowViewTests

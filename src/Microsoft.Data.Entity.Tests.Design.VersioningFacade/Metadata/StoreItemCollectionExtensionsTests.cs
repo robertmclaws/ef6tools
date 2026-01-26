@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
 {
@@ -7,8 +7,9 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
     using System.Text;
     using System.Xml;
     using System.Xml.Linq;
+    using Microsoft.Data.Entity.Design.VersioningFacade.Metadata;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class StoreItemCollectionExtensionsTests
@@ -73,7 +74,7 @@ using FluentAssertions;
             {
                 var sourceSsdl = string.Format(SsdlTemplate, schemaVersion);
                 var serializdedSsdl = StoreItemCollectionToString(Utils.CreateStoreItemCollection(sourceSsdl), "Model.Store");
-                XNode.DeepEquals(XDocument.Parse(sourceSsdl.Should().BeTrue(), XDocument.Parse(serializdedSsdl)));
+                XNode.DeepEquals(XDocument.Parse(sourceSsdl), XDocument.Parse(serializdedSsdl)).Should().BeTrue();
             }
         }
 
@@ -83,7 +84,7 @@ using FluentAssertions;
             var storeItemCollection = Utils.CreateStoreItemCollection(Ssdl);
             var serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection));
 
-            Assert.Equal("NorthwindEF5Model.Store", (string)serializedSsdl.Root.Attribute("Namespace"));
+            ((string)serializedSsdl.Root.Attribute("Namespace")).Should().Be("NorthwindEF5Model.Store");
         }
 
         [TestMethod]
@@ -92,7 +93,7 @@ using FluentAssertions;
             var storeItemCollection = Utils.CreateStoreItemCollection(string.Format(SsdlTemplate, SchemaVersions.Last()));
             var serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection, "MyOwnSchema"));
 
-            Assert.Equal("MyOwnSchema", (string)serializedSsdl.Root.Attribute("Namespace"));
+            ((string)serializedSsdl.Root.Attribute("Namespace")).Should().Be("MyOwnSchema");
         }
 
         [TestMethod]
@@ -101,7 +102,7 @@ using FluentAssertions;
             var storeItemCollection = Utils.CreateStoreItemCollection(Ssdl);
             var serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection, "MyOwnSchema"));
 
-            Assert.Equal("NorthwindEF5Model.Store", (string)serializedSsdl.Root.Attribute("Namespace"));
+            ((string)serializedSsdl.Root.Attribute("Namespace")).Should().Be("NorthwindEF5Model.Store");
         }
 
         [TestMethod]
@@ -110,19 +111,19 @@ using FluentAssertions;
             var storeItemCollection = Utils.CreateStoreItemCollection(string.Format(SsdlTemplate, SchemaVersions.Last()));
             var serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection));
 
-            Assert.Equal("Model.Store", (string)serializedSsdl.Root.Attribute("Namespace"));
+            ((string)serializedSsdl.Root.Attribute("Namespace")).Should().Be("Model.Store");
         }
 
         [TestMethod, Ignore("API protection modifiers different between official dll and locally built one")]
         public void ToEdmModel_adds_container_and_types_to_EdmModel()
         {
             //var edmModel = Utils.CreateStoreItemCollection(Ssdl).ToEdmModel();
-            //Assert.Equal("NorthwindEF5ModelStoreContainer", edmModel.Containers.Single().Name);
-            //Assert.Equal(2, edmModel.EntityTypes.Count());
-            //edmModel.EntityTypes.SingleOrDefault(e => e.Name == "Customers".Should().NotBeNull());
-            //edmModel.EntityTypes.SingleOrDefault(e => e.Name == "Orders".Should().NotBeNull());
-            //Assert.Equal(1, edmModel.AssociationTypes.Count());
-            //edmModel.AssociationTypes.SingleOrDefault(a => a.Name == "FK_Orders_Customers".Should().NotBeNull());
+            //edmModel.Containers.Single().Name.Should().Be("NorthwindEF5ModelStoreContainer");
+            //edmModel.EntityTypes.Count().Should().Be(2);
+            //edmModel.EntityTypes.SingleOrDefault(e => e.Name == "Customers").Should().NotBeNull();
+            //edmModel.EntityTypes.SingleOrDefault(e => e.Name == "Orders").Should().NotBeNull();
+            //edmModel.AssociationTypes.Count().Should().Be(1);
+            //edmModel.AssociationTypes.SingleOrDefault(a => a.Name == "FK_Orders_Customers").Should().NotBeNull();
         }
 
         private static string StoreItemCollectionToString(StoreItemCollection storeItemCollection, string schemaNamespace = null)

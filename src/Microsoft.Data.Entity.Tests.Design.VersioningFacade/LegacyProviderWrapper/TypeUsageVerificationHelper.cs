@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using LegacyMetadata = System.Data.Metadata.Edm;
 using LegacySpatial = System.Data.Spatial;
@@ -10,7 +10,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.LegacyProviderWrap
     using System.Linq;
     using System.Reflection;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     internal class TypeUsageVerificationHelper
     {
@@ -19,15 +19,14 @@ using FluentAssertions;
             edmType.FullName.Should().Be(legacyEdmType.FullName);
 
             ((legacyEdmType.BaseType == null && edmType.BaseType == null) ||
-                legacyEdmType.BaseType.FullName == edmType.BaseType.FullName);
-            Assert.Equal(legacyEdmType.BuiltInTypeKind.ToString(), edmType.BuiltInTypeKind.ToString());
-            Assert.Equal(
+                legacyEdmType.BaseType.FullName == edmType.BaseType.FullName).Should().BeTrue();
+            edmType.BuiltInTypeKind.ToString().Should().Be(legacyEdmType.BuiltInTypeKind.ToString());
+            ((DataSpace)typeof(EdmType)
+                            .GetProperty("DataSpace", BindingFlags.Instance | BindingFlags.NonPublic)
+                            .GetValue(edmType)).ToString().Should().Be(
                 ((LegacyMetadata.DataSpace)typeof(LegacyMetadata.EdmType)
                                                .GetProperty("DataSpace", BindingFlags.Instance | BindingFlags.NonPublic)
-                                               .GetValue(legacyEdmType)).ToString(),
-                ((DataSpace)typeof(EdmType)
-                                .GetProperty("DataSpace", BindingFlags.Instance | BindingFlags.NonPublic)
-                                .GetValue(edmType)).ToString());
+                                               .GetValue(legacyEdmType)).ToString());
 
             if (edmType.BuiltInTypeKind == BuiltInTypeKind.PrimitiveTypeKind)
             {
@@ -43,7 +42,7 @@ using FluentAssertions;
                               : legacyPrmitiveEdmType.ClrEquivalentType;
 
                 prmitiveEdmType.ClrEquivalentType.Should().Be(expectedClrEquivalentType);
-                Assert.Equal(legacyPrmitiveEdmType.GetEdmPrimitiveType().FullName, prmitiveEdmType.GetEdmPrimitiveType().FullName);
+                prmitiveEdmType.GetEdmPrimitiveType().FullName.Should().Be(legacyPrmitiveEdmType.GetEdmPrimitiveType().FullName);
             }
         }
 
@@ -81,10 +80,10 @@ using FluentAssertions;
                     || facet.Name == "ConcurrencyMode"))
             {
                 // this is to make sure we did not stick EF6 Max/Variable/Identity on legacy facet as the value
-                Assert.Equal(typeof(LegacyMetadata.EdmType).Assembly, legacyFacet.Value.GetType().Assembly);
+                legacyFacet.Value.GetType().Assembly.Should().BeSameAs(typeof(LegacyMetadata.EdmType).Assembly);
 
                 facet.Value.Should().NotBeNull();
-                Assert.Equal(legacyFacet.Value.ToString(), facet.Value.ToString());
+                facet.Value.ToString().Should().Be(legacyFacet.Value.ToString());
             }
             else
             {
@@ -101,9 +100,9 @@ using FluentAssertions;
         {
             legacyFacetDescription.FacetName.Should().Be(facetDescription.FacetName);
             VerifyEdmTypesEquivalent(legacyFacetDescription.FacetType, facetDescription.FacetType);
-            (// .ToString makes it easier to compare default values like "Variable"
-                facetDescription.DefaultValue.ToString() == legacyFacetDescription.DefaultValue.ToString() ||
-                facetDescription.DefaultValue == legacyFacetDescription.DefaultValue);
+            // .ToString makes it easier to compare default values like "Variable"
+            (facetDescription.DefaultValue.ToString() == legacyFacetDescription.DefaultValue.ToString() ||
+                facetDescription.DefaultValue == legacyFacetDescription.DefaultValue).Should().BeTrue();
             legacyFacetDescription.IsConstant.Should().Be(facetDescription.IsConstant);
             legacyFacetDescription.IsRequired.Should().Be(facetDescription.IsRequired);
             legacyFacetDescription.MaxValue.Should().Be(facetDescription.MaxValue);

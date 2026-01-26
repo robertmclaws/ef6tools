@@ -2,13 +2,14 @@
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
 {
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Moq;
     using System;
-    using System.Xml.Linq;
+    using EnvDTE;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Moq;
 
     [TestClass]
     public class WizardPageBaseTests

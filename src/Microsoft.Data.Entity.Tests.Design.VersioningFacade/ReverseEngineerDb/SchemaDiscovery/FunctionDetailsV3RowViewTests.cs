@@ -5,7 +5,8 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
     using System;
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
 
     [TestClass]
     public class FunctionDetailsV3RowViewTests
@@ -154,11 +155,10 @@ using FluentAssertions;
         [TestMethod]
         public void GetMostQualifiedFunctionName_returns_correct_function_name()
         {
-            Assert.Equal("function", GetMostQualifiedFunctionName(catalog: DBNull.Value, schema: DBNull.Value, procedureName: "function"));
-            Assert.Equal("dbo.function", GetMostQualifiedFunctionName(catalog: DBNull.Value, schema: "dbo", procedureName: "function"));
-            Assert.Equal(
-                "catalog.function", GetMostQualifiedFunctionName(catalog: "catalog", schema: DBNull.Value, procedureName: "function"));
-            Assert.Equal("catalog.dbo.function", GetMostQualifiedFunctionName(catalog: "catalog", schema: "dbo", procedureName: "function"));
+            GetMostQualifiedFunctionName(catalog: DBNull.Value, schema: DBNull.Value, procedureName: "function").Should().Be("function");
+            GetMostQualifiedFunctionName(catalog: DBNull.Value, schema: "dbo", procedureName: "function").Should().Be("dbo.function");
+            GetMostQualifiedFunctionName(catalog: "catalog", schema: DBNull.Value, procedureName: "function").Should().Be("catalog.function");
+            GetMostQualifiedFunctionName(catalog: "catalog", schema: "dbo", procedureName: "function").Should().Be("catalog.dbo.function");
         }
 
         private static string GetMostQualifiedFunctionName(object catalog, object schema, object procedureName)

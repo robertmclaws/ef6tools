@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
@@ -6,7 +6,9 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
     using System.Data;
     using System.Globalization;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VersioningFacade;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
 
     [TestClass]
     public class RelationshipDetailsRowTests
@@ -15,7 +17,7 @@ using FluentAssertions;
         public void Table_returns_owning_table()
         {
             var relationshipDetailsCollection = new RelationshipDetailsCollection();
-            Assert.Same(relationshipDetailsCollection, relationshipDetailsCollection.NewRow().Table);
+            relationshipDetailsCollection.NewRow().Table.Should().BeSameAs(relationshipDetailsCollection);
         }
 
         [TestMethod]
@@ -23,7 +25,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["PkCatalog"] = "catalog";
-            Assert.Equal("catalog", ((RelationshipDetailsRow)row).PKCatalog);
+            ((RelationshipDetailsRow)row).PKCatalog.Should().Be("catalog");
         }
 
         [TestMethod]
@@ -38,9 +40,9 @@ using FluentAssertions;
         public void PKCatalog_IsDbNull_returns_true_for_null_PKCatalog_value()
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
-            row.IsPKCatalogNull(.Should().BeTrue());
+            row.IsPKCatalogNull().Should().BeTrue();
             row["PkCatalog"] = DBNull.Value;
-            row.IsPKCatalogNull(.Should().BeTrue());
+            row.IsPKCatalogNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -48,13 +50,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.PKCatalog; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "PkCatalog",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.PKCatalog).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -62,7 +64,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["PkSchema"] = "schema";
-            Assert.Equal("schema", ((RelationshipDetailsRow)row).PKSchema);
+            ((RelationshipDetailsRow)row).PKSchema.Should().Be("schema");
         }
 
         [TestMethod]
@@ -77,9 +79,9 @@ using FluentAssertions;
         public void PKSchema_IsDbNull_returns_true_for_null_PkSchema_value()
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
-            row.IsPKSchemaNull(.Should().BeTrue());
+            row.IsPKSchemaNull().Should().BeTrue();
             row["PkSchema"] = DBNull.Value;
-            row.IsPKSchemaNull(.Should().BeTrue());
+            row.IsPKSchemaNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -87,13 +89,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.PKSchema; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "PkSchema",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.PKSchema).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -101,7 +103,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["PkTable"] = "table";
-            Assert.Equal("table", ((RelationshipDetailsRow)row).PKTable);
+            ((RelationshipDetailsRow)row).PKTable.Should().Be("table");
         }
 
         [TestMethod]
@@ -116,9 +118,9 @@ using FluentAssertions;
         public void PKTable_IsDbNull_returns_true_for_null_PkTable_value()
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
-            row.IsPKTableNull(.Should().BeTrue());
+            row.IsPKTableNull().Should().BeTrue();
             row["PkTable"] = DBNull.Value;
-            row.IsPKTableNull(.Should().BeTrue());
+            row.IsPKTableNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -126,13 +128,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.PKTable; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "PkTable",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.PKTable).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -140,7 +142,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["PkColumn"] = "column";
-            Assert.Equal("column", ((RelationshipDetailsRow)row).PKColumn);
+            ((RelationshipDetailsRow)row).PKColumn.Should().Be("column");
         }
 
         [TestMethod]
@@ -155,9 +157,9 @@ using FluentAssertions;
         public void PKColumn_IsDbNull_returns_true_for_null_PkColumn_value()
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
-            row.IsPKColumnNull(.Should().BeTrue());
+            row.IsPKColumnNull().Should().BeTrue();
             row["PkColumn"] = DBNull.Value;
-            row.IsPKColumnNull(.Should().BeTrue());
+            row.IsPKColumnNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -165,13 +167,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.PKColumn; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "PkColumn",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.PKColumn).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -179,7 +181,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["FkCatalog"] = "fk-catalog";
-            Assert.Equal("fk-catalog", ((RelationshipDetailsRow)row).FKCatalog);
+            ((RelationshipDetailsRow)row).FKCatalog.Should().Be("fk-catalog");
         }
 
         [TestMethod]
@@ -194,9 +196,9 @@ using FluentAssertions;
         public void FKCatalog_IsDbNull_returns_true_for_null_FkCatalog_value()
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
-            row.IsFKCatalogNull(.Should().BeTrue());
+            row.IsFKCatalogNull().Should().BeTrue();
             row["FkCatalog"] = DBNull.Value;
-            row.IsFKCatalogNull(.Should().BeTrue());
+            row.IsFKCatalogNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -204,13 +206,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.FKCatalog; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "FkCatalog",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.FKCatalog).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -218,7 +220,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["FkSchema"] = "fk-schema";
-            Assert.Equal("fk-schema", ((RelationshipDetailsRow)row).FKSchema);
+            ((RelationshipDetailsRow)row).FKSchema.Should().Be("fk-schema");
         }
 
         [TestMethod]
@@ -233,9 +235,9 @@ using FluentAssertions;
         public void FKSchema_IsDbNull_returns_true_for_null_FkSchema_value()
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
-            row.IsFKSchemaNull(.Should().BeTrue());
+            row.IsFKSchemaNull().Should().BeTrue();
             row["FkSchema"] = DBNull.Value;
-            row.IsFKSchemaNull(.Should().BeTrue());
+            row.IsFKSchemaNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -243,13 +245,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.FKSchema; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "FkSchema",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.FKSchema).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -257,7 +259,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["FkTable"] = "fk-table";
-            Assert.Equal("fk-table", ((RelationshipDetailsRow)row).FKTable);
+            ((RelationshipDetailsRow)row).FKTable.Should().Be("fk-table");
         }
 
         [TestMethod]
@@ -272,9 +274,9 @@ using FluentAssertions;
         public void FKTable_IsDbNull_returns_true_for_null_FkTable_value()
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
-            row.IsFKTableNull(.Should().BeTrue());
+            row.IsFKTableNull().Should().BeTrue();
             row["FkTable"] = DBNull.Value;
-            row.IsFKTableNull(.Should().BeTrue());
+            row.IsFKTableNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -282,13 +284,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.FKTable; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "FkTable",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.FKTable).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -296,7 +298,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["FkColumn"] = "fk-column";
-            Assert.Equal("fk-column", ((RelationshipDetailsRow)row).FKColumn);
+            ((RelationshipDetailsRow)row).FKColumn.Should().Be("fk-column");
         }
 
         [TestMethod]
@@ -311,9 +313,9 @@ using FluentAssertions;
         public void FKColumn_IsDbNull_returns_true_for_null_FkColumn_value()
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
-            row.IsFKColumnNull(.Should().BeTrue());
+            row.IsFKColumnNull().Should().BeTrue();
             row["FkColumn"] = DBNull.Value;
-            row.IsFKColumnNull(.Should().BeTrue());
+            row.IsFKColumnNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -321,13 +323,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.FKColumn; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "FkColumn",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.FKColumn).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -335,7 +337,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["Ordinal"] = 42;
-            Assert.Equal(42, ((RelationshipDetailsRow)row).Ordinal);
+            ((RelationshipDetailsRow)row).Ordinal.Should().Be(42);
         }
 
         [TestMethod]
@@ -350,9 +352,9 @@ using FluentAssertions;
         public void Ordinal_IsDbNull_returns_true_for_null_Ordinal_value()
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
-            row.IsOrdinalNull(.Should().BeTrue());
+            row.IsOrdinalNull().Should().BeTrue();
             row["Ordinal"] = DBNull.Value;
-            row.IsOrdinalNull(.Should().BeTrue());
+            row.IsOrdinalNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -360,13 +362,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.Ordinal; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "Ordinal",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.Ordinal).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -374,7 +376,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["RelationshipName"] = "relationship";
-            Assert.Equal("relationship", ((RelationshipDetailsRow)row).RelationshipName);
+            ((RelationshipDetailsRow)row).RelationshipName.Should().Be("relationship");
         }
 
         [TestMethod]
@@ -389,9 +391,9 @@ using FluentAssertions;
         public void RelationshipName_IsDbNull_returns_true_for_null_RelationshipName_value()
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
-            row.IsRelationshipNameNull(.Should().BeTrue());
+            row.IsRelationshipNameNull().Should().BeTrue();
             row["RelationshipName"] = DBNull.Value;
-            row.IsRelationshipNameNull(.Should().BeTrue());
+            row.IsRelationshipNameNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -399,13 +401,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.RelationshipName; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "RelationshipName",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.RelationshipName).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -413,7 +415,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["RelationshipId"] = "relationship";
-            Assert.Equal("relationship", ((RelationshipDetailsRow)row).RelationshipId);
+            ((RelationshipDetailsRow)row).RelationshipId.Should().Be("relationship");
         }
 
         [TestMethod]
@@ -429,13 +431,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.RelationshipId; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "RelationshipId",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.RelationshipId).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -443,7 +445,7 @@ using FluentAssertions;
         {
             var row = new RelationshipDetailsCollection().NewRow();
             row["IsCascadeDelete"] = true;
-            Assert.Equal(true, ((RelationshipDetailsRow)row).RelationshipIsCascadeDelete);
+            ((RelationshipDetailsRow)row).RelationshipIsCascadeDelete.Should().Be(true);
         }
 
         [TestMethod]
@@ -459,13 +461,13 @@ using FluentAssertions;
         {
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.RelationshipIsCascadeDelete; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "IsCascadeDelete",
-                    "RelationshipDetails"),
-                Assert.Throws<StrongTypingException>(() => row.RelationshipIsCascadeDelete).Message);
+                    "RelationshipDetails"));
         }
 
         [TestMethod]
@@ -474,13 +476,13 @@ using FluentAssertions;
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             row["PkTable"] = "table";
-            Assert.Equal("table", row.GetMostQualifiedPrimaryKey());
+            row.GetMostQualifiedPrimaryKey().Should().Be("table");
 
             row["PkSchema"] = "schema";
-            Assert.Equal("schema.table", row.GetMostQualifiedPrimaryKey());
+            row.GetMostQualifiedPrimaryKey().Should().Be("schema.table");
 
             row["PkCatalog"] = "catalog";
-            Assert.Equal("catalog.schema.table", row.GetMostQualifiedPrimaryKey());
+            row.GetMostQualifiedPrimaryKey().Should().Be("catalog.schema.table");
         }
 
         [TestMethod]
@@ -489,13 +491,13 @@ using FluentAssertions;
             var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             row["FkTable"] = "table";
-            Assert.Equal("table", row.GetMostQualifiedForeignKey());
+            row.GetMostQualifiedForeignKey().Should().Be("table");
 
             row["FkSchema"] = "schema";
-            Assert.Equal("schema.table", row.GetMostQualifiedForeignKey());
+            row.GetMostQualifiedForeignKey().Should().Be("schema.table");
 
             row["FkCatalog"] = "catalog";
-            Assert.Equal("catalog.schema.table", row.GetMostQualifiedForeignKey());
+            row.GetMostQualifiedForeignKey().Should().Be("catalog.schema.table");
         }
     }
 }

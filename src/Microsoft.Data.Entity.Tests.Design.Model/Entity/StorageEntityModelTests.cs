@@ -1,20 +1,37 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
 {
     using System;
-    using System.Data.Entity.SqlServer;
     using System.Linq;
+    using System.Reflection;
     using System.Xml.Linq;
+    using Microsoft.Data.Entity.Design.Model;
+    using Microsoft.Data.Entity.Design.Model.Entity;
     using Microsoft.Data.Entity.Design.VersioningFacade;
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
+    using System.Data.Entity.Core.Common;
 
     [TestClass]
     public class StorageEntityModelTests
     {
+        private static DbProviderServices SqlProviderServicesInstance
+        {
+            get
+            {
+                var type = Type.GetType("System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer");
+                if (type != null)
+                {
+                    var instanceProperty = type.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static);
+                    return (DbProviderServices)instanceProperty?.GetValue(null);
+                }
+                return null;
+            }
+        }
+
         [TestMethod, Ignore("Updated binary has updated types")]
         public void StoreTypeNameToStoreTypeMap_returns_type_map()
         {
@@ -26,11 +43,10 @@ using FluentAssertions;
             {
                 var typeMap = storageModel.StoreTypeNameToStoreTypeMap;
 
-                Assert.Equal(
-                    SqlProviderServices.Instance.GetProviderManifest("2008").GetStoreTypes().Select(t => t.Name),
-                    typeMap.Keys);
+                typeMap.Keys.Should().BeEquivalentTo(
+                    SqlProviderServicesInstance.GetProviderManifest("2008").GetStoreTypes().Select(t => t.Name));
 
-                typeMap.Any(t => t.Key != t.Value.Name.Should().BeFalse());
+                typeMap.Any(t => t.Key != t.Value.Name).Should().BeFalse();
             }
         }
 
@@ -84,9 +100,7 @@ using FluentAssertions;
 
             using (var storageModel = new StorageEntityModel(null, ssdl))
             {
-                Assert.Equal(
-                    "tinyint",
-                    storageModel.GetStoragePrimitiveType("tinyint").Name);
+                storageModel.GetStoragePrimitiveType("tinyint").Name.Should().Be("tinyint");
             }
         }
 
@@ -99,7 +113,7 @@ using FluentAssertions;
 
             using (var storageModel = new StorageEntityModel(null, ssdl))
             {
-                storageModel.GetStoragePrimitiveType("foo".Should().BeNull());
+                storageModel.GetStoragePrimitiveType("foo").Should().BeNull();
             }
         }
 
@@ -120,13 +134,13 @@ using FluentAssertions;
                 var typeMap = storageModel.StoreTypeNameToStoreTypeMap;
 
                 typeMap.Should().NotBeNull();
-                typeMap.Count > 0.Should().BeTrue();
+                (typeMap.Count > 0).Should().BeTrue();
 
                 // Verify we get the expected SQL Server types
-                typeMap.ContainsKey("int".Should().BeTrue());
-                typeMap.ContainsKey("varchar".Should().BeTrue());
-                typeMap.ContainsKey("nvarchar".Should().BeTrue());
-                typeMap.ContainsKey("datetime".Should().BeTrue());
+                typeMap.ContainsKey("int").Should().BeTrue();
+                typeMap.ContainsKey("varchar").Should().BeTrue();
+                typeMap.ContainsKey("nvarchar").Should().BeTrue();
+                typeMap.ContainsKey("datetime").Should().BeTrue();
             }
         }
 
@@ -140,8 +154,8 @@ using FluentAssertions;
             using (var storageModel = new StorageEntityModel(null, ssdl))
             {
                 // This exercises the full code path: Provider.Value -> DependencyResolver -> SqlProviderServices
-                Assert.Equal("int", storageModel.GetStoragePrimitiveType("int").Name);
-                Assert.Equal("nvarchar", storageModel.GetStoragePrimitiveType("nvarchar").Name);
+                storageModel.GetStoragePrimitiveType("int").Name.Should().Be("int");
+                storageModel.GetStoragePrimitiveType("nvarchar").Name.Should().Be("nvarchar");
             }
         }
 
@@ -165,7 +179,7 @@ using FluentAssertions;
                 mdsTypes.Count.Should().Be(sdsTypes.Count);
                 foreach (var typeName in sdsTypes.Keys)
                 {
-                    mdsTypes.ContainsKey(typeName.Should().BeTrue(), $"Microsoft.Data.SqlClient missing type: {typeName}");
+                    mdsTypes.ContainsKey(typeName).Should().BeTrue($"Microsoft.Data.SqlClient missing type: {typeName}");
                 }
             }
         }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using SystemDataCommon = System.Data.Common;
 
@@ -8,14 +8,15 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
     using System.Data.Entity.Core;
     using System.Data.Entity.Core.Common;
     using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Data.Entity.SqlServer;
     using System.IO;
+    using Microsoft.Data.Entity.Design.VersioningFacade;
     using System.Security;
     using System.Xml;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
     using Moq;
     using Moq.Protected;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class StoreSchemaConnectionFactoryTests
@@ -27,7 +28,7 @@ using FluentAssertions;
             mockProviderServices
                 .Protected()
                 .Setup<DbProviderManifest>("GetDbProviderManifest", ItExpr.IsAny<string>())
-                .Returns(SqlProviderServices.Instance.GetProviderManifest("2008"));
+                .Returns(Utils.SqlProviderServicesInstance.GetProviderManifest("2008"));
 
             var mockResolver = SetupMockResolver(mockProviderServices);
 
@@ -58,14 +59,14 @@ using FluentAssertions;
         {
             const string providerInvariantName = "abc";
 
-            Assert.Equal(
-                string.Format(Resources_VersioningFacade.EntityClient_InvalidStoreProvider, providerInvariantName),
-                Assert.Throws<ArgumentException>(
-                    () => new StoreSchemaConnectionFactory().Create(
-                        new Mock<IDbDependencyResolver>().Object,
-                        providerInvariantName,
-                        "connectionString",
-                        new Version(1, 0, 0, 0))).Message);
+            Action act = () => new StoreSchemaConnectionFactory().Create(
+                new Mock<IDbDependencyResolver>().Object,
+                providerInvariantName,
+                "connectionString",
+                new Version(1, 0, 0, 0));
+
+            act.Should().Throw<ArgumentException>()
+                .WithMessage(string.Format(Resources_VersioningFacade.EntityClient_InvalidStoreProvider, providerInvariantName));
         }
 
         [TestMethod]
@@ -75,7 +76,7 @@ using FluentAssertions;
             mockProviderServices
                 .Protected()
                 .Setup<DbProviderManifest>("GetDbProviderManifest", ItExpr.IsAny<string>())
-                .Returns(SqlProviderServices.Instance.GetProviderManifest("2008"));
+                .Returns(Utils.SqlProviderServicesInstance.GetProviderManifest("2008"));
 
             var mockResolver = SetupMockResolver(mockProviderServices);
 
@@ -110,12 +111,14 @@ using FluentAssertions;
 
             var mockResolver = SetupMockResolver(mockProviderServices);
 
-            (Assert.Throws<ProviderIncompatibleException>(
-                    () => new StoreSchemaConnectionFactory().Create(
-                        mockResolver.Object,
-                        "System.Data.SqlClient",
-                        "Server=test",
-                        EntityFrameworkVersion.Version3)).Message.StartsWith("Schema specified is not valid. Errors"));
+            Action act = () => new StoreSchemaConnectionFactory().Create(
+                mockResolver.Object,
+                "System.Data.SqlClient",
+                "Server=test",
+                EntityFrameworkVersion.Version3);
+
+            act.Should().Throw<ProviderIncompatibleException>()
+                .Where(ex => ex.Message.StartsWith("Schema specified is not valid. Errors"));
         }
 
         [TestMethod]
@@ -128,7 +131,7 @@ using FluentAssertions;
                 .Protected()
                 .Setup<XmlReader>("GetDbInformation", ItExpr.Is<string>(s => s != DbProviderManifest.StoreSchemaMappingVersion3))
                 .Returns(
-                    SqlProviderServices.Instance.GetProviderManifest("2008").GetInformation(DbProviderManifest.StoreSchemaMappingVersion3));
+                    Utils.SqlProviderServicesInstance.GetProviderManifest("2008").GetInformation(DbProviderManifest.StoreSchemaMappingVersion3));
 
             mockProviderManifest
                 .Protected()
@@ -142,12 +145,14 @@ using FluentAssertions;
 
             var mockResolver = SetupMockResolver(mockProviderServices);
 
-            (Assert.Throws<ProviderIncompatibleException>(
-                    () => new StoreSchemaConnectionFactory().Create(
-                        mockResolver.Object,
-                        "System.Data.SqlClient",
-                        "Server=test",
-                        EntityFrameworkVersion.Version3)).Message.StartsWith("Schema specified is not valid. Errors"));
+            Action act = () => new StoreSchemaConnectionFactory().Create(
+                mockResolver.Object,
+                "System.Data.SqlClient",
+                "Server=test",
+                EntityFrameworkVersion.Version3);
+
+            act.Should().Throw<ProviderIncompatibleException>()
+                .Where(ex => ex.Message.StartsWith("Schema specified is not valid. Errors"));
         }
 
         private static Mock<DbProviderServices> SetupMockProviderServices()
@@ -176,14 +181,14 @@ using FluentAssertions;
         [TestMethod]
         public void IsCatchableExceptionType_filters_exceptions_correctly()
         {
-            StoreSchemaConnectionFactory.IsCatchableExceptionType(new StackOverflowException(.Should().BeFalse()));
-            StoreSchemaConnectionFactory.IsCatchableExceptionType(new OutOfMemoryException(.Should().BeFalse()));
-            StoreSchemaConnectionFactory.IsCatchableExceptionType(new NullReferenceException(.Should().BeFalse()));
-            StoreSchemaConnectionFactory.IsCatchableExceptionType(new AccessViolationException(.Should().BeFalse()));
-            StoreSchemaConnectionFactory.IsCatchableExceptionType(new SecurityException(.Should().BeFalse()));
+            StoreSchemaConnectionFactory.IsCatchableExceptionType(new StackOverflowException()).Should().BeFalse();
+            StoreSchemaConnectionFactory.IsCatchableExceptionType(new OutOfMemoryException()).Should().BeFalse();
+            StoreSchemaConnectionFactory.IsCatchableExceptionType(new NullReferenceException()).Should().BeFalse();
+            StoreSchemaConnectionFactory.IsCatchableExceptionType(new AccessViolationException()).Should().BeFalse();
+            StoreSchemaConnectionFactory.IsCatchableExceptionType(new SecurityException()).Should().BeFalse();
 
-            StoreSchemaConnectionFactory.IsCatchableExceptionType(new Exception(.Should().BeTrue()));
-            StoreSchemaConnectionFactory.IsCatchableExceptionType(new InvalidOperationException(.Should().BeTrue()));
+            StoreSchemaConnectionFactory.IsCatchableExceptionType(new Exception()).Should().BeTrue();
+            StoreSchemaConnectionFactory.IsCatchableExceptionType(new InvalidOperationException()).Should().BeTrue();
         }
     }
 }

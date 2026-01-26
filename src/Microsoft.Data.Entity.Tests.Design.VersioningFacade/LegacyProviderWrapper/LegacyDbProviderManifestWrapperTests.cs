@@ -15,9 +15,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.LegacyProviderWrap
     using System.Linq;
     using System.Xml;
     using Moq;
+    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper;
     using Moq.Protected;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class LegacyDbProviderManifestWrapperTests
@@ -102,9 +103,8 @@ using FluentAssertions;
             // need an SSpace type as the arguemnt
             var edmType = new LegacyDbProviderManifestWrapper(LegacyProviderManifest).GetStoreTypes().First();
 
-            var exception =
-                Assert.Throws<ProviderIncompatibleException>(
-                    () => providerManifestWrapper.GetFacetDescriptions(edmType));
+            Action act = () => providerManifestWrapper.GetFacetDescriptions(edmType);
+            var exception = act.Should().Throw<ProviderIncompatibleException>().Which;
 
             exception.Message.Should().Be("Test");
             exception.InnerException.Should().BeSameAs(expectedInnerException);
@@ -243,9 +243,8 @@ using FluentAssertions;
 
             var providerManifestWrapper = new LegacyDbProviderManifestWrapper(mockLegacyManifest.Object);
 
-            var exception =
-                Assert.Throws<ProviderIncompatibleException>(
-                    () => providerManifestWrapper.GetStoreType(TypeUsage.CreateDefaultTypeUsage(EdmPrimitiveTypes["String"])));
+            Action act = () => providerManifestWrapper.GetStoreType(TypeUsage.CreateDefaultTypeUsage(EdmPrimitiveTypes["String"]));
+            var exception = act.Should().Throw<ProviderIncompatibleException>().Which;
 
             exception.Message.Should().Be("Test");
             exception.InnerException.Should().BeSameAs(expectedInnerException);
@@ -403,8 +402,8 @@ using FluentAssertions;
                     ProviderManifestWrapper.GetStoreTypes().Single(t => t.Name == "decimal"));
             var edmTypeUsage = ProviderManifestWrapper.GetEdmType(typeUsage);
 
-            Assert.Equal("Max", edmTypeUsage.Facets["Scale"].Value.ToString());
-            Assert.Equal("Max", edmTypeUsage.Facets["Precision"].Value.ToString());
+            edmTypeUsage.Facets["Scale"].Value.ToString().Should().Be("Max");
+            edmTypeUsage.Facets["Precision"].Value.ToString().Should().Be("Max");
         }
 
         [TestMethod]
@@ -450,11 +449,10 @@ using FluentAssertions;
 
             var providerManifestWrapper = new LegacyDbProviderManifestWrapper(mockLegacyManifest.Object);
 
-            var exception =
-                Assert.Throws<ProviderIncompatibleException>(
-                    () => providerManifestWrapper.GetEdmType(
-                        ProviderManifestWrapper.GetStoreType(
-                            TypeUsage.CreateDefaultTypeUsage(EdmPrimitiveTypes["String"]))));
+            Action act = () => providerManifestWrapper.GetEdmType(
+                ProviderManifestWrapper.GetStoreType(
+                    TypeUsage.CreateDefaultTypeUsage(EdmPrimitiveTypes["String"])));
+            var exception = act.Should().Throw<ProviderIncompatibleException>().Which;
 
             exception.Message.Should().Be("Test");
             exception.InnerException.Should().BeSameAs(expectedInnerException);
@@ -470,7 +468,7 @@ using FluentAssertions;
                 .Setup(m => m.GetStoreTypes())
                 .Returns(LegacyProviderManifest.GetStoreTypes());
 
-            Assert.Equal("Namespace", new LegacyDbProviderManifestWrapper(mockLegacyManifest.Object).NamespaceName);
+            new LegacyDbProviderManifestWrapper(mockLegacyManifest.Object).NamespaceName.Should().Be("Namespace");
         }
 
         [TestMethod]
@@ -482,9 +480,8 @@ using FluentAssertions;
                 .Setup(m => m.GetStoreTypes())
                 .Returns(LegacyProviderManifest.GetStoreTypes());
 
-            Assert.Same(
-                mockLegacyManifest.Object,
-                new LegacyDbProviderManifestWrapper(mockLegacyManifest.Object).WrappedManifest);
+            new LegacyDbProviderManifestWrapper(mockLegacyManifest.Object).WrappedManifest
+                .Should().BeSameAs(mockLegacyManifest.Object);
         }
 
         [TestMethod]
@@ -503,9 +500,8 @@ using FluentAssertions;
                 .Setup<XmlReader>("GetDbInformation", ItExpr.IsAny<string>())
                 .Returns(mockXmlReader.Object);
 
-            Assert.Same(
-                mockXmlReader.Object,
-                new LegacyDbProviderManifestWrapper(mockLegacyManifest.Object).GetInformation(string.Empty));
+            new LegacyDbProviderManifestWrapper(mockLegacyManifest.Object).GetInformation(string.Empty)
+                .Should().BeSameAs(mockXmlReader.Object);
         }
 
         [TestMethod]

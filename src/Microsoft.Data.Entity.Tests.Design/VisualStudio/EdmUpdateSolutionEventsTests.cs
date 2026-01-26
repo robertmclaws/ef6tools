@@ -1,16 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
     using System;
     using System.Xml.Linq;
+    using FluentAssertions;
     using Microsoft.Data.Entity.Design.Model;
     using Microsoft.Data.Entity.Design.Model.Designer;
     using Microsoft.Data.Entity.Design.VisualStudio;
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class EdmUpdateSolutionEventsTests
@@ -23,7 +23,7 @@ using FluentAssertions;
             var entityDesignArtifact =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider).Object;
 
-            EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifact.Should().BeTrue());
+            EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifact).Should().BeTrue();
         }
 
         [TestMethod]
@@ -40,7 +40,7 @@ using FluentAssertions;
                     .Setup(a => a.DesignerInfo)
                     .Returns(designerInfoRoot);
 
-                EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object.Should().BeTrue());
+                EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object).Should().BeTrue();
             }
         }
 
@@ -63,7 +63,7 @@ using FluentAssertions;
                     .Setup(a => a.DesignerInfo)
                     .Returns(designerInfoRoot);
 
-                EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object.Should().BeTrue());
+                EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object).Should().BeTrue();
             }
         }
 
@@ -93,7 +93,7 @@ using FluentAssertions;
                         .Setup(a => a.DesignerInfo)
                         .Returns(designerInfoRoot);
 
-                    (EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object));
+                    EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object).Should().BeTrue();
                 }
             }
         }
@@ -128,8 +128,7 @@ using FluentAssertions;
                         .Setup(a => a.DesignerInfo)
                         .Returns(designerInfoRoot);
 
-                    Assert.False(
-                        EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object));
+                    EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object).Should().BeFalse();
                 }
             }
         }
@@ -164,7 +163,7 @@ using FluentAssertions;
                         .Setup(a => a.DesignerInfo)
                         .Returns(designerInfoRoot);
 
-                    (EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object));
+                    EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object).Should().BeTrue();
                 }
             }
         }
@@ -199,7 +198,7 @@ using FluentAssertions;
                         .Setup(a => a.DesignerInfo)
                         .Returns(designerInfoRoot);
 
-                    (EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object));
+                    EdmUpdateSolutionEvents.ShouldValidateArtifactDuringBuild(entityDesignArtifactMock.Object).Should().BeTrue();
                 }
             }
         }

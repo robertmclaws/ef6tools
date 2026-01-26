@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
@@ -6,8 +6,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     // TODO - remove this comment - this is just to force line-endings (which git does not seem to accept as the only change)
     [TestClass]
@@ -33,11 +34,10 @@ using FluentAssertions;
                 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
+            configuration.GetMethodChain(code).Should().Be(
                 @".Entity<Entity1>()
                 .HasMany(e => e.Entity2s)
-                .WithMany(e => e.Entity1s)",
-                configuration.GetMethodChain(code));
+                .WithMany(e => e.Entity1s)");
         }
 
         [TestMethod]
@@ -59,11 +59,10 @@ using FluentAssertions;
                 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
+            configuration.GetMethodChain(code).Should().Be(
                 @".Entity<Entity1>()
                 .HasMany(e => e.Entity2s)
-                .WithRequired(e => e.Entity1)",
-                configuration.GetMethodChain(code));
+                .WithRequired(e => e.Entity1)");
         }
 
         [TestMethod]
@@ -85,11 +84,10 @@ using FluentAssertions;
                 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
+            configuration.GetMethodChain(code).Should().Be(
                 @".Entity<Entity1>()
                 .HasMany(e => e.Entity2s)
-                .WithOptional(e => e.Entity1)",
-                configuration.GetMethodChain(code));
+                .WithOptional(e => e.Entity1)");
         }
 
         [TestMethod]
@@ -111,11 +109,10 @@ using FluentAssertions;
                 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
+            configuration.GetMethodChain(code).Should().Be(
                 @".Entity<Entity1>()
                 .HasRequired(e => e.Entity2)
-                .WithMany(e => e.Entity1s)",
-                configuration.GetMethodChain(code));
+                .WithMany(e => e.Entity1s)");
         }
 
         [TestMethod]
@@ -137,11 +134,10 @@ using FluentAssertions;
                 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
+            configuration.GetMethodChain(code).Should().Be(
                 @".Entity<Entity1>()
                 .HasRequired(e => e.Entity2)
-                .WithOptional(e => e.Entity1)",
-                configuration.GetMethodChain(code));
+                .WithOptional(e => e.Entity1)");
         }
 
         [TestMethod]
@@ -163,11 +159,10 @@ using FluentAssertions;
                 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
+            configuration.GetMethodChain(code).Should().Be(
                 @".Entity<Entity1>()
                 .HasOptional(e => e.Entity2)
-                .WithMany(e => e.Entity1s)",
-                configuration.GetMethodChain(code));
+                .WithMany(e => e.Entity1s)");
         }
 
         [TestMethod]
@@ -189,11 +184,10 @@ using FluentAssertions;
                 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
+            configuration.GetMethodChain(code).Should().Be(
                 @".Entity<Entity1>()
                 .HasOptional(e => e.Entity2)
-                .WithRequired(e => e.Entity1)",
-                configuration.GetMethodChain(code));
+                .WithRequired(e => e.Entity1)");
         }
 
         private class Entity1

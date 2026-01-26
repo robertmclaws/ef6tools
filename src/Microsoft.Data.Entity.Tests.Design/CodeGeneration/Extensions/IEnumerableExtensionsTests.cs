@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
 {
     using System.Collections;
     using System.Collections.Generic;
-    using Moq;
+    using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Moq;
+    using FluentAssertions;
 
     [TestClass]
     public class IEnumerableExtensionsTests
@@ -18,7 +19,7 @@ using FluentAssertions;
             var collection = new Mock<ICollection<int>>(MockBehavior.Strict);
             collection.SetupGet(c => c.Count).Returns(3);
 
-            collection.Object.MoreThan(2.Should().BeTrue());
+            collection.Object.MoreThan(2).Should().BeTrue();
         }
 
         [TestMethod]
@@ -27,7 +28,7 @@ using FluentAssertions;
             var collection = new Mock<ICollection<int>>(MockBehavior.Strict);
             collection.SetupGet(c => c.Count).Returns(2);
 
-            collection.Object.MoreThan(2.Should().BeFalse());
+            collection.Object.MoreThan(2).Should().BeFalse();
         }
 
         [TestMethod]
@@ -36,7 +37,7 @@ using FluentAssertions;
             var collection = new Mock<ICollection<int>>(MockBehavior.Strict);
             collection.SetupGet(c => c.Count).Returns(1);
 
-            collection.Object.MoreThan(2.Should().BeFalse());
+            collection.Object.MoreThan(2).Should().BeFalse();
         }
 
         [TestMethod]
@@ -45,7 +46,7 @@ using FluentAssertions;
             var collection = new Mock<ICollection>(MockBehavior.Strict);
             collection.SetupGet(c => c.Count).Returns(3);
 
-            collection.As<IEnumerable<int>>(.Should().BeTrue().Object.MoreThan(2));
+            collection.As<IEnumerable<int>>().Object.MoreThan(2).Should().BeTrue();
         }
 
         [TestMethod]
@@ -54,7 +55,7 @@ using FluentAssertions;
             var collection = new Mock<ICollection>(MockBehavior.Strict);
             collection.SetupGet(c => c.Count).Returns(2);
 
-            collection.As<IEnumerable<int>>(.Should().BeFalse().Object.MoreThan(2));
+            collection.As<IEnumerable<int>>().Object.MoreThan(2).Should().BeFalse();
         }
 
         [TestMethod]
@@ -63,31 +64,31 @@ using FluentAssertions;
             var collection = new Mock<ICollection>(MockBehavior.Strict);
             collection.SetupGet(c => c.Count).Returns(1);
 
-            collection.As<IEnumerable<int>>(.Should().BeFalse().Object.MoreThan(2));
+            collection.As<IEnumerable<int>>().Object.MoreThan(2).Should().BeFalse();
         }
 
         [TestMethod]
         public void MoreThan_returns_true_when_more_and_enumerable()
         {
-            GetValues(3.Should().BeTrue().MoreThan(2));
+            GetValues(3).MoreThan(2).Should().BeTrue();
         }
 
         [TestMethod]
         public void MoreThan_returns_false_when_equal_and_enumerable()
         {
-            GetValues(2.Should().BeFalse().MoreThan(2));
+            GetValues(2).MoreThan(2).Should().BeFalse();
         }
 
         [TestMethod]
         public void MoreThan_returns_false_when_less_and_enumerable()
         {
-            GetValues(1.Should().BeFalse().MoreThan(2));
+            GetValues(1).MoreThan(2).Should().BeFalse();
         }
 
         [TestMethod]
         public void MoreThan_returns_false_when_empty_enumerable()
         {
-            GetValues(0.Should().BeFalse().MoreThan(2));
+            GetValues(0).MoreThan(2).Should().BeFalse();
         }
 
         private static IEnumerable<int> GetValues(int count)

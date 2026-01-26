@@ -5,6 +5,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View
     using System;
     using System.Xml.Linq;
     using Microsoft.Data.Entity.Design.Base.Context;
+    using Microsoft.Data.Entity.Design.EntityDesigner.View;
     using Microsoft.Data.Entity.Design.Model;
     using Microsoft.Data.Entity.Design.Model.Visitor;
     using Microsoft.Data.Entity.Design.VersioningFacade;
@@ -13,7 +14,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EntityDesignerDiagramTests
@@ -58,7 +59,7 @@ using FluentAssertions;
                     mockPackage.Object, mockEditingContext.Object, mockArtifact.Object, EntityFrameworkVersion.Version2);
 
                 mockArtifact.Object.IsDirty.Should().BeTrue();
-                XNode.DeepEquals(CreateModel(EntityFrameworkVersion.Version2.Should().BeTrue(), model));
+                XNode.DeepEquals(CreateModel(EntityFrameworkVersion.Version2), model).Should().BeTrue();
                 mockFrameManager.Verify(m => m.SetCurrentContext(mockEditingContext.Object), Times.Once());
             }
         }

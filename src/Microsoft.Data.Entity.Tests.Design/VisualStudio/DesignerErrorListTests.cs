@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
     using System;
     using System.Linq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
-    using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Moq;
 
     [TestClass]
     public class DesignerErrorListTests
@@ -16,7 +17,7 @@ using FluentAssertions;
         [TestMethod]
         public void DesignerErrorList_creates_non_null_ErrorListProvider()
         {
-            new DesignerErrorList(new Mock<IServiceProvider>(.Should().NotBeNull().Object).Provider);
+            new DesignerErrorList(new Mock<IServiceProvider>().Object).Provider.Should().NotBeNull();
         }
 
         [TestMethod]
@@ -28,11 +29,11 @@ using FluentAssertions;
             var task = new ErrorTask();
             var errorList = new DesignerErrorList(mockServiceProvider.Object);
 
-            Assert.Empty(errorList.Provider.Tasks);
+            errorList.Provider.Tasks.Cast<ErrorTask>().Should().BeEmpty();
             errorList.AddItem(task);
-            Assert.Equal(new[] { task }, errorList.Provider.Tasks.Cast<ErrorTask>());
+            errorList.Provider.Tasks.Cast<ErrorTask>().Should().BeEquivalentTo(new[] { task });
             errorList.Clear();
-            Assert.Empty(errorList.Provider.Tasks);
+            errorList.Provider.Tasks.Cast<ErrorTask>().Should().BeEmpty();
         }
     }
 }

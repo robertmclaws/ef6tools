@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
@@ -7,9 +7,10 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
-    using Moq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Moq;
 
     [TestClass]
     public class VBCodeHelperTests
@@ -39,7 +40,7 @@ using FluentAssertions;
             container.SetupGet(c => c.Name).Returns("Nothing");
             var code = new VBCodeHelper();
 
-            Assert.Equal("_Nothing", code.Type(container.Object));
+            code.Type(container.Object).Should().Be("_Nothing");
         }
 
         [TestMethod]
@@ -49,7 +50,7 @@ using FluentAssertions;
                 p => p.Name == "Name");
             var code = new VBCodeHelper();
 
-            Assert.Equal("String", code.Type(property));
+            code.Type(property).Should().Be("String");
         }
 
         [TestMethod]
@@ -59,7 +60,7 @@ using FluentAssertions;
                 p => p.Name == "Children");
             var code = new VBCodeHelper();
 
-            Assert.Equal("ICollection(Of Entity)", code.Type(property));
+            code.Type(property).Should().Be("ICollection(Of Entity)");
         }
 
         [TestMethod]
@@ -69,7 +70,7 @@ using FluentAssertions;
             var configuration = new Mock<IAttributeConfiguration>();
             configuration.Setup(c => c.GetAttributeBody(code)).Returns("Required");
 
-            Assert.Equal("<Required>", code.Attribute(configuration.Object));
+            code.Attribute(configuration.Object).Should().Be("<Required>");
         }
 
         [TestMethod]
@@ -77,7 +78,7 @@ using FluentAssertions;
         {
             var code = new VBCodeHelper();
 
-            Assert.Equal("{\"One\", \"Two\"}", code.Literal(new[] { "One", "Two" }));
+            code.Literal(new[] { "One", "Two" }).Should().Be("{\"One\", \"Two\"}");
         }
 
         [TestMethod]
@@ -85,8 +86,8 @@ using FluentAssertions;
         {
             var code = new VBCodeHelper();
 
-            Assert.Equal("True", code.Literal(true));
-            Assert.Equal("False", code.Literal(false));
+            code.Literal(true).Should().Be("True");
+            code.Literal(false).Should().Be("False");
         }
 
         [TestMethod]
@@ -94,7 +95,7 @@ using FluentAssertions;
         {
             var code = new VBCodeHelper();
 
-            Assert.Equal("Function(x) ", code.BeginLambda("x"));
+            code.BeginLambda("x").Should().Be("Function(x) ");
         }
 
         [TestMethod]
@@ -103,7 +104,7 @@ using FluentAssertions;
             var code = new VBCodeHelper();
             var member = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Id");
 
-            Assert.Equal("Function(e) e.Id", code.Lambda(member));
+            code.Lambda(member).Should().Be("Function(e) e.Id");
         }
 
         [TestMethod]
@@ -113,7 +114,7 @@ using FluentAssertions;
             var id = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Id");
             var name = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Name");
 
-            Assert.Equal("Function(e) New With {e.Id, e.Name}", code.Lambda(new[] { id, name }));
+            code.Lambda(new[] { id, name }).Should().Be("Function(e) New With {e.Id, e.Name}");
         }
 
         [TestMethod]
@@ -121,7 +122,7 @@ using FluentAssertions;
         {
             var code = new VBCodeHelper();
 
-            Assert.Equal("(Of Entity)", code.TypeArgument("Entity"));
+            code.TypeArgument("Entity").Should().Be("(Of Entity)");
         }
 
         private class Entity

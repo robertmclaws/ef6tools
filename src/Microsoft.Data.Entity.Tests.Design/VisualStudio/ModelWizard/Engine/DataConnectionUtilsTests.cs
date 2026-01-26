@@ -1,16 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.VisualStudio.Data.Core;
-    using Moq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
     using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using VSLangProj;
+    using Microsoft.VisualStudio.Data.Core;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Moq;
+    using VSLangProj;
 
     [TestClass]
     public class DataConnectionUtilsTests
@@ -26,11 +27,12 @@ using FluentAssertions;
             dataProviderManager.SetupGet(m => m.Providers).Returns(providers);
             var dte = new MockDTE(".NETFramework,Version=v4.5");
 
-            (DataConnectionUtils.HasEntityFrameworkProvider(
+            DataConnectionUtils.HasEntityFrameworkProvider(
                     dataProviderManager.Object,
                     providerGuid,
                     dte.Project,
-                    dte.ServiceProvider));
+                    dte.ServiceProvider)
+                .Should().BeTrue();
         }
 
         [TestMethod]
@@ -44,12 +46,12 @@ using FluentAssertions;
             dataProviderManager.SetupGet(m => m.Providers).Returns(providers);
             var dte = new MockDTE(".NETFramework,Version=v4.5", references: Enumerable.Empty<Reference>());
 
-            Assert.False(
-                DataConnectionUtils.HasEntityFrameworkProvider(
+            DataConnectionUtils.HasEntityFrameworkProvider(
                     dataProviderManager.Object,
                     providerGuid,
                     dte.Project,
-                    dte.ServiceProvider));
+                    dte.ServiceProvider)
+                .Should().BeFalse();
         }
 
         [TestMethod]
@@ -63,12 +65,12 @@ using FluentAssertions;
             dataProviderManager.SetupGet(m => m.Providers).Returns(providers);
             var dte = new MockDTE(".NETFramework,Version=v4.5", references: Enumerable.Empty<Reference>());
 
-            Assert.False(
-                DataConnectionUtils.HasEntityFrameworkProvider(
+            DataConnectionUtils.HasEntityFrameworkProvider(
                     dataProviderManager.Object,
                     providerGuid,
                     dte.Project,
-                    dte.ServiceProvider));
+                    dte.ServiceProvider)
+                .Should().BeFalse();
         }
     }
 }

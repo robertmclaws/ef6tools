@@ -1,17 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
 {
     using System;
     using EnvDTE;
     using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
+    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
     using Moq;
     using Moq.Protected;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
 
     internal class ModelBuilderWizardFormHelper
     {
-        public static ModelBuilderWizardForm CreateWizard(ModelGenerationOption generationOption = (ModelGenerationOption)(-1), 
+        public static ModelBuilderWizardForm CreateWizard(ModelGenerationOption generationOption = (ModelGenerationOption)(-1),
             Project project = null, string modelPath = null, IServiceProvider serviceProvider = null)
         {
             var modelBuilderSettings =

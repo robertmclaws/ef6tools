@@ -6,10 +6,10 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
     using System.Drawing;
     using System.Text;
     using System.Text.RegularExpressions;
+    using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
     using Microsoft.VisualStudio.Modeling;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
-    using Xunit.Extensions;
+    using FluentAssertions;
 
     [TestClass]
     public class SvgShapeRendererTests : IDisposable
@@ -113,9 +113,9 @@ using FluentAssertions;
             _renderer.RenderCompartmentHeader(sb, "Properties", true, x, y, width);
 
             var result = sb.ToString();
-            Assert.Contains(string.Format("x=\"{0}\"", SvgStylesheetManager.FormatDouble(x)), result);
-            Assert.Contains(string.Format("y=\"{0}\"", SvgStylesheetManager.FormatDouble(y)), result);
-            Assert.Contains(string.Format("width=\"{0}\"", SvgStylesheetManager.FormatDouble(width)), result);
+            result.Should().Contain(string.Format("x=\"{0}\"", SvgStylesheetManager.FormatDouble(x)));
+            result.Should().Contain(string.Format("y=\"{0}\"", SvgStylesheetManager.FormatDouble(y)));
+            result.Should().Contain(string.Format("width=\"{0}\"", SvgStylesheetManager.FormatDouble(width)));
         }
 
         [TestMethod]
@@ -154,8 +154,8 @@ using FluentAssertions;
             // Should use CSS classes instead of inline styles
             result.Should().Contain("class=\"text-base text-compartment\"");
             // Should NOT contain inline font styles
-            Assert.DoesNotContain("font-family=", result);
-            Assert.DoesNotContain("font-size=", result);
+            result.Should().NotContain("font-family=");
+            result.Should().NotContain("font-size=");
         }
 
         #endregion
@@ -171,7 +171,7 @@ using FluentAssertions;
             // Should be lighter than input
             var brightness = (outlineColor.R + outlineColor.G + outlineColor.B) / 3.0;
             var originalBrightness = (darkColor.R + darkColor.G + darkColor.B) / 3.0;
-            brightness > originalBrightness.Should().BeTrue();
+            brightness.Should().BeGreaterThan(originalBrightness);
         }
 
         [TestMethod]
@@ -183,7 +183,7 @@ using FluentAssertions;
             // Should be darker than input
             var brightness = (outlineColor.R + outlineColor.G + outlineColor.B) / 3.0;
             var originalBrightness = (lightColor.R + lightColor.G + lightColor.B) / 3.0;
-            brightness < originalBrightness.Should().BeTrue();
+            brightness.Should().BeLessThan(originalBrightness);
         }
 
         [TestMethod]
@@ -358,7 +358,7 @@ using FluentAssertions;
             double containerY, double containerHeight, double iconSize, double expectedY)
         {
             var result = SvgShapeRenderer.GetCenteredIconY(containerY, containerHeight, iconSize);
-            result, precision: 2.Should().Be(expectedY);
+            result.Should().BeApproximately(expectedY, precision: 0.01);
         }
 
         [DataTestMethod]
@@ -369,7 +369,7 @@ using FluentAssertions;
             double containerY, double containerHeight, double fontSizePx, double expectedY)
         {
             var result = SvgShapeRenderer.GetCenteredTextBaselineY(containerY, containerHeight, fontSizePx);
-            result, precision: 2.Should().Be(expectedY);
+            result.Should().BeApproximately(expectedY, precision: 0.01);
         }
 
         [TestMethod]
@@ -391,8 +391,8 @@ using FluentAssertions;
             var textVisualCenter = textBaselineY - capHeight / 2;
 
             // Both should equal containerHeight / 2
-            iconCenter, precision: 2.Should().Be(containerHeight / 2);
-            textVisualCenter, precision: 2.Should().Be(containerHeight / 2);
+            iconCenter.Should().BeApproximately(containerHeight / 2, precision: 0.01);
+            textVisualCenter.Should().BeApproximately(containerHeight / 2, precision: 0.01);
         }
 
         #endregion

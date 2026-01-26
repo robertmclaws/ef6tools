@@ -6,7 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EasyAF.Edmx" />
+    <!-- Test projects that reference shared test helpers -->
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.Package, $(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.Data.Entity.Tests.Design.EntityDesigner, $(StrongNamePublicKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFramework.SqlServer" />
     <PackageReference Include="Microsoft.VisualStudio.Data.Core" />
     <PackageReference Include="Microsoft.VisualStudio.DataTools.Interop" />
     <PackageReference Include="Microsoft.VisualStudio.Interop" />
@@ -34,7 +40,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Data.Entity.Design\Microsoft.Data.Entity.Design.csproj" />
     <ProjectReference Include="..\Microsoft.Data.Entity.Design.Extensibility\Microsoft.Data.Entity.Design.Extensibility.csproj" />
-    <ProjectReference Include="..\Microsoft.Data.Entity.Design.Package\Microsoft.Data.Entity.Design.Package.csproj" />
+    <!-- Package excluded - incompatible with .NET SDK 10 resource serialization -->
+    <!-- <ProjectReference Include="..\Microsoft.Data.Entity.Design.Package\Microsoft.Data.Entity.Design.Package.csproj" /> -->
     <ProjectReference Include="..\Microsoft.Data.Entity.Design.VersioningFacade\Microsoft.Data.Entity.Design.VersioningFacade.csproj" />
   </ItemGroup>
 

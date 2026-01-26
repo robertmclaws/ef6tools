@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
 {
@@ -7,8 +7,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
+    using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EdmMemberExtensionsTests
@@ -19,7 +20,7 @@ using FluentAssertions;
             var property = EdmProperty.CreatePrimitive("Id", PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
             EntityType.Create("Person", "MyModel", DataSpace.CSpace, new[] { "Id" }, new[] { property }, null);
 
-            property.IsKey(.Should().BeTrue());
+            property.IsKey().Should().BeTrue();
         }
 
         [TestMethod]
@@ -38,7 +39,7 @@ using FluentAssertions;
                     },
                 null);
 
-            property.IsKey(.Should().BeTrue());
+            property.IsKey().Should().BeTrue();
         }
 
         [TestMethod]
@@ -59,7 +60,7 @@ using FluentAssertions;
                     },
                 null);
 
-            property.IsKey(.Should().BeFalse());
+            property.IsKey().Should().BeFalse();
         }
 
         [TestMethod]
@@ -69,7 +70,7 @@ using FluentAssertions;
                 "Id",
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
 
-            property.HasConventionalKeyName(.Should().BeTrue());
+            property.HasConventionalKeyName().Should().BeTrue();
         }
 
         [TestMethod]
@@ -80,7 +81,7 @@ using FluentAssertions;
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
             EntityType.Create("Person", "MyModel", DataSpace.CSpace, null, new[] { property }, null);
 
-            property.HasConventionalKeyName(.Should().BeTrue());
+            property.HasConventionalKeyName().Should().BeTrue();
         }
 
         [TestMethod]
@@ -90,14 +91,14 @@ using FluentAssertions;
                 "ID",
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
 
-            property1.HasConventionalKeyName(.Should().BeTrue());
+            property1.HasConventionalKeyName().Should().BeTrue();
 
             var property2 = EdmProperty.CreatePrimitive(
                 "PERSONID",
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
             EntityType.Create("Person", "MyModel", DataSpace.CSpace, null, new[] { property2 }, null);
 
-            property2.HasConventionalKeyName(.Should().BeTrue());
+            property2.HasConventionalKeyName().Should().BeTrue();
         }
 
         [TestMethod]
@@ -108,7 +109,7 @@ using FluentAssertions;
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
             EntityType.Create("Person", "MyModel", DataSpace.CSpace, null, new[] { property }, null);
 
-            property.HasConventionalKeyName(.Should().BeFalse());
+            property.HasConventionalKeyName().Should().BeFalse();
         }
 
         [TestMethod]
@@ -122,7 +123,7 @@ using FluentAssertions;
             var property = model.StoreModel.Container.EntitySets.First().ElementType.Properties.First(
                 p => p.Name == "BinaryProperty");
 
-            property.IsTimestamp(.Should().BeTrue());
+            property.IsTimestamp().Should().BeTrue();
         }
 
         [TestMethod]
@@ -138,7 +139,7 @@ using FluentAssertions;
             var property = model.StoreModel.Container.EntitySets.First().ElementType.Properties.First(
                 p => p.Name == "BinaryProperty");
 
-            property.IsTimestamp(.Should().BeFalse());
+            property.IsTimestamp().Should().BeFalse();
         }
 
         [TestMethod]
@@ -154,7 +155,7 @@ using FluentAssertions;
             var property = model.StoreModel.Container.EntitySets.First().ElementType.Properties.First(
                 p => p.Name == "BinaryProperty");
 
-            property.IsTimestamp(.Should().BeFalse());
+            property.IsTimestamp().Should().BeFalse();
         }
 
         [TestMethod]
@@ -170,7 +171,7 @@ using FluentAssertions;
             var property = model.StoreModel.Container.EntitySets.First().ElementType.Properties.First(
                 p => p.Name == "BinaryProperty");
 
-            property.IsTimestamp(.Should().BeFalse());
+            property.IsTimestamp().Should().BeFalse();
         }
 
         private class EntityWithBinaryProperty

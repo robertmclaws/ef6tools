@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
@@ -6,7 +6,8 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
     using System.Data;
     using System.Globalization;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VersioningFacade;
     using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
 
     [TestClass]
@@ -16,7 +17,7 @@ using FluentAssertions;
         public void Table_returns_owning_table()
         {
             var tableDetailsCollection = new TableDetailsCollection();
-            Assert.Same(tableDetailsCollection, tableDetailsCollection.NewRow().Table);
+            tableDetailsCollection.NewRow().Table.Should().BeSameAs(tableDetailsCollection);
         }
 
         [TestMethod]
@@ -24,7 +25,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["CatalogName"] = "catalog";
-            Assert.Equal("catalog", ((TableDetailsRow)row).Catalog);
+            ((TableDetailsRow)row).Catalog.Should().Be("catalog");
         }
 
         [TestMethod]
@@ -39,9 +40,9 @@ using FluentAssertions;
         public void CatalogName_IsDbNull_returns_true_for_null_CatalogName_value()
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
-            row.IsCatalogNull(.Should().BeTrue());
+            row.IsCatalogNull().Should().BeTrue();
             row["CatalogName"] = DBNull.Value;
-            row.IsCatalogNull(.Should().BeTrue());
+            row.IsCatalogNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -49,13 +50,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.Catalog; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "CatalogName",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.Catalog).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -63,7 +64,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["SchemaName"] = "schema";
-            Assert.Equal("schema", ((TableDetailsRow)row).Schema);
+            ((TableDetailsRow)row).Schema.Should().Be("schema");
         }
 
         [TestMethod]
@@ -78,9 +79,9 @@ using FluentAssertions;
         public void SchemaName_IsDbNull_returns_true_for_null_SchemaName_value()
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
-            row.IsSchemaNull(.Should().BeTrue());
+            row.IsSchemaNull().Should().BeTrue();
             row["SchemaName"] = DBNull.Value;
-            row.IsSchemaNull(.Should().BeTrue());
+            row.IsSchemaNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -88,13 +89,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.Schema; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "SchemaName",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.Schema).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -102,7 +103,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["TableName"] = "table";
-            Assert.Equal("table", ((TableDetailsRow)row).TableName);
+            ((TableDetailsRow)row).TableName.Should().Be("table");
         }
 
         [TestMethod]
@@ -118,13 +119,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.TableName; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "TableName",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.TableName).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -132,7 +133,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["ColumnName"] = "column";
-            Assert.Equal("column", ((TableDetailsRow)row).ColumnName);
+            ((TableDetailsRow)row).ColumnName.Should().Be("column");
         }
 
         [TestMethod]
@@ -148,13 +149,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.ColumnName; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "ColumnName",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.ColumnName).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -162,7 +163,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["IsNullable"] = true;
-            ((TableDetailsRow.Should().BeTrue()row).IsNullable);
+            ((TableDetailsRow)row).IsNullable.Should().BeTrue();
         }
 
         [TestMethod]
@@ -170,7 +171,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             ((TableDetailsRow)row).IsNullable = true;
-            (bool.Should().BeTrue()row["IsNullable"]);
+            ((bool)row["IsNullable"]).Should().BeTrue();
         }
 
         [TestMethod]
@@ -178,13 +179,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.IsNullable; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "IsNullable",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.IsNullable).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -192,7 +193,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["DataType"] = "myType";
-            Assert.Equal("myType", ((TableDetailsRow)row).DataType);
+            ((TableDetailsRow)row).DataType.Should().Be("myType");
         }
 
         [TestMethod]
@@ -207,9 +208,9 @@ using FluentAssertions;
         public void DataType_IsDbNull_returns_true_for_null_DataType_value()
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
-            row.IsDataTypeNull(.Should().BeTrue());
+            row.IsDataTypeNull().Should().BeTrue();
             row["DataType"] = DBNull.Value;
-            row.IsDataTypeNull(.Should().BeTrue());
+            row.IsDataTypeNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -217,13 +218,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.DataType; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "DataType",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.DataType).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -231,7 +232,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["MaximumLength"] = 42;
-            Assert.Equal(42, ((TableDetailsRow)row).MaximumLength);
+            ((TableDetailsRow)row).MaximumLength.Should().Be(42);
         }
 
         [TestMethod]
@@ -246,9 +247,9 @@ using FluentAssertions;
         public void MaximumLength_IsDbNull_returns_true_for_null_MaximumLength_value()
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
-            row.IsMaximumLengthNull(.Should().BeTrue());
+            row.IsMaximumLengthNull().Should().BeTrue();
             row["MaximumLength"] = DBNull.Value;
-            row.IsMaximumLengthNull(.Should().BeTrue());
+            row.IsMaximumLengthNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -256,13 +257,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.MaximumLength; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "MaximumLength",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.MaximumLength).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -270,7 +271,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["DateTimePrecision"] = 18;
-            Assert.Equal(18, ((TableDetailsRow)row).DateTimePrecision);
+            ((TableDetailsRow)row).DateTimePrecision.Should().Be(18);
         }
 
         [TestMethod]
@@ -285,9 +286,9 @@ using FluentAssertions;
         public void DateTimePrecision_IsDbNull_returns_true_for_null_DateTimePrecision_value()
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
-            row.IsDateTimePrecisionNull(.Should().BeTrue());
+            row.IsDateTimePrecisionNull().Should().BeTrue();
             row["DateTimePrecision"] = DBNull.Value;
-            row.IsDateTimePrecisionNull(.Should().BeTrue());
+            row.IsDateTimePrecisionNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -295,13 +296,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.DateTimePrecision; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "DateTimePrecision",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.DateTimePrecision).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -309,7 +310,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["Precision"] = 18;
-            Assert.Equal(18, ((TableDetailsRow)row).Precision);
+            ((TableDetailsRow)row).Precision.Should().Be(18);
         }
 
         [TestMethod]
@@ -324,9 +325,9 @@ using FluentAssertions;
         public void Precision_IsDbNull_returns_true_for_null_Precision_value()
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
-            row.IsPrecisionNull(.Should().BeTrue());
+            row.IsPrecisionNull().Should().BeTrue();
             row["Precision"] = DBNull.Value;
-            row.IsPrecisionNull(.Should().BeTrue());
+            row.IsPrecisionNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -334,13 +335,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.Precision; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "Precision",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.Precision).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -348,7 +349,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["Scale"] = 3;
-            Assert.Equal(3, ((TableDetailsRow)row).Scale);
+            ((TableDetailsRow)row).Scale.Should().Be(3);
         }
 
         [TestMethod]
@@ -363,9 +364,9 @@ using FluentAssertions;
         public void Scale_IsDbNull_returns_true_for_null_Scale_value()
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
-            row.IsScaleNull(.Should().BeTrue());
+            row.IsScaleNull().Should().BeTrue();
             row["Scale"] = DBNull.Value;
-            row.IsScaleNull(.Should().BeTrue());
+            row.IsScaleNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -373,13 +374,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.Scale; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "Scale",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.Scale).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -387,7 +388,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["IsIdentity"] = true;
-            Assert.Equal(true, ((TableDetailsRow)row).IsIdentity);
+            ((TableDetailsRow)row).IsIdentity.Should().Be(true);
         }
 
         [TestMethod]
@@ -402,9 +403,9 @@ using FluentAssertions;
         public void IsIdentity_IsDbNull_returns_true_for_null_IsIdentity_value()
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
-            row.IsIsIdentityNull(.Should().BeTrue());
+            row.IsIsIdentityNull().Should().BeTrue();
             row["IsIdentity"] = DBNull.Value;
-            row.IsIsIdentityNull(.Should().BeTrue());
+            row.IsIsIdentityNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -412,13 +413,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.IsIdentity; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "IsIdentity",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.IsIdentity).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -426,7 +427,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["IsServerGenerated"] = true;
-            Assert.Equal(true, ((TableDetailsRow)row).IsServerGenerated);
+            ((TableDetailsRow)row).IsServerGenerated.Should().Be(true);
         }
 
         [TestMethod]
@@ -441,9 +442,9 @@ using FluentAssertions;
         public void IsServerGenerated_IsDbNull_returns_true_for_null_IsServerGenerated_value()
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
-            row.IsIsServerGeneratedNull(.Should().BeTrue());
+            row.IsIsServerGeneratedNull().Should().BeTrue();
             row["IsServerGenerated"] = DBNull.Value;
-            row.IsIsServerGeneratedNull(.Should().BeTrue());
+            row.IsIsServerGeneratedNull().Should().BeTrue();
         }
 
         [TestMethod]
@@ -451,13 +452,13 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.IsServerGenerated; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "IsServerGenerated",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.IsServerGenerated).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
@@ -465,7 +466,7 @@ using FluentAssertions;
         {
             var row = new TableDetailsCollection().NewRow();
             row["IsPrimaryKey"] = true;
-            Assert.Equal(true, ((TableDetailsRow)row).IsPrimaryKey);
+            ((TableDetailsRow)row).IsPrimaryKey.Should().Be(true);
         }
 
         [TestMethod]
@@ -481,24 +482,26 @@ using FluentAssertions;
         {
             var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
-            Assert.Equal(
-                string.Format(
+            Action act = () => { var _ = row.IsPrimaryKey; };
+            act.Should().Throw<StrongTypingException>()
+                .WithMessage(string.Format(
                     CultureInfo.CurrentCulture,
                     Resources_VersioningFacade.StronglyTypedAccessToNullValue,
                     "IsPrimaryKey",
-                    "TableDetails"),
-                Assert.Throws<StrongTypingException>(() => row.IsPrimaryKey).Message);
+                    "TableDetails"));
         }
 
         [TestMethod]
         public void GetMostQualifiedTableName_uses_available_catalog_schema_table()
         {
-            Assert.Equal(
-                "catalog.schema.table",
-                CreateTableDetailsRow("catalog", "schema", "table").GetMostQualifiedTableName());
-            Assert.Equal("schema.table", CreateTableDetailsRow(null, "schema", "table").GetMostQualifiedTableName());
-            Assert.Equal("catalog.table", CreateTableDetailsRow("catalog", null, "table").GetMostQualifiedTableName());
-            Assert.Equal("table", CreateTableDetailsRow(null, null, "table").GetMostQualifiedTableName());
+            CreateTableDetailsRow("catalog", "schema", "table").GetMostQualifiedTableName()
+                .Should().Be("catalog.schema.table");
+            CreateTableDetailsRow(null, "schema", "table").GetMostQualifiedTableName()
+                .Should().Be("schema.table");
+            CreateTableDetailsRow("catalog", null, "table").GetMostQualifiedTableName()
+                .Should().Be("catalog.table");
+            CreateTableDetailsRow(null, null, "table").GetMostQualifiedTableName()
+                .Should().Be("table");
         }
 
         private TableDetailsRow CreateTableDetailsRow(string catalog, string schema, string table)

@@ -1,0 +1,32 @@
+<Project>
+  <!-- Custom ILRepack configuration - merge only EF-related assemblies -->
+  <Target Name="ILRepack" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <ILRepackOutputDir>$(OutputPath)</ILRepackOutputDir>
+      <ILRepackInputAssembly>$(ILRepackOutputDir)$(AssemblyName).dll</ILRepackInputAssembly>
+      <ILRepackOutputAssembly>$(ILRepackOutputDir)$(AssemblyName).dll</ILRepackOutputAssembly>
+    </PropertyGroup>
+
+    <!-- Only merge EF-related assemblies, not all DLLs -->
+    <ItemGroup>
+      <ILRepackAssemblies Include="$(ILRepackOutputDir)EntityFramework.dll" />
+      <ILRepackAssemblies Include="$(ILRepackOutputDir)EntityFramework.SqlServer.dll" />
+      <ILRepackAssemblies Include="$(ILRepackOutputDir)EntityFramework.SqlServerCompact.dll" />
+      <ILRepackAssemblies Include="$(ILRepackOutputDir)EntityFramework6.Npgsql.dll" Condition="Exists('$(ILRepackOutputDir)EntityFramework6.Npgsql.dll')" />
+      <ILRepackAssemblies Include="$(ILRepackOutputDir)MySql.Data.EntityFramework.dll" Condition="Exists('$(ILRepackOutputDir)MySql.Data.EntityFramework.dll')" />
+      <ILRepackAssemblies Include="$(ILRepackOutputDir)Oracle.ManagedDataAccess.EntityFramework.dll" Condition="Exists('$(ILRepackOutputDir)Oracle.ManagedDataAccess.EntityFramework.dll')" />
+    </ItemGroup>
+
+    <ILRepack
+      OutputType="Library"
+      MainAssembly="$(ILRepackInputAssembly)"
+      OutputAssembly="$(ILRepackOutputAssembly)"
+      InputAssemblies="@(ILRepackAssemblies)"
+      LibraryPath="$(ILRepackOutputDir)"
+      KeyFile="$(AssemblyOriginatorKeyFile)"
+      Internalize="false"
+      Parallel="true"
+      AllowDuplicateResources="true"
+      Verbose="true" />
+  </Target>
+</Project>

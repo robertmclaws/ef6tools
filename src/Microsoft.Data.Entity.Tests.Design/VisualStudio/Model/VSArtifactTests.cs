@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
 {
@@ -7,9 +7,11 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Xml.Linq;
     using EnvDTE;
+    using FluentAssertions;
     using Microsoft.Data.Entity.Design.Model;
     using Microsoft.Data.Entity.Design.Model.Entity;
     using Microsoft.Data.Entity.Design.VersioningFacade;
+    using Microsoft.Data.Entity.Design.VisualStudio.Model;
     using Microsoft.Data.Entity.Design.VisualStudio.Package;
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
@@ -17,7 +19,6 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
     using Microsoft.Data.Entity.Tests.Design.TestHelpers;
     using VSLangProj;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class VSArtifactTests
@@ -37,7 +38,7 @@ using FluentAssertions;
             var modelProvider = new Mock<XmlModelProvider>().Object;
             using (var vsArtifact = new VSArtifact(modelManager, new Uri(@"C:\temp.edmx"), modelProvider))
             {
-                Assert.Same(errors, vsArtifact.GetModelGenErrors());
+                vsArtifact.GetModelGenErrors().Should().BeSameAs(errors);
             }
         }
 

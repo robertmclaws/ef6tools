@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
 {
     using System.Collections.Generic;
     using System.Data.Entity.Core.Metadata.Edm;
+    using Microsoft.Data.Entity.Design.VisualStudio.Package;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class ModelGenErrorCacheTests
@@ -17,16 +18,16 @@ using FluentAssertions;
             var errors = new List<EdmSchemaError>(new[] { new EdmSchemaError("test", 42, EdmSchemaErrorSeverity.Error) });
 
             errorCache.AddErrors("abc", errors);
-            Assert.Same(errors, errorCache.GetErrors("abc"));
+            errorCache.GetErrors("abc").Should().BeSameAs(errors);
 
             errorCache.RemoveErrors("abc");
-            errorCache.GetErrors("abc".Should().BeNull());
+            errorCache.GetErrors("abc").Should().BeNull();
         }
 
         [TestMethod]
         public void GetErrors_returns_null_if_no_errors_for_file_name()
         {
-            new ModelGenErrorCache(.Should().BeNull().GetErrors("abc"));
+            new ModelGenErrorCache().GetErrors("abc").Should().BeNull();
         }
 
         [TestMethod]

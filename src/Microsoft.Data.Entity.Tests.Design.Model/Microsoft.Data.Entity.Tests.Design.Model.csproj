@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EasyAF.Edmx" />
+    <PackageReference Include="Microsoft.EntityFramework.SqlServer" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Data.Entity.Design.Model\Microsoft.Data.Entity.Design.Model.csproj" />
+    <ProjectReference Include="..\Microsoft.Data.Entity.Design.Model\Microsoft.Data.Entity.Design.Model.csproj" Aliases="global,EntityDesignModel" />
     <ProjectReference Include="..\Microsoft.Data.Entity.Design.VersioningFacade\Microsoft.Data.Entity.Design.VersioningFacade.csproj" />
   </ItemGroup>
 

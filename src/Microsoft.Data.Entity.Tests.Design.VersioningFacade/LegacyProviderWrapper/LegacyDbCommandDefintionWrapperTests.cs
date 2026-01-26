@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using Legacy = System.Data.Common;
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.LegacyProviderWrapper
 {
+    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class LegacyDbCommandDefintionWrapperTests
@@ -21,9 +22,8 @@ using FluentAssertions;
                 .Setup(c => c.CreateCommand())
                 .Returns(mockCommand.Object);
 
-            Assert.Same(
-                mockCommand.Object,
-                new LegacyDbCommandDefinitionWrapper(mockLegacyDbCommandDefinition.Object).CreateCommand());
+            new LegacyDbCommandDefinitionWrapper(mockLegacyDbCommandDefinition.Object).CreateCommand()
+                .Should().BeSameAs(mockCommand.Object);
         }
     }
 }

@@ -660,10 +660,9 @@ using FluentAssertions;
                     .Element(catalogNs + "Association");
             association.Should().NotBeNull();
 
-            Assert.Equal("config", (string)association.Attribute("extension"));
-            Assert.Equal(
-                string.Format("%InstallRoot%/xml/schemas/{0}", EntityFrameworkConfigSchemaName),
-                (string)association.Attribute("schema"));
+            ((string)association.Attribute("extension")).Should().Be("config");
+            ((string)association.Attribute("schema")).Should().Be(
+                string.Format("%InstallRoot%/xml/schemas/{0}", EntityFrameworkConfigSchemaName));
         }
 
         private List<ValidationEventArgs> ValidateWithExpectedValidationEvents(string config, bool allowAllTypesAtTopLevel = true)

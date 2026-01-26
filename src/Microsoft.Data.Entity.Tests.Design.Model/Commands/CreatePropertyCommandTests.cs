@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model.Commands
 {
@@ -14,7 +14,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Commands
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class CreatePropertyCommandTests
@@ -27,11 +27,10 @@ using FluentAssertions;
 
             using (var property = createPropertyCommand.CreateProperty())
             {
-                Assert.IsType(typeof(ConceptualProperty), property);
-                Assert.Contains(property, parentEntity.Properties());
-                Assert.Equal(
-                    "<Property Name=\"test\" Type=\"Int32\" Nullable=\"true\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm\" />",
-                    property.XElement.ToString());
+                property.Should().BeOfType<ConceptualProperty>();
+                parentEntity.Properties().Should().Contain(property);
+                property.XElement.ToString().Should().Be(
+                    "<Property Name=\"test\" Type=\"Int32\" Nullable=\"true\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm\" />");
             }
         }
 
@@ -42,11 +41,10 @@ using FluentAssertions;
             var createPropertyCommand = new CreatePropertyCommand("test", parentEntity, "Int32", false, null);
             using (var property = createPropertyCommand.CreateProperty())
             {
-                Assert.IsType(typeof(StorageProperty), property);
-                Assert.Contains(property, parentEntity.Properties());
-                Assert.Equal(
-                    "<Property Name=\"test\" Type=\"Int32\" Nullable=\"false\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />",
-                    property.XElement.ToString());
+                property.Should().BeOfType<StorageProperty>();
+                parentEntity.Properties().Should().Contain(property);
+                property.XElement.ToString().Should().Be(
+                    "<Property Name=\"test\" Type=\"Int32\" Nullable=\"false\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
             }
         }
 
@@ -57,9 +55,8 @@ using FluentAssertions;
             var createPropertyCommand = new CreatePropertyCommand("test", parentEntity, "Int32", null, null);
             using (var property = createPropertyCommand.CreateProperty())
             {
-                Assert.Equal(
-                    "<Property Name=\"test\" Type=\"Int32\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm\" />",
-                    property.XElement.ToString());
+                property.XElement.ToString().Should().Be(
+                    "<Property Name=\"test\" Type=\"Int32\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm\" />");
             }
         }
 
@@ -94,9 +91,8 @@ using FluentAssertions;
                                 "InsertedBeforeLast", parentEntity, "Int32", true,
                                 new InsertPropertyPosition(properties.Last(), true)).CreateProperty());
 
-                        Assert.Equal(
-                            new[] { "Property1", "InsertedBeforeLast", "InsertedAfterFirst" },
-                            parentEntity.XElement.Elements().Select(e => (string)e.Attribute("Name")));
+                        parentEntity.XElement.Elements().Select(e => (string)e.Attribute("Name"))
+                            .Should().Equal(new[] { "Property1", "InsertedBeforeLast", "InsertedAfterFirst" });
                     }
                     finally
                     {

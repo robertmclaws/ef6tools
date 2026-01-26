@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Generators
 {
     using System.Globalization;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
+    using Microsoft.Data.Entity.Design.CodeGeneration.Generators;
     using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class CSharpCodeFirstEmptyModelGeneratorTests
@@ -23,7 +25,7 @@ using FluentAssertions;
                     "MyContext",
                     "ConsoleApplication.Data");
 
-            Assert.Equal(@"namespace ConsoleApplication.Data
+            generatedCode.Should().Be(@"namespace ConsoleApplication.Data
 {
     using System;
     using System.Data.Entity;
@@ -47,7 +49,7 @@ using FluentAssertions;
     //    public int Id { get; set; }
     //    public string Name { get; set; }
     //}
-}", generatedCode);
+}");
         }
     }
 }

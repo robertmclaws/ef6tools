@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
 {
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Core.Metadata.Edm;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class StoreGeneratedPatternExtensionsTests
@@ -13,15 +14,15 @@ using FluentAssertions;
         [TestMethod]
         public void ToDatabaseGeneratedOption_converts_to_DatabaseGeneratedOption()
         {
-            Assert.Equal(DatabaseGeneratedOption.Computed, StoreGeneratedPattern.Computed.ToDatabaseGeneratedOption());
-            Assert.Equal(DatabaseGeneratedOption.Identity, StoreGeneratedPattern.Identity.ToDatabaseGeneratedOption());
-            Assert.Equal(DatabaseGeneratedOption.None, StoreGeneratedPattern.None.ToDatabaseGeneratedOption());
+            StoreGeneratedPattern.Computed.ToDatabaseGeneratedOption().Should().Be(DatabaseGeneratedOption.Computed);
+            StoreGeneratedPattern.Identity.ToDatabaseGeneratedOption().Should().Be(DatabaseGeneratedOption.Identity);
+            StoreGeneratedPattern.None.ToDatabaseGeneratedOption().Should().Be(DatabaseGeneratedOption.None);
         }
 
         [TestMethod]
         public void ToDatabaseGeneratedOption_returns_none_when_unknown()
         {
-            Assert.Equal(DatabaseGeneratedOption.None, ((StoreGeneratedPattern)42).ToDatabaseGeneratedOption());
+            ((StoreGeneratedPattern)42).ToDatabaseGeneratedOption().Should().Be(DatabaseGeneratedOption.None);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
 {
@@ -8,12 +8,13 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Data.Entity.Infrastructure.DependencyResolution;
     using System.Linq;
+    using FluentAssertions;
     using Microsoft.Data.Entity.Design.VersioningFacade;
     using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
     using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-    using Moq;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Moq;
 
     [TestClass]
     public class ModelGeneratorTests
@@ -76,7 +77,7 @@ using FluentAssertions;
             //databaseMapping.EntityContainerMappings.Count.Should().Be(1);
             //mockModelGenerator.Verify(
             //    g => g.CreateMappingContext(It.IsAny<EdmModel>()), Times.Once());
-            //Assert.Empty(errors);
+            //errors.Should().BeEmpty();
         }
 
         [TestMethod, Ignore("Different API Visiblity between official dll and locally built")]
@@ -115,7 +116,7 @@ using FluentAssertions;
 
             //var errors = new List<EdmSchemaError>();
             //mockModelGenerator.Object.GenerateModel(errors);
-            //Assert.Equal(new[] { storeModelError, mappingContext.Errors.Single() }, errors);
+            //errors.Should().Equal(new[] { storeModelError, mappingContext.Errors.Single() });
         }
 
         [TestMethod, Ignore("Different API Visiblity between official dll and locally built")]
@@ -177,7 +178,7 @@ using FluentAssertions;
             //var schemaErrors = ModelGenerator.CollectStoreModelErrors(model);
 
             //schemaErrors.Should().NotBeNull();
-            //Assert.Empty(schemaErrors);
+            //schemaErrors.Should().BeEmpty();
         }
 
         [TestMethod, Ignore("Different API Visiblity between official dll and locally built")]
@@ -203,7 +204,7 @@ using FluentAssertions;
 
             //schemaErrors.Should().NotBeNull();
             //schemaErrors.Count.Should().Be(1);
-            //Assert.Same(edmSchemaError, schemaErrors.Single());
+            //schemaErrors.Single().Should().BeSameAs(edmSchemaError);
         }
 
         [TestMethod, Ignore("Different API Visiblity between official dll and locally built")]
@@ -244,7 +245,7 @@ using FluentAssertions;
 
             //schemaErrors.Should().NotBeNull();
             //schemaErrors.Count.Should().Be(1);
-            //Assert.Same(edmSchemaError, schemaErrors.Single());
+            //schemaErrors.Single().Should().BeSameAs(edmSchemaError);
         }
 
         [TestMethod]
@@ -276,8 +277,8 @@ using FluentAssertions;
 
             mockModelGenerator.Object.GetStoreSchemaDetails(mockConnectionFactory.Object);
 
-            // the idea is that we should use version returned as from Create method as the out parameter and not 
-            // the one on model builder settings. 
+            // the idea is that we should use version returned as from Create method as the out parameter and not
+            // the one on model builder settings.
             mockModelGenerator
                 .Verify(
                     g => g.CreateDbSchemaLoader(

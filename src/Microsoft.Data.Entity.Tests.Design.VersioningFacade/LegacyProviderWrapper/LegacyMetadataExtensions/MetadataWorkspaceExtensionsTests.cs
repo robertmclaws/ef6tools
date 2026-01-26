@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using LegacyMetadata = System.Data.Metadata.Edm;
 
@@ -8,8 +8,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.LegacyProviderWrap
     using System.Data.Entity.Core.Metadata.Edm;
     using System.IO;
     using System.Xml;
+    using Microsoft.Data.Entity.Design.VersioningFacade;
+    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper.LegacyMetadataExtensions;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class MetadataWorkspaceExtensionsTests
@@ -80,19 +82,18 @@ using FluentAssertions;
 
                 var legacyStoreItemCollection = legacyWorkspace.GetItemCollection(LegacyMetadata.DataSpace.SSpace);
 
-                Assert.Equal(
-                    storeItemCollection.GetItems<GlobalItem>().Count,
-                    legacyStoreItemCollection.GetItems<LegacyMetadata.GlobalItem>().Count);
+                legacyStoreItemCollection.GetItems<LegacyMetadata.GlobalItem>().Count
+                    .Should().Be(storeItemCollection.GetItems<GlobalItem>().Count);
 
-                Assert.NotNull(
-                    legacyStoreItemCollection.GetItem<LegacyMetadata.EntityType>("NorthwindEF5Model.Store.Customers"));
+                legacyStoreItemCollection.GetItem<LegacyMetadata.EntityType>("NorthwindEF5Model.Store.Customers")
+                    .Should().NotBeNull();
 
                 var legacyEdmItemCollection =
                     (LegacyMetadata.EdmItemCollection)legacyWorkspace.GetItemCollection(LegacyMetadata.DataSpace.CSpace);
                 legacyEdmItemCollection.Should().NotBeNull();
-                Assert.Equal(version, EntityFrameworkVersion.DoubleToVersion(legacyEdmItemCollection.EdmVersion));
+                EntityFrameworkVersion.DoubleToVersion(legacyEdmItemCollection.EdmVersion).Should().Be(version);
 
-                legacyWorkspace.GetItemCollection(LegacyMetadata.DataSpace.CSSpace.Should().NotBeNull());
+                legacyWorkspace.GetItemCollection(LegacyMetadata.DataSpace.CSSpace).Should().NotBeNull();
             }
         }
     }

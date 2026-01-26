@@ -13,9 +13,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.LegacyProviderWrap
     using System.IO;
     using System.Xml;
     using Moq;
+    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyProviderWrapper;
     using Moq.Protected;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
     using DbCommandTree = System.Data.Common.CommandTrees.DbCommandTree;
 
     [TestClass]
@@ -39,10 +40,9 @@ using FluentAssertions;
                 .Setup<string>("GetDbProviderManifestToken", ItExpr.IsAny<SystemDataCommon.DbConnection>())
                 .Returns("FakeProviderManifestToken");
 
-            Assert.Equal(
-                "FakeProviderManifestToken",
-                new LegacyDbProviderServicesWrapper(providerServicesMock.Object)
-                    .GetProviderManifestToken(new Mock<SystemDataCommon.DbConnection>().Object));
+            new LegacyDbProviderServicesWrapper(providerServicesMock.Object)
+                .GetProviderManifestToken(new Mock<SystemDataCommon.DbConnection>().Object)
+                .Should().Be("FakeProviderManifestToken");
         }
 
         [TestMethod]
@@ -55,7 +55,7 @@ using FluentAssertions;
                         new DbQueryCommandTree(CreateMetadataWorkspace(), DataSpace.SSpace, DbExpressionBuilder.Constant(42), false));
 
             commandDefinition.Should().NotBeNull();
-            Assert.IsType<LegacyDbCommandDefinitionWrapper>(commandDefinition);
+            commandDefinition.Should().BeOfType<LegacyDbCommandDefinitionWrapper>();
         }
 
         [TestMethod]

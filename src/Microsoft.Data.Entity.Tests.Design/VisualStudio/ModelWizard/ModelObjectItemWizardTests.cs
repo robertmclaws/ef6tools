@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard
 {
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
     using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class ModelObjectItemWizardTests
@@ -12,35 +13,33 @@ using FluentAssertions;
         [TestMethod]
         public void ShouldAddProjectItem_returns_true_for_ModelFirst()
         {
-            (new ModelObjectItemWizard(
-                    new ModelBuilderSettings { GenerationOption = ModelGenerationOption.EmptyModel })
-                    .ShouldAddProjectItem("FakeProjectItemName"));
+            new ModelObjectItemWizard(
+                new ModelBuilderSettings { GenerationOption = ModelGenerationOption.EmptyModel })
+                .ShouldAddProjectItem("FakeProjectItemName").Should().BeTrue();
         }
 
         [TestMethod]
         public void ShouldAddProjectItem_returns_true_for_DatabaseFirst()
         {
-            (new ModelObjectItemWizard(
-                    new ModelBuilderSettings { GenerationOption = ModelGenerationOption.GenerateFromDatabase })
-                    .ShouldAddProjectItem("FakeProjectItemName"));
+            new ModelObjectItemWizard(
+                new ModelBuilderSettings { GenerationOption = ModelGenerationOption.GenerateFromDatabase })
+                .ShouldAddProjectItem("FakeProjectItemName").Should().BeTrue();
         }
 
         [TestMethod]
         public void ShouldAddProjectItem_returns_false_for_EmptyModelCodeFirst()
         {
-            Assert.False(
-                new ModelObjectItemWizard(
-                    new ModelBuilderSettings { GenerationOption = ModelGenerationOption.EmptyModelCodeFirst })
-                    .ShouldAddProjectItem("FakeProjectItemName"));
+            new ModelObjectItemWizard(
+                new ModelBuilderSettings { GenerationOption = ModelGenerationOption.EmptyModelCodeFirst })
+                .ShouldAddProjectItem("FakeProjectItemName").Should().BeFalse();
         }
 
         [TestMethod]
         public void ShouldAddProjectItem_returns_false_for_CodeFirstFromDatabase()
         {
-            Assert.False(
-                new ModelObjectItemWizard(
-                    new ModelBuilderSettings { GenerationOption = ModelGenerationOption.CodeFirstFromDatabase })
-                    .ShouldAddProjectItem("FakeProjectItemName"));
+            new ModelObjectItemWizard(
+                new ModelBuilderSettings { GenerationOption = ModelGenerationOption.CodeFirstFromDatabase })
+                .ShouldAddProjectItem("FakeProjectItemName").Should().BeFalse();
         }
     }
 }

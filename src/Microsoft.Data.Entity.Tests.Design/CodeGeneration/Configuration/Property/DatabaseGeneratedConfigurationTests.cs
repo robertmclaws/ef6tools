@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
     using System.Data.Entity.Core.Metadata.Edm;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class DatabaseGeneratedConfigurationTests
@@ -18,7 +19,7 @@ using FluentAssertions;
                 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("DatabaseGenerated(DatabaseGeneratedOption.Computed)", configuration.GetAttributeBody(code));
+            configuration.GetAttributeBody(code).Should().Be("DatabaseGenerated(DatabaseGeneratedOption.Computed)");
         }
 
         [TestMethod]
@@ -30,9 +31,7 @@ using FluentAssertions;
                 };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(
-                ".HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed)",
-                configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed)");
         }
     }
 }

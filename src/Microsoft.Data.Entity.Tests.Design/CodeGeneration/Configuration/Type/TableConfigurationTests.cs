@@ -2,9 +2,9 @@
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
-    using Xunit.Extensions;
+    using FluentAssertions;
 
     [TestClass]
     public class TableConfigurationTests
@@ -15,7 +15,7 @@ using FluentAssertions;
             var configuration = new TableConfiguration { Table = "Entities" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal("Table(\"Entities\")", configuration.GetAttributeBody(code));
+            configuration.GetAttributeBody(code).Should().Be("Table(\"Entities\")");
         }
 
         [TestMethod]
@@ -24,7 +24,7 @@ using FluentAssertions;
             var configuration = new TableConfiguration { Table = "Entities" };
             var code = new CSharpCodeHelper();
 
-            Assert.Equal(".ToTable(\"Entities\")", configuration.GetMethodChain(code));
+            configuration.GetMethodChain(code).Should().Be(".ToTable(\"Entities\")");
         }
 
         [DataTestMethod]
@@ -38,7 +38,7 @@ using FluentAssertions;
         {
             var configuration = new TableConfiguration { Schema = schema, Table = table };
 
-            Assert.Equal(expected, configuration.GetName());
+            configuration.GetName().Should().Be(expected);
         }
     }
 }

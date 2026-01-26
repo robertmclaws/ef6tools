@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class DefaultVBContextGeneratorTests : GeneratorTestBase
@@ -14,7 +15,7 @@ using FluentAssertions;
             var generator = new DefaultVBContextGenerator();
             var result = generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString");
 
-            Assert.Equal(
+            result.Should().Be(
                 @"Imports System
 Imports System.Data.Entity
 Imports System.ComponentModel.DataAnnotations.Schema
@@ -24,7 +25,7 @@ Partial Public Class MyContext
     Inherits DbContext
 
     Public Sub New()
-        MyBase.New(""name=MyContextConnString"")        
+        MyBase.New(""name=MyContextConnString"")
     End Sub
 
     Public Overridable Property Entities As DbSet(Of Entity)
@@ -32,8 +33,7 @@ Partial Public Class MyContext
     Protected Overrides Sub OnModelCreating(ByVal modelBuilder As DbModelBuilder)
     End Sub
 End Class
-",
-                result);
+");
         }
     }
 }

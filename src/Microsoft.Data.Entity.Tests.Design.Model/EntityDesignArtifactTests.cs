@@ -1,16 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
     using System;
     using System.Xml.Linq;
+    using Microsoft.Data.Entity.Design.Model;
     using Microsoft.Data.Entity.Design.Model.Entity;
     using Microsoft.Data.Entity.Design.Model.Mapping;
     using Microsoft.Data.Entity.Design.VersioningFacade;
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class EntityDesignArtifactTests
@@ -22,62 +23,58 @@ using FluentAssertions;
             var modelProvider = new Mock<XmlModelProvider>().Object;
             using (var artifact = new EntityDesignArtifact(modelManager, new Uri("urn:dummy"), modelProvider))
             {
-                artifact.GetModelGenErrors(.Should().BeNull());
+                artifact.GetModelGenErrors().Should().BeNull();
             }
         }
 
         [TestMethod]
         public void DetermineIfArtifactIsVersionSafe_sets_IsVersionSafe_to_true_if_namespaces_in_sync()
         {
-            (DetermineIfArtifactIsVersionSafe(
-                    edmxVersion: EntityFrameworkVersion.Version1,
-                    storeModelVersion: EntityFrameworkVersion.Version1,
-                    conceptualModelVersion: EntityFrameworkVersion.Version1,
-                    mappingModelVersion: EntityFrameworkVersion.Version1));
+            DetermineIfArtifactIsVersionSafe(
+                edmxVersion: EntityFrameworkVersion.Version1,
+                storeModelVersion: EntityFrameworkVersion.Version1,
+                conceptualModelVersion: EntityFrameworkVersion.Version1,
+                mappingModelVersion: EntityFrameworkVersion.Version1).Should().BeTrue();
 
-            (DetermineIfArtifactIsVersionSafe(
-                    edmxVersion: EntityFrameworkVersion.Version2,
-                    storeModelVersion: EntityFrameworkVersion.Version2,
-                    conceptualModelVersion: EntityFrameworkVersion.Version2,
-                    mappingModelVersion: EntityFrameworkVersion.Version2));
+            DetermineIfArtifactIsVersionSafe(
+                edmxVersion: EntityFrameworkVersion.Version2,
+                storeModelVersion: EntityFrameworkVersion.Version2,
+                conceptualModelVersion: EntityFrameworkVersion.Version2,
+                mappingModelVersion: EntityFrameworkVersion.Version2).Should().BeTrue();
 
-            (DetermineIfArtifactIsVersionSafe(
-                    edmxVersion: EntityFrameworkVersion.Version3,
-                    storeModelVersion: EntityFrameworkVersion.Version3,
-                    conceptualModelVersion: EntityFrameworkVersion.Version3,
-                    mappingModelVersion: EntityFrameworkVersion.Version3));
+            DetermineIfArtifactIsVersionSafe(
+                edmxVersion: EntityFrameworkVersion.Version3,
+                storeModelVersion: EntityFrameworkVersion.Version3,
+                conceptualModelVersion: EntityFrameworkVersion.Version3,
+                mappingModelVersion: EntityFrameworkVersion.Version3).Should().BeTrue();
         }
 
         [TestMethod]
         public void DetermineIfArtifactIsVersionSafe_sets_IsVersionSafe_to_false_if_namespaces_not_in_sync()
         {
-            Assert.False(
-                DetermineIfArtifactIsVersionSafe(
-                    edmxVersion: EntityFrameworkVersion.Version3,
-                    storeModelVersion: EntityFrameworkVersion.Version1,
-                    conceptualModelVersion: EntityFrameworkVersion.Version1,
-                    mappingModelVersion: EntityFrameworkVersion.Version1));
+            DetermineIfArtifactIsVersionSafe(
+                edmxVersion: EntityFrameworkVersion.Version3,
+                storeModelVersion: EntityFrameworkVersion.Version1,
+                conceptualModelVersion: EntityFrameworkVersion.Version1,
+                mappingModelVersion: EntityFrameworkVersion.Version1).Should().BeFalse();
 
-            Assert.False(
-                DetermineIfArtifactIsVersionSafe(
-                    edmxVersion: EntityFrameworkVersion.Version2,
-                    storeModelVersion: EntityFrameworkVersion.Version3,
-                    conceptualModelVersion: EntityFrameworkVersion.Version2,
-                    mappingModelVersion: EntityFrameworkVersion.Version2));
+            DetermineIfArtifactIsVersionSafe(
+                edmxVersion: EntityFrameworkVersion.Version2,
+                storeModelVersion: EntityFrameworkVersion.Version3,
+                conceptualModelVersion: EntityFrameworkVersion.Version2,
+                mappingModelVersion: EntityFrameworkVersion.Version2).Should().BeFalse();
 
-            Assert.False(
-                DetermineIfArtifactIsVersionSafe(
-                    edmxVersion: EntityFrameworkVersion.Version3,
-                    storeModelVersion: EntityFrameworkVersion.Version3,
-                    conceptualModelVersion: EntityFrameworkVersion.Version2,
-                    mappingModelVersion: EntityFrameworkVersion.Version3));
+            DetermineIfArtifactIsVersionSafe(
+                edmxVersion: EntityFrameworkVersion.Version3,
+                storeModelVersion: EntityFrameworkVersion.Version3,
+                conceptualModelVersion: EntityFrameworkVersion.Version2,
+                mappingModelVersion: EntityFrameworkVersion.Version3).Should().BeFalse();
 
-            Assert.False(
-                DetermineIfArtifactIsVersionSafe(
-                    edmxVersion: EntityFrameworkVersion.Version3,
-                    storeModelVersion: EntityFrameworkVersion.Version3,
-                    conceptualModelVersion: EntityFrameworkVersion.Version2,
-                    mappingModelVersion: EntityFrameworkVersion.Version2));
+            DetermineIfArtifactIsVersionSafe(
+                edmxVersion: EntityFrameworkVersion.Version3,
+                storeModelVersion: EntityFrameworkVersion.Version3,
+                conceptualModelVersion: EntityFrameworkVersion.Version2,
+                mappingModelVersion: EntityFrameworkVersion.Version2).Should().BeFalse();
         }
 
         [TestMethod]

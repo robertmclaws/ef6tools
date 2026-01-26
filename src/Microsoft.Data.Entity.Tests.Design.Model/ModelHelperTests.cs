@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
@@ -6,13 +6,14 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
     using System.Data.Entity.Core.Metadata.Edm;
     using System.Linq;
     using System.Xml.Linq;
+    using Microsoft.Data.Entity.Design.Model;
     using Microsoft.Data.Entity.Design.Model.Commands;
     using Microsoft.Data.Entity.Design.Model.Designer;
     using Microsoft.Data.Entity.Design.VersioningFacade;
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class ModelHelperTests
@@ -20,26 +21,26 @@ using FluentAssertions;
         [TestMethod]
         public void GetPrimitiveTypeFromString_returns_correct_type_for_valid_EDM_type_names()
         {
-            Assert.Equal(PrimitiveTypeKind.Binary, ModelHelper.GetPrimitiveTypeFromString("Binary").PrimitiveTypeKind);
+            ModelHelper.GetPrimitiveTypeFromString("Binary").PrimitiveTypeKind.Should().Be(PrimitiveTypeKind.Binary);
         }
 
         [TestMethod]
         public void GetPrimitiveTypeFromString_returns_null_for_invalid_EDM_type()
         {
-            ModelHelper.GetPrimitiveTypeFromString("Int23".Should().BeNull());
+            ModelHelper.GetPrimitiveTypeFromString("Int23").Should().BeNull();
         }
 
         [TestMethod]
         public void IsValidFacet_returns_true_for_valid_facet()
         {
-            ModelHelper.IsValidModelFacet("String", "MaxLength".Should().BeTrue());
+            ModelHelper.IsValidModelFacet("String", "MaxLength").Should().BeTrue();
         }
 
         [TestMethod]
         public void IsValidFacet_returns_false_for_invalid_facet()
         {
-            ModelHelper.IsValidModelFacet("Int32", "MaxLength".Should().BeFalse());
-            ModelHelper.IsValidModelFacet("Int32", "42".Should().BeFalse());
+            ModelHelper.IsValidModelFacet("Int32", "MaxLength").Should().BeFalse();
+            ModelHelper.IsValidModelFacet("Int32", "42").Should().BeFalse();
         }
 
         [TestMethod]
@@ -47,8 +48,8 @@ using FluentAssertions;
         {
             FacetDescription facetDescription;
 
-            (ModelHelper.TryGetFacet(
-                    PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.String), "MaxLength", out facetDescription));
+            ModelHelper.TryGetFacet(
+                    PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.String), "MaxLength", out facetDescription).Should().BeTrue();
             facetDescription.Should().NotBeNull();
             facetDescription.FacetName.Should().Be("MaxLength");
         }
@@ -58,9 +59,8 @@ using FluentAssertions;
         {
             FacetDescription facetDescription;
 
-            Assert.False(
-                ModelHelper.TryGetFacet(
-                    PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32), "MaxLength", out facetDescription));
+            ModelHelper.TryGetFacet(
+                    PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32), "MaxLength", out facetDescription).Should().BeFalse();
             facetDescription.Should().BeNull();
         }
 
@@ -69,7 +69,7 @@ using FluentAssertions;
         {
             FacetDescription facetDescription;
 
-            ModelHelper.TryGetFacet(null, "MaxLength", out facetDescription.Should().BeFalse());
+            ModelHelper.TryGetFacet(null, "MaxLength", out facetDescription).Should().BeFalse();
             facetDescription.Should().BeNull();
         }
 
@@ -85,7 +85,7 @@ using FluentAssertions;
                         .Where(t => schemaVersion == EntityFrameworkVersion.Version3 || !IsGeoSpatialType(t))
                         .Select(t => t.Name);
 
-                Assert.Equal(expectedTypes, ModelHelper.AllPrimitiveTypes(schemaVersion));
+                ModelHelper.AllPrimitiveTypes(schemaVersion).Should().BeEquivalentTo(expectedTypes);
             }
         }
 
@@ -112,9 +112,8 @@ using FluentAssertions;
                     .Setup(a => a.DesignerInfo)
                     .Returns(designerInfoRoot);
 
-                Assert.NotNull(
-                    ModelHelper.CreateSetDesignerPropertyValueCommandFromArtifact(
-                        entityDesignArtifactMock.Object, "Options", designerPropertyName, "NewValue"));
+                ModelHelper.CreateSetDesignerPropertyValueCommandFromArtifact(
+                        entityDesignArtifactMock.Object, "Options", designerPropertyName, "NewValue").Should().NotBeNull();
             }
         }
 
@@ -125,11 +124,10 @@ using FluentAssertions;
             const string designerPropertyValue = "TestValue";
             using (var designerInfo = SetupOptionsDesignerInfo(designerPropertyName, designerPropertyValue))
             {
-                Assert.Null(
-                    ModelHelper.CreateSetDesignerPropertyCommandInsideDesignerInfo(
+                ModelHelper.CreateSetDesignerPropertyCommandInsideDesignerInfo(
                         designerInfo,
                         designerPropertyName,
-                        designerPropertyValue));
+                        designerPropertyValue).Should().BeNull();
             }
         }
 
@@ -141,11 +139,10 @@ using FluentAssertions;
             const string designerPropertyName = "TestPropertyName";
             using (var designerInfo = SetupOptionsDesignerInfo(designerPropertyName, "TestValue"))
             {
-                Assert.IsType<UpdateDefaultableValueCommand<string>>(
-                    ModelHelper.CreateSetDesignerPropertyCommandInsideDesignerInfo(
+                ModelHelper.CreateSetDesignerPropertyCommandInsideDesignerInfo(
                         designerInfo,
                         designerPropertyName,
-                        "DifferentValue"));
+                        "DifferentValue").Should().BeOfType<UpdateDefaultableValueCommand<string>>();
             }
         }
 
@@ -154,11 +151,10 @@ using FluentAssertions;
         {
             using (var designerInfo = SetupOptionsDesignerInfo(null, null))
             {
-                Assert.Null(
-                    ModelHelper.CreateSetDesignerPropertyCommandInsideDesignerInfo(
+                ModelHelper.CreateSetDesignerPropertyCommandInsideDesignerInfo(
                         designerInfo,
                         "TestPropertyName",
-                        null));
+                        null).Should().BeNull();
             }
         }
 
@@ -169,10 +165,9 @@ using FluentAssertions;
         {
             using (var designerInfo = SetupOptionsDesignerInfo(null, null))
             {
-                Assert.IsType<ChangeDesignerPropertyCommand>(
-                    ModelHelper.CreateSetDesignerPropertyCommandInsideDesignerInfo(
+                ModelHelper.CreateSetDesignerPropertyCommandInsideDesignerInfo(
                         designerInfo, "TestPropertyName",
-                        "NewValue"));
+                        "NewValue").Should().BeOfType<ChangeDesignerPropertyCommand>();
             }
         }
 

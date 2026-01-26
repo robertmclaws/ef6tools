@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
     using System.Data.Entity.Core.Metadata.Edm;
+    using Microsoft.Data.Entity.Design.CodeGeneration;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class KeyConfigurationTests
@@ -15,7 +16,7 @@ using FluentAssertions;
             //var configuration = new KeyConfiguration { KeyProperties = { new EdmProperty("Id") } };
             //var code = new CSharpCodeHelper();
 
-            //Assert.Equal(".HasKey(e => e.Id)", configuration.GetMethodChain(code));
+            //configuration.GetMethodChain(code).Should().Be(".HasKey(e => e.Id)");
         }
 
         [TestMethod, Ignore("Different API Visiblity between official dll and locally built")]
@@ -27,7 +28,7 @@ using FluentAssertions;
             //    };
             //var code = new CSharpCodeHelper();
 
-            //Assert.Equal(".HasKey(e => new { e.Id1, e.Id2 })", configuration.GetMethodChain(code));
+            //configuration.GetMethodChain(code).Should().Be(".HasKey(e => new { e.Id1, e.Id2 })");
         }
     }
 }

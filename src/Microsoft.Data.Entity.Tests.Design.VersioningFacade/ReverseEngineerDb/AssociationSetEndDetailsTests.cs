@@ -3,8 +3,9 @@
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
     using System.Data.Entity.Core.Metadata.Edm;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class AssociationSetEndDetailsTests
@@ -28,8 +29,8 @@ using FluentAssertions;
                     (OperationAction)(-100));
 
             associationSetEndDetails.AssociationSetEnd.Should().BeSameAs(associationSetEnd);
-            Assert.Equal(-42, (int)associationSetEndDetails.Multiplicity);
-            Assert.Equal(-100, (int)associationSetEndDetails.DeleteBehavior);
+            ((int)associationSetEndDetails.Multiplicity).Should().Be(-42);
+            ((int)associationSetEndDetails.DeleteBehavior).Should().Be(-100);
         }
     }
 }

@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui.ViewModels
 {
     using System;
     using System.Linq;
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui.ViewModels;
     using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class RuntimeConfigViewModelTests
@@ -17,10 +19,10 @@ using FluentAssertions;
             var viewModel = new RuntimeConfigViewModel(
                 targetNetFrameworkVersion: NetFrameworkVersioningHelper.NetFrameworkVersion3_5,
                 installedEntityFrameworkVersion: null,
-                isModernProviderAvailable: false, 
+                isModernProviderAvailable: false,
                 isCodeFirst: false);
 
-            Assert.Equal(2, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(2);
 
             var first = viewModel.EntityFrameworkVersions.First();
             first.Version.Should().Be(RuntimeVersion.Latest);
@@ -50,7 +52,7 @@ using FluentAssertions;
                 isModernProviderAvailable,
                 isCodeFirst: false);
 
-            Assert.Equal(2, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(2);
 
             var first = viewModel.EntityFrameworkVersions.First();
             first.Version.Should().Be(RuntimeVersion.Latest);
@@ -58,7 +60,7 @@ using FluentAssertions;
             first.IsDefault.Should().BeFalse();
 
             var last = viewModel.EntityFrameworkVersions.Last();
-            Assert.Equal(new Version(4, 4, 0, 0), last.Version);
+            last.Version.Should().Be(new Version(4, 4, 0, 0));
             last.Disabled.Should().BeFalse();
             last.IsDefault.Should().BeTrue();
 
@@ -76,7 +78,7 @@ using FluentAssertions;
                 isModernProviderAvailable: true,
                 isCodeFirst: false);
 
-            Assert.Equal(1, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(1);
 
             var first = viewModel.EntityFrameworkVersions.First();
             first.Version.Should().Be(RuntimeVersion.Version6);
@@ -102,7 +104,7 @@ using FluentAssertions;
                 isModernProviderAvailable,
                 isCodeFirst);
 
-            Assert.Equal(1, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(1);
 
             var first = viewModel.EntityFrameworkVersions.First();
             first.Version.Should().Be(installedEntityFrameworkVersion);
@@ -128,7 +130,7 @@ using FluentAssertions;
                 isModernProviderAvailable,
                 isCodeFirst);
 
-            Assert.Equal(1, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(1);
 
             var first = viewModel.EntityFrameworkVersions.First();
             first.Version.Should().Be(installedEntityFrameworkVersion);
@@ -149,7 +151,7 @@ using FluentAssertions;
                 isModernProviderAvailable: false,
                 isCodeFirst: false);
 
-            Assert.Equal(2, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(2);
 
             var first = viewModel.EntityFrameworkVersions.First();
             first.Version.Should().Be(RuntimeVersion.Latest);
@@ -175,7 +177,7 @@ using FluentAssertions;
                 isModernProviderAvailable: true,
                 isCodeFirst: false);
 
-            Assert.Equal(2, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(2);
 
             var first = viewModel.EntityFrameworkVersions.First();
             first.Version.Should().Be(RuntimeVersion.Latest);
@@ -203,7 +205,7 @@ using FluentAssertions;
 
             viewModel.State.Should().Be(RuntimeConfigState.Skip);
 
-            Assert.Equal(1, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(1);
             var efVersion = viewModel.EntityFrameworkVersions.Single();
             efVersion.Version.Should().Be(RuntimeVersion.Latest);
             efVersion.Disabled.Should().BeFalse();
@@ -224,7 +226,7 @@ using FluentAssertions;
 
             viewModel.State.Should().Be(RuntimeConfigState.Error);
 
-            Assert.Equal(1, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(1);
             var efVersion = viewModel.EntityFrameworkVersions.Single();
             efVersion.Version.Should().Be(RuntimeVersion.Latest);
             efVersion.Disabled.Should().BeTrue();
@@ -245,7 +247,7 @@ using FluentAssertions;
 
             viewModel.State.Should().Be(RuntimeConfigState.Skip);
 
-            Assert.Equal(1, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(1);
             var efVersion = viewModel.EntityFrameworkVersions.Single();
             efVersion.Version.Should().Be(RuntimeVersion.Latest);
             efVersion.Disabled.Should().BeFalse();
@@ -266,7 +268,7 @@ using FluentAssertions;
 
             viewModel.State.Should().Be(RuntimeConfigState.Error);
 
-            Assert.Equal(1, viewModel.EntityFrameworkVersions.Count());
+            viewModel.EntityFrameworkVersions.Count().Should().Be(1);
             var efVersion = viewModel.EntityFrameworkVersions.Single();
             efVersion.Version.Should().Be(RuntimeVersion.Latest);
             efVersion.Disabled.Should().BeTrue();

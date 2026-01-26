@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard
 {
+    using FluentAssertions;
+    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
     using Microsoft.Data.Entity.Tests.Design.TestHelpers;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 
     [TestClass]
     public class DbContextGeneratorTests
@@ -24,9 +25,9 @@ using FluentAssertions;
             {
                 var mockMonikerHelper = new MockDTE(target);
 
-                (DbContextCodeGenerator.TemplateSupported(
-                        mockMonikerHelper.Project,
-                        mockMonikerHelper.ServiceProvider));
+                DbContextCodeGenerator.TemplateSupported(
+                    mockMonikerHelper.Project,
+                    mockMonikerHelper.ServiceProvider).Should().BeTrue();
             }
         }
 
@@ -49,9 +50,9 @@ using FluentAssertions;
             {
                 var mockMonikerHelper = new MockDTE(target);
 
-                (DbContextCodeGenerator.TemplateSupported(
-                        mockMonikerHelper.Project,
-                        mockMonikerHelper.ServiceProvider));
+                DbContextCodeGenerator.TemplateSupported(
+                    mockMonikerHelper.Project,
+                    mockMonikerHelper.ServiceProvider).Should().BeTrue();
             }
         }
 
@@ -61,10 +62,9 @@ using FluentAssertions;
             var mockMonikerHelper =
                 new MockDTE(".NETFramework,Version=v3.5");
 
-            Assert.False(
-                DbContextCodeGenerator.TemplateSupported(
-                    mockMonikerHelper.Project,
-                    mockMonikerHelper.ServiceProvider));
+            DbContextCodeGenerator.TemplateSupported(
+                mockMonikerHelper.Project,
+                mockMonikerHelper.ServiceProvider).Should().BeFalse();
         }
 
         [TestMethod]
@@ -84,10 +84,9 @@ using FluentAssertions;
             {
                 var mockMonikerHelper = new MockDTE(target);
 
-                Assert.False(
-                    DbContextCodeGenerator.TemplateSupported(
-                        mockMonikerHelper.Project,
-                        mockMonikerHelper.ServiceProvider));
+                DbContextCodeGenerator.TemplateSupported(
+                    mockMonikerHelper.Project,
+                    mockMonikerHelper.ServiceProvider).Should().BeFalse();
             }
         }
 
@@ -99,10 +98,9 @@ using FluentAssertions;
             var mockMonikerHelper =
                 new MockDTE(".NETFramework,Version=v4.0", vsMiscFilesProjectUniqueName);
 
-            Assert.False(
-                DbContextCodeGenerator.TemplateSupported(
-                    mockMonikerHelper.Project,
-                    mockMonikerHelper.ServiceProvider));
+            DbContextCodeGenerator.TemplateSupported(
+                mockMonikerHelper.Project,
+                mockMonikerHelper.ServiceProvider).Should().BeFalse();
         }
     }
 }

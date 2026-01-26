@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
     using System;
     using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class UniqueIdentifierServiceTests
@@ -18,11 +18,13 @@ using FluentAssertions;
 
             var service = new UniqueIdentifierService(StringComparer.Ordinal);
             service.RegisterUsedIdentifier(identifierA);
-            Assert.DoesNotThrow(() => service.RegisterUsedIdentifier(identifierB));
+            Action act = () => service.RegisterUsedIdentifier(identifierB);
+            act.Should().NotThrow();
 
             service = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase);
             service.RegisterUsedIdentifier(identifierA);
-            Assert.Throws<ArgumentException>(() => service.RegisterUsedIdentifier(identifierB));
+            Action act2 = () => service.RegisterUsedIdentifier(identifierB);
+            act2.Should().Throw<ArgumentException>();
         }
 
         [TestMethod]
@@ -36,9 +38,9 @@ using FluentAssertions;
             var service = new UniqueIdentifierService(StringComparer.Ordinal);
             service.RegisterUsedIdentifier(identifier);
 
-            Assert.Equal(adjustedIdentifier1, service.AdjustIdentifier(identifier));
-            Assert.Equal(adjustedIdentifier2, service.AdjustIdentifier(identifier));
-            Assert.Equal(adjustedIdentifier3, service.AdjustIdentifier(identifier));
+            service.AdjustIdentifier(identifier).Should().Be(adjustedIdentifier1);
+            service.AdjustIdentifier(identifier).Should().Be(adjustedIdentifier2);
+            service.AdjustIdentifier(identifier).Should().Be(adjustedIdentifier3);
         }
 
         [TestMethod]
@@ -55,9 +57,9 @@ using FluentAssertions;
             var service = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase, transform);
             service.RegisterUsedIdentifier(usedIdentifier);
 
-            Assert.Equal(adjustedIdentifier1, service.AdjustIdentifier(identifier));
-            Assert.Equal(adjustedIdentifier2, service.AdjustIdentifier(identifier));
-            Assert.Equal(adjustedIdentifier3, service.AdjustIdentifier(identifier));
+            service.AdjustIdentifier(identifier).Should().Be(adjustedIdentifier1);
+            service.AdjustIdentifier(identifier).Should().Be(adjustedIdentifier2);
+            service.AdjustIdentifier(identifier).Should().Be(adjustedIdentifier3);
         }
 
         [TestMethod]
@@ -76,15 +78,15 @@ using FluentAssertions;
             var service = new UniqueIdentifierService();
             service.RegisterUsedIdentifier(identifier);
 
-            Assert.Equal(adjustedIdentifier1, service.AdjustIdentifier(identifier, value1));
-            Assert.Equal(adjustedIdentifier2, service.AdjustIdentifier(identifier, value2));
-            Assert.Equal(adjustedIdentifier3, service.AdjustIdentifier(identifier, value3));
-            service.TryGetAdjustedName(value1, out adjustedIdentifier.Should().BeTrue());
-            adjustedIdentifier1.Should().Be(adjustedIdentifier);
-            service.TryGetAdjustedName(value2, out adjustedIdentifier.Should().BeTrue());
-            adjustedIdentifier2.Should().Be(adjustedIdentifier);
-            service.TryGetAdjustedName(value3, out adjustedIdentifier.Should().BeTrue());
-            adjustedIdentifier3.Should().Be(adjustedIdentifier);
+            service.AdjustIdentifier(identifier, value1).Should().Be(adjustedIdentifier1);
+            service.AdjustIdentifier(identifier, value2).Should().Be(adjustedIdentifier2);
+            service.AdjustIdentifier(identifier, value3).Should().Be(adjustedIdentifier3);
+            service.TryGetAdjustedName(value1, out adjustedIdentifier).Should().BeTrue();
+            adjustedIdentifier.Should().Be(adjustedIdentifier1);
+            service.TryGetAdjustedName(value2, out adjustedIdentifier).Should().BeTrue();
+            adjustedIdentifier.Should().Be(adjustedIdentifier2);
+            service.TryGetAdjustedName(value3, out adjustedIdentifier).Should().BeTrue();
+            adjustedIdentifier.Should().Be(adjustedIdentifier3);
         }
     }
 }

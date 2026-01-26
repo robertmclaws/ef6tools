@@ -1,7 +1,7 @@
 <Project>
 
-  <!-- Import parent Directory.Build.props -->
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <!-- Import src Directory.Build.props for shared settings and CPM -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\src\Directory.Build.props" />
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
@@ -13,7 +13,7 @@
 
     <!-- Assembly signing -->
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\..\src\ModernEntityDesigner.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\..\src\easyaf.snk</AssemblyOriginatorKeyFile>
 
     <!-- Suppress common warnings -->
     <NoWarn>$(NoWarn);VSTHRD010;1762</NoWarn>

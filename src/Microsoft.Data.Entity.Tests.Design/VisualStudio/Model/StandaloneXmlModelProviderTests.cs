@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
 {
     using EnvDTE;
+    using FluentAssertions;
     using Microsoft.Data.Entity.Design.Extensibility;
+    using Microsoft.Data.Entity.Design.VisualStudio.Model;
     using Microsoft.Data.Tools.XmlDesignerBase.Model;
     using Moq;
     using Moq.Protected;
@@ -14,7 +16,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
     using Microsoft.Data.Entity.Tests.Design.TestHelpers;
     using VSLangProj;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using Resources = Microsoft.Data.Entity.Design.Resources;
 
     [TestClass]
     public class StandaloneXmlModelProviderTests
@@ -36,10 +38,10 @@ using FluentAssertions;
                 .Callback<ModelConversionExtensionContext>(
                     ctx =>
                         {
-                            Assert.Equal(ctx.EntityFrameworkVersion, new Version(3, 0, 0, 0));
-                            "non-edmx-file.xmde".Should().Be(ctx.FileInfo.Name);
-                            mockProjectItem.Object.Should().BeSameAs(ctx.ProjectItem);
-                            mockDte.Project.Should().BeSameAs(ctx.Project);
+                            ctx.EntityFrameworkVersion.Should().Be(new Version(3, 0, 0, 0));
+                            ctx.FileInfo.Name.Should().Be("non-edmx-file.xmde");
+                            ctx.ProjectItem.Should().BeSameAs(mockProjectItem.Object);
+                            ctx.Project.Should().BeSameAs(mockDte.Project);
                         });
 
             var converter =
@@ -48,13 +50,12 @@ using FluentAssertions;
 
             string outputDocument;
             List<ExtensionError> errors;
-            Assert.False(
-                StandaloneXmlModelProvider.TryGetBufferViaExtensions(
-                    mockDte.ServiceProvider, mockProjectItem.Object, string.Empty, new[] { converter },
-                    new Lazy<IModelTransformExtension>[0], out outputDocument, out errors));
+            StandaloneXmlModelProvider.TryGetBufferViaExtensions(
+                mockDte.ServiceProvider, mockProjectItem.Object, string.Empty, new[] { converter },
+                new Lazy<IModelTransformExtension>[0], out outputDocument, out errors).Should().BeFalse();
 
-            Assert.Empty(outputDocument);
-            Assert.Empty(errors);
+            outputDocument.Should().BeEmpty();
+            errors.Should().BeEmpty();
 
             mockConversionExtension.Verify(e => e.OnAfterFileLoaded(It.IsAny<ModelConversionExtensionContext>()), Times.Once());
             mockConversionExtension.Verify(e => e.OnBeforeFileSaved(It.IsAny<ModelConversionExtensionContext>()), Times.Never());
@@ -78,13 +79,13 @@ using FluentAssertions;
             string outputDocument;
             List<ExtensionError> errors;
 
-            Assert.Equal(
-                Resources.Extensibility_NoConverterForExtension,
-                Assert.Throws<InvalidOperationException>(
-                    () => StandaloneXmlModelProvider.TryGetBufferViaExtensions(
-                        mockDte.ServiceProvider, mockProjectItem.Object, "<root/>",
-                        new Lazy<IModelConversionExtension, IEntityDesignerConversionData>[0],
-                        new[] { transformer }, out outputDocument, out errors)).Message);
+            Action action = () => StandaloneXmlModelProvider.TryGetBufferViaExtensions(
+                mockDte.ServiceProvider, mockProjectItem.Object, "<root/>",
+                new Lazy<IModelConversionExtension, IEntityDesignerConversionData>[0],
+                new[] { transformer }, out outputDocument, out errors);
+
+            action.Should().Throw<InvalidOperationException>()
+                .WithMessage(Resources.Extensibility_NoConverterForExtension);
         }
 
         [TestMethod]
@@ -101,24 +102,23 @@ using FluentAssertions;
                 .Callback<ModelTransformExtensionContext>(
                     ctx =>
                         {
-                            Assert.Equal(ctx.EntityFrameworkVersion, new Version(3, 0, 0, 0));
-                            XNode.DeepEquals(ctx.OriginalDocument, XDocument.Parse("<root />".Should().BeTrue()));
-                            mockProjectItem.Object.Should().BeSameAs(ctx.ProjectItem);
-                            mockDte.Project.Should().BeSameAs(ctx.Project);
+                            ctx.EntityFrameworkVersion.Should().Be(new Version(3, 0, 0, 0));
+                            XNode.DeepEquals(ctx.OriginalDocument, XDocument.Parse("<root />")).Should().BeTrue();
+                            ctx.ProjectItem.Should().BeSameAs(mockProjectItem.Object);
+                            ctx.Project.Should().BeSameAs(mockDte.Project);
                         });
 
             var transformer = new Lazy<IModelTransformExtension>(() => mockTransformExtension.Object);
 
             string outputDocument;
             List<ExtensionError> errors;
-            Assert.False(
-                StandaloneXmlModelProvider.TryGetBufferViaExtensions(
-                    mockDte.ServiceProvider, mockProjectItem.Object, "<root/>",
-                    new Lazy<IModelConversionExtension, IEntityDesignerConversionData>[0],
-                    new[] { transformer }, out outputDocument, out errors));
+            StandaloneXmlModelProvider.TryGetBufferViaExtensions(
+                mockDte.ServiceProvider, mockProjectItem.Object, "<root/>",
+                new Lazy<IModelConversionExtension, IEntityDesignerConversionData>[0],
+                new[] { transformer }, out outputDocument, out errors).Should().BeFalse();
 
-            Assert.Empty(outputDocument);
-            Assert.Empty(errors);
+            outputDocument.Should().BeEmpty();
+            errors.Should().BeEmpty();
 
             mockTransformExtension.Verify(
                 e => e.OnAfterModelLoaded(It.IsAny<ModelTransformExtensionContext>()), Times.Once());
@@ -140,10 +140,10 @@ using FluentAssertions;
                 .Callback<ModelTransformExtensionContext>(
                     ctx =>
                         {
-                            Assert.Equal(ctx.EntityFrameworkVersion, new Version(3, 0, 0, 0));
-                            XNode.DeepEquals(ctx.OriginalDocument, XDocument.Parse("<root />".Should().BeTrue()));
-                            mockProjectItem.Object.Should().BeSameAs(ctx.ProjectItem);
-                            mockDte.Project.Should().BeSameAs(ctx.Project);
+                            ctx.EntityFrameworkVersion.Should().Be(new Version(3, 0, 0, 0));
+                            XNode.DeepEquals(ctx.OriginalDocument, XDocument.Parse("<root />")).Should().BeTrue();
+                            ctx.ProjectItem.Should().BeSameAs(mockProjectItem.Object);
+                            ctx.Project.Should().BeSameAs(mockDte.Project);
 
                             var modifiedDocument = new XDocument(ctx.OriginalDocument);
                             modifiedDocument.Root.Add(new XAttribute("test", "value"));
@@ -154,13 +154,13 @@ using FluentAssertions;
 
             string outputDocument;
             List<ExtensionError> errors;
-            (StandaloneXmlModelProvider.TryGetBufferViaExtensions(
-                    mockDte.ServiceProvider, mockProjectItem.Object, "<root/>",
-                    new Lazy<IModelConversionExtension, IEntityDesignerConversionData>[0],
-                    new[] { transformer }, out outputDocument, out errors));
+            StandaloneXmlModelProvider.TryGetBufferViaExtensions(
+                mockDte.ServiceProvider, mockProjectItem.Object, "<root/>",
+                new Lazy<IModelConversionExtension, IEntityDesignerConversionData>[0],
+                new[] { transformer }, out outputDocument, out errors).Should().BeTrue();
 
-            XNode.DeepEquals(XDocument.Parse("<root test=\"value\" />".Should().BeTrue(), XDocument.Parse(outputDocument)));
-            Assert.Empty(errors);
+            XNode.DeepEquals(XDocument.Parse("<root test=\"value\" />"), XDocument.Parse(outputDocument)).Should().BeTrue();
+            errors.Should().BeEmpty();
 
             mockTransformExtension.Verify(
                 e => e.OnAfterModelLoaded(It.IsAny<ModelTransformExtensionContext>()), Times.Once());
@@ -186,10 +186,10 @@ using FluentAssertions;
                 .Callback<ModelConversionExtensionContext>(
                     ctx =>
                         {
-                            Assert.Equal(ctx.EntityFrameworkVersion, new Version(3, 0, 0, 0));
-                            "non-edmx-file.xmde".Should().Be(ctx.FileInfo.Name);
-                            mockProjectItem.Object.Should().BeSameAs(ctx.ProjectItem);
-                            mockDte.Project.Should().BeSameAs(ctx.Project);
+                            ctx.EntityFrameworkVersion.Should().Be(new Version(3, 0, 0, 0));
+                            ctx.FileInfo.Name.Should().Be("non-edmx-file.xmde");
+                            ctx.ProjectItem.Should().BeSameAs(mockProjectItem.Object);
+                            ctx.Project.Should().BeSameAs(mockDte.Project);
 
                             // https://entityframework.codeplex.com/workitem/1371
                             // ctx.CurrentDocument = "<root />";
@@ -202,10 +202,10 @@ using FluentAssertions;
                 .Callback<ModelTransformExtensionContext>(
                     ctx =>
                         {
-                            Assert.Equal(ctx.EntityFrameworkVersion, new Version(3, 0, 0, 0));
-                            XNode.DeepEquals(ctx.OriginalDocument, XDocument.Parse("<root />".Should().BeTrue()));
-                            mockProjectItem.Object.Should().BeSameAs(ctx.ProjectItem);
-                            mockDte.Project.Should().BeSameAs(ctx.Project);
+                            ctx.EntityFrameworkVersion.Should().Be(new Version(3, 0, 0, 0));
+                            XNode.DeepEquals(ctx.OriginalDocument, XDocument.Parse("<root />")).Should().BeTrue();
+                            ctx.ProjectItem.Should().BeSameAs(mockProjectItem.Object);
+                            ctx.Project.Should().BeSameAs(mockDte.Project);
 
                             var modifiedDocument = new XDocument(ctx.OriginalDocument);
                             modifiedDocument.Root.Add(new XAttribute("test", "value"));
@@ -219,12 +219,12 @@ using FluentAssertions;
 
             string outputDocument;
             List<ExtensionError> errors;
-            (StandaloneXmlModelProvider.TryGetBufferViaExtensions(
-                    mockDte.ServiceProvider, mockProjectItem.Object, string.Empty,
-                    new[] { converter }, new[] { transformer }, out outputDocument, out errors));
+            StandaloneXmlModelProvider.TryGetBufferViaExtensions(
+                mockDte.ServiceProvider, mockProjectItem.Object, string.Empty,
+                new[] { converter }, new[] { transformer }, out outputDocument, out errors).Should().BeTrue();
 
-            XNode.DeepEquals(XDocument.Parse("<root test=\"value\" />".Should().BeTrue(), XDocument.Parse(outputDocument)));
-            Assert.Empty(errors);
+            XNode.DeepEquals(XDocument.Parse("<root test=\"value\" />"), XDocument.Parse(outputDocument)).Should().BeTrue();
+            errors.Should().BeEmpty();
 
             mockConversionExtension.Verify(
                 e => e.OnAfterFileLoaded(It.IsAny<ModelConversionExtensionContext>()), Times.Once());
@@ -250,12 +250,12 @@ using FluentAssertions;
 
             var xDoc = mockModelProvider.Object.GetXmlModel(new Uri("z:\\model.edmx")).Document;
 
-            (xDoc.Descendants().All(
-                    e =>
-                        {
-                            var textRange = e.GetTextRange();
-                            return textRange != null && textRange.OpenStartLine > 0 && textRange.OpenStartColumn > 0;
-                        }));
+            xDoc.Descendants().All(
+                e =>
+                    {
+                        var textRange = e.GetTextRange();
+                        return textRange != null && textRange.OpenStartLine > 0 && textRange.OpenStartColumn > 0;
+                    }).Should().BeTrue();
         }
     }
 }

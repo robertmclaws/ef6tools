@@ -3,8 +3,9 @@
 namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
 {
     using System.Drawing;
+    using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class SvgStyleHelperTests
@@ -12,110 +13,110 @@ using FluentAssertions;
         [TestMethod]
         public void ToSvgColor_converts_color_to_hex()
         {
-            Assert.Equal("#FF0000", SvgStylesheetManager.ToSvgColor(Color.Red));
-            Assert.Equal("#00FF00", SvgStylesheetManager.ToSvgColor(Color.Lime));
-            Assert.Equal("#0000FF", SvgStylesheetManager.ToSvgColor(Color.Blue));
-            Assert.Equal("#000000", SvgStylesheetManager.ToSvgColor(Color.Black));
-            Assert.Equal("#FFFFFF", SvgStylesheetManager.ToSvgColor(Color.White));
+            SvgStylesheetManager.ToSvgColor(Color.Red).Should().Be("#FF0000");
+            SvgStylesheetManager.ToSvgColor(Color.Lime).Should().Be("#00FF00");
+            SvgStylesheetManager.ToSvgColor(Color.Blue).Should().Be("#0000FF");
+            SvgStylesheetManager.ToSvgColor(Color.Black).Should().Be("#000000");
+            SvgStylesheetManager.ToSvgColor(Color.White).Should().Be("#FFFFFF");
         }
 
         [TestMethod]
         public void ToSvgColor_returns_none_for_transparent()
         {
-            Assert.Equal("none", SvgStylesheetManager.ToSvgColor(Color.Transparent));
+            SvgStylesheetManager.ToSvgColor(Color.Transparent).Should().Be("none");
         }
 
         [TestMethod]
         public void FormatDouble_uses_invariant_culture()
         {
-            Assert.Equal("123.46", SvgStylesheetManager.FormatDouble(123.456));
-            Assert.Equal("0.00", SvgStylesheetManager.FormatDouble(0));
-            Assert.Equal("-50.50", SvgStylesheetManager.FormatDouble(-50.5));
+            SvgStylesheetManager.FormatDouble(123.456).Should().Be("123.46");
+            SvgStylesheetManager.FormatDouble(0).Should().Be("0.00");
+            SvgStylesheetManager.FormatDouble(-50.5).Should().Be("-50.50");
         }
 
         [TestMethod]
         public void GetTextColorForFill_returns_white_for_dark_fills()
         {
-            Assert.Equal(Color.White, SvgStylesheetManager.GetTextColorForFill(Color.Black));
-            Assert.Equal(Color.White, SvgStylesheetManager.GetTextColorForFill(Color.DarkBlue));
-            Assert.Equal(Color.White, SvgStylesheetManager.GetTextColorForFill(Color.DarkGreen));
+            SvgStylesheetManager.GetTextColorForFill(Color.Black).Should().Be(Color.White);
+            SvgStylesheetManager.GetTextColorForFill(Color.DarkBlue).Should().Be(Color.White);
+            SvgStylesheetManager.GetTextColorForFill(Color.DarkGreen).Should().Be(Color.White);
         }
 
         [TestMethod]
         public void GetTextColorForFill_returns_black_for_light_fills()
         {
-            Assert.Equal(Color.Black, SvgStylesheetManager.GetTextColorForFill(Color.White));
-            Assert.Equal(Color.Black, SvgStylesheetManager.GetTextColorForFill(Color.Yellow));
-            Assert.Equal(Color.Black, SvgStylesheetManager.GetTextColorForFill(Color.LightGray));
+            SvgStylesheetManager.GetTextColorForFill(Color.White).Should().Be(Color.Black);
+            SvgStylesheetManager.GetTextColorForFill(Color.Yellow).Should().Be(Color.Black);
+            SvgStylesheetManager.GetTextColorForFill(Color.LightGray).Should().Be(Color.Black);
         }
 
         [TestMethod]
         public void GetDashArray_creates_comma_separated_values()
         {
             var pattern = new float[] { 5, 3 };
-            Assert.Equal("5.00,3.00", SvgStylesheetManager.GetDashArray(pattern));
+            SvgStylesheetManager.GetDashArray(pattern).Should().Be("5.00,3.00");
         }
 
         [TestMethod]
         public void GetDashArray_returns_null_for_empty_pattern()
         {
-            SvgStylesheetManager.GetDashArray(new float[0].Should().BeNull());
-            SvgStylesheetManager.GetDashArray(null.Should().BeNull());
+            SvgStylesheetManager.GetDashArray(new float[0]).Should().BeNull();
+            SvgStylesheetManager.GetDashArray(null).Should().BeNull();
         }
 
         [TestMethod]
         public void EscapeXml_escapes_special_characters()
         {
-            Assert.Equal("&amp;", SvgStylesheetManager.EscapeXml("&"));
-            Assert.Equal("&lt;", SvgStylesheetManager.EscapeXml("<"));
-            Assert.Equal("&gt;", SvgStylesheetManager.EscapeXml(">"));
-            Assert.Equal("&quot;", SvgStylesheetManager.EscapeXml("\""));
-            Assert.Equal("&apos;", SvgStylesheetManager.EscapeXml("'"));
+            SvgStylesheetManager.EscapeXml("&").Should().Be("&amp;");
+            SvgStylesheetManager.EscapeXml("<").Should().Be("&lt;");
+            SvgStylesheetManager.EscapeXml(">").Should().Be("&gt;");
+            SvgStylesheetManager.EscapeXml("\"").Should().Be("&quot;");
+            SvgStylesheetManager.EscapeXml("'").Should().Be("&apos;");
         }
 
         [TestMethod]
         public void EscapeXml_escapes_combined_special_characters()
         {
-            Assert.Equal("&lt;div class=&quot;test&quot;&gt;A &amp; B&lt;/div&gt;",
-SvgStylesheetManager.EscapeXml("<div class=\"test\">A & B</div>"));
+            SvgStylesheetManager.EscapeXml("<div class=\"test\">A & B</div>")
+                .Should().Be("&lt;div class=&quot;test&quot;&gt;A &amp; B&lt;/div&gt;");
         }
 
         [TestMethod]
         public void EscapeXml_returns_input_for_null_or_empty()
         {
-            SvgStylesheetManager.EscapeXml(null.Should().BeNull());
-            Assert.Equal(string.Empty, SvgStylesheetManager.EscapeXml(string.Empty));
+            SvgStylesheetManager.EscapeXml(null).Should().BeNull();
+            SvgStylesheetManager.EscapeXml(string.Empty).Should().Be(string.Empty);
         }
 
         [TestMethod]
         public void EscapeXml_preserves_normal_text()
         {
-            Assert.Equal("Hello World", SvgStylesheetManager.EscapeXml("Hello World"));
-            Assert.Equal("CustomerOrder", SvgStylesheetManager.EscapeXml("CustomerOrder"));
+            SvgStylesheetManager.EscapeXml("Hello World").Should().Be("Hello World");
+            SvgStylesheetManager.EscapeXml("CustomerOrder").Should().Be("CustomerOrder");
         }
 
         [TestMethod]
         public void GetFontFamily_returns_default_for_null()
         {
-            Assert.Equal("Segoe UI, Arial, sans-serif", SvgStylesheetManager.GetFontFamily(null));
+            SvgStylesheetManager.GetFontFamily(null).Should().Be("Segoe UI, Arial, sans-serif");
         }
 
         [TestMethod]
         public void GetFontSize_returns_default_for_null()
         {
-            Assert.Equal("12", SvgStylesheetManager.GetFontSize(null));
+            SvgStylesheetManager.GetFontSize(null).Should().Be("12");
         }
 
         [TestMethod]
         public void GetFontWeight_returns_normal_for_null()
         {
-            Assert.Equal("normal", SvgStylesheetManager.GetFontWeight(null));
+            SvgStylesheetManager.GetFontWeight(null).Should().Be("normal");
         }
 
         [TestMethod]
         public void GetFontStyle_returns_normal_for_null()
         {
-            Assert.Equal("normal", SvgStylesheetManager.GetFontStyle(null));
+            SvgStylesheetManager.GetFontStyle(null).Should().Be("normal");
         }
 
         [TestMethod]

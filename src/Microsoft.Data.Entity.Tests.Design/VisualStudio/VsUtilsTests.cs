@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
@@ -7,7 +7,6 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
     using System.ComponentModel.Design;
     using System.Data.Common;
     using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Data.Entity.SqlServer;
     using System.IO;
     using System.Linq;
     using EnvDTE;
@@ -18,11 +17,12 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
     using Moq;
     using Moq.Protected;
     using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+    using Microsoft.Data.Entity.Design.VisualStudio;
     using VSLangProj;
     using VSLangProj80;
     using VsWebSite;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
     using DbProviderServices = System.Data.Entity.Core.Common.DbProviderServices;
 
     [TestClass]
@@ -40,9 +40,9 @@ using FluentAssertions;
 
             var referenceAssemblyNames = VsUtils.GetProjectReferenceAssemblyNames(project).ToArray();
 
-            Assert.Equal(2, referenceAssemblyNames.Count());
-            Assert.Equal("EntityFramework", referenceAssemblyNames.Last().Key);
-            Assert.Equal(new Version(5, 0, 0, 0), referenceAssemblyNames.Last().Value);
+            referenceAssemblyNames.Count().Should().Be(2);
+            referenceAssemblyNames.Last().Key.Should().Be("EntityFramework");
+            referenceAssemblyNames.Last().Value.Should().Be(new Version(5, 0, 0, 0));
         }
 
         [TestMethod]
@@ -59,9 +59,9 @@ using FluentAssertions;
 
             var referenceAssemblyNames = VsUtils.GetProjectReferenceAssemblyNames(project).ToArray();
 
-            Assert.Equal(2, referenceAssemblyNames.Count());
-            Assert.Equal("EntityFramework", referenceAssemblyNames.Last().Key);
-            Assert.Equal(new Version(5, 0, 0, 0), referenceAssemblyNames.Last().Value);
+            referenceAssemblyNames.Count().Should().Be(2);
+            referenceAssemblyNames.Last().Key.Should().Be("EntityFramework");
+            referenceAssemblyNames.Last().Value.Should().Be(new Version(5, 0, 0, 0));
         }
 
         [TestMethod]
@@ -84,16 +84,10 @@ using FluentAssertions;
 
             var referenceAssemblyNames = VsUtils.GetProjectReferenceAssemblyNames(project).ToArray();
 
-            Assert.Equal(2, referenceAssemblyNames.Count());
-            Assert.Equal(
-                0, referenceAssemblyNames.Where(
-                    ran => ran.Key == "AspNet.ScriptManager.jQuery.UI.Combined").Count());
-            Assert.Equal(
-                1, referenceAssemblyNames.Where(
-                    ran => ran.Key == "System.Data.Entity").Count());
-            Assert.Equal(
-                1, referenceAssemblyNames.Where(
-                    ran => ran.Key == "EntityFramework").Count());
+            referenceAssemblyNames.Count().Should().Be(2);
+            referenceAssemblyNames.Where(ran => ran.Key == "AspNet.ScriptManager.jQuery.UI.Combined").Count().Should().Be(0);
+            referenceAssemblyNames.Where(ran => ran.Key == "System.Data.Entity").Count().Should().Be(1);
+            referenceAssemblyNames.Where(ran => ran.Key == "EntityFramework").Count().Should().Be(1);
         }
 
         [TestMethod]
@@ -110,9 +104,9 @@ using FluentAssertions;
 
             var referenceAssemblyNames = VsUtils.GetProjectReferenceAssemblyNames(project).ToArray();
 
-            Assert.Equal(2, referenceAssemblyNames.Count());
-            Assert.Equal("System.Web.WebPages.Deployment", referenceAssemblyNames.Last().Key);
-            Assert.Equal(new Version(2, 0, 0, 0), referenceAssemblyNames.Last().Value);
+            referenceAssemblyNames.Count().Should().Be(2);
+            referenceAssemblyNames.Last().Key.Should().Be("System.Web.WebPages.Deployment");
+            referenceAssemblyNames.Last().Value.Should().Be(new Version(2, 0, 0, 0));
         }
 
         [TestMethod]
@@ -149,7 +143,7 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateProject(Enumerable.Empty<Reference>());
 
-            VsUtils.GetInstalledEntityFrameworkAssemblyVersion(project.Should().BeNull());
+            VsUtils.GetInstalledEntityFrameworkAssemblyVersion(project).Should().BeNull();
         }
 
         [TestMethod]
@@ -157,7 +151,7 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateProject(new[] { MockDTE.CreateReference("System.Data.Entity", "4.0.0.0") });
 
-            Assert.Equal(new Version(4, 0, 0, 0), VsUtils.GetInstalledEntityFrameworkAssemblyVersion(project));
+            VsUtils.GetInstalledEntityFrameworkAssemblyVersion(project).Should().Be(new Version(4, 0, 0, 0));
         }
 
         [TestMethod]
@@ -170,7 +164,7 @@ using FluentAssertions;
                         MockDTE.CreateReference("EntityFramework", "5.0.0.0")
                     });
 
-            Assert.Equal(RuntimeVersion.Version5Net45, VsUtils.GetInstalledEntityFrameworkAssemblyVersion(project));
+            VsUtils.GetInstalledEntityFrameworkAssemblyVersion(project).Should().Be(RuntimeVersion.Version5Net45);
         }
 
         [TestMethod]
@@ -178,23 +172,23 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateProject(new[] { MockDTE.CreateReference("EntityFramework", "6.0.0.0") });
 
-            Assert.Equal(RuntimeVersion.Version6, VsUtils.GetInstalledEntityFrameworkAssemblyVersion(project));
+            VsUtils.GetInstalledEntityFrameworkAssemblyVersion(project).Should().Be(RuntimeVersion.Version6);
         }
 
         [TestMethod]
         public void IsModernProviderAvailable_returns_true_for_known_providers()
         {
-            (VsUtils.IsModernProviderAvailable(
-                    "System.Data.SqlClient",
-                    Mock.Of<Project>(),
-                    Mock.Of<IServiceProvider>()));
+            VsUtils.IsModernProviderAvailable(
+                "System.Data.SqlClient",
+                Mock.Of<Project>(),
+                Mock.Of<IServiceProvider>()).Should().BeTrue();
         }
 
         [TestMethod]
         public void IsMiscellaneousProject_detects_misc_files_project()
         {
-            VsUtils.IsMiscellaneousProject(MockDTE.CreateMiscFilesProject(.Should().BeTrue()));
-            VsUtils.IsMiscellaneousProject(MockDTE.CreateProject(.Should().BeFalse()));
+            VsUtils.IsMiscellaneousProject(MockDTE.CreateMiscFilesProject()).Should().BeTrue();
+            VsUtils.IsMiscellaneousProject(MockDTE.CreateProject()).Should().BeFalse();
         }
 
         [TestMethod]
@@ -212,8 +206,8 @@ using FluentAssertions;
             {
                 var monikerHelper = new MockDTE(target);
 
-                (VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true));
-                (VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false));
+                VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true).Should().BeTrue();
+                VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false).Should().BeTrue();
             }
         }
 
@@ -224,7 +218,7 @@ using FluentAssertions;
 
             var monikerHelper = new MockDTE("anytarget", vsMiscFilesProjectUniqueName);
 
-            (VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true));
+            VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true).Should().BeTrue();
         }
 
         [TestMethod]
@@ -234,8 +228,7 @@ using FluentAssertions;
 
             var monikerHelper = new MockDTE("anytarget", vsMiscFilesProjectUniqueName);
 
-            Assert.False(
-                VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false));
+            VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false).Should().BeFalse();
         }
 
         [TestMethod]
@@ -255,10 +248,8 @@ using FluentAssertions;
             {
                 var monikerHelper = new MockDTE(target);
 
-                Assert.False(
-                    VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true));
-                Assert.False(
-                    VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false));
+                VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true).Should().BeFalse();
+                VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false).Should().BeFalse();
             }
         }
 
@@ -267,14 +258,14 @@ using FluentAssertions;
         {
             var serviceProvider = new Mock<IServiceProvider>().Object;
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    MockDTE.CreateMiscFilesProject(), EntityFrameworkVersion.Version1, serviceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                MockDTE.CreateMiscFilesProject(), EntityFrameworkVersion.Version1, serviceProvider).Should().BeTrue();
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    MockDTE.CreateMiscFilesProject(), EntityFrameworkVersion.Version2, serviceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                MockDTE.CreateMiscFilesProject(), EntityFrameworkVersion.Version2, serviceProvider).Should().BeTrue();
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    MockDTE.CreateMiscFilesProject(), EntityFrameworkVersion.Version3, serviceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                MockDTE.CreateMiscFilesProject(), EntityFrameworkVersion.Version3, serviceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -285,16 +276,14 @@ using FluentAssertions;
                     ".NETFramework, Version=v3.5",
                     references: new[] { MockDTE.CreateReference("System.Data.Entity", "3.5.0.0") });
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeTrue();
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeFalse();
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeFalse();
         }
 
         [TestMethod]
@@ -305,16 +294,14 @@ using FluentAssertions;
                     ".NETFramework, Version=v4.0",
                     references: new[] { MockDTE.CreateReference("System.Data.Entity", "4.0.0.0") });
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeTrue();
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeFalse();
         }
 
         [TestMethod]
@@ -323,16 +310,14 @@ using FluentAssertions;
             var mockDte =
                 new MockDTE(".NETFramework, Version=v3.5", references: new Reference[0]);
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeTrue();
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeFalse();
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeFalse();
         }
 
         [TestMethod]
@@ -342,16 +327,14 @@ using FluentAssertions;
             var mockDte =
                 new MockDTE(".NETFramework, Version=v4.0", references: new Reference[0]);
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeTrue();
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeFalse();
         }
 
         [TestMethod]
@@ -361,16 +344,14 @@ using FluentAssertions;
             var mockDte =
                 new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeFalse();
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -386,16 +367,14 @@ using FluentAssertions;
                                 MockDTE.CreateReference("EntityFramework", "4.4.0.0")
                             });
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeTrue();
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeFalse();
         }
 
         [TestMethod]
@@ -411,15 +390,14 @@ using FluentAssertions;
                                 MockDTE.CreateReference("EntityFramework", "6.0.0.0")
                             });
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeTrue();
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -430,16 +408,14 @@ using FluentAssertions;
                     ".NETFramework, Version=v4.5",
                     references: new[] { MockDTE.CreateReference("System.Data.Entity", "4.0.0.0") });
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
 
-            Assert.False(
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeFalse();
 
-            (VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
@@ -455,16 +431,14 @@ using FluentAssertions;
                         targetNetFrameworkVersion,
                         references: new[] { MockDTE.CreateReference("EntityFramework", "6.0.0.0") });
 
-                Assert.False(
-                    VsUtils.SchemaVersionSupportedInProject(
-                        mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider));
+                VsUtils.SchemaVersionSupportedInProject(
+                    mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
 
-                Assert.False(
-                    VsUtils.SchemaVersionSupportedInProject(
-                        mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider));
+                VsUtils.SchemaVersionSupportedInProject(
+                    mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeFalse();
 
-                (VsUtils.SchemaVersionSupportedInProject(
-                        mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+                VsUtils.SchemaVersionSupportedInProject(
+                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeTrue();
             }
         }
 
@@ -473,7 +447,7 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateProject(kind: MockDTE.CSharpProjectKind);
 
-            Assert.Equal(VsUtils.ProjectKind.CSharp, VsUtils.GetProjectKind(project));
+            VsUtils.GetProjectKind(project).Should().Be(VsUtils.ProjectKind.CSharp);
         }
 
         [TestMethod]
@@ -481,13 +455,13 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateProject(kind: MockDTE.VBProjectKind);
 
-            Assert.Equal(VsUtils.ProjectKind.VB, VsUtils.GetProjectKind(project));
+            VsUtils.GetProjectKind(project).Should().Be(VsUtils.ProjectKind.VB);
         }
 
         [TestMethod]
         public void GetProjectKind_when_web()
         {
-            Assert.Equal(VsUtils.ProjectKind.Web, VsUtils.GetProjectKind(MockDTE.CreateWebSite()));
+            VsUtils.GetProjectKind(MockDTE.CreateWebSite()).Should().Be(VsUtils.ProjectKind.Web);
         }
 
         [TestMethod]
@@ -495,19 +469,19 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateProject(kind: null);
 
-            Assert.Equal(VsUtils.ProjectKind.Unknown, VsUtils.GetProjectKind(project));
+            VsUtils.GetProjectKind(project).Should().Be(VsUtils.ProjectKind.Unknown);
         }
 
         [TestMethod]
         public void IsWebSiteProject_when_web()
         {
-            VsUtils.IsWebSiteProject(MockDTE.CreateWebSite(.Should().BeTrue()));
+            VsUtils.IsWebSiteProject(MockDTE.CreateWebSite()).Should().BeTrue();
         }
 
         [TestMethod]
         public void IsWebSiteProject_when_not_web()
         {
-            VsUtils.IsWebSiteProject(MockDTE.CreateProject(.Should().BeFalse()));
+            VsUtils.IsWebSiteProject(MockDTE.CreateProject()).Should().BeFalse();
         }
 
         [TestMethod]
@@ -578,7 +552,7 @@ using FluentAssertions;
             var project = MockDTE.CreateProject(
                 properties: new Dictionary<string, object> { { "OutputFileName", "ConsoleApplication1.exe" } });
 
-            Assert.Equal("ConsoleApplication1.exe", VsUtils.GetProjectTargetFileName(project));
+            VsUtils.GetProjectTargetFileName(project).Should().Be("ConsoleApplication1.exe");
         }
 
         [TestMethod]
@@ -587,7 +561,7 @@ using FluentAssertions;
             var project = MockDTE.CreateProject(
                 properties: new Dictionary<string, object> { { "OutputFileName", 42 } });
 
-            VsUtils.GetProjectTargetFileName(project.Should().BeNull());
+            VsUtils.GetProjectTargetFileName(project).Should().BeNull();
         }
 
         [TestMethod]
@@ -595,7 +569,7 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateProject(properties: new Dictionary<string, object>());
 
-            VsUtils.GetProjectTargetFileName(project.Should().BeNull());
+            VsUtils.GetProjectTargetFileName(project).Should().BeNull();
         }
 
         [TestMethod]
@@ -619,12 +593,16 @@ using FluentAssertions;
         [TestMethod]
         public void EnsureProvider_unregisters_provider_when_useLegacyProvider()
         {
-            DependencyResolver.RegisterProvider(typeof(SqlProviderServices), "System.Data.SqlClient");
+            // Use reflection to get SqlProviderServices type since compile assets are excluded
+            var sqlProviderServicesType = Type.GetType(
+                "System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer",
+                throwOnError: true);
+            DependencyResolver.RegisterProvider(sqlProviderServicesType, "System.Data.SqlClient");
 
             VsUtils.EnsureProvider("System.Data.SqlClient", true, Mock.Of<Project>(), Mock.Of<IServiceProvider>());
 
-            Assert.IsType<LegacyDbProviderServicesWrapper>(
-                DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient"));
+            DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient")
+                .Should().BeOfType<LegacyDbProviderServicesWrapper>();
         }
 
         [TestMethod]
@@ -633,9 +611,16 @@ using FluentAssertions;
             VsUtils.EnsureProvider("System.Data.SqlClient", false, Mock.Of<Project>(), Mock.Of<IServiceProvider>());
             try
             {
-                Assert.Same(
-                    SqlProviderServices.Instance,
-                    DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient"));
+                // Use reflection to get SqlProviderServices.Instance since compile assets are excluded
+                var sqlProviderServicesType = Type.GetType(
+                    "System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer",
+                    throwOnError: true);
+                var instanceProperty = sqlProviderServicesType.GetProperty("Instance",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                var expectedInstance = instanceProperty.GetValue(null);
+
+                DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient")
+                    .Should().BeSameAs(expectedInstance);
             }
             finally
             {
@@ -703,12 +688,10 @@ using FluentAssertions;
                     It.Is<Type>(t => t == typeof(DbProviderServices)),
                     It.IsAny<string>())).Returns(providerServicesMock.Object);
 
-            Assert.Equal(
-                "FakeProviderManifestToken",
-                VsUtils.GetProviderManifestTokenConnected(
-                    mockResolver.Object,
-                    "System.Data.SqlClient",
-                    providerConnectionString: string.Empty));
+            VsUtils.GetProviderManifestTokenConnected(
+                mockResolver.Object,
+                "System.Data.SqlClient",
+                providerConnectionString: string.Empty).Should().Be("FakeProviderManifestToken");
         }
 
         // Tests for SDK-style project support
@@ -718,7 +701,7 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateSdkStyleProject();
 
-            VsUtils.IsSdkStyleProject(project.Should().BeTrue());
+            VsUtils.IsSdkStyleProject(project).Should().BeTrue();
         }
 
         [TestMethod]
@@ -726,7 +709,7 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateProject(new[] { MockDTE.CreateReference("EntityFramework", "6.0.0.0") });
 
-            VsUtils.IsSdkStyleProject(project.Should().BeFalse());
+            VsUtils.IsSdkStyleProject(project).Should().BeFalse();
         }
 
         [TestMethod]
@@ -734,7 +717,7 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateWebSite(new[] { MockDTE.CreateAssemblyReference("EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089") });
 
-            VsUtils.IsSdkStyleProject(project.Should().BeFalse());
+            VsUtils.IsSdkStyleProject(project).Should().BeFalse();
         }
 
         [TestMethod]
@@ -742,7 +725,7 @@ using FluentAssertions;
         {
             var project = MockDTE.CreateMiscFilesProject();
 
-            VsUtils.IsSdkStyleProject(project.Should().BeFalse());
+            VsUtils.IsSdkStyleProject(project).Should().BeFalse();
         }
 
         [TestMethod]
@@ -752,7 +735,7 @@ using FluentAssertions;
 
             var referenceAssemblyNames = VsUtils.GetProjectReferenceAssemblyNames(project).ToArray();
 
-            Assert.Empty(referenceAssemblyNames);
+            referenceAssemblyNames.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -770,10 +753,10 @@ using FluentAssertions;
             {
                 var monikerHelper = new MockDTE(target, MockDTE.CreateSdkStyleProject());
 
-                (VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true),
-                    $"Expected true for {target}");
-                (VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false),
-                    $"Expected true for {target}");
+                VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true)
+                    .Should().BeTrue($"Expected true for {target}");
+                VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false)
+                    .Should().BeTrue($"Expected true for {target}");
             }
         }
 
@@ -786,8 +769,8 @@ using FluentAssertions;
             // For SDK-style projects, GetProjectReferenceAssemblyNames returns empty,
             // so we fall back to checking schema version against target framework.
             // Modern .NET (null from TargetNetFrameworkVersion) should map to v3 schema.
-            (VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider));
+            VsUtils.SchemaVersionSupportedInProject(
+                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeTrue();
         }
     }
 }

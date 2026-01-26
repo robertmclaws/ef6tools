@@ -1,7 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <!-- Assembly signing -->
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\src\ModernEntityDesigner.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-</Project>

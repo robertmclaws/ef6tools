@@ -5,16 +5,16 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
     using System.Data.Entity.Core.Common;
     using System.Data.Entity.Core.Mapping;
     using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.SqlServer;
     using System.Linq;
+    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
+    using FluentAssertions;
 
     [TestClass]
     public class DbDatabaseMappingBuilderTests
     {
-        private static readonly DbProviderManifest ProviderManifest =
-            SqlProviderServices.Instance.GetProviderManifest("2008");
+        private static DbProviderManifest ProviderManifest =>
+            Utils.SqlProviderServicesInstance.GetProviderManifest("2008");
 
         [TestMethod, Ignore("API visibilty differences between official dll and locally built one")]
         public void Build_builds_valid_DbDatabaseMapping_for_entity_types()

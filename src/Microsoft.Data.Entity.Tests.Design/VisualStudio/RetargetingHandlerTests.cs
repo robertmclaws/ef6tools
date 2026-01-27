@@ -1,27 +1,27 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using Moq;
+using Moq.Protected;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using VSLangProj;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Xml;
-    using EnvDTE;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using Moq;
-    using Moq.Protected;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using VSLangProj;
-
     [TestClass]
     public class RetargettingHandlerTests
     {
         [TestMethod]
         public void RetargetFilesInProject_retargets_Edmx_files_in_project()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.7.2", references: new Reference[0]);
 
             var projectItems =
                 new[]
@@ -40,7 +40,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
                             Path = i.Object.get_FileNames(1)
                         }).ToArray();
 
-            var mockRetargetingHandler =
+            Mock<RetargetingHandler> mockRetargetingHandler =
                 new Mock<RetargetingHandler>(mockDte.Hierarchy, mockDte.ServiceProvider)
                     {
                         CallBase = true
@@ -75,7 +75,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void RetargetFilesInProject_wont_retarget_data_services_Edmx_files_in_project()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            var mockDte = new MockDTE(".NETFramework, Version=v4.7.2", references: new Reference[0]);
 
             var projectItems =
                 new[]

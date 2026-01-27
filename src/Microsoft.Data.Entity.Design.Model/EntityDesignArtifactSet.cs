@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Validation;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-
     /// <summary>
     ///     This class represents a set of artifacts that are validated and resolved with respect to one another.
     ///     This class contains resolve information (symbols & bindings) and dep & anti-dep info
@@ -44,7 +44,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 {
                     foreach (var entity in artifact.ConceptualModel.EntityTypes())
                     {
-                        var cet = entity as ConceptualEntityType;
+                        ConceptualEntityType cet = entity as ConceptualEntityType;
                         Debug.Assert(cet != null, "EntityType is not ConceptualEntityType");
                         yield return cet;
                     }

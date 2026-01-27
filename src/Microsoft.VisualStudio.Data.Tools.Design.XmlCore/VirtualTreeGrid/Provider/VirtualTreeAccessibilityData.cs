@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System.Collections;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows.Forms;
-
     /// <summary>
     ///     An enum describing different pieces of information that the
     ///     tree control can automatically add to your name and description fields
@@ -732,8 +732,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             if (value != null)
             {
-                var retVal = value as AccessibilityReplacementField[];
-                if (retVal == null)
+                if (value is not AccessibilityReplacementField[] retVal)
                 {
                     retVal = new AccessibilityReplacementField[value.Count];
                     value.CopyTo(retVal, 0);
@@ -787,8 +786,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             if (value != null)
             {
-                var retVal = value as string[];
-                if (retVal == null)
+                if (value is not string[] retVal)
                 {
                     retVal = new string[value.Count];
                     value.CopyTo(retVal, 0);
@@ -822,8 +820,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             if (value != null)
             {
-                var retVal = value as AccessibleStates[];
-                if (retVal == null)
+                if (value is not AccessibleStates[] retVal)
                 {
                     retVal = new AccessibleStates[value.Count];
                     value.CopyTo(retVal, 0);
@@ -862,8 +859,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns false, there is no need to compare VirtualTreeDisplayData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator ==(VirtualTreeAccessibilityData operand1, VirtualTreeAccessibilityData operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -876,8 +871,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns false, there is no need to compare VirtualTreeDisplayData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool Compare(VirtualTreeAccessibilityData operand1, VirtualTreeAccessibilityData operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -890,8 +883,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns true, there is no need to compare VirtualTreeDisplayData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator !=(VirtualTreeAccessibilityData operand1, VirtualTreeAccessibilityData operand2)
         {
             Debug.Assert(false); // There is no need to compare these

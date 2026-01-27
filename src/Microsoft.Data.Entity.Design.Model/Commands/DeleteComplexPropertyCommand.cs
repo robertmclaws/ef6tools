@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class DeleteComplexPropertyCommand : DeleteEFElementCommand
     {
         /// <summary>
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             get
             {
-                var elem = EFElement as ComplexProperty;
+                ComplexProperty elem = EFElement as ComplexProperty;
                 Debug.Assert(elem != null, "underlying element does not exist or is not a ComplexProperty");
                 if (elem == null)
                 {
@@ -33,8 +33,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
-            var complexProperty = ComplexProperty.Parent as ComplexProperty;
-            if (complexProperty != null
+            if (ComplexProperty.Parent is ComplexProperty complexProperty
                 && complexProperty.ScalarProperties().Count == 0
                 && complexProperty.ComplexProperties().Count == 1)
             {

@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Linq;
-
     internal class ModelGenErrorCache
     {
         private readonly Dictionary<string, List<EdmSchemaError>> _errors;
 
         internal ModelGenErrorCache()
         {
-            _errors = new Dictionary<string, List<EdmSchemaError>>();
+            _errors = [];
         }
 
         // virtual to allow mocking
@@ -35,8 +35,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(fileName), "invalid file name");
 
-            List<EdmSchemaError> errors;
-            _errors.TryGetValue(fileName, out errors);
+            _errors.TryGetValue(fileName, out List<EdmSchemaError> errors);
             return errors;
         }
     }

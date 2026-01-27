@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using MetadataItemHelper = Microsoft.Data.Entity.Design.VersioningFacade.Metadata.MetadataItemHelper;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-    using MetadataItemHelper = Microsoft.Data.Entity.Design.VersioningFacade.Metadata.MetadataItemHelper;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-
     internal class StoreModelBuilder
     {
         private const string TypeAttributeName = "Type";
@@ -71,20 +71,20 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         {
             Debug.Assert(storeSchemaDetails != null, "storeSchemaDetails != null");
 
-            var entityRegister = new EntityRegister();
+            EntityRegister entityRegister = new EntityRegister();
             CreateEntitySets(
                 storeSchemaDetails.TableDetails,
                 storeSchemaDetails.ViewDetails,
                 entityRegister);
 
-            var associationTypes = new List<AssociationType>();
+            List<AssociationType> associationTypes = new List<AssociationType>();
             var associationSets =
                 CreateAssociationSets(
                     storeSchemaDetails.RelationshipDetails,
                     entityRegister,
                     associationTypes);
 
-            var entityContainer =
+            EntityContainer entityContainer =
                 EntityContainer.Create(
                     _namespaceName.Replace(".", string.Empty) + "Container",
                     DataSpace.SSpace,
@@ -92,7 +92,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                     null,
                     null);
 
-            var storeModel =
+            EdmModel storeModel =
                 EdmModel.CreateStoreModel(
                     entityContainer,
                     new DbProviderInfo(_providerInvariantName, _providerManifestToken),
@@ -128,7 +128,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(tableDetailsRowsForViews != null, "tableDetailsRowsForViews != null");
             Debug.Assert(entityRegister != null, "entityRegister != null");
 
-            var entitySetsForReadOnlyEntityTypes = new List<EntitySet>();
+            List<EntitySet> entitySetsForReadOnlyEntityTypes = new List<EntitySet>();
 
             CreateEntitySets(tableDetailsRowsForTables, entityRegister, entitySetsForReadOnlyEntityTypes, DbObjectType.Table);
 
@@ -166,15 +166,14 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             {
                 var firstRow = tableDetailsRowsForTable[0];
 
-                bool needsDefiningQuery;
-                var entityType = CreateEntityType(tableDetailsRowsForTable, out needsDefiningQuery);
+                var entityType = CreateEntityType(tableDetailsRowsForTable, out bool needsDefiningQuery);
                 entityRegister.AddEntityType(firstRow.GetMostQualifiedTableName(), entityType);
 
                 // skip EntitySet creation for invalid entity types. We still need the types themselves - they
                 // will be written to the ssdl in comments for informational and debugging purposes.
                 if (!MetadataItemHelper.IsInvalid(entityType))
                 {
-                    var entitySet =
+                    EntitySet entitySet =
                         EntitySet.Create(
                             entityType.Name,
                             !firstRow.IsSchemaNull() ? firstRow.Schema : null,
@@ -212,12 +211,11 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             var entityTypeName = _usedTypeNames.AdjustIdentifier(columns[0].TableName);
             var tableName = columns[0].GetMostQualifiedTableName();
 
-            var errors = new List<EdmSchemaError>();
-            List<string> excludedColumnNames; // columns that were invalid and could not be converted to properties (e.g. of unknown type)
-            List<string> keyColumnNames; // columns that were marked as key columns (including excluded/excluded columns)
-            List<string> invalidKeyTypeColumnNames;
-                // columns that could be converted to properties but cannot be key properties (e.g. of geography type)
-            var properties = CreateProperties(columns, errors, out keyColumnNames, out excludedColumnNames, out invalidKeyTypeColumnNames);
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
+            // columns that were invalid and could not be converted to properties (e.g. of unknown type)
+            // columns that were marked as key columns (including excluded/excluded columns)
+            // columns that could be converted to properties but cannot be key properties (e.g. of geography type)
+            var properties = CreateProperties(columns, errors, out List<string> keyColumnNames, out List<string> excludedColumnNames, out List<string> invalidKeyTypeColumnNames);
 
             var excludedKeyColumnNames = keyColumnNames.Intersect(excludedColumnNames).ToArray();
 
@@ -402,10 +400,10 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(columns.Count > 0, "columns.Count > 0");
             Debug.Assert(errors != null, "errors != null");
 
-            var members = new List<EdmProperty>();
-            excludedColumns = new List<string>();
-            keyColumns = new List<string>();
-            invalidKeyTypeColumns = new List<string>();
+            List<EdmProperty> members = new List<EdmProperty>();
+            excludedColumns = [];
+            keyColumns = [];
+            invalidKeyTypeColumns = [];
             foreach (var row in columns)
             {
                 Debug.Assert(row.ColumnName != null);
@@ -647,8 +645,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             }
             else
             {
-                bool excludedForVersion;
-                var propertyType = GetStorePrimitiveTypeForVersion(row.DataType, out excludedForVersion);
+                var propertyType = GetStorePrimitiveTypeForVersion(row.DataType, out bool excludedForVersion);
 
                 if (propertyType == null)
                 {
@@ -691,23 +688,20 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         {
             Debug.Assert(tvfReturnTypeDetailsRows != null, "tvfReturnTypeDetailsRows != null");
 
-            var rowTypes = new Dictionary<string, RowType>();
+            Dictionary<string, RowType> rowTypes = new Dictionary<string, RowType>();
 
             foreach (var rowTypeDetailsRows in SplitRows(tvfReturnTypeDetailsRows))
             {
-                var errors = new List<EdmSchemaError>();
+                List<EdmSchemaError> errors = new List<EdmSchemaError>();
 
                 // columns that were invalid and could not be converted to properties (e.g. of unknown type)
-                List<string> excludedColumnNames;
 
                 // columns that were marked as key columns (including excluded/excluded columns)
-                List<string> keyColumnNames;
 
                 // columns that could be converted to properties but cannot be key properties (e.g. of geography type)
-                List<string> invalidKeyTypeColumnNames;
 
                 var properties = CreateProperties(
-                    rowTypeDetailsRows, errors, out keyColumnNames, out excludedColumnNames, out invalidKeyTypeColumnNames);
+                    rowTypeDetailsRows, errors, out List<string> keyColumnNames, out List<string> excludedColumnNames, out List<string> invalidKeyTypeColumnNames);
 
                 rowTypes[rowTypeDetailsRows[0].GetMostQualifiedTableName()]
                     = RowType.Create(properties, CreateMetadataErrorProperty(errors));
@@ -742,7 +736,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 return null;
             }
 
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var parameters = functionDetails.IsParameterNameNull
                                  ? null
                                  : CreateFunctionParameters(functionDetailsRows, errors).ToArray();
@@ -779,7 +773,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(functionDetailsRows != null, "functionDetailsRows != null");
             Debug.Assert(errors != null, "errors != null");
 
-            var uniqueIdentifierService = new UniqueIdentifierService();
+            UniqueIdentifierService uniqueIdentifierService = new UniqueIdentifierService();
             var parameterIdx = 0;
 
             return
@@ -805,8 +799,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 return null;
             }
 
-            ParameterMode parameterMode;
-            if (!functionDetailsRow.TryGetParameterMode(out parameterMode))
+            if (!functionDetailsRow.TryGetParameterMode(out ParameterMode parameterMode))
             {
                 errors.Add(
                     new EdmSchemaError(
@@ -837,8 +830,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             var parameterTypeName = functionDetailsRow.IsParameterTypeNull ? null : functionDetailsRow.ParameterType;
 
-            bool excludedForVersion;
-            var parameterType = GetStorePrimitiveTypeForVersion(parameterTypeName, out excludedForVersion);
+            var parameterType = GetStorePrimitiveTypeForVersion(parameterTypeName, out bool excludedForVersion);
 
             if (parameterType == null)
             {
@@ -872,8 +864,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             if (functionDetailsRow.ReturnType != null)
             {
-                bool excludedForVersion;
-                returnType = GetStorePrimitiveTypeForVersion(functionDetailsRow.ReturnType, out excludedForVersion);
+                returnType = GetStorePrimitiveTypeForVersion(functionDetailsRow.ReturnType, out bool excludedForVersion);
 
                 if (returnType == null)
                 {
@@ -892,8 +883,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             }
             else if (functionDetailsRow.IsTvf)
             {
-                RowType rowType;
-                if (tvfReturnTypes.TryGetValue(functionDetailsRow.GetMostQualifiedFunctionName(), out rowType)
+                if (tvfReturnTypes.TryGetValue(functionDetailsRow.GetMostQualifiedFunctionName(), out RowType rowType)
                     && !MetadataItemHelper.HasSchemaErrors(rowType))
                 {
                     returnType = rowType.GetCollectionType();
@@ -950,18 +940,13 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(EntityFrameworkVersion.IsValidVersion(entityFrameworkVersion), "invalid entityFrameworkVersion");
             Debug.Assert(edmType != null, "primitiveType != null");
 
-            var primitiveType = edmType as PrimitiveType;
 
-            if (primitiveType == null)
+            if (edmType is not PrimitiveType primitiveType)
             {
                 return false;
             }
 
-            if (EntityFrameworkVersion.Version1 == entityFrameworkVersion)
-            {
-                return primitiveType.PrimitiveTypeKind != PrimitiveTypeKind.Binary;
-            }
-
+            // For EF6, only Geography and Geometry types are not valid key types
             return
                 primitiveType.PrimitiveTypeKind != PrimitiveTypeKind.Geography &&
                 primitiveType.PrimitiveTypeKind != PrimitiveTypeKind.Geometry;
@@ -1018,7 +1003,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(entityRegister != null, "entityRegister != null");
             Debug.Assert(associationTypes != null, "associationTypes != null");
 
-            var associationSets = new List<AssociationSet>();
+            List<AssociationSet> associationSets = new List<AssociationSet>();
             var rowGroups =
                 relationshipDetailsRows
                     .GroupBy(row => row.RelationshipId)
@@ -1044,7 +1029,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(relationshipDetailsRows.Count > 0, "relationshipDetailsRows.Count > 0");
 
             var firstRow = relationshipDetailsRows.First();
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
 
             AssociationType associationType;
             var isValidAssociationType = false;
@@ -1058,12 +1043,10 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             if (ValidateEndEntities(relationshipDetailsRows, pkEntityType, fkEntityType, errors))
             {
-                var someFKColumnsAreNullable =
-                    _targetEntityFrameworkVersion == EntityFrameworkVersion.Version1
-                        ? AreAllFKColumnsNullable(relationshipDetailsRows, fkEntityType)
-                        : AreAnyFKColumnsNullable(relationshipDetailsRows, fkEntityType);
+                // For EF6, use the modern nullable check
+                var someFKColumnsAreNullable = AreAnyFKColumnsNullable(relationshipDetailsRows, fkEntityType);
 
-                var usedEndNames = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase);
+                UniqueIdentifierService usedEndNames = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase);
 
                 pkEnd = AssociationEndMember.Create(
                     usedEndNames.AdjustIdentifier(pkEntityType.Name),
@@ -1117,9 +1100,8 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             var sourceEnd = associationType.AssociationEndMembers[0];
             var targetEnd = associationType.AssociationEndMembers[1];
 
-            EntitySet sourceSet, targetSet;
-            if (!entityRegister.EntityTypeToSet.TryGetValue(sourceEnd.GetEntityType(), out sourceSet)
-                || !entityRegister.EntityTypeToSet.TryGetValue(targetEnd.GetEntityType(), out targetSet))
+            if (!entityRegister.EntityTypeToSet.TryGetValue(sourceEnd.GetEntityType(), out EntitySet sourceSet)
+                || !entityRegister.EntityTypeToSet.TryGetValue(targetEnd.GetEntityType(), out EntitySet targetSet))
             {
                 return null;
             }
@@ -1129,8 +1111,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
         private static EntityType TryGetEndEntity(EntityRegister entityRegister, string key, List<EdmSchemaError> errors)
         {
-            EntityType type;
-            if (entityRegister.EntityLookup.TryGetValue(key, out type)
+            if (entityRegister.EntityLookup.TryGetValue(key, out EntityType type)
                 && !MetadataItemHelper.IsInvalid(type))
             {
                 return type;
@@ -1183,8 +1164,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         {
             foreach (var row in relationshipDetailsRows)
             {
-                EdmProperty property;
-                if (entityType.Properties.TryGetValue(row.FKColumn, false, out property))
+                if (entityType.Properties.TryGetValue(row.FKColumn, false, out EdmProperty property))
                 {
                     if (!property.Nullable)
                     {
@@ -1206,8 +1186,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         {
             foreach (var row in relationshipDetailsRows)
             {
-                EdmProperty property;
-                if (entityType.Properties.TryGetValue(row.FKColumn, false, out property))
+                if (entityType.Properties.TryGetValue(row.FKColumn, false, out EdmProperty property))
                 {
                     if (property.Nullable)
                     {
@@ -1250,17 +1229,16 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             AssociationEndMember fkEnd,
             IList<EdmSchemaError> errors)
         {
-            var fromProperties = new EdmProperty[relationshipDetailsRows.Count];
-            var toProperties = new EdmProperty[relationshipDetailsRows.Count];
+            EdmProperty[] fromProperties = new EdmProperty[relationshipDetailsRows.Count];
+            EdmProperty[] toProperties = new EdmProperty[relationshipDetailsRows.Count];
             var pkEntityType = pkEnd.GetEntityType();
             var fkEntityType = fkEnd.GetEntityType();
 
             for (var index = 0; index < relationshipDetailsRows.Count; index++)
             {
-                EdmProperty property;
                 var row = relationshipDetailsRows[index];
 
-                if (!pkEntityType.Properties.TryGetValue(row.PKColumn, false, out property))
+                if (!pkEntityType.Properties.TryGetValue(row.PKColumn, false, out EdmProperty property))
                 {
                     errors.Add(
                         new EdmSchemaError(
@@ -1358,7 +1336,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             string associationTypeName,
             IList<EdmSchemaError> errors)
         {
-            var toType = (EntityType)constraint.ToProperties[0].DeclaringType;
+            EntityType toType = (EntityType)constraint.ToProperties[0].DeclaringType;
             var toPropertiesAreFullyContainedInPK = true;
             var toPropertiesContainedAtLeastOnePK = false;
 
@@ -1404,13 +1382,13 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
         public static IList<MetadataProperty> CreateMetadataProperties(bool invalid, IList<EdmSchemaError> errors)
         {
-            var properties = new List<MetadataProperty>();
+            List<MetadataProperty> properties = new List<MetadataProperty>();
 
             if (invalid)
             {
-                var typeUsage = TypeUsage.CreateDefaultTypeUsage(
+                TypeUsage typeUsage = TypeUsage.CreateDefaultTypeUsage(
                     PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Boolean));
-                var property = MetadataProperty.Create(
+                MetadataProperty property = MetadataProperty.Create(
                     MetadataItemHelper.SchemaInvalidMetadataPropertyName, typeUsage, true);
                 properties.Add(property);
             }
@@ -1418,9 +1396,9 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             if (errors != null
                 && errors.Any())
             {
-                var typeUsage = TypeUsage.CreateDefaultTypeUsage(
+                TypeUsage typeUsage = TypeUsage.CreateDefaultTypeUsage(
                     PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.String).GetCollectionType());
-                var property = MetadataProperty.Create(
+                MetadataProperty property = MetadataProperty.Create(
                     MetadataItemHelper.SchemaErrorsMetadataPropertyName, typeUsage, errors);
                 properties.Add(property);
             }
@@ -1446,10 +1424,10 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         // Internal for test purposes only.
         internal class EntityRegister
         {
-            public readonly List<EntityType> EntityTypes = new List<EntityType>();
-            public readonly List<EntitySet> EntitySets = new List<EntitySet>();
-            public readonly Dictionary<string, EntityType> EntityLookup = new Dictionary<string, EntityType>();
-            public readonly Dictionary<EntityType, EntitySet> EntityTypeToSet = new Dictionary<EntityType, EntitySet>();
+            public readonly List<EntityType> EntityTypes = [];
+            public readonly List<EntitySet> EntitySets = [];
+            public readonly Dictionary<string, EntityType> EntityLookup = [];
+            public readonly Dictionary<EntityType, EntitySet> EntityTypeToSet = [];
 
             public void AddEntityType(string key, EntityType type)
             {

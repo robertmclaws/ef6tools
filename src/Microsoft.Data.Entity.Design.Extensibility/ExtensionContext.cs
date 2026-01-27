@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Xml.Linq;
+using EnvDTE;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Xml.Linq;
-    using EnvDTE;
-
     /// <summary>
     ///     A base class for the <see cref="T:Microsoft.Data.Entity.Design.Extensibility.ModelGenerationExtensionContext" />,
     ///     <see cref="T:Microsoft.Data.Entity.Design.Extensibility.PropertyExtensionContext" />,
@@ -145,7 +145,6 @@ namespace Microsoft.Data.Entity.Design.Extensibility
 
         /// <summary>A list of errors that can be shown in the Visual StudioError List when .edmx files are loaded or saved by the Entity Data Model Designer.</summary>
         /// <returns>A list of errors that can be shown in the Visual StudioError List when .edmx files are loaded or saved by the Entity Data Model Designer.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1002:DoNotExposeGenericLists", Justification = "Backwards compatibility, it is already part of public API")]
         public abstract List<ExtensionError> Errors { get; }
     }
 
@@ -170,7 +169,6 @@ namespace Microsoft.Data.Entity.Design.Extensibility
 
         /// <summary>A list of errors that can be shown in the Visual StudioError List when loading a custom file format and converting it to a custom file format.</summary>
         /// <returns>A list of errors that can be shown in the Visual StudioError List when loading a custom file format and converting it to a custom file format.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1002:DoNotExposeGenericLists", Justification = "Backwards compatibility, it is already part of public API")]
         public abstract List<ExtensionError> Errors { get; }
     }
 }

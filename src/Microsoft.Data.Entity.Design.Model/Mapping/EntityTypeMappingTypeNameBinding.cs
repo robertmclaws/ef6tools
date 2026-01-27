@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     This class derives from MultiItemBinding
     ///     <EntityType>
@@ -32,7 +32,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             base.Init();
 
-            _isTypeOfs = new List<bool>();
+            _isTypeOfs = [];
 
             if (RefName != null)
             {
@@ -107,7 +107,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             }
             set
             {
-                var typeListBuilder = new StringBuilder();
+                StringBuilder typeListBuilder = new StringBuilder();
                 foreach (var entry in value)
                 {
                     if (typeListBuilder.Length > 0)
@@ -165,7 +165,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                 return;
             }
 
-            var replacementAttrValue = new StringBuilder();
+            StringBuilder replacementAttrValue = new StringBuilder();
             var replacedAnyPart = false;
             for (var i = 0; i < origRefNameAsNormalizedNames.Count; i++)
             {

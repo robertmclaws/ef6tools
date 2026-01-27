@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 {
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     /// <summary>
     ///     Collection of diagram items that will be emphasized.
     /// </summary>

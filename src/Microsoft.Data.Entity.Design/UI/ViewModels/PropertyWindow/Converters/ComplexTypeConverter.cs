@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-
     internal class ComplexTypeConverter : DynamicListConverter<ComplexType, ObjectDescriptor>
     {
         protected override void PopulateMappingForSelectedObject(ObjectDescriptor selectedObject)
@@ -14,10 +14,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 
             if (selectedObject != null)
             {
-                var property = selectedObject.WrappedItem as ComplexConceptualProperty;
-                if (property != null)
+                if (selectedObject.WrappedItem is ComplexConceptualProperty property)
                 {
-                    var model = property.EntityModel as ConceptualEntityModel;
+                    ConceptualEntityModel model = property.EntityModel as ConceptualEntityModel;
                     Debug.Assert(model != null, "Unexpected model type");
                     if (model != null)
                     {

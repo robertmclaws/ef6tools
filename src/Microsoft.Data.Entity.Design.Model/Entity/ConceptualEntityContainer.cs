@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-
     internal class ConceptualEntityContainer : BaseEntityContainer
     {
         // FunctionImport elements only exist in the csdl file
-        private readonly List<FunctionImport> _functionImports = new List<FunctionImport>();
+        private readonly List<FunctionImport> _functionImports = [];
         private DefaultableValue<string> _typeAccessAttr;
         private DefaultableValue<bool> _lazyLoadingEnabledAttr;
 
@@ -26,10 +26,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_typeAccessAttr == null)
-                {
-                    _typeAccessAttr = new TypeAccessDefaultableValue(this);
-                }
+                _typeAccessAttr ??= new TypeAccessDefaultableValue(this);
                 return _typeAccessAttr;
             }
         }
@@ -41,10 +38,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_lazyLoadingEnabledAttr == null)
-                {
-                    _lazyLoadingEnabledAttr = new LazyLoadingDefaultableValue(this);
-                }
+                _lazyLoadingEnabledAttr ??= new LazyLoadingDefaultableValue(this);
                 return _lazyLoadingEnabledAttr;
             }
         }
@@ -88,8 +82,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child = efContainer as FunctionImport;
-            if (child != null)
+            if (efContainer is FunctionImport child)
             {
                 _functionImports.Remove(child);
                 return;
@@ -128,7 +121,6 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == EntitySet.ElementName)
@@ -139,7 +131,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             }
             else if (elem.Name.LocalName == FunctionImport.ElementName)
             {
-                var fi = new FunctionImport(this, elem);
+                FunctionImport fi = new FunctionImport(this, elem);
                 _functionImports.Add(fi);
                 fi.Parse(unprocessedElements);
             }

@@ -1,20 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition.Hosting;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.ComponentModelHost;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.Composition.Hosting;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.ComponentModelHost;
-
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class EscherExtensionPointManager
     {
         private static EscherExtensionPointManager _instance;
@@ -24,7 +23,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
 
         private EscherExtensionPointManager()
         {
-            var componentModelService = (IComponentModel)PackageManager.Package.GetService(typeof(SComponentModel));
+            IComponentModel componentModelService = (IComponentModel)PackageManager.Package.GetService(typeof(SComponentModel));
             _exportProvider = componentModelService.DefaultExportProvider;
         }
 
@@ -37,8 +36,8 @@ namespace Microsoft.Data.Entity.Design.Extensibility
         {
             get
             {
-                var vsArtifact = PackageManager.Package.DocumentFrameMgr.CurrentArtifact as VSArtifact;
-                return vsArtifact != null ? vsArtifact.LayerManager : null;
+                VSArtifact vsArtifact = PackageManager.Package.DocumentFrameMgr.CurrentArtifact as VSArtifact;
+                return vsArtifact?.LayerManager;
             }
         }
 
@@ -46,10 +45,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
         {
             get
             {
-                if (_instance == null)
-                {
-                    _instance = new EscherExtensionPointManager();
-                }
+                _instance ??= new EscherExtensionPointManager();
                 return _instance;
             }
         }
@@ -83,7 +79,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
         {
             // if a layer manager exists, then use it to filter the extension based on what layers are enabled
             // or not. Otherwise, remove all layer-specific extensions from the list we're going to return.
-            var extensions = new List<Lazy<T, IEntityDesignerLayerData>>();
+            List<Lazy<T, IEntityDesignerLayerData>> extensions = new List<Lazy<T, IEntityDesignerLayerData>>();
             extensions.AddRange(Instance.ExportProvider.GetExports<T, IEntityDesignerLayerData>());
             var layerManager = LayerManager;
             if (layerManager != null)
@@ -108,8 +104,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
             return extensions.Where(
                 l =>
                     {
-                        var layerData = l.Metadata as IEntityDesignerLayerData;
-                        return layerData == null || String.IsNullOrEmpty(layerData.LayerName);
+                        return l.Metadata is not IEntityDesignerLayerData layerData || String.IsNullOrEmpty(layerData.LayerName);
                     });
         }
 

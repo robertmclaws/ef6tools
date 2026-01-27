@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Validation;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-
     internal class RenameConceptualNamespaceCommand : Command
     {
         private readonly ConceptualEntityModel _conceptualEntityModel;

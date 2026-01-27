@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     This class is able to invoke a queue of commands with the required "context" around them, i.e.,
     ///     creating a transaction, running IntegrityChecks, routing to views, etc.
@@ -167,8 +167,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         ///     Invokes the commands in the queue.  If any command throws an exception, the transaction
         ///     will be rolled back and this will rethrow.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA2208:InstantiateArgumentExceptionsCorrectly",
-            Justification = @"Risky to change to InvalidOperationException since it has many upstream callers")]
         internal void Invoke()
         {
             // just to be safe, the c'tor should have caught this
@@ -376,7 +374,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// </summary>
         internal static void InvokeSingleCommand(CommandProcessorContext cpc, Command cmd)
         {
-            var cp = new CommandProcessor(cpc, cmd);
+            CommandProcessor cp = new CommandProcessor(cpc, cmd);
             cp.Invoke();
         }
     }

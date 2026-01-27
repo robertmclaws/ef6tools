@@ -1,20 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImports;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImports;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
-
     // <summary>
     //     Based on the type of item being shown, show the correct text for the Column Name column.
     // </summary>
@@ -28,8 +29,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
         internal override object GetInPlaceEdit(object component, ref string alternateText)
         {
             EnsureTypeConverters(component as MappingEFElement);
-            var mfisp = component as MappingFunctionImportScalarProperty;
-            if (mfisp != null
+            if (component is MappingFunctionImportScalarProperty mfisp
                 && mfisp.ScalarProperty == null)
             {
                 // this will clear the gray text from the column when it enters an edit mode
@@ -40,28 +40,24 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         public override object /* PropertyDescriptor */ GetValue(object component)
         {
-            var mesp = component as MappingEndScalarProperty;
-            if (mesp != null)
+            if (component is MappingEndScalarProperty mesp)
             {
                 EnsureTypeConverters(mesp);
                 return new MappingLovEFElement(mesp, mesp.Value);
             }
 
-            var mfisp = component as MappingFunctionImportScalarProperty;
-            if (mfisp != null)
+            if (component is MappingFunctionImportScalarProperty mfisp)
             {
                 EnsureTypeConverters(mfisp);
                 return new MappingLovEFElement(mfisp, mfisp.ColumnName);
             }
 
-            var mfi = component as MappingFunctionImport;
-            if (mfi != null)
+            if (component is MappingFunctionImport mfi)
             {
                 return MappingEFElement.LovBlankPlaceHolder;
             }
 
-            var elem = component as MappingEFElement;
-            if (elem != null)
+            if (component is MappingEFElement elem)
             {
                 EnsureTypeConverters(elem);
                 return new MappingLovEFElement(elem, elem.Name);
@@ -87,7 +83,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 || component is MappingEndScalarProperty
                 || component is MappingFunctionImportScalarProperty)
             {
-                var mappingElement = component as MappingEFElement;
+                MappingEFElement mappingElement = component as MappingEFElement;
                 Debug.Assert(mappingElement != null, "The component should be a MappingEFElement");
                 if (mappingElement.ModelItem != null)
                 {
@@ -99,8 +95,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         // This method receives changes as MappingLovElements (user used the mouse)
         // or as strings (user used the keyboard)
-        [SuppressMessage("Microsoft.Performance", "CA1820:TestForEmptyStringsUsingStringLength", Justification = "We already test for null earlier, here we want to just test against the empty string. Testing length would require that the string exists which is often not the case.")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public override void SetValue(object component, object value)
         {
             // if they picked on the "Empty" placeholder, ignore it
@@ -118,7 +112,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var lovElement = value as MappingLovEFElement;
+            MappingLovEFElement lovElement = value as MappingLovEFElement;
             if (lovElement == null
                 && valueAsString == null)
             {
@@ -127,8 +121,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var mfisp = component as MappingFunctionImportScalarProperty;
-            if (mfisp != null)
+            if (component is MappingFunctionImportScalarProperty mfisp)
             {
                 if (mfisp.ModelItem != null)
                 {
@@ -166,9 +159,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
             {
                 return;
             }
-            
-            var mset = component as MappingStorageEntityType;
-            if (mset != null)
+
+            if (component is MappingStorageEntityType mset)
             {
                 // if value is a string then we've called SetValue after an edit using keyboard
                 // so lookup correct MappingLovElement and use that going forward
@@ -186,7 +178,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                     return;
                 }
 
-                var et = lovElement.ModelElement as EntityType;
+                EntityType et = lovElement.ModelElement as EntityType;
                 Debug.Assert(
                     et != null, "component is a MappingStorageEntityType but value.ModelElement is of type " + value.GetType().FullName);
 
@@ -200,7 +192,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 {
                     // they switched to a different table so delete the old
                     // underlying model item and create a new one
-                    var cpc = new CommandProcessorContext(
+                    CommandProcessorContext cpc = new CommandProcessorContext(
                         Host.Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_UpdateMappingFragment);
                     mset.SwitchModelItem(cpc, Host.Context, et, false);
                     OnValueChanged(this, new ColumnValueChangedEventArgs(new TreeGridDesignerBranchChangedArgs()));
@@ -208,8 +200,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var mc = component as MappingCondition;
-            if (mc != null)
+            if (component is MappingCondition mc)
             {
                 // if value is a string then we've called SetValue after an edit using keyboard
                 // so lookup correct MappingLovElement and use that going forward
@@ -227,7 +218,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                     return;
                 }
 
-                var property = lovElement.ModelElement as Property;
+                Property property = lovElement.ModelElement as Property;
                 Debug.Assert(
                     property != null, "component is a MappingCondition but value.ModelElement is of type " + value.GetType().FullName);
 
@@ -252,8 +243,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
             // remember that the columns are reversed for association mappings, so this is column 3
             // if its an end scalar property
-            var mesp = component as MappingEndScalarProperty;
-            if (mesp != null)
+            if (component is MappingEndScalarProperty mesp)
             {
                 // if value is a string then we've called SetValue after an edit using keyboard
                 // so lookup correct MappingLovElement and use that going forward
@@ -272,7 +262,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                     return;
                 }
 
-                var property = lovElement.ModelElement as Property;
+                Property property = lovElement.ModelElement as Property;
                 Debug.Assert(
                     property != null,
                     "component is a MappingEndScalarProperty but value.ModelElement is of type " + value.GetType().FullName);
@@ -296,7 +286,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         internal override TreeGridDesignerValueSupportedStates GetValueSupported(object component)
         {
             if (component is MappingColumnMappings
@@ -310,7 +299,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
             }
             else if (component is MappingEndScalarProperty)
             {
-                var mesp = component as MappingEndScalarProperty;
+                MappingEndScalarProperty mesp = component as MappingEndScalarProperty;
                 if (mesp.MappingAssociationSet.AssociationSet.AssociationSetMapping == null)
                 {
                     return TreeGridDesignerValueSupportedStates.None;
@@ -322,7 +311,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
             }
             else if (component is MappingFunctionImportScalarProperty)
             {
-                var mfisp = component as MappingFunctionImportScalarProperty;
+                MappingFunctionImportScalarProperty mfisp = component as MappingFunctionImportScalarProperty;
                 if (mfisp.IsComplexProperty)
                 {
                     return TreeGridDesignerValueSupportedStates.None;

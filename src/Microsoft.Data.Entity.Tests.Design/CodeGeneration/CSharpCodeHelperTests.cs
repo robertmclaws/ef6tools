@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
     [TestClass]
     public class CSharpCodeHelperTests
     {
@@ -24,7 +24,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             {
                 if (_model == null)
                 {
-                    var modelBuilder = new DbModelBuilder();
+                    DbModelBuilder modelBuilder = new DbModelBuilder();
                     modelBuilder.Entity<Entity>().HasMany(e => e.Children).WithOptional(e => e.Parent);
 
                     _model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
@@ -38,7 +38,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         public void Type_evaluates_preconditions()
         {
             ArgumentException ex;
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             ex = ((Action)(() => code.Type((EntityContainer)null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("container");
@@ -57,7 +57,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         public void Type_returns_container_name()
         {
             var container = Model.ConceptualModel.Container;
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Type(container).Should().Be("CodeFirstContainer");
         }
@@ -65,9 +65,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
         public void Type_escapes_container_name()
         {
-            var container = new Mock<EntityContainer>();
+            Mock<EntityContainer> container = new Mock<EntityContainer>();
             container.SetupGet(c => c.Name).Returns("null");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Type(container.Object).Should().Be("_null");
         }
@@ -76,7 +76,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         public void Type_returns_type_name()
         {
             var container = Model.ConceptualModel.EntityTypes.First();
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Type(container).Should().Be("Entity");
         }
@@ -84,9 +84,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
         public void Type_escapes_type_name()
         {
-            var type = new Mock<EdmType>();
+            Mock<EdmType> type = new Mock<EdmType>();
             type.SetupGet(c => c.Name).Returns("null");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Type(type.Object).Should().Be("_null");
         }
@@ -96,7 +96,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var property = Model.ConceptualModel.EntityTypes.First().Properties.First(
                 p => p.Name == "Name");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Type(property).Should().Be("string");
         }
@@ -106,7 +106,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var property = Model.ConceptualModel.EntityTypes.First().Properties.First(
                 p => p.Name == "Id");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Type(property).Should().Be("int");
         }
@@ -116,7 +116,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var property = Model.ConceptualModel.EntityTypes.First().Properties.First(
                 p => p.Name == "ParentId");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Type(property).Should().Be("int?");
         }
@@ -126,7 +126,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var property = Model.ConceptualModel.EntityTypes.First().Properties.First(
                 p => p.Name == "Guid");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Type(property).Should().Be("Guid");
         }
@@ -136,7 +136,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var property = Model.ConceptualModel.EntityTypes.First().NavigationProperties.First(
                 p => p.Name == "Parent");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Type(property).Should().Be("Entity");
         }
@@ -146,7 +146,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var property = Model.ConceptualModel.EntityTypes.First().NavigationProperties.First(
                 p => p.Name == "Children");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Type(property).Should().Be("ICollection<Entity>");
         }
@@ -155,7 +155,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         public void Property_evaluates_preconditions()
         {
             ArgumentException ex;
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             ex = ((Action)(() => code.Property((EntitySetBase)null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("entitySet");
@@ -168,7 +168,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         public void Property_returns_entity_set_name()
         {
             var entitySet = Model.ConceptualModel.Container.EntitySets.First();
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Property(entitySet).Should().Be("Entities");
         }
@@ -176,9 +176,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
         public void Property_escapes_entity_set_name()
         {
-            var set = new Mock<EntitySetBase>();
+            Mock<EntitySetBase> set = new Mock<EntitySetBase>();
             set.SetupGet(s => s.Name).Returns("null");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Property(set.Object).Should().Be("_null");
         }
@@ -187,7 +187,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         public void Property_returns_member_name()
         {
             var member = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Id");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Property(member).Should().Be("Id");
         }
@@ -195,9 +195,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
         public void Property_escapes_member_name()
         {
-            var member = new Mock<EdmMember>();
+            Mock<EdmMember> member = new Mock<EdmMember>();
             member.SetupGet(m => m.Name).Returns("null");
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Property(member.Object).Should().Be("_null");
         }
@@ -205,7 +205,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Attribute_evaluates_preconditions()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             var ex = ((Action)(() => code.Attribute(null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("configuration");
@@ -214,8 +214,8 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Attribute_surrounds_body()
         {
-            var code = new CSharpCodeHelper();
-            var configuration = new Mock<IAttributeConfiguration>();
+            CSharpCodeHelper code = new CSharpCodeHelper();
+            Mock<IAttributeConfiguration> configuration = new Mock<IAttributeConfiguration>();
             configuration.Setup(c => c.GetAttributeBody(code)).Returns("Required");
 
             code.Attribute(configuration.Object).Should().Be("[Required]");
@@ -224,7 +224,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void MethodChain_evaluates_preconditions()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             var ex = ((Action)(() => code.MethodChain(null))).Should().Throw<ArgumentNullException>().Which;
             ex.ParamName.Should().Be("configuration");
@@ -233,8 +233,8 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void MethodChain_calls_GetMethodChain_on_configuration()
         {
-            var code = new CSharpCodeHelper();
-            var configuration = new Mock<IFluentConfiguration>();
+            CSharpCodeHelper code = new CSharpCodeHelper();
+            Mock<IFluentConfiguration> configuration = new Mock<IFluentConfiguration>();
 
             code.MethodChain(configuration.Object);
 
@@ -244,7 +244,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Literal_returns_string_when_one()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Literal(new[] { "One" }).Should().Be("\"One\"");
         }
@@ -252,7 +252,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Literal_returns_string_array_when_more_than_one()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Literal(new[] { "One", "Two" }).Should().Be("new[] { \"One\", \"Two\" }");
         }
@@ -260,7 +260,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Literal_returns_string()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Literal("One").Should().Be("\"One\"");
         }
@@ -268,7 +268,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Literal_returns_int()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Literal(42).Should().Be("42");
         }
@@ -276,7 +276,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Literal_returns_bool()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.Literal(true).Should().Be("true");
             code.Literal(false).Should().Be("false");
@@ -285,7 +285,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void BeginLambda_returns_lambda_beginning()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.BeginLambda("x").Should().Be("x => ");
         }
@@ -293,7 +293,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Lambda_returns_property_accessor_when_one()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
             var member = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Id");
 
             code.Lambda(member).Should().Be("e => e.Id");
@@ -302,7 +302,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Lambda_returns_anonymous_type_when_one()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
             var id = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Id");
             var name = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Name");
 
@@ -312,7 +312,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void TypeArgument_surrounds_value()
         {
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             code.TypeArgument("Entity").Should().Be("<Entity>");
         }

@@ -1,41 +1,41 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Xml;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Data.Services;
+using Microsoft.VisualStudio.Modeling.Shell;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.TemplateWizard;
+using Command = Microsoft.Data.Entity.Design.Model.Commands.Command;
+using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using System.Xml;
-    using EnvDTE;
-    using EnvDTE80;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Data.Services;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.TemplateWizard;
-    using Command = Microsoft.Data.Entity.Design.Model.Commands.Command;
-    using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     /// <summary>
     ///     Visual Studio invokes this wizard when a new item of type "ADO.NET Entity Data Model" is added
     ///     to an existing project.  This wizard is registered in the .vstemplate file item template.
@@ -52,7 +52,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
     ///        +- ModelName.cs [or vb] - for CodeFirst
     /// 
     /// </summary>
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     public class ModelObjectItemWizard : IWizard
     {
         // NOTE: This is not localized because it ends up in the CSDL (and hence the code)
@@ -125,8 +124,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
         /// <param name="replacementsDictionary">This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</param>
         /// <param name="runKind">This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</param>
         /// <param name="customParams">This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</param>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         public void RunStarted(
             object automationObject,
             Dictionary<string, string> replacementsDictionary,
@@ -134,8 +131,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
             object[] customParams)
         {
             // the dte is the handle into the VS environment
-            var dte = (DTE2)automationObject;
-            var serviceProvider = new ServiceProvider((IOleServiceProvider)dte);
+            DTE2 dte = (DTE2)automationObject;
+            ServiceProvider serviceProvider = new ServiceProvider((IOleServiceProvider)dte);
 
             // get the current project that the wizard is running in
             var project = VsUtils.GetActiveProject(dte);
@@ -144,8 +141,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
             EnsureCanStartWizard(project, serviceProvider);
 
             // get file name the user chose 
-            string modelName;
-            replacementsDictionary.TryGetValue("$rootname$", out modelName);
+            replacementsDictionary.TryGetValue("$rootname$", out string modelName);
 
             Debug.Assert(modelName != null, "Unable to get $rootname$ from replacementsDictionary");
 
@@ -166,7 +162,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                 ReplacementDictionary = replacementsDictionary
             };
 
-            var form = new ModelBuilderWizardForm(
+            ModelBuilderWizardForm form = new ModelBuilderWizardForm(
                 serviceProvider,
                 _modelBuilderSettings,
                 ModelBuilderWizardForm.WizardMode.PerformAllFunctionality)
@@ -221,7 +217,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
             }
         }
 
-        [SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.VsUtils.ShowErrorDialog(System.String)")]
         private static void EnsureCanStartWizard(Project project, IServiceProvider serviceProvider)
         {
             // make sure we can access the data package           
@@ -294,8 +289,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
         ///     This lets us run custom wizard logic when the wizard has completed all tasks
         ///     We set up project item dependencies here for files added by the .vstemplate
         /// </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         public void RunFinished()
         {
             if (_edmxItem == null)
@@ -331,15 +324,15 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                     // save the model generated in the wizard UI.
                     if (_modelBuilderSettings.GenerationOption == ModelGenerationOption.GenerateFromDatabase)
                     {
-                        var writingModelWatch = new Stopwatch();
+                        Stopwatch writingModelWatch = new Stopwatch();
                         writingModelWatch.Start();
                         var modelEdmx = ((EdmxModelBuilderEngine)_modelBuilderSettings.ModelBuilderEngine).Edmx;
 
                         if (!string.Equals(fileExtension, EntityDesignArtifact.ExtensionEdmx, StringComparison.OrdinalIgnoreCase))
                         {
                             // convert the file if this isn't EDMX
-                            var edmxFileInfo = new FileInfo(_edmxItem.FileNames[1]);
-                            var conversionContext = new ModelConversionContextImpl(
+                            FileInfo edmxFileInfo = new FileInfo(_edmxItem.FileNames[1]);
+                            ModelConversionContextImpl conversionContext = new ModelConversionContextImpl(
                                 _edmxItem.ContainingProject,
                                 _edmxItem,
                                 edmxFileInfo,
@@ -355,7 +348,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                         else
                         {
                             // we need to use XmlWriter to output so that XmlDeclaration is preserved.
-                            using (var modelWriter = XmlWriter.Create(
+                            using (XmlWriter modelWriter = XmlWriter.Create(
                                 _edmxItem.FileNames[1],
                                 new XmlWriterSettings { Indent = true }))
                             {
@@ -393,8 +386,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                 }
 
                 // Construct an editing context and make all final edits that require the file is opened.
-                var edmxFileUri = new Uri(_edmxItem.FileNames[1]);
-                var designArtifact =
+                Uri edmxFileUri = new Uri(_edmxItem.FileNames[1]);
+                EntityDesignArtifact designArtifact =
                     package.ModelManager.GetNewOrExistingArtifact(
                         edmxFileUri, new VSXmlModelProvider(package, package)) as EntityDesignArtifact;
                 Debug.Assert(
@@ -440,7 +433,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                                 {
                                     if (cp == null)
                                     {
-                                        var cpc = new CommandProcessorContext(
+                                        CommandProcessorContext cpc = new CommandProcessorContext(
                                             editingContext,
                                             EfiTransactionOriginator.CreateNewModelId,
                                             Resources.Tx_SetCodeGenerationStrategy);
@@ -459,10 +452,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                             VsUtils.AddProjectReference(_edmxItem.ContainingProject, "System.Data.Entity");
                         }
 
-                        if (cp != null)
-                        {
-                            cp.Invoke();
-                        }
+                        cp?.Invoke();
 
                         // save the artifact to make it look as though updates were part of creation
                         _edmxItem.Save();
@@ -488,10 +478,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                         }
                     }
 
-                    if (window != null)
-                    {
-                        window.Activate();
-                    }
+                    window?.Activate();
                 }
             }
         }
@@ -506,7 +493,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
             Debug.Assert(editingContext != null, "editingContext != null");
             Debug.Assert(designArtifact != null, "artifact != null");
 
-            var commands = new List<Command>();
+            List<Command> commands = new List<Command>();
             if (modelBuilderSettings.NewFunctionSchemaProcedures != null
                 && modelBuilderSettings.NewFunctionSchemaProcedures.Count > 0)
             {
@@ -527,7 +514,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                 || designArtifact.IsSqlFamilyProvider())
             {
                 // set up CommandProcessorContext
-                var cpc = new CommandProcessorContext(
+                CommandProcessorContext cpc = new CommandProcessorContext(
                     editingContext,
                     EfiTransactionOriginator.CreateNewModelId,
                     Resources.Tx_CreateFunctionImport);
@@ -560,7 +547,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
         {
             // we were instructed not to create FunctionImports - but runtime has created them automatically so actually need to delete any which have been created
             var model = designArtifact.ConceptualModel;
-            var cec = (ConceptualEntityContainer)model.FirstEntityContainer;
+            ConceptualEntityContainer cec = (ConceptualEntityContainer)model.FirstEntityContainer;
             foreach (var fi in cec.FunctionImports())
             {
                 yield return fi.GetDeleteCommand();
@@ -643,7 +630,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
             {
                 var pi = selectedItem.ProjectItem;
                 path = pi.FileNames[1];
-                var di = new DirectoryInfo(path);
+                DirectoryInfo di = new DirectoryInfo(path);
                 while ((di.Attributes & FileAttributes.Directory) == 0)
                 {
                     di = di.Parent;
@@ -662,7 +649,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
             // files into "projectRoot\XXX\YYY", the wizard will pop a dialog and add it into App_Code.
             if (VsUtils.IsWebSiteProject(activeProject))
             {
-                var di = new DirectoryInfo(
+                DirectoryInfo di = new DirectoryInfo(
                     Path.Combine(
                         VsUtils.GetProjectRoot(activeProject, Services.ServiceProvider).FullName,
                         EdmUtils.AppCodeFolderName));

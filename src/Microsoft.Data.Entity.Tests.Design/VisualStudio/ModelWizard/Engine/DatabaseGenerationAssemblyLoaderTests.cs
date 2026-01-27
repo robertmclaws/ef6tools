@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.IO;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
 {
-    using System.IO;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class DatabaseGenerationAssemblyLoaderTests
     {
@@ -15,7 +15,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
         public void AssemblyLoader_passed_null_project_can_find_paths_for_standard_DLLs_case_insensitive()
         {
             const string vsInstallPath = @"C:\My\Test\VS\InstallPath";
-            var assemblyLoader = new DatabaseGenerationAssemblyLoader(null, vsInstallPath);
+            DatabaseGenerationAssemblyLoader assemblyLoader = new DatabaseGenerationAssemblyLoader(null, vsInstallPath);
             assemblyLoader.GetAssemblyPath("EntityFramework")
                 .Should().Be(Path.Combine(vsInstallPath, "EntityFramework.dll"));
             assemblyLoader.GetAssemblyPath("entityframework")
@@ -59,7 +59,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
                                 "My.Project.Reference", "6.0.0.0", "My.Project.Reference",
                                 Path.Combine(projectPath, "My.Project.Reference.dll"), true)
                         });
-            var assemblyLoader = new DatabaseGenerationAssemblyLoader(project, vsInstallPath);
+            DatabaseGenerationAssemblyLoader assemblyLoader = new DatabaseGenerationAssemblyLoader(project, vsInstallPath);
 
             // assert that the DLLs installed under VS are resolved there
             assemblyLoader.GetAssemblyPath("EntityFramework")
@@ -96,7 +96,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
                                 "My.WebsiteProject.Reference, Version=4.1.0.0, Culture=neutral, PublicKeyToken=bbbbbbbbbbbbbbbb",
                                 Path.Combine(projectPath, "My.WebsiteProject.Reference.dll"))
                         });
-            var assemblyLoader = new DatabaseGenerationAssemblyLoader(project, vsInstallPath);
+            DatabaseGenerationAssemblyLoader assemblyLoader = new DatabaseGenerationAssemblyLoader(project, vsInstallPath);
 
             // assert that the DLLs installed under VS are resolved there
             assemblyLoader.GetAssemblyPath("EntityFramework")

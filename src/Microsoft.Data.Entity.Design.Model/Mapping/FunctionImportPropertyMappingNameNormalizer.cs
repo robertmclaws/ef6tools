@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Diagnostics;
-
     internal static class FunctionImportProperyMappingNameNormalizer
     {
         internal static NormalizedName NameNormalizer(EFElement parent, string refName)
@@ -15,7 +15,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                 return null;
             }
 
-            var parentItem = parent.Parent as EFElement;
+            EFElement parentItem = parent.Parent as EFElement;
             Debug.Assert(parentItem != null, "parent.Parent should be an EFElement");
 
             // some asserts to verify we're using this name normalizer in the correct context
@@ -47,12 +47,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             //
             // try to normalize for a FunctionImportTypeMapping
             //
-            var fitm = parentItem.GetParentOfType(typeof(FunctionImportTypeMapping)) as FunctionImportTypeMapping;
-            if (fitm != null)
+            if (parentItem.GetParentOfType(typeof(FunctionImportTypeMapping)) is FunctionImportTypeMapping fitm)
             {
                 if (fitm.TypeName.Status == BindingStatus.Known)
                 {
-                    var symbol = new Symbol(fitm.TypeName.Target.NormalizedName, refName);
+                    Symbol symbol = new Symbol(fitm.TypeName.Target.NormalizedName, refName);
                     return new NormalizedName(symbol, null, null, refName);
                 }
             }

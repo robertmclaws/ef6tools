@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CopyComplexTypePropertyCommand : Command
     {
         private readonly PropertyClipboardFormat _clipboardProperty;
@@ -25,8 +25,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _parentComplexType = parentComplexType;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // get unique name for the property
@@ -35,7 +33,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             if (!_clipboardProperty.IsComplexProperty)
             {
                 // scalar property case
-                var cmd = new CreateComplexTypePropertyCommand(
+                CreateComplexTypePropertyCommand cmd = new CreateComplexTypePropertyCommand(
                     propertyName, _parentComplexType, _clipboardProperty.PropertyType, _clipboardProperty.IsNullable);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 _createdProperty = cmd.Property;
@@ -60,14 +58,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 if (complexType != null)
                 {
                     // if the ComplexType is found, simply use the create command
-                    var cmd = new CreateComplexTypePropertyCommand(propertyName, _parentComplexType, complexType, false);
+                    CreateComplexTypePropertyCommand cmd = new CreateComplexTypePropertyCommand(propertyName, _parentComplexType, complexType, false);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     _createdProperty = cmd.Property;
                 }
                 else
                 {
                     // in this case we're going to create ComplexProperty with unresolved type
-                    var complexProperty = new ComplexConceptualProperty(_parentComplexType, null);
+                    ComplexConceptualProperty complexProperty = new ComplexConceptualProperty(_parentComplexType, null);
                     complexProperty.ComplexType.SetXAttributeValue(_clipboardProperty.PropertyType);
                     // set the name and add to the parent entity
                     complexProperty.LocalName.Value = propertyName;
@@ -89,7 +87,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             if (_createdProperty != null)
             {
                 // set Property attributes
-                var cmd2 = new SetConceptualPropertyFacetsCommand(
+                SetConceptualPropertyFacetsCommand cmd2 = new SetConceptualPropertyFacetsCommand(
                     _createdProperty, _clipboardProperty.Default,
                     _clipboardProperty.ConcurrencyMode, _clipboardProperty.GetterAccessModifier, _clipboardProperty.SetterAccessModifier,
                     _clipboardProperty.MaxLength,

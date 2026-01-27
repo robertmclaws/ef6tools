@@ -1,21 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui.ViewModels;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.WizardFramework;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Linq;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui.ViewModels;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.WizardFramework;
-
     internal partial class WizardPageRuntimeConfig : WizardPageBase
     {
         private RuntimeConfigState _state;
@@ -25,16 +25,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         {
             InitializeComponent();
 
-            Logo = Resources.PageIcon;
-            Headline = Resources.RuntimeConfigPage_Title;
+            Logo = WizardResources.PageIcon;
+            Headline = WizardResources.RuntimeConfigPage_Title;
             Id = "WizardPageRuntimeConfig";
             HelpKeyword = null;
 
             promptLabel.Font = LabelFont;
-            promptLabel.Text = Resources.RuntimeConfig_Prompt;
+            promptLabel.Text = WizardResources.RuntimeConfig_Prompt;
 
             VSHelpers.AssignLinkLabelColor(notificationLinkLabel);
-            notificationLabel.Text = Resources.RuntimeConfig_LearnMore;
+            notificationLabel.Text = WizardResources.RuntimeConfig_LearnMore;
         }
 
         public override bool OnActivate()
@@ -71,10 +71,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
             var radioButton = versionsPanel.Controls
                 .OfType<RadioButton>().FirstOrDefault(b => b.Checked);
-            if (radioButton != null)
-            {
-                radioButton.Select();
-            }
+            radioButton?.Select();
         }
 
         public override bool OnDeactivate()
@@ -82,16 +79,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             if (Wizard.MovingNext)
             {
                 var selectedVersion = GetSelectedVersion();
-                var useLegacyProvider = selectedVersion != null
-                                            ? RuntimeVersion.RequiresLegacyProvider(selectedVersion)
-                                            : OptionsDesignerInfo.UseLegacyProviderDefault;
 
-                if (Wizard.ModelBuilderSettings.UseLegacyProvider != useLegacyProvider)
-                {
-                    Wizard.InvalidateFollowingPages();
-                }
-
-                Wizard.ModelBuilderSettings.UseLegacyProvider = useLegacyProvider;
+                // Always use modern provider (legacy provider support removed)
+                Wizard.ModelBuilderSettings.UseLegacyProvider = false;
                 Wizard.ModelBuilderSettings.TargetSchemaVersion =
                     RuntimeVersion.GetTargetSchemaVersion(
                         selectedVersion,
@@ -99,7 +89,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
                 VsUtils.EnsureProvider(
                     Wizard.ModelBuilderSettings.RuntimeProviderInvariantName,
-                    Wizard.ModelBuilderSettings.UseLegacyProvider,
+                    false,
                     Wizard.Project,
                     ServiceProvider);
 
@@ -146,7 +136,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 Wizard.Project,
                 ServiceProvider);
 
-            var viewModel = new RuntimeConfigViewModel(
+            RuntimeConfigViewModel viewModel = new RuntimeConfigViewModel(
                 targetFrameworkVersion,
                 installedEntityFrameworkVersion,
                 isModernProviderAvailable, 
@@ -178,12 +168,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             }
 
             _state = viewModel.State;
-            if (isModernProviderAvailable && _state == RuntimeConfigState.Skip)
-            {
-                // we are skipping this page but need to set UseLegacyProvider to false
-                // on ModelBuilderSettings for later pages (and the engine) to use
-                Wizard.ModelBuilderSettings.UseLegacyProvider = false;
-            }
+            // Always use modern provider (legacy provider support removed)
+            Wizard.ModelBuilderSettings.UseLegacyProvider = false;
         }
 
         private Version GetSelectedVersion()
@@ -196,7 +182,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             return selectedVersion;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static RadioButton CreateRadioButton(EntityFrameworkVersionOption option)
         {
             Debug.Assert(option != null, "option is null.");
@@ -218,11 +203,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             switch (state)
             {
                 case RuntimeConfigState.Normal:
-                    bitmap = Resources.Information;
+                    bitmap = WizardResources.Information;
                     break;
 
                 case RuntimeConfigState.Error:
-                    bitmap = Resources.Error;
+                    bitmap = WizardResources.Error;
                     break;
 
                 default:

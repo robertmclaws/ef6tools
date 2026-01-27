@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Entity.Design.Base.Context;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System;
-    using Microsoft.Data.Entity.Design.Base.Context;
-
     // <summary>
     //     Context Item that contains IDiagramManager instance.
     //     This is used by ModelBrowser/Explorer code to do diagram operation.

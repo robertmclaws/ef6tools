@@ -1,27 +1,28 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Globalization;
+using System.Linq;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Utilities;
+using Microsoft.WizardFramework;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Globalization;
-    using System.Linq;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Utilities;
-    using Microsoft.WizardFramework;
-    using Resources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
-
     // <summary>
     //     This is the page in the ModelGen VS wizard used for selecting
     //     tables/views/sprocs to add (and to refresh/delete others as
@@ -79,8 +80,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         {
             InitializeComponent();
 
-            Logo = Resources.PageIcon;
-            Headline = Resources.SelectTablesPage_Title;
+            Logo = WizardResources.PageIcon;
+            Headline = WizardResources.SelectTablesPage_Title;
             Id = "WizardPageUpdateFromDatabaseId";
             ShowInfoPanel = false;
 
@@ -106,8 +107,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             Debug.Assert(artifact != null, "Expected non-null artifact");
             if (artifact != null)
             {
-                DesignerInfo designerInfo;
-                if (artifact.DesignerInfo().TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out designerInfo))
+                if (artifact.DesignerInfo().TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out DesignerInfo designerInfo))
                 {
                     Debug.Assert(designerInfo != null, "expected non-null designerInfo");
                     optionsDesignerInfo = designerInfo as OptionsDesignerInfo;
@@ -121,7 +121,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             if (CultureInfo.CurrentCulture.TwoLetterISOLanguageName == "en")
             {
                 // default to checked.
-                toolTip.SetToolTip(chkPluralize, Resources.PluralizeCheckBoxToolTipText);
+                toolTip.SetToolTip(chkPluralize, WizardResources.PluralizeCheckBoxToolTipText);
                 chkPluralize.Enabled = true;
                 chkPluralize.Checked = true;
 
@@ -142,18 +142,18 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 {
                     chkPluralize.Checked = TryReadDesignerProperty(optionsDesignerInfo.CheckPluralizationInWizard, false);
                 }
-                toolTip.SetToolTip(chkPluralize, Resources.PluralizeCheckBoxDisabledToolTipText);
+                toolTip.SetToolTip(chkPluralize, WizardResources.PluralizeCheckBoxDisabledToolTipText);
             }
 
-            // foreign keys are supported by any version of EF that runs on .NET Framework 4 or newer (or modern .NET)
+            // foreign keys are supported by any version of EF that runs on .NET Framework 4.7.2 or newer (or modern .NET)
             var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(Wizard.Project, Wizard.ServiceProvider);
-            if (targetNetFrameworkVersion == null || targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4)
+            if (targetNetFrameworkVersion == null || targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4_7_2)
             {
                 chkIncludeForeignKeys.Checked = true;
                 chkIncludeForeignKeys.Enabled = true;
                 toolTip.SetToolTip(
                     chkIncludeForeignKeys,
-                    Resources.SelectTablesPage_IncludeForeignKeysToolTip);
+                    WizardResources.SelectTablesPage_IncludeForeignKeysToolTip);
 
                 // try to read value from designer properties
                 if (optionsDesignerInfo != null)
@@ -230,7 +230,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 // re-apply theme styles (setting Checkboxes resets them)
 
                 // Put up a status message
-                ShowStatus(Resources.SelectTablesPage_StatusRetrievingTablesText);
+                ShowStatus(WizardResources.SelectTablesPage_StatusRetrievingTablesText);
 
                 // Get database objects in a background thread
                 _stopwatch.Reset();
@@ -315,7 +315,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         {
             // This method will run on a thread other than the UI thread.
             // Be sure not to manipulate any Windows Forms controls created on the UI thread from this method.
-            var result = new ICollection<EntityStoreSchemaFilterEntry>[3];
+            ICollection<EntityStoreSchemaFilterEntry>[] result = new ICollection<EntityStoreSchemaFilterEntry>[3];
 
             SchemaListingSettings schemaListingSettings = SchemaListingSettings.FromWizard(Wizard);
 
@@ -352,7 +352,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         //     RunWorkerCompleted event handler: Populate TreeViews here.
         //     This method is called by background worker component the same thread as the UI thread.
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected void bgWorkerPopulateTree_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs args)
         {
             try
@@ -386,19 +385,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 else
                 {
                     // No errors, populate nodes in TreeViews
-                    var result = (ICollection<EntityStoreSchemaFilterEntry>[])args.Result;
+                    ICollection<EntityStoreSchemaFilterEntry>[] result = (ICollection<EntityStoreSchemaFilterEntry>[])args.Result;
                     var tableEntries = result[0];
                     var viewEntries = result[1];
                     var sprocEntries = result[2];
 
                     // First find all tables, views and storedProc's which exist in the current model (before update from DB)
                     // (value is not used - but list is in sorted order to ensure they show up correctly on the wizard)
-                    SortedDictionary<DatabaseObject, int> existingTables;
-                    SortedDictionary<DatabaseObject, int> existingViews;
-                    SortedDictionary<DatabaseObject, int> existingStoredProcs;
                     GetExistingTablesViewsAndSprocs(
                         Wizard.ModelBuilderSettings.Artifact,
-                        out existingTables, out existingViews, out existingStoredProcs);
+                        out SortedDictionary<DatabaseObject, int> existingTables, out SortedDictionary<DatabaseObject, int> existingViews, out SortedDictionary<DatabaseObject, int> existingStoredProcs);
 
                     // now create the tree nodes
                     string storageEntityContainerName = null;
@@ -429,10 +425,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
                     // Set focus to TreeView
                     var currentTreeView = CurrentTreeView;
-                    if (null != currentTreeView)
-                    {
-                        currentTreeView.FocusAndSetFirstNodeSelected();
-                    }
+                    currentTreeView?.FocusAndSetFirstNodeSelected();
 
                     TreeViewsInitialized = true;
                     _initializedDataConnection = Wizard.ModelBuilderSettings.DesignTimeConnectionString;
@@ -446,7 +439,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 ShowStatus(
                     String.Format(
                         CultureInfo.CurrentCulture,
-                        Resources.SelectTablesPage_ErrorRetrievingTablesText,
+                        WizardResources.SelectTablesPage_ErrorRetrievingTablesText,
                         e.Message));
                 Wizard.EnableButton(ButtonType.Cancel, true);
             }
@@ -472,16 +465,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 storageEntityContainerName);
 
             // construct lists of all tables, views and storedProcs according to the DB
-            Dictionary<DatabaseObject, EntityStoreSchemaFilterEntry> tablesFromDB;
-            Dictionary<DatabaseObject, EntityStoreSchemaFilterEntry> viewsFromDB;
-            Dictionary<DatabaseObject, EntityStoreSchemaFilterEntry> storedProcsFromDB;
             GetTablesViewsAndSprocsFromDB(
                 tableEntries,
                 viewEntries,
                 sprocEntries,
-                out tablesFromDB,
-                out viewsFromDB,
-                out storedProcsFromDB,
+                out Dictionary<DatabaseObject, EntityStoreSchemaFilterEntry> tablesFromDB,
+                out Dictionary<DatabaseObject, EntityStoreSchemaFilterEntry> viewsFromDB,
+                out Dictionary<DatabaseObject, EntityStoreSchemaFilterEntry> storedProcsFromDB,
                 storageEntityContainerName);
 
             // set up refreshed and deleted items pages
@@ -498,11 +488,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             string defaultSchemaName,
             SortedDictionary<DatabaseObject, int> existingDatabaseObjects)
         {
-            var entriesFromDBThatDidNotPreviouslyExist = new List<EntityStoreSchemaFilterEntry>();
+            List<EntityStoreSchemaFilterEntry> entriesFromDBThatDidNotPreviouslyExist = new List<EntityStoreSchemaFilterEntry>();
 
             foreach (var entry in entriesFromDB)
             {
-                var dbObj = DatabaseObject.
+                DatabaseObject dbObj = DatabaseObject.
                     CreateFromEntityStoreSchemaFilterEntry(entry, null);
                 if (existingDatabaseObjects.ContainsKey(dbObj))
                 {
@@ -542,13 +532,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             var newSprocs = NotPreviouslyExistingNodes(storedProcEntries, storageEntityContainerName, existingStoredProcs);
 
             var addedTablesNode = DatabaseObjectTreeView.CreateRootNodeAndDescendents(
-                newTables, Resources.SelectTablesPage_TablesNode, DatabaseObjectTreeView.TreeViewImage.DbTablesImage,
+                newTables, WizardResources.SelectTablesPage_TablesNode, DatabaseObjectTreeView.TreeViewImage.DbTablesImage,
                 DatabaseObjectTreeView.TreeViewImage.TableImage);
             var addedViewsNode = DatabaseObjectTreeView.CreateRootNodeAndDescendents(
-                newViews, Resources.SelectTablesPage_ViewsNode, DatabaseObjectTreeView.TreeViewImage.DbViewsImage,
+                newViews, WizardResources.SelectTablesPage_ViewsNode, DatabaseObjectTreeView.TreeViewImage.DbViewsImage,
                 DatabaseObjectTreeView.TreeViewImage.ViewImage);
             var addedSprocsNode = DatabaseObjectTreeView.CreateRootNodeAndDescendents(
-                newSprocs, Resources.SelectTablesPage_StoredProceduresNode, DatabaseObjectTreeView.TreeViewImage.DbStoreProcsImage,
+                newSprocs, WizardResources.SelectTablesPage_StoredProceduresNode, DatabaseObjectTreeView.TreeViewImage.DbStoreProcsImage,
                 DatabaseObjectTreeView.TreeViewImage.StoreProcImage);
 
             AddTreeView.TreeViewControl.Nodes.Add(addedTablesNode);
@@ -574,16 +564,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             // setup top-level Tables, Views and Sprocs nodes for RefreshTree
             var refreshedTablesNode =
                 DatabaseObjectTreeView.CreateTreeNode(
-                    Resources.SelectTablesPage_TablesNode, false, null, Resources.SelectTablesPage_TablesNode,
-                    DatabaseObjectTreeView.TreeViewImage.DbTablesImage, Resources.SelectTablesPage_TablesNode);
+                    WizardResources.SelectTablesPage_TablesNode, false, null, WizardResources.SelectTablesPage_TablesNode,
+                    DatabaseObjectTreeView.TreeViewImage.DbTablesImage, WizardResources.SelectTablesPage_TablesNode);
             var refreshedViewsNode =
                 DatabaseObjectTreeView.CreateTreeNode(
-                    Resources.SelectTablesPage_ViewsNode, false, null, Resources.SelectTablesPage_ViewsNode,
-                    DatabaseObjectTreeView.TreeViewImage.DbViewsImage, Resources.SelectTablesPage_ViewsNode);
+                    WizardResources.SelectTablesPage_ViewsNode, false, null, WizardResources.SelectTablesPage_ViewsNode,
+                    DatabaseObjectTreeView.TreeViewImage.DbViewsImage, WizardResources.SelectTablesPage_ViewsNode);
             var refreshedSprocsNode =
                 DatabaseObjectTreeView.CreateTreeNode(
-                    Resources.SelectTablesPage_StoredProceduresNode, false, null, Resources.SelectTablesPage_StoredProceduresNode,
-                    DatabaseObjectTreeView.TreeViewImage.DbStoreProcsImage, Resources.SelectTablesPage_StoredProceduresNode);
+                    WizardResources.SelectTablesPage_StoredProceduresNode, false, null, WizardResources.SelectTablesPage_StoredProceduresNode,
+                    DatabaseObjectTreeView.TreeViewImage.DbStoreProcsImage, WizardResources.SelectTablesPage_StoredProceduresNode);
 
             RefreshTreeView.TreeViewControl.Nodes.Add(refreshedTablesNode);
             RefreshTreeView.TreeViewControl.Nodes.Add(refreshedViewsNode);
@@ -592,16 +582,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             // setup top-level Tables, Views and Sprocs nodes for DeleteTree
             var deletedTablesNode =
                 DatabaseObjectTreeView.CreateTreeNode(
-                    Resources.SelectTablesPage_TablesNode, false, null, Resources.SelectTablesPage_TablesNode,
-                    DatabaseObjectTreeView.TreeViewImage.DbTablesImage, Resources.SelectTablesPage_TablesNode);
+                    WizardResources.SelectTablesPage_TablesNode, false, null, WizardResources.SelectTablesPage_TablesNode,
+                    DatabaseObjectTreeView.TreeViewImage.DbTablesImage, WizardResources.SelectTablesPage_TablesNode);
             var deletedViewsNode =
                 DatabaseObjectTreeView.CreateTreeNode(
-                    Resources.SelectTablesPage_ViewsNode, false, null, Resources.SelectTablesPage_ViewsNode,
-                    DatabaseObjectTreeView.TreeViewImage.DbViewsImage, Resources.SelectTablesPage_ViewsNode);
+                    WizardResources.SelectTablesPage_ViewsNode, false, null, WizardResources.SelectTablesPage_ViewsNode,
+                    DatabaseObjectTreeView.TreeViewImage.DbViewsImage, WizardResources.SelectTablesPage_ViewsNode);
             var deletedSprocsNode =
                 DatabaseObjectTreeView.CreateTreeNode(
-                    Resources.SelectTablesPage_StoredProceduresNode, false, null, Resources.SelectTablesPage_StoredProceduresNode,
-                    DatabaseObjectTreeView.TreeViewImage.DbStoreProcsImage, Resources.SelectTablesPage_StoredProceduresNode);
+                    WizardResources.SelectTablesPage_StoredProceduresNode, false, null, WizardResources.SelectTablesPage_StoredProceduresNode,
+                    DatabaseObjectTreeView.TreeViewImage.DbStoreProcsImage, WizardResources.SelectTablesPage_StoredProceduresNode);
 
             DeleteTreeView.TreeViewControl.Nodes.Add(deletedTablesNode);
             DeleteTreeView.TreeViewControl.Nodes.Add(deletedViewsNode);
@@ -672,10 +662,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 {
                     foreach (var es in artifact.StorageModel().FirstEntityContainer.EntitySets())
                     {
-                        var ses = es as StorageEntitySet;
-                        if (null != ses)
+                        if (es is StorageEntitySet ses)
                         {
-                            var tableOrView = DatabaseObject.CreateFromEntitySet(ses);
+                            DatabaseObject tableOrView = DatabaseObject.CreateFromEntitySet(ses);
                             if (ses.StoreSchemaGeneratorTypeIsView)
                             {
                                 existingViews.Add(tableOrView, 0);
@@ -692,7 +681,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 {
                     foreach (var f in artifact.StorageModel().Functions())
                     {
-                        var ssp = DatabaseObject.CreateFromFunction(f);
+                        DatabaseObject ssp = DatabaseObject.CreateFromFunction(f);
                         existingStoredProcs.Add(ssp, 0);
                     }
                 }
@@ -708,34 +697,34 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             out Dictionary<DatabaseObject, EntityStoreSchemaFilterEntry> storedProcsFromDB,
             string defaultSchemaName)
         {
-            tablesFromDB = new Dictionary<DatabaseObject, EntityStoreSchemaFilterEntry>();
-            viewsFromDB = new Dictionary<DatabaseObject, EntityStoreSchemaFilterEntry>();
-            storedProcsFromDB = new Dictionary<DatabaseObject, EntityStoreSchemaFilterEntry>();
+            tablesFromDB = [];
+            viewsFromDB = [];
+            storedProcsFromDB = [];
 
             // construct a list of all tables and views according to the DB
             foreach (var entry in tableEntries)
             {
-                var table = DatabaseObject.CreateFromEntityStoreSchemaFilterEntry(entry, defaultSchemaName);
+                DatabaseObject table = DatabaseObject.CreateFromEntityStoreSchemaFilterEntry(entry, defaultSchemaName);
                 tablesFromDB.Add(table, entry);
             }
 
             foreach (var entry in viewEntries)
             {
-                var view = DatabaseObject.CreateFromEntityStoreSchemaFilterEntry(entry, defaultSchemaName);
+                DatabaseObject view = DatabaseObject.CreateFromEntityStoreSchemaFilterEntry(entry, defaultSchemaName);
                 viewsFromDB.Add(view, entry);
             }
 
             // similarly find list of all sprocs according to the DB
             foreach (var entry in storedProcEntries)
             {
-                var sproc = DatabaseObject.CreateFromEntityStoreSchemaFilterEntry(entry, defaultSchemaName);
+                DatabaseObject sproc = DatabaseObject.CreateFromEntityStoreSchemaFilterEntry(entry, defaultSchemaName);
                 storedProcsFromDB.Add(sproc, entry);
             }
         }
 
         private ICollection<EntityStoreSchemaFilterEntry> GetSelectedFilterEntriesFromTreeView()
         {
-            var mapper = new TreeViewSchemaFilterMapper();
+            TreeViewSchemaFilterMapper mapper = new TreeViewSchemaFilterMapper();
             mapper.AddTreeView(AddTreeView.TreeViewControl, null);
             mapper.AddTreeView(RefreshTreeView.TreeViewControl, new TreeViewSchemaFilterMapperSettings { UseOnlyCheckedNodes = false });
             var filterEntryBag = mapper.CreateSchemaFilterEntryBag();
@@ -744,16 +733,15 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             return filterEntryBag.CollapseAndOptimize(SchemaFilterPolicy.GetByValEdmxPolicy());
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "result")]
         private void UpdateNewFunctionFilterEntries()
         {
-            var mapper = new TreeViewSchemaFilterMapper();
+            TreeViewSchemaFilterMapper mapper = new TreeViewSchemaFilterMapper();
             mapper.AddTreeView(AddTreeView.TreeViewControl, null);
             var filterEntryBag = mapper.CreateSchemaFilterEntryBag();
 
             // because we only added the AddTreeView above IncludedSprocEntries is the list of selected
             // sprocs in the Add tab only
-            var newFunctionEntries = filterEntryBag.IncludedSprocEntries.ToList();
+            List<EntityStoreSchemaFilterEntry> newFunctionEntries = filterEntryBag.IncludedSprocEntries.ToList();
 
             // if there are any new Function entries and if the user has selected to create matching Function Imports
             // then create and run a ProgressDialog while we are collecting the sproc return type info
@@ -767,7 +755,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         // <summary>
         //     Helper to show a status message Label control on top of the client area of the TreeView control
         // </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private void ShowStatus(string message)
         {
             HideStatus();
@@ -834,8 +821,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             if (prop != null
                 && prop.ValueAttr != null)
             {
-                bool v;
-                if (Boolean.TryParse(prop.ValueAttr.Value, out v))
+                if (Boolean.TryParse(prop.ValueAttr.Value, out bool v))
                 {
                     return v;
                 }
@@ -859,17 +845,17 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
         private void AddTabPage_Enter(object sender, EventArgs e)
         {
-            DescriptionTextBox.Text = Resources.UpdateFromDatabase_AddDescription;
+            DescriptionTextBox.Text = WizardResources.UpdateFromDatabase_AddDescription;
         }
 
         private void RefreshTabPage_Enter(object sender, EventArgs e)
         {
-            DescriptionTextBox.Text = Resources.UpdateFromDatabase_RefreshDescription;
+            DescriptionTextBox.Text = WizardResources.UpdateFromDatabase_RefreshDescription;
         }
 
         private void DeleteTabPage_Enter(object sender, EventArgs e)
         {
-            DescriptionTextBox.Text = Resources.UpdateFromDatabase_DeleteDescription;
+            DescriptionTextBox.Text = WizardResources.UpdateFromDatabase_DeleteDescription;
         }
     }
 }

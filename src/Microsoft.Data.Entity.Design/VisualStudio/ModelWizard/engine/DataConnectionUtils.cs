@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Configuration;
+using System.Data.Common;
+using System.Diagnostics;
+using System.IO;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Data.Core;
+using Microsoft.VisualStudio.Data.Services;
+using Microsoft.VisualStudio.Data.Services.SupportEntities;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Configuration;
-    using System.Data.Common;
-    using System.Diagnostics;
-    using System.IO;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Data.Core;
-    using Microsoft.VisualStudio.Data.Services;
-    using Microsoft.VisualStudio.Data.Services.SupportEntities;
-
     internal static class DataConnectionUtils
     {
         internal static IVsDataConnection GetDataConnection(
@@ -88,9 +88,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
             var providerFactory = GetProviderFactoryForProviderGuid(dataProviderManager, provider);
 
-            var serviceProvider = providerFactory as IServiceProvider;
 
-            return serviceProvider != null && LegacyDbProviderServicesUtils.CanGetDbProviderServices(serviceProvider);
+            return providerFactory is IServiceProvider serviceProvider && LegacyDbProviderServicesUtils.CanGetDbProviderServices(serviceProvider);
         }
 
         private static bool HasModernEntityFrameworkProvider(
@@ -125,8 +124,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                     !string.IsNullOrEmpty(props[LocalDataUtil.CONNECTION_PROPERTY_ATTACH_DB_FILENAME] as string))
                 {
                     //sql client with "AttachDbFileName" parameter in the connection string.
-                    object o = null;
-                    props.TryGetValue(LocalDataUtil.CONNECTION_PROPERTY_ATTACH_DB_FILENAME, out o);
+                    props.TryGetValue(LocalDataUtil.CONNECTION_PROPERTY_ATTACH_DB_FILENAME, out object o);
                     initialCatalog = o as String;
                     if (initialCatalog != null)
                     {
@@ -136,8 +134,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 else if (LocalDataUtil.IsSqlMobileConnectionString(invariantName))
                 {
                     // sql CE
-                    object o = null;
-                    props.TryGetValue(LocalDataUtil.CONNECTION_PROPERTY_DATA_SOURCE, out o);
+                    props.TryGetValue(LocalDataUtil.CONNECTION_PROPERTY_DATA_SOURCE, out object o);
                     initialCatalog = o as String;
                     if (initialCatalog != null)
                     {
@@ -146,8 +143,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 }
                 else
                 {
-                    object o = null;
-                    props.TryGetValue("Database", out o);
+                    props.TryGetValue("Database", out object o);
                     initialCatalog = o as String;
                 }
             }
@@ -155,7 +151,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             // save the default catalog
             if (string.IsNullOrEmpty(initialCatalog))
             {
-                var sourceInformation = dataConnection.GetService(typeof(IVsDataSourceInformation)) as IVsDataSourceInformation;
+                IVsDataSourceInformation sourceInformation = dataConnection.GetService(typeof(IVsDataSourceInformation)) as IVsDataSourceInformation;
                 Debug.Assert(
                     sourceInformation != null,
                     "Could not find the IVsDataSourceInformation for this IVsDataConnection to determine the default catalog");
@@ -171,7 +167,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
         internal static string GetInitialCatalog(string providerName, string providerConnectionString)
         {
-            var dbsb = new DbConnectionStringBuilder();
+            DbConnectionStringBuilder dbsb = new DbConnectionStringBuilder();
             dbsb.ConnectionString = providerConnectionString;
             var initialCatalog = String.Empty;
 
@@ -180,8 +176,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 !string.IsNullOrEmpty(dbsb[LocalDataUtil.CONNECTION_PROPERTY_ATTACH_DB_FILENAME] as string))
             {
                 //sql client with "AttachDbFileName" parameter in the connection string.
-                object o = null;
-                dbsb.TryGetValue(LocalDataUtil.CONNECTION_PROPERTY_ATTACH_DB_FILENAME, out o);
+                dbsb.TryGetValue(LocalDataUtil.CONNECTION_PROPERTY_ATTACH_DB_FILENAME, out object o);
                 initialCatalog = o as String;
                 if (initialCatalog != null)
                 {
@@ -191,8 +186,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             else if (LocalDataUtil.IsSqlMobileConnectionString(providerName))
             {
                 // sql CE
-                object o = null;
-                dbsb.TryGetValue(LocalDataUtil.CONNECTION_PROPERTY_DATA_SOURCE, out o);
+                dbsb.TryGetValue(LocalDataUtil.CONNECTION_PROPERTY_DATA_SOURCE, out object o);
                 initialCatalog = o as String;
                 if (initialCatalog != null)
                 {
@@ -201,8 +195,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             }
             else
             {
-                object o = null;
-                dbsb.TryGetValue("Initial Catalog", out o);
+                dbsb.TryGetValue("Initial Catalog", out object o);
                 initialCatalog = o as String;
             }
 
@@ -280,8 +273,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 throw new ArgumentNullException("dataConnection");
             }
 
-            IVsDataProvider vsDataProvider = null;
-            dataProviderManager.Providers.TryGetValue(dataConnection.Provider, out vsDataProvider);
+            dataProviderManager.Providers.TryGetValue(dataConnection.Provider, out IVsDataProvider vsDataProvider);
 
             Debug.Assert(
                 vsDataProvider != null, "Data provider identified by guid '{0}' could not be loaded" + dataConnection.Provider.ToString());

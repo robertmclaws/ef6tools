@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal abstract class EndMultiplicityConverter : DynamicListConverter<string, ObjectDescriptor>
     {
         protected override void PopulateMappingForSelectedObject(ObjectDescriptor selectedObject)
@@ -18,8 +18,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 
             if (selectedObject != null)
             {
-                var association = selectedObject.WrappedItem as Association;
-                if (association != null)
+                if (selectedObject.WrappedItem is Association association)
                 {
                     var end = GetEnd(association);
                     if (end != null)

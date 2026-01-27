@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Integrity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     This class should be registered in a transaction where we are required to propagate C-side
     ///     StoreGeneratedPattern values into the S-side ones. Applies either to an individual S-side
@@ -39,8 +39,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
         public bool IsEqual(IIntegrityCheck otherCheck)
         {
-            var typedOtherCheck = otherCheck as PropagateStoreGeneratedPatternToStorageModel;
-            if (typedOtherCheck == null)
+            if (otherCheck is not PropagateStoreGeneratedPatternToStorageModel typedOtherCheck)
             {
                 return false;
             }
@@ -103,7 +102,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     {
                         foreach (var prop in et.Properties())
                         {
-                            var sProp = prop as StorageProperty;
+                            StorageProperty sProp = prop as StorageProperty;
                             Debug.Assert(
                                 null != sProp,
                                 "property of Storage Model EntityType has type " + prop.GetType().FullName + ", should be "
@@ -180,8 +179,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                 if (null != sp.GetParentOfType(typeof(MappingFragment)))
                 {
                     // only propagate values from non-key C-side properties
-                    var cProp = sp.Name.Target as ConceptualProperty;
-                    if (cProp != null)
+                    if (sp.Name.Target is ConceptualProperty cProp)
                     {
                         var cSideSGPValue = cProp.StoreGeneratedPattern.Value;
                         if (_propagateNoneSGP
@@ -190,7 +188,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                             // have found a C-side property whose SGP value should be propagated
                             if (false == cSideSGPValue.Equals(sProp.StoreGeneratedPattern.Value, StringComparison.Ordinal))
                             {
-                                var cmd = new UpdateDefaultableValueCommand<string>(sProp.StoreGeneratedPattern, cSideSGPValue);
+                                UpdateDefaultableValueCommand<string> cmd = new UpdateDefaultableValueCommand<string>(sProp.StoreGeneratedPattern, cSideSGPValue);
                                 CommandProcessor.InvokeSingleCommand(_cpc, cmd);
                             }
 
@@ -223,8 +221,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     // (MappingFragment is only used by those types of mappings)
                     if (null != sp.GetParentOfType(typeof(MappingFragment)))
                     {
-                        var sProp = sp.ColumnName.Target as StorageProperty;
-                        if (null != sProp)
+                        if (sp.ColumnName.Target is StorageProperty sProp)
                         {
                             yield return sProp;
                         }
@@ -247,8 +244,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
             foreach (var sp in storageProperty.GetAntiDependenciesOfType<ScalarProperty>())
             {
-                var etm = sp.GetParentOfType(typeof(EntityTypeMapping)) as EntityTypeMapping;
-                if (etm == null)
+                if (sp.GetParentOfType(typeof(EntityTypeMapping)) is not EntityTypeMapping etm)
                 {
                     // no EntityTypeMapping parent - so don't count this mapping
                     continue;
@@ -292,8 +288,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
             foreach (var propRef in storageProperty.GetAntiDependenciesOfType<PropertyRef>())
             {
-                var assoc = propRef.GetParentOfType(typeof(Association)) as Association;
-                if (assoc == null)
+                if (propRef.GetParentOfType(typeof(Association)) is not Association assoc)
                 {
                     // no Association parent - so ignore this PropertyRef
                     continue;

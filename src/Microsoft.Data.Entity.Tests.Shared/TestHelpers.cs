@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Reflection;
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Entity.Tests.Shared
 {
-    using System;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.IO;
-    using System.Reflection;
-    using System.Windows.Forms;
-
     public static class TestUtils
     {
         public static Uri FileName2Uri(string fileName)
@@ -32,7 +32,7 @@ namespace Microsoft.Data.Entity.Tests.Shared
 
             using (var stream = GetEmbeddedResourceStream(assembly, resourceName))
             {
-                using (var streamReader = new StreamReader(stream))
+                using (StreamReader streamReader = new StreamReader(stream))
                 {
                     return streamReader.ReadToEnd();
                 }
@@ -66,8 +66,8 @@ namespace Microsoft.Data.Entity.Tests.Shared
                 }
                 var filename = Path.Combine(outputDirectory, screenshotName + "_" + now.ToString("yyyyMMdd-HHmmss") + ".jpeg");
                 var screenSize = Screen.PrimaryScreen.Bounds.Size;
-                var btm = new Bitmap(screenSize.Width, screenSize.Height);
-                using (var g = Graphics.FromImage(btm))
+                Bitmap btm = new Bitmap(screenSize.Width, screenSize.Height);
+                using (Graphics g = Graphics.FromImage(btm))
                 {
                     g.CopyFromScreen(new Point(0, 0), new Point(0, 0), screenSize);
                 }

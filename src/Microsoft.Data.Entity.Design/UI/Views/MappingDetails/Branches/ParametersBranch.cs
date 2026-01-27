@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 {
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     // <summary>
     //     The purpose of this class is to create the container node for the parameters.  So,
     //     there is only ever one item, one row.
@@ -32,8 +32,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                 return false;
             }
 
-            var mappingModificationFunctionMapping = component as MappingModificationFunctionMapping;
-            if (mappingModificationFunctionMapping != null)
+            if (component is MappingModificationFunctionMapping mappingModificationFunctionMapping)
             {
                 _mappingModificationFunctionMapping = mappingModificationFunctionMapping;
             }
@@ -83,8 +82,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
         {
             if (index < ElementCount)
             {
-                var msp = GetElement(index) as MappingFunctionScalarProperties;
-                if (msp != null)
+                if (GetElement(index) is MappingFunctionScalarProperties msp)
                 {
                     return new ParameterBranch(msp, GetColumns());
                 }

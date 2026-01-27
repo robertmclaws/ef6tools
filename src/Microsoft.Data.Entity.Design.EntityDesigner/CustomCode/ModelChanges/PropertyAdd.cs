@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class PropertyAdd : ViewModelChange
     {
         private readonly Property _property;
@@ -19,7 +17,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
             _property = property;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override void Invoke(CommandProcessorContext cpc)
         {
             var viewModel = _property.GetRootViewModel();
@@ -27,14 +24,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var entityType = viewModel.ModelXRef.GetExisting(_property.EntityType) as Model.Entity.EntityType;
+                Model.Entity.EntityType entityType = viewModel.ModelXRef.GetExisting(_property.EntityType) as Model.Entity.EntityType;
                 Debug.Assert(entityType != null);
                 Model.Entity.Property property = null;
                 if (_property is ScalarProperty)
                 {
                     property = CreatePropertyCommand.CreateDefaultProperty(cpc, _property.Name, entityType);
-                    var scalarProperty = _property as ScalarProperty;
-                    if (scalarProperty != null
+                    if (_property is ScalarProperty scalarProperty
                         && scalarProperty.EntityKey)
                     {
                         CommandProcessor.InvokeSingleCommand(cpc, new SetKeyPropertyCommand(property, true));

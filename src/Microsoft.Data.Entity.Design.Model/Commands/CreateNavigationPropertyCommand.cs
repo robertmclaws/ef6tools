@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateNavigationPropertyCommand : Command
     {
         internal static readonly string PrereqId = "CreateNagivationPropertyCommand";
@@ -61,19 +61,18 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 throw new ArgumentNullException("entity");
             }
 
-            var cpcd = new CreateNavigationPropertyCommand(name, entity, null, null, null);
+            CreateNavigationPropertyCommand cpcd = new CreateNavigationPropertyCommand(name, entity, null, null, null);
 
-            var cp = new CommandProcessor(cpc, cpcd);
+            CommandProcessor cp = new CommandProcessor(cpc, cpcd);
             cp.Invoke();
 
             return cpcd.NavigationProperty;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // we allow the command to set null _endpoints if needed.
-            var navProp1 = new NavigationProperty(Entity, null);
+            NavigationProperty navProp1 = new NavigationProperty(Entity, null);
             navProp1.LocalName.Value = Name;
             navProp1.Relationship.SetRefName(Association);
             navProp1.FromRole.SetRefName(FromEnd);

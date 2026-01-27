@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+
 namespace Microsoft.VisualStudio.Shell
 {
-    using System;
-    using System.Globalization;
-
     /// <include file='doc\ProvideMenuResourceAttribute.uex' path='docs/doc[@for="ProvideMenuResourceAttribute"]' />
     /// <devdoc>
     ///     *** NOTE: This is a copy of ProvideMenuResourceAttribute implementation from VSIP sdk, modified to
@@ -18,7 +18,6 @@ namespace Microsoft.VisualStudio.Shell
     ///     tools to register the proper information with Visual Studio.
     /// </devdoc>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
-    [CLSCompliant(false)]
     public sealed class MyProvideMenuResourceAttribute : RegistrationAttribute
     {
         private readonly string _resourceId;

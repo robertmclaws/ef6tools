@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal static class ParameterNameNormalizer
     {
         internal static NormalizedName NameNormalizer(EFElement parent, string refName)
@@ -18,32 +18,26 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
             Symbol symbol = null;
 
-            var fi = parent as FunctionImport;
-            var func = parent as Function;
-            var fsp = parent as FunctionScalarProperty;
-            var modFunc = parent as ModificationFunction;
-
-            if (fi != null)
+            if (parent is FunctionImport fi)
             {
                 // if we are in the CSDL, build it's normalized name based on the EC name
                 // FunctionImports live in the entity container
-                var ec = fi.Parent as BaseEntityContainer;
-                if (ec != null)
+                if (fi.Parent is BaseEntityContainer ec)
                 {
                     symbol = new Symbol(ec.EntityContainerName, fi.LocalName.Value, refName);
                 }
             }
-            else if (func != null)
+            else if (parent is Function func)
             {
                 // if we are in the SSDL, then build the name based on the namespace
                 // Functions are top level types like EntityType and Association
                 symbol = new Symbol(((BaseEntityModel)func.Parent).NamespaceValue, func.LocalName.Value, refName);
             }
-            else if (fsp != null)
+            else if (parent is FunctionScalarProperty fsp)
             {
                 // this FunctionScalarProperty could be right under the function, nested inside an AssociationEnd, 
                 // or N levels deep inside a complex type hierarchy
-                var mod = fsp.GetParentOfType(typeof(ModificationFunction)) as ModificationFunction;
+                ModificationFunction mod = fsp.GetParentOfType(typeof(ModificationFunction)) as ModificationFunction;
                 Debug.Assert(mod != null, "Failed to get a pointer to the ModificationFunction");
 
                 if (mod != null)
@@ -53,17 +47,14 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                     symbol = GetSymbolBasedOnModificationFunction(parent.Artifact.ArtifactSet, mod, refName);
                 }
             }
-            else if (null != modFunc)
+            else if (parent is ModificationFunction modFunc)
             {
                 symbol = GetSymbolBasedOnModificationFunction(parent.Artifact.ArtifactSet, modFunc, refName);
             }
 
-            if (symbol == null)
-            {
-                symbol = new Symbol(refName);
-            }
+            symbol ??= new Symbol(refName);
 
-            var normalizedName = new NormalizedName(symbol, null, null, refName);
+            NormalizedName normalizedName = new NormalizedName(symbol, null, null, refName);
             return normalizedName;
         }
 

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Diagnostics;
-    using System.Text;
-
     /// <summary>
     ///     Represents a name consisting of parts.  A symbol uniquely identifies a normalizeable item in the model.
     /// </summary>
@@ -82,8 +82,7 @@ namespace Microsoft.Data.Entity.Design.Model
         public override bool Equals(object obj)
         {
             var eq = false;
-            var other = obj as Symbol;
-            if (other != null)
+            if (obj is Symbol other)
             {
                 if (other._parts == null
                     && _parts == null)
@@ -146,7 +145,7 @@ namespace Microsoft.Data.Entity.Design.Model
             }
             else
             {
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 for (var i = 0; i < _parts.Length; i++)
                 {
                     sb.Append(_parts[i]);

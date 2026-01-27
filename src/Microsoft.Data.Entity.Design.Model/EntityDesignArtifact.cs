@@ -1,22 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-
     internal class EntityDesignArtifact : EFArtifact
     {
         #region Fields
@@ -155,29 +154,14 @@ namespace Microsoft.Data.Entity.Design.Model
             {
                 if (disposing)
                 {
-                    if (_designerInfoRoot != null)
-                    {
-                        _designerInfoRoot.Dispose();
-                        _designerInfoRoot = null;
-                    }
-
-                    if (_mappingModel != null)
-                    {
-                        _mappingModel.Dispose();
-                        _mappingModel = null;
-                    }
-
-                    if (_conceptualEntityModel != null)
-                    {
-                        _conceptualEntityModel.Dispose();
-                        _conceptualEntityModel = null;
-                    }
-
-                    if (_storageEntityModel != null)
-                    {
-                        _storageEntityModel.Dispose();
-                        _storageEntityModel = null;
-                    }
+                    _designerInfoRoot?.Dispose();
+                    _designerInfoRoot = null;
+                    _mappingModel?.Dispose();
+                    _mappingModel = null;
+                    _conceptualEntityModel?.Dispose();
+                    _conceptualEntityModel = null;
+                    _storageEntityModel?.Dispose();
+                    _storageEntityModel = null;
 
                     if (DiagramArtifact != null)
                     {
@@ -214,29 +198,14 @@ namespace Microsoft.Data.Entity.Design.Model
             }
             else if (GetFileExtensions().Contains(extension))
             {
-                if (_designerInfoRoot != null)
-                {
-                    _designerInfoRoot.Dispose();
-                    _designerInfoRoot = null;
-                }
-
-                if (_storageEntityModel != null)
-                {
-                    _storageEntityModel.Dispose();
-                    _storageEntityModel = null;
-                }
-
-                if (_mappingModel != null)
-                {
-                    _mappingModel.Dispose();
-                    _mappingModel = null;
-                }
-
-                if (_conceptualEntityModel != null)
-                {
-                    _conceptualEntityModel.Dispose();
-                    _conceptualEntityModel = null;
-                }
+                _designerInfoRoot?.Dispose();
+                _designerInfoRoot = null;
+                _storageEntityModel?.Dispose();
+                _storageEntityModel = null;
+                _mappingModel?.Dispose();
+                _mappingModel = null;
+                _conceptualEntityModel?.Dispose();
+                _conceptualEntityModel = null;
 
                 // convert the xlinq tree to our model
                 foreach (var elem in XObject.Document.Elements())
@@ -245,25 +214,13 @@ namespace Microsoft.Data.Entity.Design.Model
                 }
             }
 
-            if (_designerInfoRoot != null)
-            {
-                _designerInfoRoot.Parse(unprocessedElements);
-            }
+            _designerInfoRoot?.Parse(unprocessedElements);
 
-            if (_conceptualEntityModel != null)
-            {
-                _conceptualEntityModel.Parse(unprocessedElements);
-            }
+            _conceptualEntityModel?.Parse(unprocessedElements);
 
-            if (_storageEntityModel != null)
-            {
-                _storageEntityModel.Parse(unprocessedElements);
-            }
+            _storageEntityModel?.Parse(unprocessedElements);
 
-            if (_mappingModel != null)
-            {
-                _mappingModel.Parse(unprocessedElements);
-            }
+            _mappingModel?.Parse(unprocessedElements);
 
             State = EFElementState.Parsed;
         }
@@ -283,17 +240,14 @@ namespace Microsoft.Data.Entity.Design.Model
 
                 // Reparse the artifact.
                 State = EFElementState.None;
-                Parse(new List<XName>());
+                Parse([]);
                 if (State == EFElementState.Parsed)
                 {
                     XmlModelHelper.NormalizeAndResolve(this);
                 }
 
                 // NOTE: DiagramArtifact must be reloaded after EntityDesignArtifact finishes reloading but before we fire artifact reloaded event.
-                if (DiagramArtifact != null)
-                {
-                    DiagramArtifact.ReloadArtifact();
-                }
+                DiagramArtifact?.ReloadArtifact();
 
                 // this will do some analysis to determine if the artifact is safe for the designer, or should be displayed in the xml editor
                 DetermineIfArtifactIsDesignerSafe();
@@ -339,7 +293,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 if (addParseErrorOnFailure)
                 {
                     var msg = String.Format(CultureInfo.CurrentCulture, Resources.ModelParse_NonQualifiedElement, element.Name.LocalName);
-                    var error = new ErrorInfo(ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.NON_QUALIFIED_ELEMENT, ErrorClass.ParseError);
+                    ErrorInfo error = new ErrorInfo(ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.NON_QUALIFIED_ELEMENT, ErrorClass.ParseError);
                     AddParseErrorForObject(this, error);
                 }
                 return false;
@@ -371,7 +325,7 @@ namespace Microsoft.Data.Entity.Design.Model
                         if (runtimeElementProcessed)
                         {
                             var msg = String.Format(CultureInfo.CurrentCulture, Resources.DuplicatedElementMsg, elem2.Name.LocalName);
-                            var error = new ErrorInfo(
+                            ErrorInfo error = new ErrorInfo(
                                 ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.DUPLICATED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                             AddParseErrorForObject(this, error);
                             continue;
@@ -397,7 +351,7 @@ namespace Microsoft.Data.Entity.Design.Model
                         if (designerElementProcessed)
                         {
                             var msg = String.Format(CultureInfo.CurrentCulture, Resources.DuplicatedElementMsg, elem2.Name.LocalName);
-                            var error = new ErrorInfo(
+                            ErrorInfo error = new ErrorInfo(
                                 ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.DUPLICATED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                             AddParseErrorForObject(this, error);
                             continue;
@@ -414,7 +368,7 @@ namespace Microsoft.Data.Entity.Design.Model
                         }
 
                         _dataServicesNodePresent = true;
-                        var error = new ErrorInfo(
+                        ErrorInfo error = new ErrorInfo(
                             ErrorInfo.Severity.WARNING, Resources.DataServicesNodeWarning, this, ErrorCodes.DATA_SERVICES_NODE_DETECTED,
                             ErrorClass.ParseError);
                         AddParseErrorForObject(this, error);
@@ -422,7 +376,7 @@ namespace Microsoft.Data.Entity.Design.Model
                     else
                     {
                         var msg = String.Format(CultureInfo.CurrentCulture, Resources.UnexpectedElementMsg, elem2.Name.LocalName);
-                        var error = new ErrorInfo(
+                        ErrorInfo error = new ErrorInfo(
                             ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.UNEXPECTED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                         AddParseErrorForObject(this, error);
                         continue;
@@ -433,7 +387,7 @@ namespace Microsoft.Data.Entity.Design.Model
             else
             {
                 var msg = String.Format(CultureInfo.CurrentCulture, Resources.UnexpectedElementMsg, elem.Name.LocalName);
-                var error = new ErrorInfo(
+                ErrorInfo error = new ErrorInfo(
                     ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.UNEXPECTED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                 AddParseErrorForObject(this, error);
                 return false;
@@ -465,17 +419,17 @@ namespace Microsoft.Data.Entity.Design.Model
                 if (conceptualModelsProcessed)
                 {
                     Debug.Assert(ConceptualModel != null, "If the conceptual model root was created, why isn't it in this artifact?");
-                    ConceptualModel.Parse(new List<XName>());
+                    ConceptualModel.Parse([]);
                 }
                 else if (storageModelsProcessed)
                 {
                     Debug.Assert(StorageModel != null, "If the storage model root was created, why isn't it in this artifact?");
-                    StorageModel.Parse(new List<XName>());
+                    StorageModel.Parse([]);
                 }
                 else if (mappingsProcessed)
                 {
                     Debug.Assert(MappingModel != null, "If the mappings root was created, why isn't it in this artifact?");
-                    MappingModel.Parse(new List<XName>());
+                    MappingModel.Parse([]);
                 }
                 return true;
             }
@@ -498,7 +452,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 if (conceptualModelsProcessed)
                 {
                     var msg = String.Format(CultureInfo.CurrentCulture, Resources.DuplicatedElementMsg, entityModelXElement.Name.LocalName);
-                    var error = new ErrorInfo(
+                    ErrorInfo error = new ErrorInfo(
                         ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.DUPLICATED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                     AddParseErrorForObject(this, error);
                     return;
@@ -512,7 +466,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 if (storageModelsProcessed)
                 {
                     var msg = String.Format(CultureInfo.CurrentCulture, Resources.DuplicatedElementMsg, entityModelXElement.Name.LocalName);
-                    var error = new ErrorInfo(
+                    ErrorInfo error = new ErrorInfo(
                         ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.DUPLICATED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                     AddParseErrorForObject(this, error);
                     return;
@@ -526,7 +480,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 if (mappingsProcessed)
                 {
                     var msg = String.Format(CultureInfo.CurrentCulture, Resources.DuplicatedElementMsg, entityModelXElement.Name.LocalName);
-                    var error = new ErrorInfo(
+                    ErrorInfo error = new ErrorInfo(
                         ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.DUPLICATED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                     AddParseErrorForObject(this, error);
                     return;
@@ -538,7 +492,7 @@ namespace Microsoft.Data.Entity.Design.Model
             else
             {
                 var msg = String.Format(CultureInfo.CurrentCulture, Resources.UnexpectedElementMsg, entityModelXElement.Name.LocalName);
-                var error = new ErrorInfo(
+                ErrorInfo error = new ErrorInfo(
                     ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.UNEXPECTED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                 AddParseErrorForObject(this, error);
                 return;
@@ -550,30 +504,21 @@ namespace Microsoft.Data.Entity.Design.Model
             if (runtimeModelRoot.Name.LocalName == BaseEntityModel.ElementName
                 && CheckForCorrectNamespace(runtimeModelRoot, SchemaManager.GetCSDLNamespaceNames(), false))
             {
-                if (_conceptualEntityModel != null)
-                {
-                    _conceptualEntityModel.Dispose();
-                }
+                _conceptualEntityModel?.Dispose();
                 _conceptualEntityModel = new ConceptualEntityModel(this, runtimeModelRoot);
                 return _conceptualEntityModel;
             }
             else if (runtimeModelRoot.Name.LocalName == BaseEntityModel.ElementName
                      && CheckForCorrectNamespace(runtimeModelRoot, SchemaManager.GetSSDLNamespaceNames(), false))
             {
-                if (_storageEntityModel != null)
-                {
-                    _storageEntityModel.Dispose();
-                }
+                _storageEntityModel?.Dispose();
                 _storageEntityModel = new StorageEntityModel(this, runtimeModelRoot);
                 return _storageEntityModel;
             }
             else if (runtimeModelRoot.Name.LocalName == MappingModel.ElementName
                      && CheckForCorrectNamespace(runtimeModelRoot, SchemaManager.GetMSLNamespaceNames(), false))
             {
-                if (_mappingModel != null)
-                {
-                    _mappingModel.Dispose();
-                }
+                _mappingModel?.Dispose();
                 _mappingModel = new MappingModel(this, runtimeModelRoot);
                 return _mappingModel;
             }
@@ -598,7 +543,7 @@ namespace Microsoft.Data.Entity.Design.Model
                     if (_storageEntityModel != null)
                     {
                         var msg = String.Format(CultureInfo.CurrentCulture, Resources.DuplicatedElementMsg, elem.Name.LocalName);
-                        var error = new ErrorInfo(
+                        ErrorInfo error = new ErrorInfo(
                             ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.DUPLICATED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                         AddParseErrorForObject(this, error);
                     }
@@ -610,7 +555,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 else
                 {
                     var msg = String.Format(CultureInfo.CurrentCulture, Resources.UnexpectedElementMsg, elem.Name.LocalName);
-                    var error = new ErrorInfo(
+                    ErrorInfo error = new ErrorInfo(
                         ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.UNEXPECTED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                     AddParseErrorForObject(this, error);
                 }
@@ -619,10 +564,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         private void ParseDesignerInfoRoot(XElement designerInfoElement)
         {
-            if (_designerInfoRoot != null)
-            {
-                _designerInfoRoot.Dispose();
-            }
+            _designerInfoRoot?.Dispose();
             _designerInfoRoot = new EFDesignerInfoRoot(this, designerInfoElement);
         }
 
@@ -640,7 +582,7 @@ namespace Microsoft.Data.Entity.Design.Model
                     if (_mappingModel != null)
                     {
                         var msg = String.Format(CultureInfo.CurrentCulture, Resources.DuplicatedElementMsg, elem.Name.LocalName);
-                        var error = new ErrorInfo(
+                        ErrorInfo error = new ErrorInfo(
                             ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.DUPLICATED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                         AddParseErrorForObject(this, error);
                     }
@@ -652,7 +594,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 else
                 {
                     var msg = String.Format(CultureInfo.CurrentCulture, Resources.UnexpectedElementMsg, elem.Name.LocalName);
-                    var error = new ErrorInfo(
+                    ErrorInfo error = new ErrorInfo(
                         ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.UNEXPECTED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                     AddParseErrorForObject(this, error);
                 }
@@ -673,7 +615,7 @@ namespace Microsoft.Data.Entity.Design.Model
                     if (_conceptualEntityModel != null)
                     {
                         var msg = String.Format(CultureInfo.CurrentCulture, Resources.DuplicatedElementMsg, elem.Name.LocalName);
-                        var error = new ErrorInfo(
+                        ErrorInfo error = new ErrorInfo(
                             ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.DUPLICATED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                         AddParseErrorForObject(this, error);
                     }
@@ -685,7 +627,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 else
                 {
                     var msg = String.Format(CultureInfo.CurrentCulture, Resources.UnexpectedElementMsg, elem.Name.LocalName);
-                    var error = new ErrorInfo(
+                    ErrorInfo error = new ErrorInfo(
                         ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.UNEXPECTED_ELEMENT_ENCOUNTERED, ErrorClass.ParseError);
                     AddParseErrorForObject(this, error);
                 }
@@ -765,7 +707,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
             // reset the value to true first - then determine if not safe below.
             _isStructurallySafe = true;
-            var artifactSet = (EntityDesignArtifactSet)ArtifactSet;
+            EntityDesignArtifactSet artifactSet = (EntityDesignArtifactSet)ArtifactSet;
 
             // Do escher validation.  Doing this lets us determine if we want to keep MSL validation errors
             // in the artifact set, or just ignore them.
@@ -865,15 +807,16 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal virtual HashSet<string> GetFileExtensions()
         {
-            var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            extensions.Add(ExtensionEdmx);
+            HashSet<string> extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ExtensionEdmx
+            };
             return extensions;
         }
 
         protected internal override bool ExpectEFObjectForXObject(XObject xobject)
         {
-            var xe = xobject as XElement;
-            if (xe != null)
+            if (xobject is XElement xe)
             {
                 foreach (var n in SchemaManager.GetEDMXNamespaceNames())
                 {

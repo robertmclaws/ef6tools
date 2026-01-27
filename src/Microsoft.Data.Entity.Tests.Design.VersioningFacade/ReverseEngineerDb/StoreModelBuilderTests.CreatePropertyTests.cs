@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     public partial class StoreModelBuilderTests
     {
         [TestMethod]
         public void CreateProperty_creates_default_property_for_Int32_store_type()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -35,7 +35,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         {
             foreach (var isNullable in new[] { true, false })
             {
-                var errors = new List<EdmSchemaError>();
+                List<EdmSchemaError> errors = new List<EdmSchemaError>();
                 var property =
                     CreateStoreModelBuilder()
                         .CreateProperty(
@@ -52,7 +52,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_returns_error_for_null_property_type()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -73,7 +73,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_returns_error_for_unknown_property_type()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -93,28 +93,21 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         }
 
         [TestMethod]
-        public void CreateProperty_returns_error_for_types_not_supported_in_the_target_EF_version()
+        public void CreateProperty_supports_geography_and_geometry_types_in_Version3()
         {
-            var schemaGenerator = CreateStoreModelBuilder(targetEntityFrameworkVersion: EntityFrameworkVersion.Version2);
+            // In Version3, geography and geometry types are fully supported
+            var schemaGenerator = CreateStoreModelBuilder(targetEntityFrameworkVersion: EntityFrameworkVersion.Version3);
 
-            foreach (var unsupportedTypeName in new[] { "geography", "geometry" })
+            foreach (var typeName in new[] { "geography", "geometry" })
             {
-                var errors = new List<EdmSchemaError>();
+                List<EdmSchemaError> errors = new List<EdmSchemaError>();
                 var property =
                     schemaGenerator.CreateProperty(
-                        CreateRow("catalog", "schema", "table", "IntColumn", dataType: unsupportedTypeName),
+                        CreateRow("catalog", "schema", "table", "SpatialColumn", dataType: typeName),
                         errors);
 
-                property.Should().BeNull();
-                errors.Count.Should().Be(1);
-                errors.Single().Message.Should().Be(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        Resources_VersioningFacade.UnsupportedDataTypeForTarget,
-                        unsupportedTypeName,
-                        "catalog.schema.table",
-                        "IntColumn"));
-                errors.Single().ErrorCode.Should().Be(6005);
+                property.Should().NotBeNull();
+                errors.Should().BeEmpty();
             }
         }
 
@@ -122,7 +115,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_uses_const_value_for_facets_that_are_const()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -140,7 +133,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_does_not_validate_value_for_facets_that_are_const()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -158,7 +151,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_returns_decimal_property_with_specified_scale_and_precision()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -177,7 +170,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_creates_decimal_property_with_default_scale_and_precision_if_they_are_not_specified()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -196,7 +189,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         {
             foreach (var precision in new byte[] { 0, 255 })
             {
-                var errors = new List<EdmSchemaError>();
+                List<EdmSchemaError> errors = new List<EdmSchemaError>();
                 var property =
                     CreateStoreModelBuilder()
                         .CreateProperty(
@@ -226,7 +219,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         {
             foreach (var scale in new[] { -1, 255 })
             {
-                var errors = new List<EdmSchemaError>();
+                List<EdmSchemaError> errors = new List<EdmSchemaError>();
                 var property =
                     CreateStoreModelBuilder()
                         .CreateProperty(
@@ -254,7 +247,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_returns_datetime_property_with_specified_datetimeprecision()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -272,7 +265,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_creates_datetime_property_with_default_precision_if_it_is_not_specified()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -290,7 +283,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         {
             foreach (var precision in new[] { -1, 255 })
             {
-                var errors = new List<EdmSchemaError>();
+                List<EdmSchemaError> errors = new List<EdmSchemaError>();
                 var property =
                     CreateStoreModelBuilder()
                         .CreateProperty(
@@ -318,7 +311,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_returns_datetimeoffset_property_with_specified_datetimeprecision()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -336,7 +329,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_creates_datetimeoffset_property_with_default_precision_if_it_is_not_specified()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -354,7 +347,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         {
             foreach (var precision in new[] { -1, 255 })
             {
-                var errors = new List<EdmSchemaError>();
+                List<EdmSchemaError> errors = new List<EdmSchemaError>();
                 var property =
                     CreateStoreModelBuilder()
                         .CreateProperty(
@@ -382,7 +375,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_returns_time_property_with_specified_datetimeprecision()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -398,7 +391,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_creates_time_property_with_default_precision_if_it_is_not_specified()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -416,7 +409,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         {
             foreach (var precision in new[] { -1, 255 })
             {
-                var errors = new List<EdmSchemaError>();
+                List<EdmSchemaError> errors = new List<EdmSchemaError>();
                 var property =
                     CreateStoreModelBuilder()
                         .CreateProperty(
@@ -444,7 +437,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_creates_nvarcharmax_property_with_default_maxlength_if_it_is_not_specified()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -460,7 +453,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_ignores_requested_maxlength_for_nvarcharmax_and_uses_constant_value()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -478,7 +471,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_returns_varbinary_property_with_specified_maxlength()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -496,7 +489,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_creates_varbinary_property_with_default_maxlength_if_it_is_not_specified()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -514,7 +507,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         {
             foreach (var maxLength in new[] { -1, 10000 })
             {
-                var errors = new List<EdmSchemaError>();
+                List<EdmSchemaError> errors = new List<EdmSchemaError>();
                 var property =
                     CreateStoreModelBuilder()
                         .CreateProperty(
@@ -542,7 +535,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_sets_identity()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -559,7 +552,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperty_sets_computed()
         {
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var property =
                 CreateStoreModelBuilder()
                     .CreateProperty(
@@ -576,7 +569,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateProperties_creates_properties_for_valid_rows_and_exclude_properties_for_invalid_rows()
         {
-            var rows =
+            List<TableDetailsRow> rows =
                 new List<TableDetailsRow>
                     {
                         CreateRow(table: "TestTable", columnName: "IntColumn", dataType: "int", isPrimaryKey: true),
@@ -585,13 +578,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
                         CreateRow(table: "TestTable", columnName: "InvalidColumn", isPrimaryKey: false)
                     };
 
-            var errors = new List<EdmSchemaError>();
-            List<string> excludedColumns;
-            List<string> keyColumns;
-            List<string> invalidKeyTypeColumns;
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             var properties =
                 CreateStoreModelBuilder()
-                    .CreateProperties(rows, errors, out keyColumns, out excludedColumns, out invalidKeyTypeColumns);
+                    .CreateProperties(rows, errors, out List<string> keyColumns, out List<string> excludedColumns, out List<string> invalidKeyTypeColumns);
 
             properties.Count.Should().Be(3);
             properties[0].Name.Should().Be("IntColumn");

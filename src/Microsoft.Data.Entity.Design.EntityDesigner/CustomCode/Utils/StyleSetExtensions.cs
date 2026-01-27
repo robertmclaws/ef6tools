@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Drawing;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomCode.Utils
 {
-    using System.Drawing;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     /// <summary>
     ///     Helper extension method for StyleSets
     /// </summary>

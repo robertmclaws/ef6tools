@@ -1,15 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using Sded = System.Data.Entity.Design;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.IO;
+using System.Xml;
 
 namespace Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.IO;
-    using System.Xml;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>

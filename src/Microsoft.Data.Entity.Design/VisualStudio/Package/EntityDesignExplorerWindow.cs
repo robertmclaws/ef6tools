@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
+using Microsoft.Data.Entity.Design.UI.Views.Explorer;
+using Microsoft.VisualStudio.Modeling.Shell;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.InteropServices;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
-    using Microsoft.Data.Entity.Design.UI.Views.Explorer;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [Guid(PackageConstants.guidExplorerWindowString)]
     internal class EntityDesignExplorerWindow : ExplorerWindow
     {
@@ -41,7 +41,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         // <summary>
         //     Sets the current context on the ExplorerInfo.
         // </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void SetExplorerInfo()
         {
             CurrentExplorerInfo.SetExplorerInfo(
@@ -75,7 +74,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     var i = 0;
                     foreach (var type in ModelHelper.AllPrimitiveTypesSorted(service.Artifact.SchemaVersion))
                     {
-                        var cmdId = new CommandID(
+                        CommandID cmdId = new CommandID(
                             PackageConstants.guidEscherCmdSet, PackageConstants.cmdIdExplorerAddScalarPropertyBase + i);
                         var cmd = MenuCommandService.FindCommand(cmdId);
                         if (cmd == null)
@@ -96,7 +95,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     Debug.Assert(conceptualModel != null, "service.Artifact.ConceptualModel() should not be null");
                     if (conceptualModel != null)
                     {
-                        var complexTypes = new List<ComplexType>(conceptualModel.ComplexTypes());
+                        List<ComplexType> complexTypes = new List<ComplexType>(conceptualModel.ComplexTypes());
                         complexTypes.Sort(EFElement.EFElementDisplayNameComparison);
 
                         i = 0;
@@ -110,7 +109,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
                             // if we find an old command with the same cmdId remove it and replace
                             // with the new one to force VS to refresh the text
-                            var cmdId = new CommandID(
+                            CommandID cmdId = new CommandID(
                                 PackageConstants.guidEscherCmdSet, PackageConstants.cmdIdExplorerAddComplexPropertyBase + i);
                             var cmd = MenuCommandService.FindCommand(cmdId);
                             if (cmd != null)
@@ -150,8 +149,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
         private void OnStatusAddComplexTypeProperty(object sender, EventArgs e)
         {
-            var cmd = sender as DynamicStatusMenuCommand;
-            if (cmd != null)
+            if (sender is DynamicStatusMenuCommand cmd)
             {
                 cmd.Visible = cmd.Enabled = false;
                 if (CurrentExplorerInfo != null
@@ -163,8 +161,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                         if (cmd.Properties.Contains(PackageConstants.guidEscherCmdSet))
                         {
                             string typeName = null;
-                            var complexType = cmd.Properties[PackageConstants.guidEscherCmdSet] as ComplexType;
-                            if (complexType != null)
+                            if (cmd.Properties[PackageConstants.guidEscherCmdSet] is ComplexType complexType)
                             {
                                 typeName = complexType.LocalName.Value;
                             }
@@ -184,34 +181,30 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private void OnMenuAddComplexTypeProperty(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 if (CurrentExplorerInfo != null
                     && CurrentExplorerInfo._explorerFrame != null)
                 {
-                    var explorerComplexType = CurrentExplorerInfo._explorerFrame.GetSelectedExplorerEFElement() as ExplorerComplexType;
-                    if (explorerComplexType != null)
+                    if (CurrentExplorerInfo._explorerFrame.GetSelectedExplorerEFElement() is ExplorerComplexType explorerComplexType)
                     {
                         if (cmd.Properties.Contains(PackageConstants.guidEscherCmdSet))
                         {
-                            var context = new EfiTransactionContext();
-                            var cpc = new CommandProcessorContext(
+                            EfiTransactionContext context = new EfiTransactionContext();
+                            CommandProcessorContext cpc = new CommandProcessorContext(
                                 EditingContext, EfiTransactionOriginator.ExplorerWindowOriginatorId, Resources.Tx_CreateScalarProperty, null,
                                 context);
                             Property createdProperty = null;
-                            var type = cmd.Properties[PackageConstants.guidEscherCmdSet] as string;
-                            if (type != null)
+                            if (cmd.Properties[PackageConstants.guidEscherCmdSet] is string type)
                             {
                                 createdProperty = CreateComplexTypePropertyCommand.CreateDefaultProperty(
                                     cpc, explorerComplexType.ModelItem as ComplexType, type);
                             }
                             else
                             {
-                                var complexType = cmd.Properties[PackageConstants.guidEscherCmdSet] as ComplexType;
+                                ComplexType complexType = cmd.Properties[PackageConstants.guidEscherCmdSet] as ComplexType;
                                 Debug.Assert(complexType != null, "Unexpected property type");
                                 if (complexType != null)
                                 {
@@ -225,12 +218,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                                 if (info != null
                                     && info._explorerFrame != null)
                                 {
-                                    var frame = info._explorerFrame as EntityDesignExplorerFrame;
+                                    EntityDesignExplorerFrame frame = info._explorerFrame as EntityDesignExplorerFrame;
                                     Debug.Assert(frame != null, "Could not get Explorer frame");
-                                    if (frame != null)
-                                    {
-                                        frame.NavigateToElementAndPutInRenameMode(createdProperty);
-                                    }
+                                    frame?.NavigateToElementAndPutInRenameMode(createdProperty);
                                 }
                             }
                         }

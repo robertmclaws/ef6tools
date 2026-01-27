@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.Common;
+using System.Data.Entity.Core.EntityClient;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Data;
-    using System.Data.Common;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-
     internal static class DatabaseMetadataQueryTool
     {
         internal static ICollection<EntityStoreSchemaFilterEntry> GetTablesFilterEntries(
@@ -48,26 +48,21 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             return entries;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
-        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities",
-            Justification = "The only SQL passed to this method consists of pre-defined queries over which the user has no control")]
         private static ICollection<EntityStoreSchemaFilterEntry> ExecuteDatabaseMetadataQuery(
             string esqlQuery, EntityStoreSchemaFilterObjectTypes types, ISchemaListingSettings settings, DoWorkEventArgs args)
         {
-            var filterEntries = new List<EntityStoreSchemaFilterEntry>();
+            List<EntityStoreSchemaFilterEntry> filterEntries = new List<EntityStoreSchemaFilterEntry>();
 
             EntityConnection ec = null;
             try
             {
-                Version actualEntityFrameworkConnectionVersion;
 
                 ec = new StoreSchemaConnectionFactory().Create(
                     DependencyResolver.Instance,
                     settings.RuntimeProviderInvariantName,
                     settings.RuntimeConnectionString,
                     settings.TargetSchemaVersion,
-                    out actualEntityFrameworkConnectionVersion);
+                    out Version actualEntityFrameworkConnectionVersion);
 
                 // if the provider does not support V3 and we are querying for Functions then switch to the pre-V3 query
                 if (actualEntityFrameworkConnectionVersion < EntityFrameworkVersion.Version3
@@ -76,7 +71,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                     esqlQuery = SelectFunctionsESqlQueryBeforeV3;
                 }
 
-                using (var command = new EntityCommand(null, ec, DependencyResolver.Instance))
+                using (EntityCommand command = new EntityCommand(null, ec, DependencyResolver.Instance))
                 {
                     // NOTE:  DO NOT set the the command.CommandTimeout value.  Some providers don't support a non-zero value, and will throw (eg, SqlCE provider). 
                     // The System.Data.SqlClient's default value is 15, so we will still get a timeout for sql server. 

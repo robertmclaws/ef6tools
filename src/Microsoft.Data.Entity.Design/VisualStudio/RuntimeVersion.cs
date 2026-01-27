@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     // <summary>
     //     Class for reasoning about an entity framework runtime version.
     //     Definitions of terms used in this class:
@@ -27,9 +28,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
     // </summary>
     internal static class RuntimeVersion
     {
-        public static readonly Version Version1 = new Version(3, 5, 0, 0);
-        public static readonly Version Version4 = new Version(4, 0, 0, 0);
-        public static readonly Version Version5Net40 = new Version(4, 4, 0, 0);
+        // Only EF5 (.NET 4.5+) and EF6 are supported
         public static readonly Version Version5Net45 = new Version(5, 0, 0, 0);
         public static readonly Version Version6 = new Version(6, 0, 0, 0);
 
@@ -40,27 +39,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         public static Version Version5(Version targetNetFrameworkVersion)
         {
-            // For modern .NET projects, targetNetFrameworkVersion is null - treat as .NET 4.5+
-            if (targetNetFrameworkVersion == null ||
-                targetNetFrameworkVersion != NetFrameworkVersioningHelper.NetFrameworkVersion4)
-            {
-                return Version5Net45;
-            }
-
-            return Version5Net40;
+            // For modern projects, always return Version5Net45
+            return Version5Net45;
         }
 
         public static string GetName(Version entityFrameworkVersion, Version targetNetFrameworkVersion)
         {
             Debug.Assert(entityFrameworkVersion != null, "entityFrameworkVersion is null.");
-
-            if (entityFrameworkVersion == Version5Net40
-                || (targetNetFrameworkVersion != null
-                    && entityFrameworkVersion == Version4
-                    && targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4_5))
-            {
-                entityFrameworkVersion = Version5Net45;
-            }
 
             return string.Format(CultureInfo.InvariantCulture,
                 Resources.EntityFrameworkVersionName,
@@ -71,9 +56,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         public static bool RequiresLegacyProvider(Version entityFrameworkVersion)
         {
-            Debug.Assert(entityFrameworkVersion != null, "entityFrameworkVersion is null.");
-
-            return entityFrameworkVersion < Version6;
+            // Legacy provider support removed - always use modern provider
+            return false;
         }
 
         // <summary>
@@ -100,52 +84,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         // </remarks>
         public static Version GetTargetSchemaVersion(Version entityFrameworkVersion, Version targetNetFrameworkVersion)
         {
-            Debug.Assert(
-                entityFrameworkVersion == null || entityFrameworkVersion >= Version1,
-                "entityFrameworkVersion is less than 3.5.");
-
-            // For modern .NET projects, targetNetFrameworkVersion is null - always use latest schema
-            if (targetNetFrameworkVersion == null)
-            {
-                return EntityFrameworkVersion.Version3;
-            }
-
-            if (entityFrameworkVersion == null)
-            {
-                return GetLatestSchemaVersion(targetNetFrameworkVersion);
-            }
-
-            if (entityFrameworkVersion >= Version5Net45
-                || (entityFrameworkVersion == Version4 &&
-                    targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4_5))
-            {
-                return EntityFrameworkVersion.Version3;
-            }
-
-            if (entityFrameworkVersion >= Version4)
-            {
-                return EntityFrameworkVersion.Version2;
-            }
-
-            Debug.Assert(entityFrameworkVersion == Version1);
-
-            return EntityFrameworkVersion.Version1;
+            // Always use Version3 for modern development
+            return EntityFrameworkVersion.Version3;
         }
 
         private static Version GetLatestSchemaVersion(Version targetNetFrameworkVersion)
         {
-            // For modern .NET projects, targetNetFrameworkVersion is null - always use Version3
-            if (targetNetFrameworkVersion == null ||
-                targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4)
-            {
-                return EntityFrameworkVersion.Version3;
-            }
-
-            Debug.Assert(
-                targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion3_5,
-                "Unexpected target .NET Framework Version");
-
-            return EntityFrameworkVersion.Version1;
+            // Always use Version3 for modern development
+            return EntityFrameworkVersion.Version3;
         }
 
         // <summary>
@@ -167,19 +113,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         public static bool IsSchemaVersionLatestForAssemblyVersion(
             Version schemaVersion, Version assemblyVersion, Version targetNetFrameworkVersion)
         {
-            Debug.Assert(EntityFrameworkVersion.IsValidVersion(schemaVersion), "Invalid schema version");
-            Debug.Assert(assemblyVersion != null, "assemblyVersion != null");
-
-            if (assemblyVersion == Version4
-                && targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4_5)
-            {
-                assemblyVersion = Version5Net45;
-            }
-
-            return
-                (schemaVersion == EntityFrameworkVersion.Version3 && assemblyVersion >= Version5Net45) ||
-                (schemaVersion == EntityFrameworkVersion.Version2 && (assemblyVersion >= Version4 && assemblyVersion <= Version5Net40)) ||
-                (schemaVersion == EntityFrameworkVersion.Version1 && assemblyVersion == Version1);
+            // For modern development, Version3 is always the latest schema version
+            return schemaVersion == EntityFrameworkVersion.Version3;
         }
 
         // <summary>
@@ -199,23 +134,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         // </remarks>
         public static Version GetSchemaVersionForNetFrameworkVersion(Version netFrameworkVersion)
         {
-            // For modern .NET projects, netFrameworkVersion is null - always use Version3
-            if (netFrameworkVersion == null ||
-                netFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4_5)
-            {
-                return EntityFrameworkVersion.Version3;
-            }
-
-            if (netFrameworkVersion == NetFrameworkVersioningHelper.NetFrameworkVersion4)
-            {
-                return EntityFrameworkVersion.Version2;
-            }
-
-            Debug.Assert(
-                netFrameworkVersion == NetFrameworkVersioningHelper.NetFrameworkVersion3_5,
-                "Unexpected .NET Framework Version");
-
-            return EntityFrameworkVersion.Version1;
+            // Always use Version3 for modern development
+            return EntityFrameworkVersion.Version3;
         }
     }
 }

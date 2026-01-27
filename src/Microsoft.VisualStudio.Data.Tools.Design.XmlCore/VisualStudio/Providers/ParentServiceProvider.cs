@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Providers
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal sealed class ParentServiceProvider
     {
         private ParentServiceProvider()
@@ -23,26 +23,23 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Providers
         internal static ServiceType GetParentService<ServiceType>(IServiceProvider provider)
         {
             object service = null;
-            object @var;
 
             Debug.Assert(null != provider);
             if (null != provider)
             {
-                var ourFrame = provider.GetService(typeof(IVsWindowFrame)) as IVsWindowFrame;
-                if (ourFrame != null)
+                if (provider.GetService(typeof(IVsWindowFrame)) is IVsWindowFrame ourFrame)
                 {
-                    var hr = ourFrame.GetProperty((int)__VSFPROPID2.VSFPROPID_ParentFrame, out @var);
+                    var hr = ourFrame.GetProperty((int)__VSFPROPID2.VSFPROPID_ParentFrame, out object @var);
 
                     if (NativeMethods.Succeeded(hr)
                         && @var != null)
                     {
-                        var parentFrame = (IVsWindowFrame)@var;
+                        IVsWindowFrame parentFrame = (IVsWindowFrame)@var;
                         hr = parentFrame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out @var);
                         Debug.Assert(NativeMethods.Succeeded(hr));
                         if (NativeMethods.Succeeded(hr))
                         {
-                            var parentViewProvider = @var as IServiceProvider;
-                            if (parentViewProvider != null)
+                            if (@var is IServiceProvider parentViewProvider)
                             {
                                 service = parentViewProvider.GetService(typeof(ServiceType));
                             }

@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Linq;
+using System.Text.RegularExpressions;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class DefaultVBEntityTypeGeneratorTests : GeneratorTestBase
     {
@@ -17,7 +17,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Generate_returns_code()
         {
-            var generator = new DefaultVBEntityTypeGenerator();
+            DefaultVBEntityTypeGenerator generator = new DefaultVBEntityTypeGenerator();
             var result = NormalizeCode(generator.Generate(
                 Model.ConceptualModel.Container.EntitySets.First(),
                 Model,

@@ -1,35 +1,35 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using Resources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
-
     internal abstract class ModelBuilderEngine
     {
         public DbModel Model { get; private set; }
 
         // virutal for testing
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public virtual void GenerateModel(ModelBuilderSettings settings, IVsUtils vsUtils = null, 
             ModelBuilderEngineHostContext hostContext = null)
         {
             if (settings.GenerationOption == ModelGenerationOption.GenerateFromDatabase
                 && String.IsNullOrEmpty(settings.DesignTimeConnectionString))
             {
-                throw new ArgumentOutOfRangeException(Resources.Engine_EmptyConnStringErrorMsg);
+                throw new ArgumentOutOfRangeException(WizardResources.Engine_EmptyConnStringErrorMsg);
             }
 
-            var generatingModelWatch = Stopwatch.StartNew();
+            Stopwatch generatingModelWatch = Stopwatch.StartNew();
 
             hostContext = hostContext ?? new VSModelBuilderEngineHostContext(settings);
             vsUtils = vsUtils ?? new VsUtilsWrapper();
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             // Clear out the ModelGenErrorCache before ModelGen begins
             PackageManager.Package.ModelGenErrorCache.RemoveErrors(settings.ModelPath);
 
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
 
             try
             {
@@ -49,8 +49,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 hostContext.LogMessage(
                     FormatMessage(
                         errors.Any()
-                            ? Resources.Engine_ModelGenErrors
-                            : Resources.Engine_ModelGenSuccess,
+                            ? WizardResources.Engine_ModelGenErrors
+                            : WizardResources.Engine_ModelGenSuccess,
                         Path.GetFileName(settings.ModelPath)));
 
                 if (errors.Any())
@@ -60,19 +60,19 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             }
             catch (Exception e)
             {
-                hostContext.LogMessage(FormatMessage(Resources.Engine_ModelGenException, e));
+                hostContext.LogMessage(FormatMessage(WizardResources.Engine_ModelGenException, e));
                 // The exception we re-throw will get swallowed in the message pump and therefore we need to show the message box here.
                 // It will also prevent the form.WizardFinished from being set to true which will cause cancelling the wizard and 
                 // therefore block adding new project items to the project as well as ModelObjectItemWizardFrom.RunFinished method.
-                vsUtils.ShowErrorDialog(FormatMessage(Resources.Engine_ModelGenExceptionMessageBox, e.GetType().Name, e.Message));
+                vsUtils.ShowErrorDialog(FormatMessage(WizardResources.Engine_ModelGenExceptionMessageBox, e.GetType().Name, e.Message));
                 throw;
             }
             finally
             {
                 generatingModelWatch.Stop();
 
-                hostContext.LogMessage(FormatMessage(Resources.LoadingDBMetadataTimeMsg, settings.LoadingDBMetatdataTime));
-                hostContext.LogMessage(FormatMessage(Resources.GeneratingModelTimeMsg, generatingModelWatch.Elapsed));
+                hostContext.LogMessage(FormatMessage(WizardResources.LoadingDBMetadataTimeMsg, settings.LoadingDBMetatdataTime));
+                hostContext.LogMessage(FormatMessage(WizardResources.GeneratingModelTimeMsg, generatingModelWatch.Elapsed));
             }
         }
 
@@ -92,7 +92,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 string.IsNullOrEmpty(settings.StorageNamespace)
                     ? String.Format(
                         CultureInfo.CurrentCulture,
-                        Resources.SelectTablesPage_DefaultStorageNamespaceFormat,
+                        WizardResources.SelectTablesPage_DefaultStorageNamespaceFormat,
                         settings.ModelNamespace)
                     : settings.StorageNamespace;
         }

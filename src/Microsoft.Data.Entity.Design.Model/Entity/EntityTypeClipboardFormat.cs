@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
-
     // Represents EntityType info stored in Clipboard
     [Serializable]
     internal class EntityTypeClipboardFormat : AnnotatableElementClipboardFormat
@@ -37,10 +37,9 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             _entityName = entity.LocalName.Value;
             var entitySet = entity.EntitySet;
 
-            _navigationProperties = new List<NavigationPropertyClipboardFormat>();
+            _navigationProperties = [];
 
-            var cet = entity as ConceptualEntityType;
-            if (cet != null)
+            if (entity is ConceptualEntityType cet)
             {
                 // c-side entity type
                 // don't use base type EntitySet name
@@ -76,7 +75,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 }
             }
 
-            _properties = new List<PropertyClipboardFormat>();
+            _properties = [];
             // Sort the properties based on properties's XElement order. This is that so we can create the copy of properties in that order.
             foreach (var property in ModelHelper.GetListOfPropertiesInTheirXElementsOrder(entity.Properties().ToList()))
             {
@@ -86,7 +85,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         internal string TraceString()
         {
-            var sb = new StringBuilder(
+            StringBuilder sb = new StringBuilder(
                 "[" + typeof(EntityTypeClipboardFormat).Name +
                 " entityName=" + _entityName +
                 ", entitySetName=" + _entitySetName +

@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Activities;
+using System.Activities.Hosting;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Reflection;
+using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
+
 namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
 {
-    using System;
-    using System.Activities;
-    using System.Activities.Hosting;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Reflection;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
-
     /// <summary>
     ///     An abstract, base WorkflowElement that allows the transformation of a certain format to another format via code
     /// </summary>
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
         protected T ProcessOutputGenerator<T>(
             string outputGeneratorTypeName, NativeActivityContext context, IDictionary<string, object> inputs) where T : class
         {
-            var outputGeneratorType = Type.GetType(outputGeneratorTypeName);
+            Type outputGeneratorType = Type.GetType(outputGeneratorTypeName);
             if (outputGeneratorType == null)
             {
                 // if the type name is correct, then the assembly may not be loaded. Try to load it
@@ -70,8 +70,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                     var symbolResolver = context.GetExtension<SymbolResolver>();
                     if (symbolResolver != null)
                     {
-                        var edmParameterBag = symbolResolver[typeof(EdmParameterBag).Name] as EdmParameterBag;
-                        if (edmParameterBag != null)
+                        if (symbolResolver[typeof(EdmParameterBag).Name] is EdmParameterBag edmParameterBag)
                         {
                             var assemblyLoader = edmParameterBag.GetParameter<IAssemblyLoader>(EdmParameterBag.ParameterName.AssemblyLoader);
                             if (assemblyLoader != null)

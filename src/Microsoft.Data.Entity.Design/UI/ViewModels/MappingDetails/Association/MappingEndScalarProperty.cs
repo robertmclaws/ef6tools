@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [TreeGridDesignerRootBranch(typeof(EndScalarPropertyBranch))]
     [TreeGridDesignerColumn(typeof(PropertyColumn), Order = 1)]
     [TreeGridDesignerColumn(typeof(OperatorColumn), Order = 2)]
@@ -183,16 +183,16 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
                             && MappingAssociationSet.AssociationSet.AssociationSetMapping.StoreEntitySet.Target.EntityType != null
                             && MappingAssociationSet.AssociationSet.AssociationSetMapping.StoreEntitySet.Target.EntityType.Target != null)
                         {
-                            var tableColumn =
+                            Property tableColumn =
                                 MappingAssociationSet.AssociationSet.AssociationSetMapping.StoreEntitySet.Target.EntityType.Target
                                     .GetFirstNamedChildByLocalName(newColumnName) as Property;
                             Debug.Assert(tableColumn != null, "Could not find tableColumn property for newColumnName " + newColumnName);
 
                             if (tableColumn != null)
                             {
-                                var cpc = new CommandProcessorContext(
+                                CommandProcessorContext cpc = new CommandProcessorContext(
                                     Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeScalarProperty);
-                                var cmd = new ChangeScalarPropertyCommand(ScalarProperty, null, tableColumn);
+                                ChangeScalarPropertyCommand cmd = new ChangeScalarPropertyCommand(ScalarProperty, null, tableColumn);
                                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
                             }
                         }
@@ -224,14 +224,14 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
 
         internal override Dictionary<MappingLovEFElement, string> GetListOfValues(ListOfValuesCollection type)
         {
-            var lov = new Dictionary<MappingLovEFElement, string>();
+            Dictionary<MappingLovEFElement, string> lov = new Dictionary<MappingLovEFElement, string>();
 
             Debug.Assert(type == ListOfValuesCollection.ThirdColumn, "Unsupported lov type was sent");
 
             if (type == ListOfValuesCollection.ThirdColumn)
             {
                 var table = MappingAssociationSet.GetTable();
-                var properties = new List<Property>();
+                List<Property> properties = new List<Property>();
                 if (table != null)
                 {
                     properties.AddRange(table.Properties());
@@ -275,7 +275,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
         internal override void CreateModelItem(CommandProcessorContext cpc, EditingContext context, EFElement underlyingModelItem)
         {
             Debug.Assert(underlyingModelItem != null, "The underlyingModelItem cannot be null");
-            var tableColumn = underlyingModelItem as Property;
+            Property tableColumn = underlyingModelItem as Property;
             Debug.Assert(context != null, "The context argument cannot be null");
             Debug.Assert(ScalarProperty == null, "Don't call this method if we already have a ModelItem");
             Debug.Assert(tableColumn != null, "The tableColumn cannot be null.");
@@ -288,8 +288,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
             Context = context;
 
             // find the c-side property based on the passed in name
-            var entityProperty = MappingAssociationSetEnd.ConceptualEntityType.GetFirstNamedChildByLocalName(Property) as Property;
-            if (entityProperty == null)
+            if (MappingAssociationSetEnd.ConceptualEntityType.GetFirstNamedChildByLocalName(Property) is not Property entityProperty)
             {
                 // they might be trying to map a key from the base class
                 EntityType topMostBaseType = MappingAssociationSetEnd.ConceptualEntityType.ResolvableTopMostBaseType;
@@ -302,11 +301,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
             }
 
             // create our context if we don't have one
-            if (cpc == null)
-            {
-                cpc = new CommandProcessorContext(
+            cpc ??= new CommandProcessorContext(
                     Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_CreateScalarProperty);
-            }
 
             // create the right command
             CreateEndScalarPropertyCommand cmd = null;
@@ -337,7 +333,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
             try
             {
                 // now make the change
-                var cp = new CommandProcessor(cpc, cmd);
+                CommandProcessor cp = new CommandProcessor(cpc, cmd);
                 cp.Invoke();
             }
             catch
@@ -364,11 +360,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
                 var propertyType = PropertyType;
 
                 // create a context if we weren't passed one
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_DeleteScalarProperty);
-                }
 
                 // use the item's delete command
                 var deleteCommand = ScalarProperty.GetDeleteCommand();

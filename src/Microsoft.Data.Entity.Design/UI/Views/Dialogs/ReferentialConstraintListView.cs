@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Security;
+using System.Security.Permissions;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 {
-    using System;
-    using System.Runtime.InteropServices;
-    using System.Security;
-    using System.Security.Permissions;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     internal partial class ReferentialConstraintListView : ListView
     {
         public ReferentialConstraintListView()

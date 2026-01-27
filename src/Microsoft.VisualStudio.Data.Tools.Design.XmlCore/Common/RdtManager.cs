@@ -2,29 +2,28 @@
 
 using VsShell = Microsoft.VisualStudio.Shell.Interop;
 using VsTextMgr = Microsoft.VisualStudio.TextManager.Interop;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Windows.Forms;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using System.Text;
-    using System.Windows.Forms;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
-    using Microsoft.VisualStudio.Shell;
-
     /// <summary>
     ///     A static utility class that manages interaction with the RDT for any part of the system that needs such services.
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Rdt")]
     internal sealed class RdtManager : IDisposable
     {
         private static volatile RdtManager _instance;
@@ -34,7 +33,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
         private readonly VsShell.IVsRunningDocumentTable _runningDocumentTable;
         private readonly _DTE _dte;
         private readonly VsShell.IVsUIShell _uiShell;
-        private readonly Dictionary<uint /* docCookie */, int /* ref count */> _docDataToKeepAliveOnClose = new Dictionary<uint, int>();
+        private readonly Dictionary<uint /* docCookie */, int /* ref count */> _docDataToKeepAliveOnClose = [];
         private readonly object _docDataToKeepAliveOnCloseLock = new object();
 
         internal static RdtManager Instance
@@ -61,16 +60,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             {
                 lock (_lock)
                 {
-                    if (_instance == null)
-                    {
-                        _instance = new RdtManager();
-                    }
+                    _instance ??= new RdtManager();
                 }
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "uiShell")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "RdtManager")]
         private RdtManager()
         {
             // assert if we're not on the UI thread.  GetService calls must be made on the UI thread, so caching 
@@ -93,13 +87,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsRunningDocumentTable.LockDocument(System.UInt32,System.UInt32)")]
         public void AddKeepDocDataAliveOnCloseReference(uint docCookie)
         {
             lock (_docDataToKeepAliveOnCloseLock)
             {
-                int refCount;
-                if (_docDataToKeepAliveOnClose.TryGetValue(docCookie, out refCount))
+                if (_docDataToKeepAliveOnClose.TryGetValue(docCookie, out int refCount))
                 {
                     _docDataToKeepAliveOnClose[docCookie] = refCount + 1;
                 }
@@ -113,13 +105,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsRunningDocumentTable.UnlockDocument(System.UInt32,System.UInt32)")]
         public void RemoveKeepDocDataAliveOnCloseReference(uint docCookie)
         {
             lock (_docDataToKeepAliveOnCloseLock)
             {
-                int refCount;
-                if (_docDataToKeepAliveOnClose.TryGetValue(docCookie, out refCount))
+                if (_docDataToKeepAliveOnClose.TryGetValue(docCookie, out int refCount))
                 {
                     if (refCount == 1)
                     {
@@ -227,8 +217,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             var rdt = Instance.GetRunningDocumentTable();
             if (rdt != null)
             {
-                VsShell.IVsHierarchy ppHier;
-                uint pitemid, pdwCookie;
                 var ppunkDocData = IntPtr.Zero;
                 try
                 {
@@ -236,10 +224,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                         FindAndLockDocument(
                             (uint)(VsShell._VSRDTFLAGS.RDT_NoLock),
                             fullPathFileName,
-                            out ppHier,
-                            out pitemid,
+                            out IVsHierarchy ppHier,
+                            out uint pitemid,
                             out ppunkDocData,
-                            out pdwCookie));
+                            out uint pdwCookie));
                     if (pdwCookie != 0)
                     {
                         if (ppunkDocData != IntPtr.Zero)
@@ -423,7 +411,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
         {
             if (string.IsNullOrEmpty(fullFilePath) == false)
             {
-                IList<string> dirtyFiles = new List<string> { fullFilePath };
+                IList<string> dirtyFiles = [fullFilePath];
                 SaveDirtyFiles(dirtyFiles);
             }
         }
@@ -475,7 +463,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
         {
             ArgumentValidation.CheckForNullReference(shouldHandle, "shouldHandle");
 
-            var dirtyFiles = new List<string>();
+            List<string> dirtyFiles = new List<string>();
             var rdt = Instance.GetRunningDocumentTable();
             if (rdt != null)
             {
@@ -484,7 +472,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 
                 // Go through the open documents and find it
                 _ = ErrorHandler.ThrowOnFailure(uiShell.GetDocumentWindowEnum(out VsShell.IEnumWindowFrames windowFramesEnum));
-                var windowFrames = new VsShell.IVsWindowFrame[1];
+                IVsWindowFrame[] windowFrames = new VsShell.IVsWindowFrame[1];
                 while (windowFramesEnum.Next(1, windowFrames, out uint fetched) == VSConstants.S_OK
                        && fetched == 1)
                 {
@@ -568,32 +556,23 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             if (dte != null)
             {
                 var document = dte.ActiveDocument;
-                if (document != null)
-                {
-                    document.Activate();
-                }
+                document?.Activate();
             }
         }
 
         /// <summary>
         ///     Returns the hierarchy for this file on the rdt
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1007:UseGenericsWhereAppropriate")]
         public VsShell.IVsHierarchy GetHierarchyFromDocCookie(uint docCookie)
         {
-            uint pgrfRDTFlags;
-            uint pdwReadLocks;
-            uint pdwEditLocks;
-            string pbstrMkDocument;
             VsShell.IVsHierarchy ppHier;
-            uint pitemid;
             var ppunkDocData = IntPtr.Zero;
 
             try
             {
                 NativeMethods.ThrowOnFailure(
                     _runningDocumentTable.GetDocumentInfo(
-                        docCookie, out pgrfRDTFlags, out pdwReadLocks, out pdwEditLocks, out pbstrMkDocument, out ppHier, out pitemid,
+                        docCookie, out uint pgrfRDTFlags, out uint pdwReadLocks, out uint pdwEditLocks, out string pbstrMkDocument, out ppHier, out uint pitemid,
                         out ppunkDocData));
             }
             finally
@@ -609,7 +588,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
         /// <summary>
         ///     Returns the docdata for this cookie on the rdt
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1007:UseGenericsWhereAppropriate")]
         public static bool TryGetDocDataFromCookie(uint cookie, out object docData)
         {
             docData = null;
@@ -618,23 +596,16 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             Debug.Assert(rdt != null);
             if (rdt != null)
             {
-                VsShell.IVsHierarchy hierarchy;
-                uint rdtFlags;
-                uint readLocks;
-                uint editLocks;
-                string itemName;
-                uint itemId;
-                IntPtr unknownDocData;
 
                 var hr = rdt.GetDocumentInfo(
                     cookie,
-                    out rdtFlags,
-                    out readLocks,
-                    out editLocks,
-                    out itemName,
-                    out hierarchy,
-                    out itemId,
-                    out unknownDocData);
+                    out uint rdtFlags,
+                    out uint readLocks,
+                    out uint editLocks,
+                    out string itemName,
+                    out IVsHierarchy hierarchy,
+                    out uint itemId,
+                    out IntPtr unknownDocData);
                 if (NativeMethods.Succeeded(hr))
                 {
                     docData = Marshal.GetObjectForIUnknown(unknownDocData);
@@ -652,11 +623,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
         /// <returns>True if document is dirty, false if not</returns>
         public static bool IsDirty(string docFullPath)
         {
-            var docData = GetDocData(docFullPath) as VsShell.IVsPersistDocData;
-            if (docData != null)
+            if (GetDocData(docFullPath) is VsShell.IVsPersistDocData docData)
             {
-                int dirty;
-                NativeMethods.ThrowOnFailure(docData.IsDocDataDirty(out dirty));
+                NativeMethods.ThrowOnFailure(docData.IsDocDataDirty(out int dirty));
 
                 return (dirty != 0);
             }
@@ -665,8 +634,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 
         public static bool IsDirty(uint docCookie)
         {
-            object docData;
-            if (TryGetDocDataFromCookie(docCookie, out docData))
+            if (TryGetDocDataFromCookie(docCookie, out object docData))
             {
                 return IsDirty(docData);
             }
@@ -675,11 +643,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 
         public static bool IsDirty(object docData)
         {
-            var persistDocData = docData as VsShell.IVsPersistDocData;
-            if (persistDocData != null)
+            if (docData is VsShell.IVsPersistDocData persistDocData)
             {
-                int dirty;
-                NativeMethods.ThrowOnFailure(persistDocData.IsDocDataDirty(out dirty));
+                NativeMethods.ThrowOnFailure(persistDocData.IsDocDataDirty(out int dirty));
 
                 return (dirty != 0);
             }
@@ -730,26 +696,20 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                 var uiShell = _uiShell;
 
                 // Go through the open documents and find it
-                VsShell.IEnumWindowFrames windowFramesEnum;
-                ErrorHandler.ThrowOnFailure(uiShell.GetDocumentWindowEnum(out windowFramesEnum));
-                var windowFrames = new VsShell.IVsWindowFrame[1];
-                uint fetched;
+                ErrorHandler.ThrowOnFailure(uiShell.GetDocumentWindowEnum(out IEnumWindowFrames windowFramesEnum));
+                IVsWindowFrame[] windowFrames = new VsShell.IVsWindowFrame[1];
                 var thisFilename = fullFileName;
 
-                while (windowFramesEnum.Next(1, windowFrames, out fetched) == VSConstants.S_OK
+                while (windowFramesEnum.Next(1, windowFrames, out uint fetched) == VSConstants.S_OK
                        && fetched == 1)
                 {
                     var windowFrame = windowFrames[0];
-                    object data;
-                    ErrorHandler.ThrowOnFailure(windowFrame.GetProperty((int)VsShell.__VSFPROPID.VSFPROPID_DocData, out data));
+                    ErrorHandler.ThrowOnFailure(windowFrame.GetProperty((int)VsShell.__VSFPROPID.VSFPROPID_DocData, out object data));
 
-                    var fileFormat = data as VsShell.IPersistFileFormat;
-                    if (fileFormat != null)
+                    if (data is VsShell.IPersistFileFormat fileFormat)
                     {
-                        string candidateFilename;
-                        uint formatIndex;
 
-                        NativeMethods.ThrowOnFailure(fileFormat.GetCurFile(out candidateFilename, out formatIndex));
+                        NativeMethods.ThrowOnFailure(fileFormat.GetCurFile(out string candidateFilename, out uint formatIndex));
                         if (string.IsNullOrEmpty(candidateFilename) == false
                             &&
                             (string.Compare(candidateFilename, thisFilename, true, CultureInfo.CurrentCulture) == 0 ||
@@ -771,18 +731,12 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
         /// </summary>
         /// <param name="fullPathFileName">the fullpath filename whose docCookie is wanted</param>
         /// <returns>the DocCookie of the specified file</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults",
-            MessageId =
-                "Microsoft.VisualStudio.Shell.Interop.IVsRunningDocumentTable.FindAndLockDocument(System.UInt32,System.String,Microsoft.VisualStudio.Shell.Interop.IVsHierarchy@,System.UInt32@,System.IntPtr@,System.UInt32@)"
-            )]
         internal static uint GetRdtCookie(string fullPathFileName)
         {
             uint result = 0;
             var rdt = Instance.GetRunningDocumentTable();
             if (rdt != null)
             {
-                VsShell.IVsHierarchy ppHier;
-                uint pItemId;
                 var ppunkDocData = IntPtr.Zero;
 
                 try
@@ -804,8 +758,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                     FindAndLockDocument(
                         (uint)(VsShell._VSRDTFLAGS.RDT_NoLock),
                         fullPathFileName,
-                        out ppHier,
-                        out pItemId,
+                        out IVsHierarchy ppHier,
+                        out uint pItemId,
                         out ppunkDocData,
                         out result);
                 }
@@ -827,20 +781,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
         /// </summary>
         /// <param name="fullPathFileName">the fullpath filename whose docCookie is wanted</param>
         /// <returns>the docData of the specified file</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults",
-            MessageId =
-                "Microsoft.VisualStudio.Shell.Interop.IVsRunningDocumentTable.FindAndLockDocument(System.UInt32,System.String,Microsoft.VisualStudio.Shell.Interop.IVsHierarchy@,System.UInt32@,System.IntPtr@,System.UInt32@)"
-            )]
         public static Object GetDocData(string fullPathFileName)
         {
             var ppunkDocData = IntPtr.Zero;
             Object returnObj = null;
-            uint result;
             var rdt = Instance.GetRunningDocumentTable();
             if (rdt != null)
             {
-                VsShell.IVsHierarchy ppHier;
-                uint pItemId;
 
                 try
                 {
@@ -860,10 +807,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                     FindAndLockDocument(
                         (uint)(VsShell._VSRDTFLAGS.RDT_NoLock),
                         fullPathFileName,
-                        out ppHier,
-                        out pItemId,
+                        out IVsHierarchy ppHier,
+                        out uint pItemId,
                         out ppunkDocData,
-                        out result);
+                        out uint result);
                 }
                 finally
                 {
@@ -929,7 +876,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
         /// <param name="content">string content need to update the file with.</param>
         /// <param name="saveFile">Save file or not after writing.</param>
         /// <param name="createIfNotExist">Creates the file if it doesn't exist.</param>
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         public bool WriteToFile(string fullPathFileName, string content, bool saveFile, bool createIfNotExist)
         {
             var succeed = true;
@@ -971,14 +917,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                         }
                         finally
                         {
-                            if (writer != null)
-                            {
-                                writer.Close();
-                            }
-                            if (fileStream != null)
-                            {
-                                fileStream.Close();
-                            }
+                            writer?.Close();
+                            fileStream?.Close();
                         }
                     }
 
@@ -995,8 +935,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                 {
                     if (textLines != null)
                     {
-                        int line, column;
-                        var result = textLines.GetLastLineIndex(out line, out column);
+                        var result = textLines.GetLastLineIndex(out int line, out int column);
                         if (result == VSConstants.S_OK)
                         {
                             var pContent = IntPtr.Zero;
@@ -1021,7 +960,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                             }
                             if (saveFile)
                             {
-                                var list = new List<string> { fullPathFileName };
+                                List<string> list = new List<string> { fullPathFileName };
                                 Instance.SaveDirtyFiles(list);
                             }
                         }

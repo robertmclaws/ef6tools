@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data;
+using System.Globalization;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Data;
-    using System.Globalization;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-
     [TestClass]
     public class RelationshipDetailsRowTests
     {
         [TestMethod]
         public void Table_returns_owning_table()
         {
-            var relationshipDetailsCollection = new RelationshipDetailsCollection();
+            RelationshipDetailsCollection relationshipDetailsCollection = new RelationshipDetailsCollection();
             relationshipDetailsCollection.NewRow().Table.Should().BeSameAs(relationshipDetailsCollection);
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void PKCatalog_IsDbNull_returns_true_for_null_PKCatalog_value()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
             row.IsPKCatalogNull().Should().BeTrue();
             row["PkCatalog"] = DBNull.Value;
             row.IsPKCatalogNull().Should().BeTrue();
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void PKCatalog_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.PKCatalog; };
             act.Should().Throw<StrongTypingException>()
@@ -78,7 +78,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void PKSchema_IsDbNull_returns_true_for_null_PkSchema_value()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
             row.IsPKSchemaNull().Should().BeTrue();
             row["PkSchema"] = DBNull.Value;
             row.IsPKSchemaNull().Should().BeTrue();
@@ -87,7 +87,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void PKSchema_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.PKSchema; };
             act.Should().Throw<StrongTypingException>()
@@ -117,7 +117,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void PKTable_IsDbNull_returns_true_for_null_PkTable_value()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
             row.IsPKTableNull().Should().BeTrue();
             row["PkTable"] = DBNull.Value;
             row.IsPKTableNull().Should().BeTrue();
@@ -126,7 +126,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void PKTable_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.PKTable; };
             act.Should().Throw<StrongTypingException>()
@@ -156,7 +156,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void PKColumn_IsDbNull_returns_true_for_null_PkColumn_value()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
             row.IsPKColumnNull().Should().BeTrue();
             row["PkColumn"] = DBNull.Value;
             row.IsPKColumnNull().Should().BeTrue();
@@ -165,7 +165,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void PKColumn_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.PKColumn; };
             act.Should().Throw<StrongTypingException>()
@@ -195,7 +195,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void FKCatalog_IsDbNull_returns_true_for_null_FkCatalog_value()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
             row.IsFKCatalogNull().Should().BeTrue();
             row["FkCatalog"] = DBNull.Value;
             row.IsFKCatalogNull().Should().BeTrue();
@@ -204,7 +204,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void FKCatalog_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.FKCatalog; };
             act.Should().Throw<StrongTypingException>()
@@ -234,7 +234,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void FKSchema_IsDbNull_returns_true_for_null_FkSchema_value()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
             row.IsFKSchemaNull().Should().BeTrue();
             row["FkSchema"] = DBNull.Value;
             row.IsFKSchemaNull().Should().BeTrue();
@@ -243,7 +243,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void FKSchema_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.FKSchema; };
             act.Should().Throw<StrongTypingException>()
@@ -273,7 +273,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void FKTable_IsDbNull_returns_true_for_null_FkTable_value()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
             row.IsFKTableNull().Should().BeTrue();
             row["FkTable"] = DBNull.Value;
             row.IsFKTableNull().Should().BeTrue();
@@ -282,7 +282,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void FKTable_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.FKTable; };
             act.Should().Throw<StrongTypingException>()
@@ -312,7 +312,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void FKColumn_IsDbNull_returns_true_for_null_FkColumn_value()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
             row.IsFKColumnNull().Should().BeTrue();
             row["FkColumn"] = DBNull.Value;
             row.IsFKColumnNull().Should().BeTrue();
@@ -321,7 +321,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void FKColumn_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.FKColumn; };
             act.Should().Throw<StrongTypingException>()
@@ -351,7 +351,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void Ordinal_IsDbNull_returns_true_for_null_Ordinal_value()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
             row.IsOrdinalNull().Should().BeTrue();
             row["Ordinal"] = DBNull.Value;
             row.IsOrdinalNull().Should().BeTrue();
@@ -360,7 +360,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void Ordinal_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.Ordinal; };
             act.Should().Throw<StrongTypingException>()
@@ -390,7 +390,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void RelationshipName_IsDbNull_returns_true_for_null_RelationshipName_value()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
             row.IsRelationshipNameNull().Should().BeTrue();
             row["RelationshipName"] = DBNull.Value;
             row.IsRelationshipNameNull().Should().BeTrue();
@@ -399,7 +399,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void RelationshipName_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.RelationshipName; };
             act.Should().Throw<StrongTypingException>()
@@ -429,7 +429,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void RelationshipId_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.RelationshipId; };
             act.Should().Throw<StrongTypingException>()
@@ -459,7 +459,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void RelationshipIsCascadeDelete_throws_StrongTypingException_for_null_vale()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.RelationshipIsCascadeDelete; };
             act.Should().Throw<StrongTypingException>()
@@ -473,7 +473,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void GetMostQualifiedPrimaryKey_returns_expected_result()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             row["PkTable"] = "table";
             row.GetMostQualifiedPrimaryKey().Should().Be("table");
@@ -488,7 +488,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void GetMostQualifiedForeignKey_returns_expected_result()
         {
-            var row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow row = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             row["FkTable"] = "table";
             row.GetMostQualifiedForeignKey().Should().Be("table");

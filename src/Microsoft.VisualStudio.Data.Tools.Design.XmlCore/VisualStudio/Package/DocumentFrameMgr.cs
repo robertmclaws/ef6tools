@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Telemetry;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.InteropServices;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.Telemetry;
-
     /// <summary>
     ///     The DocumentFrameMgr class manages all document window frames that
     ///     are associated to a designer file document if they were loaded in the default designer or in the XML editor
@@ -34,8 +34,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         {
             get
             {
-                object pvarValue;
-                NativeMethods.ThrowOnFailure(_sel.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out pvarValue));
+                NativeMethods.ThrowOnFailure(_sel.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out object pvarValue));
                 var activeFrame = CreateFrameWrapper(pvarValue as IVsWindowFrame);
                 if (activeFrame != null
                     && activeFrame.Uri != null)
@@ -46,7 +45,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection.AdviseSelectionEvents(Microsoft.VisualStudio.Shell.Interop.IVsSelectionEvents,System.UInt32@)")]
         protected DocumentFrameMgr(IXmlDesignerPackage package)
         {
             _package = package;
@@ -62,14 +60,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
 
             _sel = sp.GetService(typeof(IVsMonitorSelection)) as IVsMonitorSelection;
-            if (_sel != null)
-            {
-                _sel.AdviseSelectionEvents(this, out _selEventsCookie);
-            }
+            _sel?.AdviseSelectionEvents(this, out _selEventsCookie);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection.UnadviseSelectionEvents(System.UInt32)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsRunningDocumentTable.UnadviseRunningDocTableEvents(System.UInt32)")]
         public void Dispose()
         {
             if (!_disposed)
@@ -127,8 +120,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
         internal void SetItemForActiveFrame(Uri itemUri)
         {
-            object pvarValue;
-            NativeMethods.ThrowOnFailure(_sel.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out pvarValue));
+            NativeMethods.ThrowOnFailure(_sel.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out object pvarValue));
             var activeFrame = CreateFrameWrapper(pvarValue as IVsWindowFrame);
             _editingContextMgr.SetCurrentUri(activeFrame, itemUri);
             UpdateToolWindowsAndCmdsForFrame(activeFrame);
@@ -141,8 +133,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         /// <param name="closingFrame"></param>
         private void UpdateToolWindowsAndCmdsForActiveFrame(FrameWrapper closingFrame)
         {
-            object pvarValue;
-            NativeMethods.ThrowOnFailure(_sel.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out pvarValue));
+            NativeMethods.ThrowOnFailure(_sel.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out object pvarValue));
             var activeFrame = CreateFrameWrapper(pvarValue as IVsWindowFrame);
             if (!activeFrame.Equals(closingFrame))
             {
@@ -326,30 +317,26 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             return NativeMethods.S_OK;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
         {
             if (((dwRDTLockType & (uint)(_VSRDTFLAGS.RDT_EditLock)) > 0)
                 && dwEditLocksRemaining <= 1)
             {
-                var IVsRDT = _package.GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
+                IVsRunningDocumentTable IVsRDT = _package.GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
                 Debug.Assert(IVsRDT != null, "Failed to get IVsRunningDocumentTable!");
 
                 // Clear the errors associated with a given document when the document is closed
                 if (IVsRDT != null)
                 {
                     IVsHierarchy pHier = null;
-                    uint ItemID;
 
                     // Dummy variables
-                    uint pgrfRDTFlags, pdwReadLocks, pdwEditLocks;
-                    string pbstrsMrDocument;
                     var ppunkDocData = IntPtr.Zero;
 
                     try
                     {
                         var hr = IVsRDT.GetDocumentInfo(
-                            docCookie, out pgrfRDTFlags, out pdwReadLocks, out pdwEditLocks, out pbstrsMrDocument, out pHier, out ItemID,
+                            docCookie, out uint pgrfRDTFlags, out uint pdwReadLocks, out uint pdwEditLocks, out string pbstrsMrDocument, out pHier, out uint ItemID,
                             out ppunkDocData);
                         if (ppunkDocData != IntPtr.Zero)
                         {
@@ -438,13 +425,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     {
                         // Temporary fix for bug 555830.
                         // On solution closing, don't set the state of Command UI context because this might cause unhandled exception in VS (tracked by 556145).
-                        var solution = _package.GetService(typeof(IVsSolution)) as IVsSolution;
-                        if (solution != null)
+                        if (_package.GetService(typeof(IVsSolution)) is IVsSolution solution)
                         {
-                            object isSolutionClosing = false;
 
                             NativeMethods.ThrowOnFailure(
-                                solution.GetProperty((int)__VSPROPID2.VSPROPID_IsSolutionClosing, out isSolutionClosing));
+                                solution.GetProperty((int)__VSPROPID2.VSPROPID_IsSolutionClosing, out object isSolutionClosing));
 
                             if ((bool)isSolutionClosing)
                             {

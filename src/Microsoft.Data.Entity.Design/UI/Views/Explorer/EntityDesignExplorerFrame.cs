@@ -1,41 +1,32 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-
-#if VS12ORNEWER
 using System.Windows.Media;
 using Microsoft.VisualStudio.PlatformUI;
-#endif
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Core.Controls;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Commands;
+using Microsoft.Data.Entity.Design.UI.Util;
+using Microsoft.Data.Entity.Design.UI.ViewModels;
+using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
+using Microsoft.VisualStudio.Shell;
+using Key = System.Windows.Input.Key;
 
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Windows;
-    using System.Windows.Controls.Primitives;
-    using System.Windows.Input;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Core.Controls;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Commands;
-    using Microsoft.Data.Entity.Design.UI.Util;
-    using Microsoft.Data.Entity.Design.UI.ViewModels;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Key = System.Windows.Input.Key;
-
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal class EntityDesignExplorerFrame : ExplorerFrame
     {
         private readonly DeferredRequest _putSelectedExplorerItemInRenameModeRequest;
@@ -62,10 +53,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         {
             Loaded -= ExplorerFrameLoaded;
 
-            if (ScrollViewer != null)
-            {
-                ScrollViewer.Style = FindResource(VsResourceKeys.ScrollViewerStyleKey) as Style;
-            }
+            ScrollViewer?.Style = FindResource(VsResourceKeys.ScrollViewerStyleKey) as Style;
         }
 
         public bool CanExecuteActivate()
@@ -91,97 +79,71 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             return result;
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public void ExecuteActivate()
         {
-            var viewModelHelper = ExplorerViewModelHelper as EntityDesignExplorerViewModelHelper;
+            EntityDesignExplorerViewModelHelper viewModelHelper = ExplorerViewModelHelper as EntityDesignExplorerViewModelHelper;
             Debug.Assert(viewModelHelper != null, "ExplorerViewModelHelper is null or is not type of EntityDesignExplorerViewModelHelper");
 
             // Function-Import/Function  double-click behavior.
             var selectedExplorerEFElement = GetSelectedExplorerEFElement();
-            var explorerFunctionImport = selectedExplorerEFElement as ExplorerFunctionImport;
-            var explorerFunction = selectedExplorerEFElement as ExplorerFunction;
-            var explorerDiagram = selectedExplorerEFElement as ExplorerDiagram;
-            var explorerConceptualProperty = selectedExplorerEFElement as ExplorerConceptualProperty;
-            var explorerEnumType = selectedExplorerEFElement as ExplorerEnumType;
 
             var diagramManagercontextItem = EditingContext.Items.GetValue<DiagramManagerContextItem>();
             Debug.Assert(diagramManagercontextItem != null, "Could not find instance of: DiagramManagerContextItem in editing context.");
 
             if (viewModelHelper != null
-                && explorerFunctionImport != null)
+                && selectedExplorerEFElement is ExplorerFunctionImport explorerFunctionImport)
             {
                 viewModelHelper.EditFunctionImport(explorerFunctionImport.ModelItem as FunctionImport);
             }
                 // if the user double-clicks on the function in the model browser.
             else if (viewModelHelper != null
-                     && explorerFunction != null)
+                     && selectedExplorerEFElement is ExplorerFunction explorerFunction)
             {
-                var function = explorerFunction.ModelItem as Function;
+                Function function = explorerFunction.ModelItem as Function;
                 Debug.Assert(function != null, "ExplorerFunction.ModelItem value is expected to be typeof Function and not null.");
 
                 if (function != null)
                 {
-                    var schemaVersion = (function.Artifact == null ? null : function.Artifact.SchemaVersion);
-                    if (function.IsComposable != null
-                        && function.IsComposable.Value
-                        && !EdmFeatureManager.GetComposableFunctionImportFeatureState(schemaVersion).IsEnabled())
+                    // Composable Function Import is always supported in Version3 (EF6)
+                    // first we detect whether there are existing FunctionImport(s) with the underlying function.
+                    var itemBindings = function.GetDependentBindings();
+                    List<FunctionImport> matchFunctionImportList = new List<FunctionImport>();
+                    foreach (var itemBinding in itemBindings)
                     {
-                        // Composable Function Import for Version <= V2 - give warning message
-                        VsUtils.ShowMessageBox(
-                            PackageManager.Package,
-                            string.Format(
-                                CultureInfo.CurrentCulture, Design.Resources.FunctionImport_CannotCreateFromComposableFunction,
-                                EntityFrameworkVersion.Version2),
-                            OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                            OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
-                            OLEMSGICON.OLEMSGICON_WARNING);
+                        if (itemBinding.GetParentOfType(typeof(FunctionImportMapping)) is FunctionImportMapping functionImportMapping
+                            && functionImportMapping.FunctionImportName != null
+                            && functionImportMapping.FunctionImportName.Target != null)
+                        {
+                            matchFunctionImportList.Add(functionImportMapping.FunctionImportName.Target);
+                        }
+                    }
+                    // if we found function imports for the underlying function, navigate to the first function import in alphabetical sorted list
+                    if (matchFunctionImportList.Count > 0)
+                    {
+                        matchFunctionImportList.Sort(EFElement.EFElementDisplayNameComparison);
+                        ExplorerNavigationHelper.NavigateTo(matchFunctionImportList[0]);
                     }
                     else
                     {
-                        // first we detect whether there are existing FunctionImport(s) with the underlying function.
-                        var itemBindings = function.GetDependentBindings();
-                        var matchFunctionImportList = new List<FunctionImport>();
-                        foreach (var itemBinding in itemBindings)
-                        {
-                            var functionImportMapping = itemBinding.GetParentOfType(typeof(FunctionImportMapping)) as FunctionImportMapping;
-                            if (functionImportMapping != null
-                                && functionImportMapping.FunctionImportName != null
-                                && functionImportMapping.FunctionImportName.Target != null)
-                            {
-                                matchFunctionImportList.Add(functionImportMapping.FunctionImportName.Target);
-                            }
-                        }
-                        // if we found function imports for the underlying function, navigate to the first function import in alphabetical sorted list
-                        if (matchFunctionImportList.Count > 0)
-                        {
-                            matchFunctionImportList.Sort(EFElement.EFElementDisplayNameComparison);
-                            ExplorerNavigationHelper.NavigateTo(matchFunctionImportList[0]);
-                        }
-                        else
-                        {
-                            // We could not find any function import for the underlying function, show new function import dialog
-                            viewModelHelper.CreateFunctionImport(explorerFunction.ModelItem as Function);
-                        }
+                        // We could not find any function import for the underlying function, show new function import dialog
+                        viewModelHelper.CreateFunctionImport(explorerFunction.ModelItem as Function);
                     }
                 }
             }
-            else if (explorerEnumType != null)
+            else if (selectedExplorerEFElement is ExplorerEnumType explorerEnumType)
             {
-                var enumType = explorerEnumType.ModelItem as EnumType;
+                EnumType enumType = explorerEnumType.ModelItem as EnumType;
                 Debug.Assert(enumType != null, "ExplorerEnumType's model item is null or is not type of EnumType.");
                 EntityDesignViewModelHelper.EditEnumType(
                     Context, EfiTransactionOriginator.ExplorerWindowOriginatorId, new EnumTypeViewModel(enumType));
             }
                 // if the selected Explorer is type of ExplorerDiagram.
-            else if (explorerDiagram != null
+            else if (selectedExplorerEFElement is ExplorerDiagram explorerDiagram
                      && diagramManagercontextItem != null)
             {
                 diagramManagercontextItem.DiagramManager.OpenDiagram(explorerDiagram.DiagramMoniker, true);
             }
-            else if (explorerConceptualProperty != null)
+            else if (selectedExplorerEFElement is ExplorerConceptualProperty explorerConceptualProperty)
             {
                 Debug.Assert(
                     explorerConceptualProperty.Parent is ExplorerConceptualEntityType,
@@ -215,7 +177,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 }
                 else if (selectedExplorerEFElement is ExplorerEntityTypeShape)
                 {
-                    var entityTypeShape = selectedExplorerEFElement.ModelItem as EntityTypeShape;
+                    EntityTypeShape entityTypeShape = selectedExplorerEFElement.ModelItem as EntityTypeShape;
                     Debug.Assert(entityTypeShape != null, "ExplorerEntityTypeShape does not contain instance of EntityTypeShape");
                     if (entityTypeShape != null)
                     {
@@ -265,14 +227,11 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 var treeViewItem = GetTreeViewItem(selectedExplorerEFElement, false);
                 if (treeViewItem != null)
                 {
-                    var editableContentControl =
+                    EditableContentControl editableContentControl =
                         ExplorerUtility.GetTypeDescendents(treeViewItem, typeof(EditableContentControl)).FirstOrDefault() as
                         EditableContentControl;
-                    if (editableContentControl != null)
-                    {
-                        // put the EditableContentControl into edit mode so user can change the name
-                        editableContentControl.IsInEditMode = true;
-                    }
+                    // put the EditableContentControl into edit mode so user can change the name
+                    editableContentControl?.IsInEditMode = true;
                 }
             }
         }
@@ -284,7 +243,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         protected override ExplorerContent InitializeExplorerContent()
         {
-            var content = FileResourceManager.GetElement("Resources/ExplorerContent_15.0.xaml") as ExplorerContent;
+            ExplorerContent content = FileResourceManager.GetElement("Resources/ExplorerContent_15.0.xaml") as ExplorerContent;
 
             //
             // DO NOT use a static resourceDictionary below.  For some reason, calling MergedDictionaries.Add()
@@ -298,7 +257,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             return content;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void OnKeyDown(KeyEventArgs e)
         {
             if (e.Key == Key.F1)
@@ -311,10 +269,10 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             if (e.Key == Key.Insert)
             {
                 var selected = GetSelectedExplorerEFElement();
-                var context = new EfiTransactionContext();
+                EfiTransactionContext context = new EfiTransactionContext();
                 if (selected is ExplorerComplexTypes)
                 {
-                    var cpc = new CommandProcessorContext(
+                    CommandProcessorContext cpc = new CommandProcessorContext(
                         Context, EfiTransactionOriginator.ExplorerWindowOriginatorId,
                         Design.Resources.Tx_AddComplexType, null, context);
                     var complexType = CreateComplexTypeCommand.CreateComplexTypeWithDefaultName(cpc);
@@ -323,13 +281,11 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                     return;
                 }
 
-                var explorerComplexType = selected as ExplorerComplexType;
-                if (explorerComplexType != null)
+                if (selected is ExplorerComplexType explorerComplexType)
                 {
-                    var complexType = explorerComplexType.ModelItem as ComplexType;
-                    if (complexType != null)
+                    if (explorerComplexType.ModelItem is ComplexType complexType)
                     {
-                        var cpc = new CommandProcessorContext(
+                        CommandProcessorContext cpc = new CommandProcessorContext(
                             Context,
                             EfiTransactionOriginator.ExplorerWindowOriginatorId,
                             Design.Resources.Tx_CreateScalarProperty, null, context);
@@ -347,13 +303,12 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 }
 
                 // Event handler if the user presses 'Insert' button from the keyboard in the EnumTypes node.
-                var explorerEnumTypes = selected as ExplorerEnumTypes;
-                if (explorerEnumTypes != null)
+                if (selected is ExplorerEnumTypes explorerEnumTypes)
                 {
-                    var entityModel = explorerEnumTypes.Parent.ModelItem as ConceptualEntityModel;
+                    ConceptualEntityModel entityModel = explorerEnumTypes.Parent.ModelItem as ConceptualEntityModel;
                     if (EdmFeatureManager.GetEnumTypeFeatureState(entityModel.Artifact).IsEnabled())
                     {
-                        var cpc = new CommandProcessorContext(
+                        CommandProcessorContext cpc = new CommandProcessorContext(
                             Context,
                             EfiTransactionOriginator.ExplorerWindowOriginatorId,
                             Design.Resources.Tx_CreateScalarProperty, null, context);
@@ -365,13 +320,11 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 }
 
                 // Event handler if the user presses 'Insert' button from the keyboard in the diagrams node.
-                var explorerDiagram = selected as ExplorerDiagrams;
-                if (explorerDiagram != null)
+                if (selected is ExplorerDiagrams explorerDiagram)
                 {
-                    var diagrams = explorerDiagram.ModelItem as Diagrams;
-                    if (diagrams != null)
+                    if (explorerDiagram.ModelItem is Diagrams diagrams)
                     {
-                        var cpc = new CommandProcessorContext(
+                        CommandProcessorContext cpc = new CommandProcessorContext(
                             Context,
                             EfiTransactionOriginator.ExplorerWindowOriginatorId,
                             Design.Resources.Tx_CreateDiagram, null, context);
@@ -451,17 +404,14 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                             treeViewItem.UpdateLayout();
                         }
 
-                        var editableContentControl =
+                        EditableContentControl editableContentControl =
                             ExplorerUtility.GetTypeDescendents(treeViewItem, typeof(EditableContentControl)).FirstOrDefault() as
                             EditableContentControl;
                         Debug.Assert(
                             null != editableContentControl,
                             "Could not find EditableContentControl for Explorer element named " + explorerElement.Name);
-                        if (null != editableContentControl)
-                        {
-                            // put the EditableContentControl into edit mode so user can change the name
-                            editableContentControl.IsInEditMode = true;
-                        }
+                        // put the EditableContentControl into edit mode so user can change the name
+                        editableContentControl?.IsInEditMode = true;
                     }
                 }
             }
@@ -469,7 +419,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         private void DefineCmd(RoutedCommand cmdId, ExecuteCmdHandler executeCmd, CanExecuteCmdHandler canExecuteCmd)
         {
-            var cmd = new CommandBinding(
+            CommandBinding cmd = new CommandBinding(
                 cmdId,
                 delegate(object sender, ExecutedRoutedEventArgs e)
                     {
@@ -495,25 +445,22 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             if (explorerEFElement != null
                 && explorerEFElement.ModelItem != null)
             {
-                var entityTypes = new List<EntityType>();
-                var associations = new List<Association>();
+                List<EntityType> entityTypes = new List<EntityType>();
+                List<Association> associations = new List<Association>();
 
                 // Check if the type is a storage type, we don't support drag and drop support for any storage type
                 if (explorerEFElement.ModelItem.GetParentOfType(typeof(StorageEntityModel)) == null)
                 {
-                    var entityType = explorerEFElement.ModelItem as ConceptualEntityType;
-                    var association = explorerEFElement.ModelItem as Association;
-                    var associationSet = explorerEFElement.ModelItem as AssociationSet;
-                    var entitySet = explorerEFElement.ModelItem as EntitySet;
+                    Association association = explorerEFElement.ModelItem as Association;
 
                     // When the user is trying to drag an associationset, we want to treat as if the user drag the association in the set.
-                    if (associationSet != null
+                    if (explorerEFElement.ModelItem is AssociationSet associationSet
                         && associationSet.Association.Status == BindingStatus.Known)
                     {
                         association = associationSet.Association.Target;
                     }
 
-                    if (entityType != null)
+                    if (explorerEFElement.ModelItem is ConceptualEntityType entityType)
                     {
                         entityTypes.Add(entityType);
                     }
@@ -528,7 +475,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                         }
                         associations.Add(association);
                     }
-                    else if (entitySet != null)
+                    else if (explorerEFElement.ModelItem is EntitySet entitySet)
                     {
                         entityTypes.AddRange(entitySet.GetEntityTypesInTheSet());
                     }

@@ -1,16 +1,16 @@
-﻿namespace Microsoft.Data.Entity.Design.CodeGeneration
-{
-    using System;
-    using System.CodeDom.Compiler;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.VisualStudio.TextTemplating;
-    using Microsoft.VisualStudio.TextTemplating.VSHost;
+﻿using System;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Microsoft.VisualStudio.TextTemplating;
+using Microsoft.VisualStudio.TextTemplating.VSHost;
 
+namespace Microsoft.Data.Entity.Design.CodeGeneration
+{
     internal class TextTemplatingHost : ITextTemplatingEngineHost, ITextTemplatingSessionHost
     {
         public IList<string> StandardAssemblyReferences
@@ -91,18 +91,12 @@
 
         public void SetFileExtension(string extension)
         {
-            if (Callback != null)
-            {
-                Callback.SetFileExtension(extension);
-            }
+            Callback?.SetFileExtension(extension);
         }
 
         public void SetOutputEncoding(Encoding encoding, bool fromOutputDirective)
         {
-            if (Callback != null)
-            {
-                Callback.SetOutputEncoding(encoding, fromOutputDirective);
-            }
+            Callback?.SetOutputEncoding(encoding, fromOutputDirective);
         }
 
         public ITextTemplatingSession CreateSession()
@@ -110,7 +104,6 @@
             return new TextTemplatingSession();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public string ProcessTemplate(string inputFile, string content, ITextTemplatingCallback callback = null)
         {
             Debug.Assert(!string.IsNullOrEmpty(inputFile), "inputFile is null or empty.");

@@ -1,25 +1,25 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.WizardFramework;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using Microsoft.VisualStudio.PlatformUI;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 {
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Utilities;
-    using Microsoft.WizardFramework;
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Windows.Forms;
-    using Microsoft.VisualStudio.PlatformUI;
-
     // <summary>
     //     This is the first page in the ModelBuilder VS wizard and lets the user select whether to:
     //     - start with an empty model or
@@ -40,7 +40,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         private readonly bool _codeFirstAllowed;
         private readonly ConfigFileUtils _configFileUtils;
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public WizardPageStart(ModelBuilderWizardForm wizard, ConfigFileUtils configFileUtils = null)
             : base(wizard)
         {
@@ -52,26 +51,26 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
             components = new Container();
 
-            Logo = Resources.PageIcon;
-            Headline = Resources.StartPage_Title;
+            Logo = WizardResources.PageIcon;
+            Headline = WizardResources.StartPage_Title;
             Id = "WizardPageStartId";
             ShowInfoPanel = false;
 
-            labelPrompt.Text = Resources.StartPage_PromptLabelText;
+            labelPrompt.Text = WizardResources.StartPage_PromptLabelText;
             labelPrompt.Font = LabelFont;
 
             // Load new ImageList with glyphs from resources
-            var imageList = new ImageList(components)
+            ImageList imageList = new ImageList(components)
             {
                 ColorDepth = ColorDepth.Depth32Bit,
                 ImageSize = new Size(32, 32),
                 TransparentColor = Color.Magenta
             };
 
-            imageList.Images.Add("database.png", Resources.Database);
-            imageList.Images.Add("EmptyModel.png", Resources.EmptyModel);
-            imageList.Images.Add("EmptyModelCodeFirst.png", Resources.EmptyModelCodeFirst);
-            imageList.Images.Add("CodeFirstFromDatabase.png", Resources.CodeFirstFromDatabase);
+            imageList.Images.Add("database.png", WizardResources.Database);
+            imageList.Images.Add("EmptyModel.png", WizardResources.EmptyModel);
+            imageList.Images.Add("EmptyModelCodeFirst.png", WizardResources.EmptyModelCodeFirst);
+            imageList.Images.Add("CodeFirstFromDatabase.png", WizardResources.CodeFirstFromDatabase);
 
 #pragma warning disable 0618 // DpiHelper is obsolete, need to move to DpiAwareness (and ImageManifest)
             // scale images as appropriate for screen resolution
@@ -86,16 +85,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             listViewModelContents.Items.AddRange(
                 new[]
                 {
-                    new ListViewItem(Resources.GenerateFromDatabaseOption, "database.png"),
-                    new ListViewItem(Resources.EmptyModelOption, "EmptyModel.png"),
+                    new ListViewItem(WizardResources.GenerateFromDatabaseOption, "database.png"),
+                    new ListViewItem(WizardResources.EmptyModelOption, "EmptyModel.png"),
                 });
 
-            // Code First options are available for .NET Framework 4+ and all modern .NET projects
+            // Code First options are available for .NET Framework 4.7.2+ and all modern .NET projects
             var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(wizard.ModelBuilderSettings.Project, Wizard.ServiceProvider);
-            if (targetNetFrameworkVersion == null || targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4)
+            if (targetNetFrameworkVersion == null || targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4_7_2)
             {
-                listViewModelContents.Items.Add(new ListViewItem(Resources.EmptyModelCodeFirstOption, "EmptyModelCodeFirst.png"));
-                listViewModelContents.Items.Add(new ListViewItem(Resources.CodeFirstFromDatabaseOption, "CodeFirstFromDatabase.png"));
+                listViewModelContents.Items.Add(new ListViewItem(WizardResources.EmptyModelCodeFirstOption, "EmptyModelCodeFirst.png"));
+                listViewModelContents.Items.Add(new ListViewItem(WizardResources.CodeFirstFromDatabaseOption, "CodeFirstFromDatabase.png"));
             }
 
             // Always select the first item
@@ -272,7 +271,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         // protected virtual for mocking/testing
         protected virtual bool VerifyModelFilePath(string modelFilePath)
         {
-            var modelFileInfo = new FileInfo(modelFilePath);
+            FileInfo modelFileInfo = new FileInfo(modelFilePath);
 
             if (modelFileInfo.Exists)
             {
@@ -332,14 +331,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 var nSelectedItemIndex = GetSelectedOptionIndex();
                 if (nSelectedItemIndex == GenerateEmptyModelIndex)
                 {
-                    textboxListViewSelectionInfo.Text = Resources.StartPage_EmptyModelText;
+                    textboxListViewSelectionInfo.Text = WizardResources.StartPage_EmptyModelText;
                     Wizard.ModelBuilderSettings.GenerationOption = ModelGenerationOption.EmptyModel;
 
                     Wizard.OnValidationStateChanged(this);
                 }
                 else if (nSelectedItemIndex == GenerateFromDatabaseIndex)
                 {
-                    textboxListViewSelectionInfo.Text = Resources.StartPage_GenerateFromDBText;
+                    textboxListViewSelectionInfo.Text = WizardResources.StartPage_GenerateFromDBText;
                     Wizard.ModelBuilderSettings.GenerationOption = ModelGenerationOption.GenerateFromDatabase;
 
                     AddPagesForReverseEngineerDb();
@@ -348,20 +347,20 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 }
                 else if (nSelectedItemIndex == GenerateEmptyModelCodeFirstIndex)
                 {
-                    // Option should be available for .NET Framework 4+ and all modern .NET projects
+                    // Option should be available for .NET Framework 4.7.2+ and all modern .NET projects
                     var targetVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(Wizard.ModelBuilderSettings.Project, Wizard.ServiceProvider);
                     Debug.Assert(
-                        targetVersion == null || targetVersion > NetFrameworkVersioningHelper.NetFrameworkVersion3_5,
-                        "Option should be disabled for .NET Framework 3.5");
+                        targetVersion == null || targetVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4_7_2,
+                        "Option should be disabled for .NET Framework versions below 4.7.2");
 
                     Wizard.ModelBuilderSettings.GenerationOption = ModelGenerationOption.EmptyModelCodeFirst;
 
                     textboxListViewSelectionInfo.Text =
                         _codeFirstAllowed
-                            ? Resources.StartPage_EmptyModelCodeFirstText
+                            ? WizardResources.StartPage_EmptyModelCodeFirstText
                             : string.Format(
                                 CultureInfo.InvariantCulture, "{0}\r\n{1}",
-                                Resources.StartPage_CodeFirstSupportedOnlyForEF6, Resources.StartPage_EmptyModelCodeFirstText);
+                                WizardResources.StartPage_CodeFirstSupportedOnlyForEF6, WizardResources.StartPage_EmptyModelCodeFirstText);
 
                     Wizard.OnValidationStateChanged(this);
                     Wizard.EnableButton(ButtonType.Finish, _codeFirstAllowed);
@@ -374,10 +373,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
                     textboxListViewSelectionInfo.Text = 
                         _codeFirstAllowed ? 
-                            Resources.StartPage_CodeFirstFromDatabaseText :
+                            WizardResources.StartPage_CodeFirstFromDatabaseText :
                             string.Format(
                                 CultureInfo.InvariantCulture, "{0}\r\n{1}",
-                                Resources.StartPage_CodeFirstSupportedOnlyForEF6, Resources.StartPage_CodeFirstFromDatabaseText);
+                                WizardResources.StartPage_CodeFirstSupportedOnlyForEF6, WizardResources.StartPage_CodeFirstFromDatabaseText);
 
                     AddPagesForReverseEngineerDb();
 
@@ -445,11 +444,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         // </summary>
         protected virtual string GetEdmxTemplateContent(string vstemplatePath)
         {
-            string edmxTemplate;
 
-            if (!_templateContent.TryGetValue(vstemplatePath, out edmxTemplate))
+            if (!_templateContent.TryGetValue(vstemplatePath, out string edmxTemplate))
             {
-                var fileInfo = new FileInfo(vstemplatePath);
+                FileInfo fileInfo = new FileInfo(vstemplatePath);
                 Debug.Assert(fileInfo.Exists, "vstemplate file does not exist");
                 edmxTemplate = File.ReadAllText(Path.Combine(fileInfo.Directory.FullName, "ProjectItem.edmx"));
                 _templateContent.Add(vstemplatePath, edmxTemplate);

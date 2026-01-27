@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Core.Context
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-
     /// <summary>
     ///     The ContextItemCollection class maintains a set of context items.  A context
     ///     item represents a piece of transient state in a designer.
@@ -125,7 +125,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
             {
                 throw new ArgumentNullException("callback");
             }
-            var proxy = new SubscribeProxy<TContextItemType>(callback);
+            SubscribeProxy<TContextItemType> proxy = new SubscribeProxy<TContextItemType>(callback);
             Subscribe(typeof(TContextItemType), proxy.Callback);
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
             {
                 throw new ArgumentNullException("callback");
             }
-            var proxy = new SubscribeProxy<TContextItemType>(callback);
+            SubscribeProxy<TContextItemType> proxy = new SubscribeProxy<TContextItemType>(callback);
             Unsubscribe(typeof(TContextItemType), proxy.Callback);
         }
 
@@ -168,8 +168,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                 throw new ArgumentNullException("callback");
             }
 
-            var proxy = callback.Target as ICallbackProxy;
-            if (proxy != null)
+            if (callback.Target is ICallbackProxy proxy)
             {
                 return proxy.OriginalTarget;
             }
@@ -196,8 +195,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                 return existing;
             }
 
-            var toRemoveProxy = toRemove.Target as ICallbackProxy;
-            if (toRemoveProxy == null)
+            if (toRemove.Target is not ICallbackProxy toRemoveProxy)
             {
                 // The item to be removed is a normal delegate.  Just call
                 // Delegate.Remove
@@ -212,8 +210,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
             for (var idx = 0; idx < invocationList.Length; idx++)
             {
                 var item = invocationList[idx];
-                var itemProxy = item.Target as ICallbackProxy;
-                if (itemProxy != null)
+                if (item.Target is ICallbackProxy itemProxy)
                 {
                     item = itemProxy.OriginalDelegate;
                 }

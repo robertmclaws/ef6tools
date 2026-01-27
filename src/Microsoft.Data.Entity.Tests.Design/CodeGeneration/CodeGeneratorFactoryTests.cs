@@ -1,26 +1,24 @@
+using System.Collections;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.Data.Entity.Design.CodeGeneration.Generators;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System.Linq;
+using VSLangProj;
 
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Collections;
-    using EnvDTE;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.Data.Entity.Design.CodeGeneration.Generators;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-    using System;
-    using System.Linq;
-    using VSLangProj;
-
     [TestClass]
     public class CodeGeneratorFactoryTests
     {
         [TestMethod]
         public void GetContextGenerator_returns_correct_context_generator_for_empty_model()
         {
-            var generatorFactory = new CodeGeneratorFactory(Mock.Of<Project>());
+            CodeGeneratorFactory generatorFactory = new CodeGeneratorFactory(Mock.Of<Project>());
 
             generatorFactory.GetContextGenerator(LangEnum.CSharp, isEmptyModel: true)
                 .Should().BeOfType<CSharpCodeFirstEmptyModelGenerator>();
@@ -31,7 +29,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void GetContextGenerator_returns_correct_non_customized_context_generator_if_model_not_emtpy()
         {
-            var generatorFactory = new CodeGeneratorFactory(Mock.Of<Project>());
+            CodeGeneratorFactory generatorFactory = new CodeGeneratorFactory(Mock.Of<Project>());
 
             generatorFactory.GetContextGenerator(LangEnum.CSharp, isEmptyModel: false)
                 .Should().BeOfType<DefaultCSharpContextGenerator>();
@@ -44,7 +42,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var mockDte = SetupMockProjectWithCustomizedTemplate(@"CodeTemplates\EFModelFromDatabase\Context.cs.t4");
 
-            var generatorFactory = new CodeGeneratorFactory(mockDte.Project);
+            CodeGeneratorFactory generatorFactory = new CodeGeneratorFactory(mockDte.Project);
 
             generatorFactory.GetContextGenerator(LangEnum.CSharp, isEmptyModel: false)
                 .Should().BeOfType<CustomGenerator>();
@@ -55,7 +53,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var mockDte = SetupMockProjectWithCustomizedTemplate(@"CodeTemplates\EFModelFromDatabase\Context.vb.t4");
 
-            var generatorFactory = new CodeGeneratorFactory(mockDte.Project);
+            CodeGeneratorFactory generatorFactory = new CodeGeneratorFactory(mockDte.Project);
 
             generatorFactory.GetContextGenerator(LangEnum.VisualBasic, isEmptyModel: false)
                 .Should().BeOfType<CustomGenerator>();
@@ -64,7 +62,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void GetEntityTypeGenerator_returns_correct_non_customized_entity_type_generator()
         {
-            var generatorFactory = new CodeGeneratorFactory(Mock.Of<Project>());
+            CodeGeneratorFactory generatorFactory = new CodeGeneratorFactory(Mock.Of<Project>());
 
             generatorFactory.GetEntityTypeGenerator(LangEnum.CSharp)
                 .Should().BeOfType<DefaultCSharpEntityTypeGenerator>();
@@ -77,7 +75,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var mockDte = SetupMockProjectWithCustomizedTemplate(@"CodeTemplates\EFModelFromDatabase\Entity.cs.t4");
 
-            var generatorFactory = new CodeGeneratorFactory(mockDte.Project);
+            CodeGeneratorFactory generatorFactory = new CodeGeneratorFactory(mockDte.Project);
 
             generatorFactory.GetEntityTypeGenerator(LangEnum.CSharp)
                 .Should().BeOfType<CustomGenerator>();
@@ -88,7 +86,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var mockDte = SetupMockProjectWithCustomizedTemplate(@"CodeTemplates\EFModelFromDatabase\Entity.vb.t4");
 
-            var generatorFactory = new CodeGeneratorFactory(mockDte.Project);
+            CodeGeneratorFactory generatorFactory = new CodeGeneratorFactory(mockDte.Project);
 
             generatorFactory.GetEntityTypeGenerator(LangEnum.CSharp)
                 .Should().BeOfType<CustomGenerator>();
@@ -102,11 +100,11 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             {
                 var mockProjectItem = MockDTE.CreateProjectItem(step);
 
-                var mockProperty = new Mock<Property>();
+                Mock<Property> mockProperty = new Mock<Property>();
                 mockProperty.Setup(p => p.Name).Returns("FullPath");
                 mockProperty.Setup(p => p.Value).Returns(step);
 
-                var mockProperties = new Mock<Properties>();
+                Mock<Properties> mockProperties = new Mock<Properties>();
                 mockProperties.As<IEnumerable>()
                     .Setup(p => p.GetEnumerator())
                     .Returns(() => new[] { mockProperty.Object }.GetEnumerator());
@@ -117,12 +115,12 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 
                 mockProjectItem
                     .Setup(p => p.ProjectItems)
-                    .Returns(CreateProjectItems(mockChildProjectItem == null ? null : mockChildProjectItem.Object));
+                    .Returns(CreateProjectItems(mockChildProjectItem?.Object));
 
                 mockChildProjectItem = mockProjectItem;
             }
 
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
 
             mockChildProjectItem
                 .SetupGet(i => i.ContainingProject)
@@ -137,7 +135,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 
         private static ProjectItems CreateProjectItems(ProjectItem childProjectItem)
         {
-            var mockProjectItems = new Mock<ProjectItems>();
+            Mock<ProjectItems> mockProjectItems = new Mock<ProjectItems>();
 
             if (childProjectItem != null)
             {

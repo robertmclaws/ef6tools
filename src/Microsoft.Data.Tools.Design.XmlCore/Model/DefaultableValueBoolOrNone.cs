@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics.CodeAnalysis;
-
     internal enum BoolOrNoneComparison
     {
         Equal,
@@ -26,8 +26,6 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             return BoolOrNoneConverter.ValueConverter(stringVal);
         }
 
-        [SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase",
-            Justification = "Must call ToLowerInvariant to match XSD restriction.")]
         protected internal override string ConvertValueToString(BoolOrNone val)
         {
             // must use lower case for attribute value to match XSD restrictions

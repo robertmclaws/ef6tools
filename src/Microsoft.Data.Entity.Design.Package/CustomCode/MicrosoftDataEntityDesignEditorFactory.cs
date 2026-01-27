@@ -1,28 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Xml;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Modeling.Shell;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using VSLangProj80;
+using VsWebSite;
 
 namespace Microsoft.Data.Entity.Design.Package
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Xml;
-    using EnvDTE;
-    using EnvDTE80;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using VSLangProj80;
-    using VsWebSite;
-
     internal partial class MicrosoftDataEntityDesignEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
     {
         private const string CustomTool = "CustomTool";
@@ -35,16 +34,13 @@ namespace Microsoft.Data.Entity.Design.Package
             return VSConstants.S_OK;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsHierarchy.GetSite(Microsoft.VisualStudio.OLE.Interop.IServiceProvider@)")]
         int IVsEditorFactoryNotify.NotifyItemAdded(uint grfEFN, IVsHierarchy pHier, uint itemid, string pszMkDocument)
         {
-            object o;
-            var hr = pHier.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_ExtObject, out o);
+            var hr = pHier.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_ExtObject, out object o);
 
             if (NativeMethods.Succeeded(hr))
             {
-                var projectItem = o as ProjectItem;
-                if (projectItem != null
+                if (o is ProjectItem projectItem
                     && VsUtils.EntityFrameworkSupportedInProject(projectItem.ContainingProject, ServiceProvider, allowMiscProject: false))
                 {
                     if (EdmUtils.IsDataServicesEdmx(projectItem.get_FileNames(1)))
@@ -53,9 +49,8 @@ namespace Microsoft.Data.Entity.Design.Package
                         return VSConstants.S_OK;
                     }
 
-                    IOleServiceProvider oleSP;
-                    pHier.GetSite(out oleSP);
-                    using (var sp = new ServiceProvider(oleSP))
+                    pHier.GetSite(out IOleServiceProvider oleSP);
+                    using (ServiceProvider sp = new ServiceProvider(oleSP))
                     {
                         var appType = VsUtils.GetApplicationType(sp, projectItem.ContainingProject);
 
@@ -88,10 +83,7 @@ namespace Microsoft.Data.Entity.Design.Package
             if (applicationType != VisualStudioProjectSystem.Website)
             {
                 var prop = projectItem.Properties.Item(ModelObjectItemWizard.ItemTypePropertyName);
-                if (prop != null)
-                {
-                    prop.Value = ModelObjectItemWizard.EntityDeployBuildActionName;
-                }
+                prop?.Value = ModelObjectItemWizard.EntityDeployBuildActionName;
             }
         }
 
@@ -108,13 +100,11 @@ namespace Microsoft.Data.Entity.Design.Package
                 if (projectItem.ContainingProject != null
                     && projectItem.ContainingProject.Object != null)
                 {
-                    var vsProject = projectItem.ContainingProject.Object as VSProject2;
-                    var vsWebSite = projectItem.ContainingProject.Object as VSWebSite;
-                    if (vsProject != null)
+                    if (projectItem.ContainingProject.Object is VSProject2 vsProject)
                     {
                         AddMissingReferencesForProject(vsProject, referenceFileNames);
                     }
-                    else if (vsWebSite != null)
+                    else if (projectItem.ContainingProject.Object is VSWebSite vsWebSite)
                     {
                         AddMissingReferencesForWebsite(vsWebSite, referenceFileNames);
                     }
@@ -151,14 +141,13 @@ namespace Microsoft.Data.Entity.Design.Package
         private static void AddMissingReferencesForWebsite(VSWebSite webSiteProject, ICollection<string> referenceFileNames)
         {
             // first convert the enumerable into a hash for quick lookup
-            var websiteReferenceHash = new HashSet<string>();
+            HashSet<string> websiteReferenceHash = new HashSet<string>();
             var websiteReferenceEnumerator = webSiteProject.References.GetEnumerator();
             var netRefPath = EdmUtils.GetRuntimeAssemblyPath(webSiteProject.Project, Services.ServiceProvider);
 
             while (websiteReferenceEnumerator.MoveNext())
             {
-                var assemblyReference = websiteReferenceEnumerator.Current as AssemblyReference;
-                if (assemblyReference != null)
+                if (websiteReferenceEnumerator.Current is AssemblyReference assemblyReference)
                 {
                     websiteReferenceHash.Add(assemblyReference.Name);
                 }
@@ -192,12 +181,10 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static ICollection<string> GetReferencesFromTemplateForProject(Project project)
         {
-            ICollection<string> referenceFileNames = new List<string>();
-            var solution2 = project.DTE.Solution as Solution2;
-            if (null != solution2)
+            ICollection<string> referenceFileNames = [];
+            if (project.DTE.Solution is Solution2 solution2)
             {
                 // get the itemTemplate vstemplate zip file name based on the type of project and language
                 string itemTemplateZipFile = null;
@@ -231,7 +218,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         try
                         {
                             var xmlDocument = EdmUtils.SafeLoadXmlFromPath(itemTemplatePath);
-                            var nsmgr = new XmlNamespaceManager(xmlDocument.NameTable);
+                            XmlNamespaceManager nsmgr = new XmlNamespaceManager(xmlDocument.NameTable);
                             nsmgr.AddNamespace("vst", "http://schemas.microsoft.com/developer/vstemplate/2005");
                             var referenceNodeList =
                                 xmlDocument.SelectNodes(
@@ -337,7 +324,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 // Set EditorCaption to be null here because we do not want EditorFactory to update the value.
                 // We will manually set the EditorCaption when the View is loaded (see code in MicrosoftDataEntityDesignDocView.cs).
                 editorCaption = null;
-                var view = new MicrosoftDataEntityDesignDocView(docData, ServiceProvider, physicalView);
+                MicrosoftDataEntityDesignDocView view = new MicrosoftDataEntityDesignDocView(docData, ServiceProvider, physicalView);
                 LogToActivityLog($"CreateDocView END");
                 return view;
             }
@@ -352,7 +339,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             try
             {
-                var log = ServiceProvider.GetService(typeof(SVsActivityLog)) as IVsActivityLog;
+                IVsActivityLog log = ServiceProvider.GetService(typeof(SVsActivityLog)) as IVsActivityLog;
                 log?.LogEntry((uint)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, "EF6Tools", message);
             }
             catch

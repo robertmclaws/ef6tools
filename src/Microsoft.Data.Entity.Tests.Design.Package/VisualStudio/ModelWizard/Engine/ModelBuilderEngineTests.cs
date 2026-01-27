@@ -1,24 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
-{
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Moq;
-    using Moq.Protected;
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.IO;
-    using System.Linq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
 
+namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
+{
     [TestClass]
     public class ModelBuilderEngineTests
     {
@@ -145,15 +140,15 @@ using FluentAssertions;
         [TestMethod]
         public void GenerateModel_logs_exception()
         {
-            var mockPackage = new Mock<IEdmPackage>();
+            Mock<IEdmPackage> mockPackage = new Mock<IEdmPackage>();
             mockPackage.Setup(p => p.ModelGenErrorCache).Returns(new ModelGenErrorCache());
             PackageManager.Package = mockPackage.Object;
 
-            var mockHostContext = new Mock<ModelBuilderEngineHostContext>();
-            var mockVsUtils = new Mock<IVsUtils>();
+            Mock<ModelBuilderEngineHostContext> mockHostContext = new Mock<ModelBuilderEngineHostContext>();
+            Mock<IVsUtils> mockVsUtils = new Mock<IVsUtils>();
             var mockModelBuilderSettings = CreateMockModelBuilderSettings();
-            var mockModelBuilderEngine = new Mock<ModelBuilderEngine> { CallBase = true };
-            var exception = new Exception("Test exception");
+            Mock<ModelBuilderEngine> mockModelBuilderEngine = new Mock<ModelBuilderEngine> { CallBase = true };
+            Exception exception = new Exception("Test exception");
 
             mockModelBuilderEngine
                 .Setup(m => m.GenerateModels(It.IsAny<string>(), It.IsAny<ModelBuilderSettings>(), It.IsAny<List<EdmSchemaError>>()))
@@ -201,7 +196,7 @@ using FluentAssertions;
 
         private static Mock<ModelBuilderSettings> CreateMockModelBuilderSettings()
         {
-            var mockModelBuilderSettings = new Mock<ModelBuilderSettings>();
+            Mock<ModelBuilderSettings> mockModelBuilderSettings = new Mock<ModelBuilderSettings>();
             mockModelBuilderSettings.Object.GenerationOption = ModelGenerationOption.GenerateFromDatabase;
             mockModelBuilderSettings.Object.ModelPath = Path.Combine(Directory.GetCurrentDirectory(), "temp.edmx");
             mockModelBuilderSettings

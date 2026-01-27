@@ -2,21 +2,21 @@
 
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using VsErrorHandler = Microsoft.VisualStudio.ErrorHandler;
+using System;
+using System.CodeDom.Compiler;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using EnvDTE;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Designer.Interfaces;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.Data.Entity.Design;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
 {
-    using System;
-    using System.CodeDom.Compiler;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.InteropServices;
-    using EnvDTE;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Designer.Interfaces;
-    using Microsoft.VisualStudio.OLE.Interop;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     /// <summary>
     ///     This class exists to be cocreated a in a preprocessor build step.
     /// </summary>
@@ -38,11 +38,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
         {
             try
             {
-                if (_serviceProvider != null)
-                {
-                    _serviceProvider.Dispose();
-                    _serviceProvider = null;
-                }
+                _serviceProvider?.Dispose();
+                _serviceProvider = null;
 
                 if (_disposeCodeDomProvider && _codeDomProvider != null)
                 {
@@ -64,7 +61,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
             {
                 if (_serviceProvider == null)
                 {
-                    var oleServiceProvider = _site as IOleServiceProvider;
+                    IOleServiceProvider oleServiceProvider = _site as IOleServiceProvider;
                     Debug.Assert(oleServiceProvider != null, "Unable to get IOleServiceProvider from site object.");
 
                     _serviceProvider = new ServiceProvider(oleServiceProvider);
@@ -100,7 +97,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
         /// </summary>
         /// <param name="riid">interface to get</param>
         /// <param name="ppvSite">array in which to stuff return value</param>
-        [SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes")]
         public virtual void GetSite(ref Guid riid, out IntPtr ppvSite)
         {
             if (_site == null)
@@ -124,7 +120,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
         ///     the project item the generator was called on
         /// </summary>
         /// <returns>A CodeDomProvider object</returns>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected CodeDomProvider CodeProvider
         {
             get
@@ -140,11 +135,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
                             return null;
                         }
 
-                        var vsmdCodeDomProvider = sp.GetService(typeof(IVSMDCodeDomProvider)) as IVSMDCodeDomProvider;
 
                         // the vsmdCodeDomProvider will be null in some error situations (eg, if the user added an EDMX file to a web site, but didn't
                         // put it in App_Code.  So Don't assert here. 
-                        if (null == vsmdCodeDomProvider)
+                        if (sp.GetService(typeof(IVSMDCodeDomProvider)) is not IVSMDCodeDomProvider vsmdCodeDomProvider)
                         {
                             return null;
                         }
@@ -201,11 +195,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
             {
                 IVsErrorList errorList = null;
                 // Attempt to get site 
-                var hierarchy = GetService(typeof(IVsHierarchy)) as IVsHierarchy;
-                if (hierarchy != null)
+                if (GetService(typeof(IVsHierarchy)) is IVsHierarchy hierarchy)
                 {
-                    IOleServiceProvider sp = null;
-                    var hresult = hierarchy.GetSite(out sp);
+                    var hresult = hierarchy.GetSite(out IOleServiceProvider sp);
                     if (NativeMethods.Succeeded(hresult) && sp != null)
                     {
                         Debug.Assert(hresult == VSConstants.S_OK, "hresult = " + hresult + " should be " + VSConstants.S_OK);

@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.DatabaseGeneration
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     /// <summary>
     ///     Extension methods for the MetadataWorkspace API
     /// </summary>
@@ -57,7 +57,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <returns>The list of EntitySet elements.</returns>
         public static IEnumerable<EntitySet> GetAllEntitySets(this ItemCollection itemCollection)
         {
-            var allEntitySets = new List<EntitySet>();
+            List<EntitySet> allEntitySets = new List<EntitySet>();
 
             var edmContainer = itemCollection.GetItems<EntityContainer>().FirstOrDefault();
             if (edmContainer != null)
@@ -95,7 +95,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <returns>The list of AssociationSet elements.</returns>
         public static IEnumerable<AssociationSet> GetAllAssociationSets(this ItemCollection itemCollection)
         {
-            var allAssocSets = new List<AssociationSet>();
+            List<AssociationSet> allAssocSets = new List<AssociationSet>();
 
             var edmContainer = itemCollection.GetItems<EntityContainer>().FirstOrDefault();
             if (edmContainer != null)
@@ -113,7 +113,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <returns>The list of ReferentialConstraints.</returns>
         public static IEnumerable<ReferentialConstraint> GetAllReferentialConstraints(this StoreItemCollection storeItemCollection)
         {
-            var refConstraints = new List<ReferentialConstraint>();
+            List<ReferentialConstraint> refConstraints = new List<ReferentialConstraint>();
             foreach (AssociationType association in storeItemCollection.GetAllAssociations())
             {
                 refConstraints.AddRange(association.ReferentialConstraints);
@@ -177,7 +177,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// </summary>
         /// <param name="property">The property to test.</param>
         /// <returns>true if the property is a complex property; otherwise, false.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "This is an extension class.")]
         public static bool IsComplexProperty(this EdmProperty property)
         {
             return property.TypeUsage.EdmType.BuiltInTypeKind == BuiltInTypeKind.ComplexType;
@@ -203,7 +202,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         internal static void VisitComplexProperty(
             this EdmProperty property, ScalarInComplexPropertyVisitorDelegate visitorDelegate, string delimiter, bool recursive)
         {
-            var visitedProperties = new HashSet<EdmProperty>();
+            HashSet<EdmProperty> visitedProperties = new HashSet<EdmProperty>();
             VisitComplexPropertyInternal(property, visitorDelegate, property.Name, delimiter, recursive, visitedProperties);
         }
 
@@ -211,8 +210,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
             this EdmProperty property, ScalarInComplexPropertyVisitorDelegate visitorDelegate, string namePrefix, string delimiter,
             bool recursive, HashSet<EdmProperty> visitedProperties)
         {
-            var complexType = property.TypeUsage.EdmType as ComplexType;
-            if (complexType != null)
+            if (property.TypeUsage.EdmType is ComplexType complexType)
             {
                 foreach (var subProperty in complexType.Properties)
                 {
@@ -263,10 +261,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <param name="csdlProperty">The CSDL property.</param>
         /// <param name="providerManifest">The DbProviderManifest to use.</param>
         /// <returns>The list of facets.</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Csdl")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "csdl")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ssdl")]
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
         public static IEnumerable<Facet> InferSsdlFacetsForCsdlProperty(this EdmProperty csdlProperty, DbProviderManifest providerManifest)
         {
             var storeType = csdlProperty.GetStoreTypeUsage(providerManifest);
@@ -287,7 +281,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <param name="edmMember">The EdmMember.</param>
         /// <param name="providerManifest">The DbProviderManifest.</param>
         /// <returns>The StoreType.</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "edm")]
         public static string GetStoreType(this EdmMember edmMember, DbProviderManifest providerManifest)
         {
             var storeType = edmMember.GetStoreTypeUsage(providerManifest);
@@ -301,8 +294,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
             return String.Empty;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         private static TypeUsage GetStoreTypeUsage(this EdmMember edmMember, DbProviderManifest providerManifest)
         {
             TypeUsage storeType = null;
@@ -312,21 +303,17 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
             if (conceptualType != null)
             {
                 // if the EDM type is an enum, then we need to pass in the underlying type to the GetStoreType API.
-                var enumType = conceptualType.EdmType as EnumType;
-                storeType = (enumType != null)
+                storeType = (conceptualType.EdmType is EnumType enumType)
                                 ? providerManifest.GetStoreType(TypeUsage.CreateDefaultTypeUsage(enumType.UnderlyingType))
                                 : providerManifest.GetStoreType(conceptualType);
             }
             return storeType;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         private static PrimitiveType ThrowGetStorePrimitiveType(
             Dictionary<string, PrimitiveType> storeNameToPrimitive, string typeName, EdmMember edmMember)
         {
-            PrimitiveType storePrimitiveType;
-            if (false == storeNameToPrimitive.TryGetValue(typeName, out storePrimitiveType))
+            if (false == storeNameToPrimitive.TryGetValue(typeName, out PrimitiveType storePrimitiveType))
             {
                 throw new NotSupportedException(
                     String.Format(
@@ -345,8 +332,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <returns>The value of the OnDelete element.</returns>
         public static OperationAction GetOnDelete(this AssociationEndMember end)
         {
-            var association = end.DeclaringType as AssociationType;
-            if (association != null)
+            if (end.DeclaringType is AssociationType association)
             {
                 AssociationEndMember otherEnd = association.GetOtherEnd(end);
                 if (otherEnd != null)
@@ -375,7 +361,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// </summary>
         /// <param name="property">A property from which to determine the EDM Type.</param>
         /// <returns>The corresponding SQL type.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
         public static string ToStoreType(this EdmProperty property)
         {
             var sqlTypeName = String.Empty;
@@ -388,8 +373,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
                 if (edmType != null)
                 {
                     sqlTypeName = storeTypeUsage.EdmType.Name;
-                    var primType = storeTypeUsage.EdmType as PrimitiveType;
-                    if (primType != null)
+                    if (storeTypeUsage.EdmType is PrimitiveType primType)
                     {
                         Facet maxLengthFacet = null;
                         Facet precisionFacet = null;
@@ -606,7 +590,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <param name="end">The AssociationEnd.</param>
         /// <returns>The EntityType.</returns>
         /// <exception cref="InvalidOperationException">if there was an error parsing this end's TypeUsage</exception>
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
         public static EntityType GetEntityType(this RelationshipEndMember end)
         {
             if (end.TypeUsage == null
@@ -616,10 +599,9 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
                 throw new InvalidOperationException(Resources.ErrorFindingEntityTypeForEnd);
             }
 
-            var refType = end.TypeUsage.EdmType as RefType;
-            var entityTypeForEnd = refType.ElementType as EntityType;
+            RefType refType = end.TypeUsage.EdmType as RefType;
 
-            if (entityTypeForEnd == null)
+            if (refType.ElementType is not EntityType entityTypeForEnd)
             {
                 throw new InvalidOperationException(Resources.ErrorFindingEntityTypeForEnd);
             }
@@ -636,8 +618,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         {
             foreach (var keyMember in entityType.KeyMembers)
             {
-                var property = keyMember as EdmProperty;
-                if (property != null)
+                if (keyMember is EdmProperty property)
                 {
                     yield return property;
                 }
@@ -649,7 +630,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// </summary>
         /// <param name="end">The AssociationEnd.</param>
         /// <returns>The list of key properties.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
         public static IEnumerable<EdmProperty> GetKeyProperties(this AssociationEndMember end)
         {
             IEnumerable<EdmProperty> keyProperties = new List<EdmProperty>();
@@ -666,7 +646,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// </summary>
         /// <param name="entityType">An entity type in the conceptual model.</param>
         /// <returns>True if the specified entity type has a base type; false otherwise.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
         public static bool IsDerivedType(this EntityType entityType)
         {
             return (entityType.BaseType != null);
@@ -683,9 +662,8 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         // <returns>true if the given EntityType is an ancestor; otherwise, false.</returns>
         private static bool IsDerivedTypeOf(this EntityType entityType, EntityType rootType, out IList<EntityType> selfAndAncestors)
         {
-            selfAndAncestors = new List<EntityType>();
-            selfAndAncestors.Add(entityType);
-            var baseType = entityType.BaseType as EntityType;
+            selfAndAncestors = [entityType];
+            EntityType baseType = entityType.BaseType as EntityType;
             var foundMatchingAncestor = false;
             while (baseType != null)
             {
@@ -702,9 +680,9 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
 
         private static IEnumerable<EntityType> GetDerivedTypes(this EntityType entityType, ItemCollection itemCollection)
         {
-            var derivedTypes = new HashSet<EntityType>();
-            IList<EntityType> tempAncestorList = new List<EntityType>();
-            var traversedEntityTypes = new HashSet<EntityType>();
+            HashSet<EntityType> derivedTypes = new HashSet<EntityType>();
+            IList<EntityType> tempAncestorList = [];
+            HashSet<EntityType> traversedEntityTypes = new HashSet<EntityType>();
             foreach (EntityType et in itemCollection.GetAllEntityTypes())
             {
                 if (traversedEntityTypes.Contains(et))
@@ -729,7 +707,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <returns>A list of EntityTypes.</returns>
         public static IEnumerable<EntityType> GetContainingTypes(this EntitySet set, ItemCollection itemCollection)
         {
-            var containingTypes = new List<EntityType>();
+            List<EntityType> containingTypes = new List<EntityType>();
             var rootType = set.ElementType;
             containingTypes.Add(rootType);
             containingTypes.AddRange(rootType.GetDerivedTypes(itemCollection));
@@ -837,9 +815,8 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
                         String.Format(CultureInfo.CurrentCulture, Resources.ErrorNonValidTargetVersion, targetVersion));
                 }
 
-                MetadataProperty sgpMetadataProperty = null;
                 if (property.MetadataProperties.TryGetValue(
-                    sgpNamespace + ":" + EdmConstants.facetNameStoreGeneratedPattern, false, out sgpMetadataProperty))
+                    sgpNamespace + ":" + EdmConstants.facetNameStoreGeneratedPattern, false, out MetadataProperty sgpMetadataProperty))
                 {
                     var sgpValue = sgpMetadataProperty.Value as string;
                     Debug.Assert(
@@ -854,8 +831,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
             else if (dataSpace == DataSpace.SSpace)
             {
                 // In the SSDL, StoreGeneratedPattern exists as a facet
-                Facet item = null;
-                if (property.TypeUsage.Facets.TryGetValue(EdmConstants.facetNameStoreGeneratedPattern, false, out item))
+                if (property.TypeUsage.Facets.TryGetValue(EdmConstants.facetNameStoreGeneratedPattern, false, out Facet item))
                 {
                     return (StoreGeneratedPattern)item.Value;
                 }
@@ -876,7 +852,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// </summary>
         /// <param name="entitySet">The EntitySet.</param>
         /// <returns>The schema name.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
         public static string GetSchemaName(this EntitySet entitySet)
         {
             if (entitySet == null)
@@ -884,13 +859,11 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
                 throw new ArgumentNullException("entitySet");
             }
 
-            MetadataProperty schemaProperty;
-            if (entitySet.MetadataProperties.TryGetValue("Schema", false, out schemaProperty))
+            if (entitySet.MetadataProperties.TryGetValue("Schema", false, out MetadataProperty schemaProperty))
             {
-                string schemaPropertyValue = null;
                 if (schemaProperty != null
                     && schemaProperty.Value != null
-                    && ((schemaPropertyValue = schemaProperty.Value as string) != null)
+                    && (schemaProperty.Value is string schemaPropertyValue)
                     && !String.IsNullOrEmpty(schemaPropertyValue))
                 {
                     return schemaPropertyValue;
@@ -905,20 +878,17 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// </summary>
         /// <param name="entitySet">The EntitySet.</param>
         /// <returns>The table name.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
         public static string GetTableName(this EntitySet entitySet)
         {
             if (entitySet == null)
             {
                 throw new ArgumentNullException("entitySet");
             }
-            MetadataProperty tableProperty;
-            if (entitySet.MetadataProperties.TryGetValue("Table", false, out tableProperty))
+            if (entitySet.MetadataProperties.TryGetValue("Table", false, out MetadataProperty tableProperty))
             {
-                string tablePropertyValue = null;
                 if (tableProperty != null
                     && tableProperty.Value != null
-                    && ((tablePropertyValue = tableProperty.Value as string) != null)
+                    && (tableProperty.Value is string tablePropertyValue)
                     && !String.IsNullOrEmpty(tablePropertyValue))
                 {
                     return tablePropertyValue;

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using EnvDTE;
+
 namespace Microsoft.Data.Entity.Tests.Shared.VS
 {
-    using System;
-    using System.Collections.Generic;
-    using EnvDTE;
-
     public enum OperationType
     {
         UI,

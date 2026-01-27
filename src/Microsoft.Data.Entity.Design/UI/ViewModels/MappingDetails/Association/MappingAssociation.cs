@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-
     [TreeGridDesignerRootBranch(typeof(AssociationBranch))]
     [TreeGridDesignerColumn(typeof(PropertyColumn), Order = 1)]
     [TreeGridDesignerColumn(typeof(OperatorColumn), Order = 2)]

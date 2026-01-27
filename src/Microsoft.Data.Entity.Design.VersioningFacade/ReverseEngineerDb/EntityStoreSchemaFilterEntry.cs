@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-
     /// <summary>
     ///     This class represent a single filter entry
     /// </summary>

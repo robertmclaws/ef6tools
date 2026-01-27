@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class ReferentialConstraint : EFElement
     {
         internal static readonly string ElementName = "ReferentialConstraint";

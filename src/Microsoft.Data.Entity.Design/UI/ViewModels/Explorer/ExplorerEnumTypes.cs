@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class ExplorerEnumTypes : EntityDesignExplorerEFElement
     {
         private readonly TypedChildList<ExplorerEnumType> _enumTypes = new TypedChildList<ExplorerEnumType>();
@@ -32,8 +32,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             // load children from model
             // note: have to go to parent to get this as this is a dummy node
-            var entityModel = Parent.ModelItem as ConceptualEntityModel;
-            if (entityModel != null)
+            if (Parent.ModelItem is ConceptualEntityModel entityModel)
             {
                 foreach (var child in entityModel.EnumTypes())
                 {
@@ -60,8 +59,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var enumType = efElementToInsert as EnumType;
-            if (enumType != null)
+            if (efElementToInsert is EnumType enumType)
             {
                 var explorerEnumType = AddEnumType(enumType);
                 var index = _enumTypes.IndexOf(explorerEnumType);
@@ -75,8 +73,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerEnumType = efElementToRemove as ExplorerEnumType;
-            if (explorerEnumType == null)
+            if (efElementToRemove is not ExplorerEnumType explorerEnumType)
             {
                 Debug.Fail(
                     string.Format(
@@ -91,7 +88,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         private ExplorerEnumType AddEnumType(EnumType enumType)
         {
-            var explorerEnumType = ModelToExplorerModelXRef.GetNew(_context, enumType, this, typeof(ExplorerEnumType)) as ExplorerEnumType;
+            ExplorerEnumType explorerEnumType = ModelToExplorerModelXRef.GetNew(_context, enumType, this, typeof(ExplorerEnumType)) as ExplorerEnumType;
             _enumTypes.Insert(explorerEnumType);
             return explorerEnumType;
         }

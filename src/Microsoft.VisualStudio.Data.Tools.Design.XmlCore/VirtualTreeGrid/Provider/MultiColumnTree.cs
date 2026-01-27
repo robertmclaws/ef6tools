@@ -77,10 +77,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             get
             {
-                if (mySingleColumnTree == null)
-                {
-                    mySingleColumnTree = CreateSingleColumnTree();
-                }
+                mySingleColumnTree ??= CreateSingleColumnTree();
                 return mySingleColumnTree;
             }
         }

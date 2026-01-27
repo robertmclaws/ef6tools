@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity.Core.EntityClient;
+using Moq;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Data.Entity.Core.EntityClient;
-    using Moq;
-
     // intentionally not static because of closures
     internal class EntityClientMockFactory
     {
@@ -16,7 +16,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
             var index = 0;
             object[] currentRow = null;
 
-            var mockReader = new Mock<EntityDataReader>();
+            Mock<EntityDataReader> mockReader = new Mock<EntityDataReader>();
 
             mockReader
                 .Setup(r => r.FieldCount)
@@ -43,7 +43,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
 
         public Mock<EntityCommand> CreateMockEntityCommand(IList<object[]> returnRows)
         {
-            var mockCommand = new Mock<EntityCommand>();
+            Mock<EntityCommand> mockCommand = new Mock<EntityCommand>();
             mockCommand.CallBase = true;
             mockCommand
                 .Setup(c => c.ExecuteReader(It.IsAny<CommandBehavior>()))

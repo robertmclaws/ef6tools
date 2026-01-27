@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using AssociationConnector = Microsoft.Data.Entity.Design.EntityDesigner.View.AssociationConnector;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using AssociationConnector = Microsoft.Data.Entity.Design.EntityDesigner.View.AssociationConnector;
-
     internal class AssociationConnectorChange : AssociationConnectorModelChange
     {
         private readonly Guid _domainPropertyId;
@@ -59,7 +59,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
                         if (points != null)
                         {
-                            var cmd = new SetConnectorPointsCommand(modelAssociationConnector, points);
+                            SetConnectorPointsCommand cmd = new SetConnectorPointsCommand(modelAssociationConnector, points);
                             CommandProcessor.InvokeSingleCommand(cpc, cmd);
                         }
                     }
@@ -70,12 +70,12 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
                             && modelAssociationConnector.ConnectorPoints != null
                             && modelAssociationConnector.ConnectorPoints.Count > 0)
                         {
-                            var points = new List<KeyValuePair<double, double>>();
-                            var setConnectorPointCmd = new SetConnectorPointsCommand(modelAssociationConnector, points);
+                            List<KeyValuePair<double, double>> points = new List<KeyValuePair<double, double>>();
+                            SetConnectorPointsCommand setConnectorPointCmd = new SetConnectorPointsCommand(modelAssociationConnector, points);
                             CommandProcessor.InvokeSingleCommand(cpc, setConnectorPointCmd);
                         }
 
-                        var cmd = new UpdateDefaultableValueCommand<bool>(
+                        UpdateDefaultableValueCommand<bool> cmd = new UpdateDefaultableValueCommand<bool>(
                             modelAssociationConnector.ManuallyRouted, associationConnector.ManuallyRouted);
                         CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     }

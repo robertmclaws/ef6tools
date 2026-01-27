@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Controls;
+using Microsoft.VisualStudio.PlatformUI;
+using EntityDesignerResources = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 {
-    using System;
-    using System.Globalization;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using System.Windows;
-    using System.Windows.Controls;
-    using Microsoft.VisualStudio.PlatformUI;
-    using EntityDesignerResources = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
-
     /// <summary>
     /// WPF dialog for exporting diagrams as images with additional options.
     /// </summary>
@@ -192,7 +192,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
         {
             try
             {
-                var dialog = (IFileOpenDialog)new FileOpenDialog();
+                IFileOpenDialog dialog = (IFileOpenDialog)new FileOpenDialog();
                 try
                 {
                     // Configure for folder picking
@@ -202,8 +202,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                     // Set initial folder if valid
                     if (!string.IsNullOrEmpty(initialPath) && Directory.Exists(initialPath))
                     {
-                        IShellItem initialFolder;
-                        if (SHCreateItemFromParsingName(initialPath, IntPtr.Zero, typeof(IShellItem).GUID, out initialFolder) == 0)
+                        if (SHCreateItemFromParsingName(initialPath, IntPtr.Zero, typeof(IShellItem).GUID, out IShellItem initialFolder) == 0)
                         {
                             dialog.SetFolder(initialFolder);
                         }
@@ -216,12 +215,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                     var hr = dialog.Show(hwnd);
                     if (hr == 0) // S_OK
                     {
-                        IShellItem result;
-                        dialog.GetResult(out result);
+                        dialog.GetResult(out IShellItem result);
                         if (result != null)
                         {
-                            string path;
-                            result.GetDisplayName(SIGDN.SIGDN_FILESYSPATH, out path);
+                            result.GetDisplayName(SIGDN.SIGDN_FILESYSPATH, out string path);
                             return path;
                         }
                     }
@@ -234,7 +231,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             catch
             {
                 // Fall back to basic folder browser dialog on any COM failure
-                using (var fallbackDialog = new System.Windows.Forms.FolderBrowserDialog())
+                using (System.Windows.Forms.FolderBrowserDialog fallbackDialog = new System.Windows.Forms.FolderBrowserDialog())
                 {
                     fallbackDialog.Description = EntityDesignerResources.ExportImage_SelectLocation;
                     fallbackDialog.SelectedPath = initialPath;
@@ -242,7 +239,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 
                     // Get the window handle for the WPF dialog
                     var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-                    var win32Window = new Win32Window(hwnd);
+                    Win32Window win32Window = new Win32Window(hwnd);
 
                     if (fallbackDialog.ShowDialog(win32Window) == System.Windows.Forms.DialogResult.OK)
                     {

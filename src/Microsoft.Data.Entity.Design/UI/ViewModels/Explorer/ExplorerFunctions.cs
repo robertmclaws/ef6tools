@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     Dummy element which contains the Functions
     // </summary>
@@ -36,7 +36,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             // load children from model
             // note: have to go to parent to get this as this is a dummy node
-            var sem = Parent.ModelItem as StorageEntityModel;
+            StorageEntityModel sem = Parent.ModelItem as StorageEntityModel;
             Debug.Assert(sem != null, "BrowserFunctions node should always have a StorageEntityModel as this.Parent.ModelItem");
             if (sem != null)
             {
@@ -65,8 +65,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var function = efElementToInsert as Function;
-            if (function != null)
+            if (efElementToInsert is Function function)
             {
                 var explorerFunction = AddFunction(function);
                 var index = _functions.IndexOf(explorerFunction);
@@ -80,8 +79,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerFunc = efElementToRemove as ExplorerFunction;
-            if (explorerFunc == null)
+            if (efElementToRemove is not ExplorerFunction explorerFunc)
             {
                 Debug.Fail(
                     string.Format(
@@ -96,7 +94,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         private ExplorerFunction AddFunction(Function function)
         {
-            var explorerFunction =
+            ExplorerFunction explorerFunction =
                 ModelToExplorerModelXRef.GetNew(_context, function, this, typeof(ExplorerFunction)) as ExplorerFunction;
 
             _functions.Insert(explorerFunction);

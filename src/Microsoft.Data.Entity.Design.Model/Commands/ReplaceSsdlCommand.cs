@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class ReplaceSsdlCommand : Command
     {
         private readonly StorageEntityModel _newArtifactStorageEntityModel;
@@ -24,7 +24,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             // check that we have an existing artifact
             var service = cpc.EditingContext.GetEFArtifactService();
-            var existingArtifact = service.Artifact as EntityDesignArtifact;
+            EntityDesignArtifact existingArtifact = service.Artifact as EntityDesignArtifact;
             Debug.Assert(existingArtifact != null, "Null Artifact");
             if (null == existingArtifact)
             {
@@ -109,8 +109,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             RetargetMappingsForRenamedStorageFunctions(preExistingStorageEntityModel, newStorageEntityModel);
 
             // re-target the mappings which reference EntitySets
-            var preExistingStorageEntityContainer = preExistingStorageEntityModel.FirstEntityContainer as StorageEntityContainer;
-            var newStorageEntityEntityContainer = newStorageEntityModel.FirstEntityContainer as StorageEntityContainer;
+            StorageEntityContainer preExistingStorageEntityContainer = preExistingStorageEntityModel.FirstEntityContainer as StorageEntityContainer;
+            StorageEntityContainer newStorageEntityEntityContainer = newStorageEntityModel.FirstEntityContainer as StorageEntityContainer;
             RetargetMappingsForRenamedStorageEntitySets(preExistingStorageEntityContainer, newStorageEntityEntityContainer);
 
             // Note: DO NOT normalize and resolve the Mapping Model yet - this needs to happen
@@ -166,7 +166,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         private static void ReplaceSsdl(CommandProcessorContext cpc, EntityDesignArtifact existingArtifact, XElement newSsdl)
         {
             // find the XObject representing the existing StorageModel Schema element
-            var existingStorageModelNode = existingArtifact.StorageModel.XObject as XElement;
+            XElement existingStorageModelNode = existingArtifact.StorageModel.XObject as XElement;
             Debug.Assert(existingStorageModelNode != null, "existingStorageModelNode is null");
 
             // find the parent of the existing StorageModel Schema element
@@ -175,12 +175,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // delete the old StorageModel but do not delete its anti-dependencies
             if (null != existingArtifact.StorageModel)
             {
-                var deleteStorageModelCommand = new DeleteEFElementCommand(existingArtifact.StorageModel, true, false);
+                DeleteEFElementCommand deleteStorageModelCommand = new DeleteEFElementCommand(existingArtifact.StorageModel, true, false);
                 DeleteEFElementCommand.DeleteInTransaction(cpc, deleteStorageModelCommand);
             }
 
             // this will clone the source element
-            var ssdlSchemaElement = new XElement(newSsdl);
+            XElement ssdlSchemaElement = new XElement(newSsdl);
             // add ssdlSchemaElement to the parent of the previously existing Storage node
             existingStorageModelParentNode.Add(ssdlSchemaElement);
 
@@ -212,13 +212,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             foreach (var child in target.Children)
             {
-                var childAsEFContainer = child as EFContainer;
-                var childAsItemBinding = child as ItemBinding;
-                if (null != childAsEFContainer)
+                if (child is EFContainer childAsEFContainer)
                 {
                     RecursivelyReplaceStorageNamespaceRefs(childAsEFContainer, oldStorageNamespace, newStorageNamespace);
                 }
-                else if (null != childAsItemBinding)
+                else if (child is ItemBinding childAsItemBinding)
                 {
                     // if childAsItemBinding startsWith oldStorageNamespace then will update
                     // (Note: need to check this because SingleItemBinding<Parameter> will have
@@ -265,7 +263,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Dictionary<DatabaseObject, T> existingArtifactSSideMappings,
             Dictionary<DatabaseObject, T> newArtifactSSideMappings) where T : EFNameableItem
         {
-            var existingDatabaseObjectToNewNameMappings = new Dictionary<T, string>();
+            Dictionary<T, string> existingDatabaseObjectToNewNameMappings = new Dictionary<T, string>();
             foreach (var databaseIdNamePair in existingArtifactSSideMappings)
             {
                 var dbIdentity = databaseIdNamePair.Key;
@@ -274,9 +272,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     && !string.IsNullOrEmpty(databaseIdNamePair.Value.LocalName.Value))
                 {
                     var oldName = databaseIdNamePair.Value.LocalName.Value;
-                    T matchingNewDatabaseObject;
                     var newArtifactContainsDBIdentity =
-                        newArtifactSSideMappings.TryGetValue(dbIdentity, out matchingNewDatabaseObject);
+                        newArtifactSSideMappings.TryGetValue(dbIdentity, out T matchingNewDatabaseObject);
                     if (newArtifactContainsDBIdentity
                         && null != matchingNewDatabaseObject
                         && null != matchingNewDatabaseObject.LocalName
@@ -300,8 +297,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 var antiDepsArray = existingDatabaseObject.GetAntiDependencies().ToArray();
                 foreach (var antiDep in antiDepsArray)
                 {
-                    var antiDepAsItemBinding = antiDep as ItemBinding;
-                    if (null != antiDepAsItemBinding
+                    if (antiDep is ItemBinding antiDepAsItemBinding
                         && null != existingDatabaseObject.LocalName
                         && !string.IsNullOrEmpty(existingDatabaseObject.LocalName.Value))
                     {
@@ -314,15 +310,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         private static Dictionary<DatabaseObject, StorageEntitySet> ConstructDatabaseObjectToEntitySetMappings(StorageEntityContainer sec)
         {
             Debug.Assert(null != sec, "was passed a null StorageEntityContainer");
-            var mappings = new Dictionary<DatabaseObject, StorageEntitySet>();
+            Dictionary<DatabaseObject, StorageEntitySet> mappings = new Dictionary<DatabaseObject, StorageEntitySet>();
             if (null != sec)
             {
                 foreach (var es in sec.EntitySets())
                 {
-                    var ses = es as StorageEntitySet;
-                    if (null != ses)
+                    if (es is StorageEntitySet ses)
                     {
-                        var dbObj = DatabaseObject.CreateFromEntitySet(ses);
+                        DatabaseObject dbObj = DatabaseObject.CreateFromEntitySet(ses);
                         mappings.Add(dbObj, ses);
                     }
                 }
@@ -334,12 +329,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         private static Dictionary<DatabaseObject, Function> ConstructDatabaseObjectToFunctionMappings(StorageEntityModel sem)
         {
             Debug.Assert(null != sem, "was passed a null StorageEntityModel");
-            var mappings = new Dictionary<DatabaseObject, Function>();
+            Dictionary<DatabaseObject, Function> mappings = new Dictionary<DatabaseObject, Function>();
             if (null != sem)
             {
                 foreach (var func in sem.Functions())
                 {
-                    var dbObj = DatabaseObject.CreateFromFunction(func);
+                    DatabaseObject dbObj = DatabaseObject.CreateFromFunction(func);
                     mappings.Add(dbObj, func);
                 }
             }

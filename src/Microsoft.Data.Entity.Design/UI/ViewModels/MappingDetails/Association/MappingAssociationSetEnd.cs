@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.Mapping.ChildCollectionBuilders;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.Mapping.ChildCollectionBuilders;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-
     [TreeGridDesignerRootBranch(typeof(AssociationSetEndBranch))]
     [TreeGridDesignerColumn(typeof(PropertyColumn), Order = 1)]
     internal class MappingAssociationSetEnd : MappingAssociationMappingRoot
@@ -52,7 +52,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
             {
                 if (AssociationEnd != null)
                 {
-                    var cet = AssociationEnd.Type.Target as ConceptualEntityType;
+                    ConceptualEntityType cet = AssociationEnd.Type.Target as ConceptualEntityType;
                     Debug.Assert(AssociationEnd.Type.Target != null ? cet != null : true, "EntityType is not ConceptualEntityType");
                     return cet;
                 }
@@ -80,14 +80,14 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
         {
             get
             {
-                _scalarProperties = new List<MappingEndScalarProperty>();
+                _scalarProperties = [];
 
                 if (AssociationEnd != null
                     &&
                     AssociationEnd.Type.Status == BindingStatus.Known)
                 {
-                    var cpc = new CommandProcessorContext(_context, "MappingAssociationSetEnd", "ScalarProperties");
-                    var builder = new AssociationSetEndMappingBuilderForViewModel(
+                    CommandProcessorContext cpc = new CommandProcessorContext(_context, "MappingAssociationSetEnd", "ScalarProperties");
+                    AssociationSetEndMappingBuilderForViewModel builder = new AssociationSetEndMappingBuilderForViewModel(
                         AssociationSetEnd, MappingAssociationSet.StorageEntityType, this);
                     builder.Build(cpc);
                 }
@@ -120,10 +120,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
                 _mase = mase;
             }
 
-            [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
             protected override void BuildNew(CommandProcessorContext cpc, string propertyName, string propertyType)
             {
-                var mesp = new MappingEndScalarProperty(cpc.EditingContext, null, _mase);
+                MappingEndScalarProperty mesp = new MappingEndScalarProperty(cpc.EditingContext, null, _mase);
                 mesp.Property = propertyName;
                 mesp.PropertyType = propertyType;
                 _mase._scalarProperties.Add(mesp);
@@ -131,7 +130,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
 
             protected override void BuildExisting(CommandProcessorContext cpc, ScalarProperty scalarProperty)
             {
-                var mesp = (MappingEndScalarProperty)ModelToMappingModelXRef.GetNewOrExisting(cpc.EditingContext, scalarProperty, _mase);
+                MappingEndScalarProperty mesp = (MappingEndScalarProperty)ModelToMappingModelXRef.GetNewOrExisting(cpc.EditingContext, scalarProperty, _mase);
                 _mase._scalarProperties.Add(mesp);
             }
         }

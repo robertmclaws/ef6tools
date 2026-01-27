@@ -1,32 +1,30 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Xml;
-    using System.Xml.Linq;
-    using System.Xml.XPath;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Microsoft.VisualStudio.Shell;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal class VSArtifact : EntityDesignArtifact
     {
         private HashSet<string> _namespaces;
@@ -66,10 +64,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
         {
             var context = PackageManager.Package.DocumentFrameMgr.EditingContextManager.GetNewOrExistingContext(Uri);
             Debug.Assert(context != null, "context should not be null");
-            if (context != null)
-            {
-                context.OnReloaded(EventArgs.Empty);
-            }
+            context?.OnReloaded(EventArgs.Empty);
         }
 
         internal override void OnLoaded()
@@ -104,14 +99,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
 
         protected internal override HashSet<string> GetNamespaces()
         {
-            if (_namespaces == null)
-            {
-                _namespaces = new HashSet<string>();
-                foreach (var n in SchemaManager.GetAllNamespacesForVersion(SchemaVersion))
-                {
-                    _namespaces.Add(n);
-                }
-            }
+            _namespaces ??= [.. SchemaManager.GetAllNamespacesForVersion(SchemaVersion)];
 
             return _namespaces;
         }
@@ -152,7 +140,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
                     var hierarchy = VsUtils.GetVsHierarchy(currentProject, Services.ServiceProvider);
                     if (hierarchy != null)
                     {
-                        var fileFinder = new VSFileFinder(Uri.LocalPath);
+                        VSFileFinder fileFinder = new VSFileFinder(Uri.LocalPath);
                         fileFinder.FindInProject(hierarchy);
 
                         Debug.Assert(fileFinder.MatchingFiles.Count <= 1, "Unexpected count of matching files in project");
@@ -160,7 +148,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
                         // if the EDMX file is not part of the project.
                         if (fileFinder.MatchingFiles.Count == 0)
                         {
-                            var docData = VSHelpers.GetDocData(PackageManager.Package, Uri.LocalPath) as IEntityDesignDocData;
+                            IEntityDesignDocData docData = VSHelpers.GetDocData(PackageManager.Package, Uri.LocalPath) as IEntityDesignDocData;
                             ErrorListHelper.AddErrorInfosToErrorList(errorInfos, docData.Hierarchy, docData.ItemId);
                         }
                         else
@@ -187,7 +175,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal override bool IsXmlValid()
         {
             // If there is a VSXmlModelProvider, we should be able to find a docdata for it.
@@ -228,7 +215,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
                     var nsMgr = SchemaManager.GetEdmxNamespaceManager(xmldoc.NameTable, documentSchemaVersion);
                     // Do XSD validation on the document.
                     xmldoc.Schemas = EscherAttributeContentValidator.GetInstance(documentSchemaVersion).EdmxSchemaSet;
-                    var svec = new SchemaValidationErrorCollector();
+                    SchemaValidationErrorCollector svec = new SchemaValidationErrorCollector();
 
                     // remove runtime specific lines
                     // find the ConceptualModel Schema node
@@ -313,7 +300,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
         {
             try
             {
-                var runtimeNode = (XmlElement)xmlDoc.SelectSingleNode(xpath, xmlNsm);
+                XmlElement runtimeNode = (XmlElement)xmlDoc.SelectSingleNode(xpath, xmlNsm);
                 if (runtimeNode != null
                     && runtimeNode.ParentNode != null)
                 {
@@ -336,10 +323,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
         {
             get
             {
-                if (_beforeEvent == null)
-                {
-                    _beforeEvent = OnBeforeChange;
-                }
+                _beforeEvent ??= OnBeforeChange;
                 return _beforeEvent;
             }
         }
@@ -368,18 +352,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
 
         private void AddEventHandler()
         {
-            if (XDocument != null)
-            {
-                XDocument.Changing += BeforeEventHandler;
-            }
+            XDocument?.Changing += BeforeEventHandler;
         }
 
         private void RemoveEventHandler()
         {
-            if (XDocument != null)
-            {
-                XDocument.Changing -= BeforeEventHandler;
-            }
+            XDocument?.Changing -= BeforeEventHandler;
         }
 
         internal override HashSet<string> GetFileExtensions()
@@ -442,7 +420,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
             ICollection<Lazy<IModelConversionExtension, IEntityDesignerConversionData>> exports, string fileExtension,
             ModelConversionExtensionContext context, bool loading)
         {
-            var converters = new List<string>();
+            List<string> converters = new List<string>();
 
             if (exports != null)
             {

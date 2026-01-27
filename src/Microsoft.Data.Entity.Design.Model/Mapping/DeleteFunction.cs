@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-
     internal class DeleteFunction : ModificationFunction
     {
         internal static readonly string ElementName = "DeleteFunction";

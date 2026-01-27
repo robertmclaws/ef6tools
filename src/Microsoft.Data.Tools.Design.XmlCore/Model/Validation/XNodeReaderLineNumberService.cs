@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Reflection;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+
 namespace Microsoft.Data.Entity.Design.Model.Validation
 {
-    using System;
-    using System.Diagnostics;
-    using System.Reflection;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-
     internal class XNodeReaderLineNumberService : XObjectLineNumberService, IXmlLineInfo
     {
         private readonly XmlReader _xmlReader;
@@ -16,7 +16,6 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         private static readonly FieldInfo _sourceFieldInfo;
         private static readonly FieldInfo _parentFieldInfo;
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static XNodeReaderLineNumberService()
         {
             var xnodeReaderType = Assembly.GetAssembly(typeof(XObject)).GetType("System.Xml.Linq.XNodeReader");
@@ -86,7 +85,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                         // we have to do this via reflection. 
                         var parent = _parentFieldInfo.GetValue(_xmlReader);
                         Debug.Assert(parent != null, "Unexpected null value for parent field on specified reader");
-                        var xe = parent as XElement;
+                        XElement xe = parent as XElement;
                         Debug.Assert(xe != null, "parent value is not an XElement");
                         if (xe != null)
                         {

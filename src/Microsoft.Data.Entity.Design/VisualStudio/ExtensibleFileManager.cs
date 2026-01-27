@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-
     // <summary>
     //     Given a type of file (via the extension) and a subdirectory name, this proffers out the list of files in:
     //     1. A 'User' directory
@@ -114,7 +114,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Debug.Assert(!String.IsNullOrEmpty(dirPath), "We should have determined the dirPath for extensible files");
             if (!String.IsNullOrEmpty(dirPath))
             {
-                var dirInfo = new DirectoryInfo(dirPath);
+                DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
                 if (dirInfo.Exists)
                 {
                     foreach (var fileInfo in GetSortedFilesByExtension(dirInfo.GetFiles(), _extension))

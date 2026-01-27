@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class TypeAccessDefaultableValue : DefaultableValue<string>
     {
         internal static readonly string AttributeTypeAccess = "TypeAccess";

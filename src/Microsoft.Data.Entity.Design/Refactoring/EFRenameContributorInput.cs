@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring;
+
 namespace Microsoft.Data.Entity.Design.Refactoring
 {
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring;
-
     internal class EFRenameContributorInput : ContributorInput
     {
         private readonly EFObject _objectToBeRenamed;
@@ -41,8 +41,7 @@ namespace Microsoft.Data.Entity.Design.Refactoring
         public override bool Equals(object obj)
         {
             var isEqual = false;
-            var otherInput = obj as EFRenameContributorInput;
-            if (otherInput != null)
+            if (obj is EFRenameContributorInput otherInput)
             {
                 isEqual = (_objectToBeRenamed == otherInput._objectToBeRenamed) &&
                           string.CompareOrdinal(_newName, otherInput._newName) == 0 &&

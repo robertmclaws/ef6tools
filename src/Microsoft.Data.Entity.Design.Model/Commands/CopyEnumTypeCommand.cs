@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CopyEnumTypeCommand : CopyAnnotatableElementCommand
     {
         private readonly EnumTypeClipboardFormat _clipboardEnumType;
@@ -22,7 +22,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // create copy of the EnumType
-            var cmd = new CreateEnumTypeCommand(
+            CreateEnumTypeCommand cmd = new CreateEnumTypeCommand(
                 _clipboardEnumType.Name, _clipboardEnumType.UnderlyingType,
                 _clipboardEnumType.ExternalTypeName, _clipboardEnumType.IsFlag, true);
 

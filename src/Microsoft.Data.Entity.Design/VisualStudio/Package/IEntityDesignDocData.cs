@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal interface IEntityDesignDocData
     {
         bool CreateAndLoadBuffer();

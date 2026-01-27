@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-
     /// <summary>
     ///     An enumeration that describes the severity of an
     ///     <see

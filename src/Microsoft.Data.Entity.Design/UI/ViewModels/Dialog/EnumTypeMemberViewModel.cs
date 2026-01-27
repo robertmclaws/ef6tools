@@ -1,18 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Validation;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class EnumTypeMemberViewModel : INotifyPropertyChanged, IDataErrorInfo
     {
         private readonly EnumTypeMember _member;
@@ -97,7 +97,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels
                     return String.Empty;
                 }
 
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
 
                 if (propertyName == null
                     || propertyName == "Name")

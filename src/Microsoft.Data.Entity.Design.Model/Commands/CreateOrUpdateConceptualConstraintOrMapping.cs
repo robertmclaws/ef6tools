@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     This class updates either the ReferencialConstraint or the AssociationSetMapping depending on whether or not we're including
     ///     foreign keys. The reason why we need a command that can pivot between these two behaviors is because the Hydration Translator
@@ -64,17 +64,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
-            DesignerInfo designerInfo;
 
             Debug.Assert(cpc.Artifact != null, "Artifact was null");
             if (Association != null
                 && cpc.Artifact != null
                 && cpc.Artifact.DesignerInfo() != null
-                && cpc.Artifact.DesignerInfo().TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out designerInfo))
+                && cpc.Artifact.DesignerInfo().TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out DesignerInfo designerInfo))
             {
                 // APPDB_SCENARIO: We cannot use referential constraints for 0..1:0..1 or 1:1 associations, since these exist as configured
                 //                 0..1:* or 1:* associations and so introducing a referential constraint would cause validation errors.
@@ -83,10 +80,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     || (UseReferentialConstraint && !(Association.IsZeroOrOneToZeroOrOne || Association.IsOneToOne)))
                 {
                     // We're including fk columns, so the update will consist of a ref constraint
-                    var createRefConCommand = new CreateOrUpdateReferentialConstraintCommand(
+                    CreateOrUpdateReferentialConstraintCommand createRefConCommand = new CreateOrUpdateReferentialConstraintCommand(
                         (c, subCpc) =>
                             {
-                                var cmd = c as CreateOrUpdateReferentialConstraintCommand;
+                                CreateOrUpdateReferentialConstraintCommand cmd = c as CreateOrUpdateReferentialConstraintCommand;
                                 cmd.PrincipalEnd = PrincipalEnd;
                                 cmd.DependentEnd = DependentEnd;
                                 cmd.PrincipalProperties = PrincipalProperties;
@@ -101,10 +98,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 {
                     // We're not including fk columns, so the update will consist of an association set mapping and a deletes of the fk columns (if they exist)
                     // otherwise update AssociationSetMapping appropriately
-                    var createMapCommand = new CreateOrUpdateAssociationSetMappingCommand(
+                    CreateOrUpdateAssociationSetMappingCommand createMapCommand = new CreateOrUpdateAssociationSetMappingCommand(
                         (c, subCpc) =>
                             {
-                                var cmd = c as CreateOrUpdateAssociationSetMappingCommand;
+                                CreateOrUpdateAssociationSetMappingCommand cmd = c as CreateOrUpdateAssociationSetMappingCommand;
                                 cmd.Association = Association;
                                 cmd.AssociationSet = AssociationSet;
                                 cmd.EntityContainerMapping = EntityContainerMapping;
@@ -119,14 +116,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     // Delete the fk properties in the conceptual layer if they exist. Do not delete primary key properties though!
                     if (!IncludeFkProperties)
                     {
-                        var propertiesToDelete =
+                        List<Property> propertiesToDelete =
                             DependentProperties.Where(p => p.EntityType != null && !p.EntityType.ResolvableKeys.Contains(p)).ToList();
                         foreach (var p in propertiesToDelete)
                         {
-                            var deletePropertyCmd = new DeletePropertyCommand(
+                            DeletePropertyCommand deletePropertyCmd = new DeletePropertyCommand(
                                 (c, subCpc) =>
                                     {
-                                        var cmd = c as DeletePropertyCommand;
+                                        DeletePropertyCommand cmd = c as DeletePropertyCommand;
                                         cmd.EFElement = p;
                                         return cmd.EFElement != null;
                                     });
@@ -156,10 +153,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                             dependentSetEnd = AssociationSet.AssociationSetEnds().Last();
                         }
 
-                        var dependentEndPropertyCmd = new CreateOrUpdateEndPropertyCommand(
+                        CreateOrUpdateEndPropertyCommand dependentEndPropertyCmd = new CreateOrUpdateEndPropertyCommand(
                             (c, subCpc) =>
                                 {
-                                    var cmd = c as CreateOrUpdateEndPropertyCommand;
+                                    CreateOrUpdateEndPropertyCommand cmd = c as CreateOrUpdateEndPropertyCommand;
                                     cmd.AssociationSetEnd = dependentSetEnd;
                                     cmd.AssociationSetMapping = createMapCommand.AssociationSetMapping;
                                     cmd.StorageKeyProperties = StorageDependentTypeKeyProperties;
@@ -169,10 +166,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                                     return cmd.AssociationSetEnd != null && cmd.AssociationSetMapping != null;
                                 });
 
-                        var principalEndPropertyCmd = new CreateOrUpdateEndPropertyCommand(
+                        CreateOrUpdateEndPropertyCommand principalEndPropertyCmd = new CreateOrUpdateEndPropertyCommand(
                             (c, subCpc) =>
                                 {
-                                    var cmd = c as CreateOrUpdateEndPropertyCommand;
+                                    CreateOrUpdateEndPropertyCommand cmd = c as CreateOrUpdateEndPropertyCommand;
                                     cmd.AssociationSetEnd = principalSetEnd;
                                     cmd.AssociationSetMapping = createMapCommand.AssociationSetMapping;
                                     cmd.StorageKeyProperties = StorageDependentTypeForeignKeyProperties;

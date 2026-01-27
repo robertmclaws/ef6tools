@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class RetargetXmlNamespaceCommand : Command
     {
         private readonly Version _targetSchemaVersion;
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Debug.Assert(xdoc != null, "xdoc != null");
             Debug.Assert(EntityFrameworkVersion.IsValidVersion(targetSchemaVersion), "invalid target schema version");
 
-            var inputXml = new XmlDocument { PreserveWhitespace = true };
+            XmlDocument inputXml = new XmlDocument { PreserveWhitespace = true };
             using (var reader = xdoc.CreateReader())
             {
                 inputXml.Load(reader);
@@ -66,9 +66,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
                 // update xml document with new root element
                 xdoc.Root.Remove();
-                using (var reader = new XmlNodeReader(outputXml))
+                using (XmlNodeReader reader = new XmlNodeReader(outputXml))
                 {
-                    var newDoc = XDocument.Load(reader);
+                    XDocument newDoc = XDocument.Load(reader);
                     xdoc.Add(newDoc.Root);
                 }
 

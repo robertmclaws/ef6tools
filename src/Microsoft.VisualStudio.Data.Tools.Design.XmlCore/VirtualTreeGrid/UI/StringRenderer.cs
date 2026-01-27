@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Text;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Drawing.Text;
-    using System.Runtime.InteropServices;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     /// <summary>
     ///     Provides methods for rendering and measuring strings using GDI or GDI+.
     /// </summary>

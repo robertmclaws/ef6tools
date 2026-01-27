@@ -1,54 +1,53 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using ModelEntity = Microsoft.Data.Entity.Design.Model.Entity;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using EnvDTE;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.EntityDesigner.Dialogs;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Refactoring;
+using Microsoft.Data.Entity.Design.UI;
+using Microsoft.Data.Entity.Design.UI.Util;
+using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
+using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
+using Microsoft.Data.Entity.Design.UI.Views.Explorer;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Model.Commands;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Microsoft.VisualStudio.Modeling.Immutability;
+using Microsoft.VisualStudio.Modeling.Shell;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Command = Microsoft.Data.Entity.Design.Model.Commands.Command;
+using ComplexProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.ComplexProperty;
+using Diagram = Microsoft.Data.Entity.Design.Model.Designer.Diagram;
+using EntityDesignerSelection = Microsoft.Data.Entity.Design.UI.Views.EntityDesigner.EntityDesignerSelection;
+using Property = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.Property;
+using ScalarProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.ScalarProperty;
 
 namespace Microsoft.Data.Entity.Design.Package
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Windows.Forms;
-    using EnvDTE;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Dialogs;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Refactoring;
-    using Microsoft.Data.Entity.Design.UI;
-    using Microsoft.Data.Entity.Design.UI.Util;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
-    using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
-    using Microsoft.Data.Entity.Design.UI.Views.Explorer;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model.Commands;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Microsoft.VisualStudio.Modeling.Immutability;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Command = Microsoft.Data.Entity.Design.Model.Commands.Command;
-    using ComplexProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.ComplexProperty;
-    using Diagram = Microsoft.Data.Entity.Design.Model.Designer.Diagram;
-    using EntityDesignerSelection = Microsoft.Data.Entity.Design.UI.Views.EntityDesigner.EntityDesignerSelection;
-    using Property = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.Property;
-    using ScalarProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.ScalarProperty;
-
     [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal partial class MicrosoftDataEntityDesignCommandSet : IEntityDesignCommandSet
     {
@@ -64,7 +63,7 @@ namespace Microsoft.Data.Entity.Design.Package
             {
                 var uri = Utils.FileName2Uri(CurrentDocData.FileName);
                 var modelManager = PackageManager.Package.ModelManager;
-                var efArtifactSet = (EntityDesignArtifactSet)modelManager.GetArtifactSet(uri);
+                EntityDesignArtifactSet efArtifactSet = (EntityDesignArtifactSet)modelManager.GetArtifactSet(uri);
                 return efArtifactSet.GetEntityDesignArtifact();
             }
         }
@@ -72,14 +71,11 @@ namespace Microsoft.Data.Entity.Design.Package
         protected override IList<MenuCommand> GetMenuCommands()
         {
             // Set the command set in the package
-            var entityPackage = ServiceProvider as MicrosoftDataEntityDesignPackage;
+            MicrosoftDataEntityDesignPackage entityPackage = ServiceProvider as MicrosoftDataEntityDesignPackage;
             Debug.Assert(entityPackage != null, "We should have a MicrosoftDataEntityDesignPackage for this commandset");
-            if (entityPackage != null)
-            {
-                entityPackage.CommandSet = this;
-            }
+            entityPackage?.CommandSet = this;
 
-            var commands = new List<MenuCommand>();
+            List<MenuCommand> commands = new List<MenuCommand>();
 
             // add "PageSetup", "Print" and "PrintPreview" commands from DSL
             var baseCommands = base.GetMenuCommands();
@@ -557,14 +553,14 @@ namespace Microsoft.Data.Entity.Design.Package
 
             EventHandler canExecute = (o, ea) =>
                 {
-                    var cmd = o as DynamicStatusMenuCommand;
+                    DynamicStatusMenuCommand cmd = o as DynamicStatusMenuCommand;
                     Debug.Assert(cmd != null, "canExecute handler: cannot find OleMenuCommand to operate on");
                     if (cmd != null)
                     {
                         cmd.Visible = cmd.Enabled = false;
                         if (cmd.Properties.Contains(PackageConstants.guidEscherCmdSet))
                         {
-                            var entityDesignerCommand = cmd.Properties[PackageConstants.guidEscherCmdSet] as EntityDesignerCommand;
+                            EntityDesignerCommand entityDesignerCommand = cmd.Properties[PackageConstants.guidEscherCmdSet] as EntityDesignerCommand;
                             cmd.Text = entityDesignerCommand.Name;
 
                             var selectedEFObject = SelectedEFObject;
@@ -586,7 +582,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
             EventHandler execute = (o, ea) =>
                 {
-                    var cmd = o as DynamicStatusMenuCommand;
+                    DynamicStatusMenuCommand cmd = o as DynamicStatusMenuCommand;
                     Debug.Assert(cmd != null, "execute handler: cannot find OleMenuCommand to operate on");
                     if (cmd != null)
                     {
@@ -595,7 +591,7 @@ namespace Microsoft.Data.Entity.Design.Package
                             var selectedEFObject = SelectedEFObject;
                             if (selectedEFObject != null)
                             {
-                                var entityDesignerCommand = cmd.Properties[PackageConstants.guidEscherCmdSet] as EntityDesignerCommand;
+                                EntityDesignerCommand entityDesignerCommand = cmd.Properties[PackageConstants.guidEscherCmdSet] as EntityDesignerCommand;
                                 entityDesignerCommand.Execute(
                                     selectedEFObject.XObject,
                                     CurrentMicrosoftDataEntityDesignDocView,
@@ -651,7 +647,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             if (SingleSelection != null)
             {
-                var diagram = SingleSelection as EntityDesignerDiagram;
+                EntityDesignerDiagram diagram = SingleSelection as EntityDesignerDiagram;
                 if (null == diagram)
                 {
                     if (CurrentMicrosoftDataEntityDesignDocView != null)
@@ -708,11 +704,10 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             get
             {
-                var entityTypeShapes = new List<EntityTypeShape>();
+                List<EntityTypeShape> entityTypeShapes = new List<EntityTypeShape>();
                 foreach (var o in CurrentSelection)
                 {
-                    var ets = o as EntityTypeShape;
-                    if (null != ets)
+                    if (o is EntityTypeShape ets)
                     {
                         entityTypeShapes.Add(ets);
                     }
@@ -743,8 +738,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             get
             {
-                var compartment = SingleSelection as ElementListCompartment;
-                if (null != compartment
+                if (SingleSelection is ElementListCompartment compartment
                     && EntityTypeShape.NavigationCompartmentName.Equals(compartment.Name, StringComparison.Ordinal))
                 {
                     return compartment;
@@ -768,11 +762,10 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             get
             {
-                var associationConnectors = new List<AssociationConnector>();
+                List<AssociationConnector> associationConnectors = new List<AssociationConnector>();
                 foreach (var o in CurrentSelection)
                 {
-                    var assocConnector = o as AssociationConnector;
-                    if (null != assocConnector)
+                    if (o is AssociationConnector assocConnector)
                     {
                         associationConnectors.Add(assocConnector);
                     }
@@ -799,8 +792,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     if (info != null
                         && info._explorerFrame != null)
                     {
-                        var frame = info._explorerFrame as EntityDesignExplorerFrame;
-                        if (frame != null)
+                        if (info._explorerFrame is EntityDesignExplorerFrame frame)
                         {
                             return frame;
                         }
@@ -846,13 +838,12 @@ namespace Microsoft.Data.Entity.Design.Package
                 var view = diagram.ActiveDiagramView.DiagramClientView;
                 if (view != null)
                 {
-                    var entityShape = view.Selection.PrimaryItem.Shape as EntityTypeShape;
+                    EntityTypeShape entityShape = view.Selection.PrimaryItem.Shape as EntityTypeShape;
 
                     // if EntityShape is null, the user might select the the entity shape compartment.
                     if (entityShape == null)
                     {
-                        var compartment = view.Selection.PrimaryItem.Shape as ElementListCompartment;
-                        if (compartment != null)
+                        if (view.Selection.PrimaryItem.Shape is ElementListCompartment compartment)
                         {
                             entityShape = compartment.ParentShape as EntityTypeShape;
                         }
@@ -882,12 +873,9 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void StatusEnableOnDiagramSelected(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
-            if (cmd != null)
-            {
-                cmd.Enabled = cmd.Visible = IsOurDiagramSelected();
-            }
+            cmd?.Enabled = cmd.Visible = IsOurDiagramSelected();
         }
 
         /// <summary>
@@ -897,7 +885,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusAddEntity(object sender, EventArgs e)
         {
-            var cmd = sender as DynamicStatusMenuCommand;
+            DynamicStatusMenuCommand cmd = sender as DynamicStatusMenuCommand;
             Debug.Assert(cmd != null, "Unexpected command type. type:" + (sender == null ? "NULL" : sender.GetType().Name));
 
             if (cmd != null)
@@ -907,7 +895,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     && MonitorSelection.CurrentWindow is EntityDesignExplorerWindow)
                 {
                     var explorerSelection = SelectedExplorerItem;
-                    var explorerTypes = explorerSelection as ExplorerTypes;
+                    ExplorerTypes explorerTypes = explorerSelection as ExplorerTypes;
                     // This menu item should be available when the user right click on entity-type node or entity-type folder node.
                     if ((null != explorerTypes && explorerTypes.IsConceptualEntityTypesNode)
                         || explorerSelection is ExplorerEntityType)
@@ -939,7 +927,7 @@ namespace Microsoft.Data.Entity.Design.Package
             // diagram is null when the focused element is not a diagram; in that case, try to get the diagram instance from the current doc view.
             if (diagram == null)
             {
-                var docView = CurrentDocView as MicrosoftDataEntityDesignDocView;
+                MicrosoftDataEntityDesignDocView docView = CurrentDocView as MicrosoftDataEntityDesignDocView;
                 Debug.Assert(docView != null, "Why there is no current doc view?");
                 if (docView != null)
                 {
@@ -948,10 +936,7 @@ namespace Microsoft.Data.Entity.Design.Package
             }
 
             Debug.Assert(diagram != null, "Could not find an active diagram.");
-            if (diagram != null)
-            {
-                diagram.AddNewEntityType(GetPositionForNewElements());
-            }
+            diagram?.AddNewEntityType(GetPositionForNewElements());
         }
 
         /// <summary>
@@ -961,12 +946,9 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusAddProperty(object sender, EventArgs e)
         {
-            var cmd = sender as DynamicStatusMenuCommand;
+            DynamicStatusMenuCommand cmd = sender as DynamicStatusMenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a DynamicStatusMenuCommand");
-            if (cmd != null)
-            {
-                cmd.Visible = cmd.Enabled = IsSingleSelection() && (GetSelectedCompartment(true /* Properties Compartment */) != null);
-            }
+            cmd?.Visible = cmd.Enabled = IsSingleSelection() && (GetSelectedCompartment(true /* Properties Compartment */) != null);
         }
 
         /// <summary>
@@ -976,8 +958,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnMenuAddProperty(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 var diagram = GetDiagram();
                 Debug.Assert(diagram != null && diagram.ActiveDiagramView != null, "could not find diagram or ActiveDiagramView");
@@ -1011,8 +992,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusAddAssociation(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Visible = IsSingleSelection() && (IsOurDiagramSelected() || SelectedEntityTypeShape != null);
                 cmd.Enabled = !EntityDesignerDiagram.IsEmptyDiagram(GetDiagram());
@@ -1027,10 +1007,7 @@ namespace Microsoft.Data.Entity.Design.Package
         internal void OnMenuAddAssociation(object sender, EventArgs e)
         {
             var diagram = GetDiagram();
-            if (diagram != null)
-            {
-                diagram.AddNewAssociation(SelectedEntityTypeShape);
-            }
+            diagram?.AddNewAssociation(SelectedEntityTypeShape);
         }
 
         /// <summary>
@@ -1042,7 +1019,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusAddInheritance(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -1068,10 +1045,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var diagram = GetDiagram();
             Debug.Assert(diagram != null, "could not find diagram");
-            if (diagram != null)
-            {
-                diagram.AddNewInheritance(SelectedEntityTypeShape);
-            }
+            diagram?.AddNewInheritance(SelectedEntityTypeShape);
         }
 
         /// <summary>
@@ -1082,7 +1056,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusAddFunctionImport(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -1107,7 +1081,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusAddNavigationProperty(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -1132,10 +1106,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var diagram = GetDiagram();
             Debug.Assert(diagram != null, "could not find diagram");
-            if (diagram != null)
-            {
-                diagram.AddNewFunctionImport(SelectedEntityTypeShape);
-            }
+            diagram?.AddNewFunctionImport(SelectedEntityTypeShape);
         }
 
         /// <summary>
@@ -1170,7 +1141,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusDelete(object sender, EventArgs e)
         {
-            var cmd = sender as DynamicStatusMenuCommand;
+            DynamicStatusMenuCommand cmd = sender as DynamicStatusMenuCommand;
             Debug.Assert(cmd != null, "Null MenuCommand");
             if (cmd != null)
             {
@@ -1202,39 +1173,33 @@ namespace Microsoft.Data.Entity.Design.Package
                             return;
                         }
 
-                        var explorerStorageEntityType = explorerSelection as ExplorerStorageEntityType;
-                        if (null != explorerStorageEntityType)
+                        if (explorerSelection is ExplorerStorageEntityType explorerStorageEntityType)
                         {
                             cmd.Enabled = cmd.Visible = true;
                             return;
                         }
 
-                        var explorerFunction = explorerSelection as ExplorerFunction;
-                        if (null != explorerFunction)
+                        if (explorerSelection is ExplorerFunction explorerFunction)
                         {
                             cmd.Enabled = cmd.Visible = true;
                             return;
                         }
 
-                        var explorerComplexType = explorerSelection as ExplorerComplexType;
-                        if (explorerComplexType != null)
+                        if (explorerSelection is ExplorerComplexType explorerComplexType)
                         {
                             cmd.Enabled = cmd.Visible = true;
                             return;
                         }
 
-                        var explorerNavigationProperty = explorerSelection as ExplorerNavigationProperty;
-                        if (explorerNavigationProperty != null)
+                        if (explorerSelection is ExplorerNavigationProperty explorerNavigationProperty)
                         {
                             cmd.Enabled = cmd.Visible = true;
                             return;
                         }
 
-                        var explorerConceptualProperty = explorerSelection as ExplorerConceptualProperty;
-                        if (explorerConceptualProperty != null)
+                        if (explorerSelection is ExplorerConceptualProperty explorerConceptualProperty)
                         {
-                            var property = explorerConceptualProperty.ModelItem as ModelEntity.Property;
-                            if (property != null
+                            if (explorerConceptualProperty.ModelItem is ModelEntity.Property property
                                 && property.IsComplexTypeProperty)
                             {
                                 cmd.Enabled = cmd.Visible = true;
@@ -1243,8 +1208,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         }
 
                         // Enable delete menu item if a diagram is selected in Model Browser window and there are more than 1 diagram.
-                        var explorerDiagram = explorerSelection as ExplorerDiagram;
-                        if (explorerDiagram != null)
+                        if (explorerSelection is ExplorerDiagram explorerDiagram)
                         {
                             Debug.Assert(explorerDiagram.Parent != null, "The selected explorer diagram's parent is null.");
                             if (explorerDiagram.Parent != null
@@ -1256,23 +1220,20 @@ namespace Microsoft.Data.Entity.Design.Package
                             return;
                         }
 
-                        var explorerEntityTypeShape = explorerSelection as ExplorerEntityTypeShape;
-                        if (explorerEntityTypeShape != null)
+                        if (explorerSelection is ExplorerEntityTypeShape explorerEntityTypeShape)
                         {
                             cmd.Text = Resources.RemoveFromDiagramCommandText;
                             cmd.Enabled = cmd.Visible = true;
                             return;
                         }
 
-                        var explorerConceptualEntityType = explorerSelection as ExplorerConceptualEntityType;
-                        if (explorerConceptualEntityType != null)
+                        if (explorerSelection is ExplorerConceptualEntityType explorerConceptualEntityType)
                         {
                             cmd.Enabled = cmd.Visible = true;
                             return;
                         }
 
-                        var explorerEnumType = explorerSelection as ExplorerEnumType;
-                        if (explorerEnumType != null)
+                        if (explorerSelection is ExplorerEnumType explorerEnumType)
                         {
                             cmd.Enabled = cmd.Visible = true;
                             return;
@@ -1301,9 +1262,6 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal static string RegKeyConfirmDelete = "ShowConfirmDeleteDialog";
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "System.Boolean.TryParse(System.String,System.Boolean@)")]
         internal void OnMenuDelete(object sender, EventArgs e)
         {
             // confirm user wants to delete (see Accessibility bugs 457903 & 457904)
@@ -1342,19 +1300,9 @@ namespace Microsoft.Data.Entity.Design.Package
                 if (element != null)
                 {
                     // accumulate the appropriate delete commands
-                    ICollection<Command> commands = new List<Command>();
-                    var functionImport = element.ModelItem as ModelEntity.FunctionImport;
-                    var set = element.ModelItem as ModelEntity.StorageEntityType;
-                    var func = element.ModelItem as ModelEntity.Function;
-                    var complexType = element.ModelItem as ModelEntity.ComplexType;
-                    var property = element.ModelItem as ModelEntity.Property;
-                    var navigationProperty = element.ModelItem as ModelEntity.NavigationProperty;
-                    var designerDiagram = element.ModelItem as Diagram;
-                    var entityTypeShape = element.ModelItem as Model.Designer.EntityTypeShape;
-                    var conceptualEntityType = element.ModelItem as ModelEntity.ConceptualEntityType;
-                    var enumType = element.ModelItem as ModelEntity.EnumType;
+                    ICollection<Command> commands = [];
 
-                    if (functionImport != null)
+                    if (element.ModelItem is ModelEntity.FunctionImport functionImport)
                     {
                         var cmdFuncImpMapping = FunctionImportMapping.GetDeleteCommand(functionImport);
                         var cmdFuncImp = functionImport.GetDeleteCommand();
@@ -1364,27 +1312,27 @@ namespace Microsoft.Data.Entity.Design.Package
                         }
                         commands.Add(cmdFuncImp);
                     }
-                    else if (set != null)
+                    else if (element.ModelItem is ModelEntity.StorageEntityType set)
                     {
                         commands.Add(set.GetDeleteCommand());
                     }
-                    else if (func != null)
+                    else if (element.ModelItem is ModelEntity.Function func)
                     {
                         commands.Add(func.GetDeleteCommand());
                     }
-                    else if (complexType != null)
+                    else if (element.ModelItem is ModelEntity.ComplexType complexType)
                     {
                         commands.Add(complexType.GetDeleteCommand());
                     }
-                    else if (property != null)
+                    else if (element.ModelItem is ModelEntity.Property property)
                     {
                         commands.Add(property.GetDeleteCommand());
                     }
-                    else if (navigationProperty != null)
+                    else if (element.ModelItem is ModelEntity.NavigationProperty navigationProperty)
                     {
                         commands.Add(navigationProperty.GetDeleteCommand());
                     }
-                    else if (designerDiagram != null)
+                    else if (element.ModelItem is Diagram designerDiagram)
                     {
                         if (designerDiagram.Parent.Children.Count() <= 1)
                         {
@@ -1403,13 +1351,11 @@ namespace Microsoft.Data.Entity.Design.Package
                             var canDelete = true;
                             if (DiagramManagerContextItem.DiagramManager.OpenDiagrams.Count() == 1)
                             {
-                                var allDiagrams = element.Parent.Children.ToList();
+                                List<ExplorerEFElement> allDiagrams = element.Parent.Children.ToList();
                                 var currentDiagramIndex = allDiagrams.IndexOf(element);
-                                var diagramToOpen =
-                                    (element == allDiagrams.Last()
+                                if ((element == allDiagrams.Last()
                                          ? allDiagrams[allDiagrams.Count - 2]
-                                         : allDiagrams[currentDiagramIndex + 1]) as ExplorerDiagram;
-                                if (diagramToOpen != null)
+                                         : allDiagrams[currentDiagramIndex + 1]) is ExplorerDiagram diagramToOpen)
                                 {
                                     DiagramManagerContextItem.DiagramManager.OpenDiagram(diagramToOpen.DiagramMoniker, true);
                                 }
@@ -1428,15 +1374,15 @@ namespace Microsoft.Data.Entity.Design.Package
                             }
                         }
                     }
-                    else if (entityTypeShape != null)
+                    else if (element.ModelItem is Model.Designer.EntityTypeShape entityTypeShape)
                     {
                         commands.Add(entityTypeShape.GetDeleteCommand());
                     }
-                    else if (conceptualEntityType != null)
+                    else if (element.ModelItem is ModelEntity.ConceptualEntityType conceptualEntityType)
                     {
-                        AppendDeleteCommands(new List<EFElement> { conceptualEntityType }, commands);
+                        AppendDeleteCommands([conceptualEntityType], commands);
                     }
-                    else if (enumType != null)
+                    else if (element.ModelItem is ModelEntity.EnumType enumType)
                     {
                         commands.Add(enumType.GetDeleteCommand());
                     }
@@ -1446,7 +1392,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     {
                         var uri = Utils.FileName2Uri(CurrentDocData.FileName);
                         var editingContext = PackageManager.Package.DocumentFrameMgr.EditingContextManager.GetNewOrExistingContext(uri);
-                        var cp =
+                        CommandProcessor cp =
                             new CommandProcessor(
                                 editingContext,
                                 EfiTransactionOriginator.ExplorerWindowOriginatorId,
@@ -1475,15 +1421,12 @@ namespace Microsoft.Data.Entity.Design.Package
                 // went ahead. If there are any then offer the user the choice of
                 // whether to delete them also.
 
-                var selectedModelElements = new List<EFElement>();
+                List<EFElement> selectedModelElements = new List<EFElement>();
 
                 foreach (var ets in SelectedEntityTypeShapes)
                 {
                     var viewModelEntityType = ets.TypedModelElement;
-                    var cet =
-                        viewModelEntityType.EntityDesignerViewModel.ModelXRef.GetExisting(viewModelEntityType) as
-                        ModelEntity.ConceptualEntityType;
-                    if (null != cet)
+                    if (viewModelEntityType.EntityDesignerViewModel.ModelXRef.GetExisting(viewModelEntityType) is ModelEntity.ConceptualEntityType cet)
                     {
                         selectedModelElements.Add(cet);
                     }
@@ -1492,10 +1435,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 foreach (var assocConnector in SelectedAssociationConnectors)
                 {
                     var viewModelAssociation = assocConnector.ModelElement;
-                    var assoc =
-                        viewModelAssociation.SourceEntityType.EntityDesignerViewModel.ModelXRef.GetExisting(viewModelAssociation) as
-                        ModelEntity.Association;
-                    if (null != assoc)
+                    if (viewModelAssociation.SourceEntityType.EntityDesignerViewModel.ModelXRef.GetExisting(viewModelAssociation) is ModelEntity.Association assoc)
                     {
                         selectedModelElements.Add(assoc);
                     }
@@ -1520,7 +1460,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             // Get the active diagram from active doc view. We could not use GetDiagram() because there should be no focused diagram when this menu is launched.
             EntityDesignerDiagram entityDesignerDiagram = null;
-            var docView = CurrentDocView as MicrosoftDataEntityDesignDocView;
+            MicrosoftDataEntityDesignDocView docView = CurrentDocView as MicrosoftDataEntityDesignDocView;
             Debug.Assert(docView != null, "Why there is no active doc view?");
             if (docView != null)
             {
@@ -1548,12 +1488,9 @@ namespace Microsoft.Data.Entity.Design.Package
                         if (vm.Store.PropertyBag.ContainsKey(EntityDesignerViewModel.DeleteUnmappedStorageEntitySetsProperty))
                         {
                             // if the property is set then unset it and add a command to remove these for each item in the master list
-                            var unmappedMasterList =
-                                vm.Store.PropertyBag[EntityDesignerViewModel.DeleteUnmappedStorageEntitySetsProperty] as
-                                List<ICollection<ModelEntity.StorageEntitySet>>;
                             vm.Store.PropertyBag.Remove(EntityDesignerViewModel.DeleteUnmappedStorageEntitySetsProperty);
 
-                            if (unmappedMasterList != null)
+                            if (vm.Store.PropertyBag[EntityDesignerViewModel.DeleteUnmappedStorageEntitySetsProperty] is List<ICollection<ModelEntity.StorageEntitySet>> unmappedMasterList)
                             {
                                 foreach (var unmappedEntitySets in unmappedMasterList)
                                 {
@@ -1568,7 +1505,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusRename(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             if (cmd != null)
             {
                 var diagram = GetDiagram();
@@ -1591,35 +1528,28 @@ namespace Microsoft.Data.Entity.Design.Package
                     var element = SelectedExplorerItem;
                     if (element != null)
                     {
-                        // Rename is only enabled in the Explorer on ComplexType, Property, ConceptualEntityType, Diagram and EntityTypeShape nodes.
-                        var complexType = element.ModelItem as ModelEntity.ComplexType;
-                        var property = element.ModelItem as ModelEntity.Property;
-                        var conceptualEntityType = element.ModelItem as ModelEntity.ConceptualEntityType;
-                        var designerDiagram = element.ModelItem as Diagram;
-                        var entityTypeShape = element.ModelItem as Model.Designer.EntityTypeShape;
-
-                        if (complexType != null)
+                        if (element.ModelItem is ModelEntity.ComplexType complexType)
                         {
                             cmd.Visible = cmd.Enabled = true;
                             return;
                         }
-                        else if (property != null
+                        else if (element.ModelItem is ModelEntity.Property property
                                  && property.IsComplexTypeProperty)
                         {
                             cmd.Visible = cmd.Enabled = true;
                             return;
                         }
-                        else if (designerDiagram != null)
+                        else if (element.ModelItem is Diagram designerDiagram)
                         {
                             cmd.Visible = cmd.Enabled = true;
                             return;
                         }
-                        else if (conceptualEntityType != null)
+                        else if (element.ModelItem is ModelEntity.ConceptualEntityType conceptualEntityType)
                         {
                             cmd.Visible = cmd.Enabled = true;
                             return;
                         }
-                        else if (entityTypeShape != null)
+                        else if (element.ModelItem is Model.Designer.EntityTypeShape entityTypeShape)
                         {
                             cmd.Visible = cmd.Enabled = true;
                             return;
@@ -1644,10 +1574,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 if (diagram.ActiveDiagramView != null)
                 {
                     var view = diagram.ActiveDiagramView.DiagramClientView;
-                    if (view != null)
-                    {
-                        view.Selection.EditValue(view);
-                    }
+                    view?.Selection.EditValue(view);
                 }
             }
             else
@@ -1667,8 +1594,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusRefactorRename(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 var diagram = GetDiagram();
                 if (diagram != null
@@ -1695,10 +1621,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 var entityTypeShape = CurrentSelection.OfType<EntityTypeShape>().FirstOrDefault();
                 if (entityTypeShape != null)
                 {
-                    var entityType =
-                        diagram.GetRootViewModel().ModelXRef.GetExisting(entityTypeShape.ModelElement) as ModelEntity.EntityType;
-
-                    if (entityType != null)
+                    if (diagram.GetRootViewModel().ModelXRef.GetExisting(entityTypeShape.ModelElement) is ModelEntity.EntityType entityType)
                     {
                         return entityType;
                     }
@@ -1708,9 +1631,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     var viewProperty = CurrentSelection.OfType<Property>().FirstOrDefault();
                     if (viewProperty != null)
                     {
-                        var property = diagram.GetRootViewModel().ModelXRef.GetExisting(viewProperty) as ModelEntity.Property;
-
-                        if (property != null)
+                        if (diagram.GetRootViewModel().ModelXRef.GetExisting(viewProperty) is ModelEntity.Property property)
                         {
                             return property;
                         }
@@ -1720,14 +1641,9 @@ namespace Microsoft.Data.Entity.Design.Package
                         var associationConnector = CurrentSelection.OfType<AssociationConnector>().FirstOrDefault();
                         if (associationConnector != null)
                         {
-                            var association =
-                                diagram.GetRootViewModel().ModelXRef.GetExisting(associationConnector.ModelElement) as
-                                ModelEntity.Association;
-
-                            if (association != null)
+                            if (diagram.GetRootViewModel().ModelXRef.GetExisting(associationConnector.ModelElement) is ModelEntity.Association association)
                             {
-                                var artifact = association.Artifact as EntityDesignArtifact;
-                                if (artifact != null)
+                                if (association.Artifact is EntityDesignArtifact artifact)
                                 {
                                     return association;
                                 }
@@ -1762,8 +1678,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusCollapseEntityTypeShape(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 var diagram = GetDiagram();
                 if (diagram != null)
@@ -1804,8 +1719,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusExpandEntityTypeShape(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 var diagram = GetDiagram();
                 if (diagram != null)
@@ -1847,10 +1761,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var diagram = GetDiagram();
             Debug.Assert(diagram != null, "could not find diagram");
-            if (diagram != null)
-            {
-                diagram.ZoomIn();
-            }
+            diagram?.ZoomIn();
         }
 
         /// <summary>
@@ -1862,10 +1773,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var diagram = GetDiagram();
             Debug.Assert(diagram != null, "could not find diagram");
-            if (diagram != null)
-            {
-                diagram.ZoomOut();
-            }
+            diagram?.ZoomOut();
         }
 
         /// <summary>
@@ -1877,16 +1785,13 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var diagram = GetDiagram();
             Debug.Assert(diagram != null, "could not find diagram");
-            if (diagram != null)
-            {
-                diagram.ZoomToFit();
-            }
+            diagram?.ZoomToFit();
         }
 
         internal void OnStatusZoomTo(object sender, EventArgs e)
         {
             StatusEnableOnDiagramSelected(sender, e);
-            var cmd = sender as CommandZoomToLevel;
+            CommandZoomToLevel cmd = sender as CommandZoomToLevel;
             Debug.Assert(cmd != null, "Command was null");
             if (cmd != null
                 && cmd.Visible)
@@ -1907,23 +1812,20 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnMenuZoomTo(object sender, EventArgs e)
         {
-            var cmd = sender as CommandZoomToLevel;
+            CommandZoomToLevel cmd = sender as CommandZoomToLevel;
             Debug.Assert(cmd != null, "Command was null");
             if (cmd != null)
             {
                 var diagram = GetDiagram();
                 Debug.Assert(diagram != null, "Diagram was null");
-                if (diagram != null)
-                {
-                    diagram.ZoomLevel = cmd.ZoomLevel;
-                }
+                diagram?.ZoomLevel = cmd.ZoomLevel;
             }
         }
 
         internal void OnStatusZoomCustom(object sender, EventArgs e)
         {
             StatusEnableOnDiagramSelected(sender, e);
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "Command was null");
             if (cmd != null
                 && cmd.Visible)
@@ -1957,7 +1859,7 @@ namespace Microsoft.Data.Entity.Design.Package
             Debug.Assert(diagram != null, "could not find diagram");
             if (diagram != null)
             {
-                using (var dlg = new CustomZoomDialog())
+                using (CustomZoomDialog dlg = new CustomZoomDialog())
                 {
                     dlg.ZoomPercent = GetDiagram().ZoomLevel;
                     if (dlg.ShowDialog() == DialogResult.OK)
@@ -1976,7 +1878,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusShowGrid(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2004,7 +1906,7 @@ namespace Microsoft.Data.Entity.Design.Package
             Debug.Assert(diagram != null, "could not find diagram");
             if (diagram != null)
             {
-                var cmd = sender as MenuCommand;
+                MenuCommand cmd = sender as MenuCommand;
                 cmd.Checked = !cmd.Checked;
                 diagram.ShowGrid = cmd.Checked;
                 diagram.PersistShowGrid();
@@ -2019,7 +1921,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusSnapToGrid(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2047,7 +1949,7 @@ namespace Microsoft.Data.Entity.Design.Package
             Debug.Assert(diagram != null, "could not find diagram");
             if (diagram != null)
             {
-                var cmd = sender as MenuCommand;
+                MenuCommand cmd = sender as MenuCommand;
                 cmd.Checked = !cmd.Checked;
                 diagram.SnapToGrid = cmd.Checked;
                 diagram.PersistSnapToGrid();
@@ -2064,10 +1966,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var diagram = GetDiagram();
             Debug.Assert(diagram != null, "could not find diagram");
-            if (diagram != null)
-            {
-                diagram.AutoLayoutDiagram();
-            }
+            diagram?.AutoLayoutDiagram();
         }
 
         /// <summary>
@@ -2102,10 +2001,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var diagram = GetDiagram();
             Debug.Assert(diagram != null, "could not find diagram");
-            if (diagram != null)
-            {
-                diagram.CollapseAllEntityTypeShapes();
-            }
+            diagram?.CollapseAllEntityTypeShapes();
         }
 
         /// <summary>
@@ -2118,15 +2014,12 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var diagram = GetDiagram();
             Debug.Assert(diagram != null, "could not find diagram");
-            if (diagram != null)
-            {
-                diagram.ExpandAllEntityTypeShapes();
-            }
+            diagram?.ExpandAllEntityTypeShapes();
         }
 
         internal void OnStatusDisplayName(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "cmd is null");
             if (cmd != null)
             {
@@ -2147,16 +2040,12 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var diagram = GetDiagram();
             Debug.Assert(diagram != null, "could not find diagram");
-            if (diagram != null)
-            {
-                diagram.DisplayNameAndType = false;
-            }
+            diagram?.DisplayNameAndType = false;
         }
 
         internal void OnStatusDisplayNameAndType(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 var diagram = GetDiagram();
                 if (diagram != null)
@@ -2175,15 +2064,12 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var diagram = GetDiagram();
             Debug.Assert(diagram != null, "could not find diagram");
-            if (diagram != null)
-            {
-                diagram.DisplayNameAndType = true;
-            }
+            diagram?.DisplayNameAndType = true;
         }
 
         internal void OnStatusTableOrSprocMappings(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2215,8 +2101,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         && mdi.ViewModel != null
                         && mdi.ViewModel.RootNode != null)
                     {
-                        var entityType = mdi.ViewModel.RootNode.ModelItem as ModelEntity.ConceptualEntityType;
-                        if (entityType != null
+                        if (mdi.ViewModel.RootNode.ModelItem is ModelEntity.ConceptualEntityType entityType
                             && entityType.IsAbstract
                             && cmd.CommandID == MicrosoftDataEntityDesignCommands.SprocMappings)
                         {
@@ -2229,7 +2114,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusAssociationMappings(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2263,7 +2148,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusShowInEdmExplorer(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2315,7 +2200,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusShowInDiagram(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2324,8 +2209,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 if (SingleSelection == null
                     && SelectedExplorerItem != null)
                 {
-                    var dslDiagram = CurrentMicrosoftDataEntityDesignDocView.CurrentDiagram as EntityDesignerDiagram;
-                    if (dslDiagram != null)
+                    if (CurrentMicrosoftDataEntityDesignDocView.CurrentDiagram is EntityDesignerDiagram dslDiagram)
                     {
                         if (SelectedExplorerItem is ExplorerEntityTypeShape)
                         {
@@ -2333,11 +2217,10 @@ namespace Microsoft.Data.Entity.Design.Package
                         }
                         else
                         {
-                            var modelDiagram = dslDiagram.ModelElement.ModelXRef.GetExisting(dslDiagram) as Diagram;
                             var efElement = SelectedExplorerItem.ModelItem;
 
                             if (efElement != null
-                                && modelDiagram != null)
+                                && dslDiagram.ModelElement.ModelXRef.GetExisting(dslDiagram) is Diagram modelDiagram)
                             {
                                 cmd.Enabled = cmd.Visible = (SelectedExplorerItem is ExplorerConceptualEntityType
                                                              || SelectedExplorerItem is ExplorerConceptualAssociation
@@ -2372,9 +2255,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 && SelectedExplorerItem.ModelItem != null
                 && CurrentMicrosoftDataEntityDesignDocView != null)
             {
-                var diagram = CurrentMicrosoftDataEntityDesignDocView.Diagram as IViewDiagram;
-
-                if (diagram != null)
+                if (CurrentMicrosoftDataEntityDesignDocView.Diagram is IViewDiagram diagram)
                 {
                     if (SelectedExplorerItem is ExplorerEntityTypeShape)
                     {
@@ -2387,11 +2268,8 @@ namespace Microsoft.Data.Entity.Design.Package
                             if (info != null
                                 && info._explorerFrame != null)
                             {
-                                var frame = info._explorerFrame as EntityDesignExplorerFrame;
-                                if (frame != null)
-                                {
-                                    frame.ExecuteActivate();
-                                }
+                                EntityDesignExplorerFrame frame = info._explorerFrame as EntityDesignExplorerFrame;
+                                frame?.ExecuteActivate();
                             }
                         }
                     }
@@ -2405,7 +2283,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusShowInTableDesigner(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2433,7 +2311,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusShowInEntityDesigner(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2495,7 +2373,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusFunctionImportMapping(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2513,17 +2391,14 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusValidate(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
-            if (cmd != null)
-            {
-                cmd.Enabled = cmd.Visible = true;
-            }
+            cmd?.Enabled = cmd.Visible = true;
         }
 
         internal void OnMenuValidate(object sender, EventArgs e)
         {
-            var dte = PackageManager.Package.GetService(typeof(DTE)) as DTE;
+            DTE dte = PackageManager.Package.GetService(typeof(DTE)) as DTE;
             try
             {
                 if (null != dte
@@ -2537,7 +2412,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     var uri = Utils.FileName2Uri(CurrentDocData.FileName);
                     var modelManager = PackageManager.Package.ModelManager;
                     var modelListener = PackageManager.Package.ModelChangeEventListener;
-                    var efArtifactSet = (EntityDesignArtifactSet)modelManager.GetArtifactSet(uri);
+                    EntityDesignArtifactSet efArtifactSet = (EntityDesignArtifactSet)modelManager.GetArtifactSet(uri);
                     var efArtifact = efArtifactSet.GetEntityDesignArtifact();
                     VsUtils.EnsureProvider(efArtifact);
 
@@ -2546,7 +2421,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
                     modelManager.ValidateAndCompileMappings(efArtifactSet, true);
 
-                    var docData = VSHelpers.GetDocData(PackageManager.Package, efArtifact.Uri.LocalPath) as IEntityDesignDocData;
+                    IEntityDesignDocData docData = VSHelpers.GetDocData(PackageManager.Package, efArtifact.Uri.LocalPath) as IEntityDesignDocData;
                     Debug.Assert(docData != null, "Unable to get docData for document");
                     var errors = efArtifactSet.GetAllErrorsForArtifact(efArtifact);
                     ErrorListHelper.AddErrorInfosToErrorList(errors, docData.Hierarchy, docData.ItemId, true);
@@ -2564,8 +2439,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusRefreshFromDatabase(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Visible = true;
                 if (IsArtifactInNonMiscFilesProject())
@@ -2581,8 +2455,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusGenerateDatabaseScriptFromModel(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Visible = true;
                 if (IsArtifactInNonMiscFilesProject())
@@ -2598,15 +2471,15 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusCreateFunctionImport(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
 
             cmd.Enabled = cmd.Visible = false;
             var explorerSelection = SelectedExplorerItem;
             if (explorerSelection != null)
             {
-                var func = explorerSelection as ExplorerFunction;
-                var funcImports = explorerSelection as ExplorerFunctionImports;
+                ExplorerFunction func = explorerSelection as ExplorerFunction;
+                ExplorerFunctionImports funcImports = explorerSelection as ExplorerFunctionImports;
 
                 if ((func != null && !((ModelEntity.Function)(func.ModelItem)).IsComposable.Value)
                     || funcImports != null)
@@ -2618,13 +2491,13 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusEdit(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             cmd.Enabled = cmd.Visible = false;
             var explorerSelection = SelectedExplorerItem;
             if (explorerSelection != null)
             {
-                var funcImport = explorerSelection as ExplorerFunctionImport;
-                var explorerEnumType = explorerSelection as ExplorerEnumType;
+                ExplorerFunctionImport funcImport = explorerSelection as ExplorerFunctionImport;
+                ExplorerEnumType explorerEnumType = explorerSelection as ExplorerEnumType;
                 if (funcImport != null
                     || explorerEnumType != null)
                 {
@@ -2633,7 +2506,6 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal void OnMenuRefreshFromDatabase(object sender, EventArgs e)
         {
             var uri = Utils.FileName2Uri(CurrentDocData.FileName);
@@ -2660,7 +2532,6 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal void OnMenuGenerateDatabaseScriptFromModel(object sender, EventArgs e)
         {
             var uri = Utils.FileName2Uri(CurrentDocData.FileName);
@@ -2707,7 +2578,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 Debug.Fail("Could not find VisualStudio.Package.ExplorerWindow.ExplorerInfo for uri " + uri.AbsoluteUri);
                 return;
             }
-            var viewModelHelper = (EntityDesignExplorerViewModelHelper)info._explorerFrame.ExplorerViewModelHelper;
+            EntityDesignExplorerViewModelHelper viewModelHelper = (EntityDesignExplorerViewModelHelper)info._explorerFrame.ExplorerViewModelHelper;
             if (null == viewModelHelper)
             {
                 Debug.Fail("Could not find EntityDesignExplorerViewModelHelper for uri " + uri.AbsoluteUri);
@@ -2737,8 +2608,7 @@ namespace Microsoft.Data.Entity.Design.Package
             var element = SelectedExplorerItem;
             if (element != null)
             {
-                var function = element.ModelItem as ModelEntity.Function;
-                if (function != null)
+                if (element.ModelItem is ModelEntity.Function function)
                 {
                     viewModelHelper.CreateFunctionImport(function);
                 }
@@ -2759,18 +2629,15 @@ namespace Microsoft.Data.Entity.Design.Package
                 if (info != null
                     && info._explorerFrame != null)
                 {
-                    var frame = info._explorerFrame as EntityDesignExplorerFrame;
-                    if (frame != null)
-                    {
-                        frame.ExecuteActivate();
-                    }
+                    EntityDesignExplorerFrame frame = info._explorerFrame as EntityDesignExplorerFrame;
+                    frame?.ExecuteActivate();
                 }
             }
         }
 
         internal void OnStatusSelectAll(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2797,7 +2664,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusEntityKey(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2828,17 +2695,14 @@ namespace Microsoft.Data.Entity.Design.Package
         internal void OnMenuEntityKey(object sender, EventArgs e)
         {
             Debug.Assert(SelectedScalarProperty != null, "SelectedScalarProperty should not be null");
-            if (SelectedScalarProperty != null)
-            {
-                SelectedScalarProperty.ChangeEntityKey();
-            }
+            SelectedScalarProperty?.ChangeEntityKey();
         }
 
         internal EventHandler OnStatusSelectAssociationEnd(ConnectorEnd end)
         {
             return (sender, e) =>
                 {
-                    var cmd = sender as DynamicStatusMenuCommand;
+                    DynamicStatusMenuCommand cmd = sender as DynamicStatusMenuCommand;
                     Debug.Assert(cmd != null, "could not cast sender as a DynamicStatusMenuCommand");
                     if (cmd != null)
                     {
@@ -2885,7 +2749,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             return (sender, e) =>
                 {
-                    var cmd = sender as DynamicStatusMenuCommand;
+                    DynamicStatusMenuCommand cmd = sender as DynamicStatusMenuCommand;
                     Debug.Assert(cmd != null, "could not cast sender as a DynamicStatusMenuCommand");
                     if (cmd != null)
                     {
@@ -2946,7 +2810,7 @@ namespace Microsoft.Data.Entity.Design.Package
                                 var index = entityShape.NavigationCompartment.Items.IndexOf(navProp);
                                 if (index >= 0)
                                 {
-                                    var item = new DiagramItem(
+                                    DiagramItem item = new DiagramItem(
                                         entityShape.NavigationCompartment, entityShape.NavigationCompartment.ListField,
                                         new ListItemSubField(index));
                                     diagram.ActiveDiagramView.Selection.Set(item);
@@ -2960,7 +2824,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusSelectAssociation(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -2982,8 +2846,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     ShapeElement shapeElement = null;
                     foreach (var presentationElement in PresentationViewsSubject.GetPresentation(SelectedNavigationProperty.Association))
                     {
-                        var linkShape = presentationElement as LinkShape;
-                        if (linkShape != null
+                        if (presentationElement is LinkShape linkShape
                             && linkShape.Diagram == diagram)
                         {
                             shapeElement = linkShape;
@@ -3002,12 +2865,9 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusSelectInheritanceEnd(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
-            if (cmd != null)
-            {
-                cmd.Enabled = cmd.Visible = (IsSingleSelection() && SelectedInheritanceConnector != null);
-            }
+            cmd?.Enabled = cmd.Visible = (IsSingleSelection() && SelectedInheritanceConnector != null);
         }
 
         internal EventHandler OnMenuSelectInheritanceEnd(ConnectorEnd end)
@@ -3034,11 +2894,8 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusCutOrCopy(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
-            {
-                cmd.Enabled = cmd.Visible = CutAndCopyAreEnabled();
-            }
+            MenuCommand cmd = sender as MenuCommand;
+            cmd?.Enabled = cmd.Visible = CutAndCopyAreEnabled();
         }
 
         private bool CutAndCopyAreEnabled()
@@ -3057,8 +2914,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     foreach (var obj in CurrentSelection)
                     {
                         // enable command only if all selected objects are Properties from same Entity
-                        var property = obj as Property;
-                        if (property == null
+                        if (obj is not Property property
                             || property.EntityType != selectedProperty.EntityType)
                         {
                             enable = false;
@@ -3091,16 +2947,15 @@ namespace Microsoft.Data.Entity.Design.Package
                 // explorer case
                 if (SelectedExplorerItem != null)
                 {
-                    var explorerComplexType = SelectedExplorerItem as ExplorerComplexType;
-                    var explorerProperty = SelectedExplorerItem as ExplorerProperty;
-                    var explorerEnumType = SelectedExplorerItem as ExplorerEnumType;
+                    ExplorerComplexType explorerComplexType = SelectedExplorerItem as ExplorerComplexType;
+                    ExplorerProperty explorerProperty = SelectedExplorerItem as ExplorerProperty;
                     if (explorerComplexType != null
                         ||
                         (explorerProperty != null && explorerProperty.Parent is ExplorerComplexType))
                     {
                         enable = true;
                     }
-                    else if (explorerEnumType != null)
+                    else if (SelectedExplorerItem is ExplorerEnumType explorerEnumType)
                     {
                         enable = true;
                     }
@@ -3125,17 +2980,17 @@ namespace Microsoft.Data.Entity.Design.Package
                         selectedProperty.EntityType != null && selectedProperty.EntityType.EntityDesignerViewModel != null,
                         "cannot find view model");
                     var viewModel = selectedProperty.EntityType.EntityDesignerViewModel;
-                    var modelProperties = new List<ModelEntity.Property>();
+                    List<ModelEntity.Property> modelProperties = new List<ModelEntity.Property>();
                     foreach (var obj in CurrentSelection)
                     {
-                        var property = obj as Property;
+                        Property property = obj as Property;
                         Debug.Assert(
                             property != null && property.EntityType == selectedProperty.EntityType,
                             "Selected object is not a property or is from another EnityType");
                         if (property != null
                             && property.EntityType == selectedProperty.EntityType)
                         {
-                            var modelProperty = viewModel.ModelXRef.GetExisting(property) as ModelEntity.Property;
+                            ModelEntity.Property modelProperty = viewModel.ModelXRef.GetExisting(property) as ModelEntity.Property;
                             Debug.Assert(modelProperty != null, "Selected Property is not mapped to a model Property");
                             modelProperties.Add(modelProperty);
                         }
@@ -3145,21 +3000,18 @@ namespace Microsoft.Data.Entity.Design.Package
                 else
                 {
                     // single or multi entity and connectors case
-                    var modelEntityTypeShapeCollection = new HashSet<Model.Designer.EntityTypeShape>();
+                    HashSet<Model.Designer.EntityTypeShape> modelEntityTypeShapeCollection = new HashSet<Model.Designer.EntityTypeShape>();
 
                     // The CurrentSelection should only contains EntityTypeShapes since:
                     // - We don't allow the user to select EntityTypeShape and other types (AssociationConnector or InheritanceConnector) at the same time.
                     // - Copy menu item is no available if an EntityTypeShape is not selected.
                     foreach (var selected in CurrentSelection)
                     {
-                        var entityShape = selected as EntityTypeShape;
-                        if (entityShape != null)
+                        if (selected is EntityTypeShape entityShape)
                         {
-                            var et = entityShape.ModelElement as EntityType;
-                            var modelEntityShape =
-                                et.EntityDesignerViewModel.ModelXRef.GetExisting(entityShape) as Model.Designer.EntityTypeShape;
+                            EntityType et = entityShape.ModelElement as EntityType;
 
-                            if (modelEntityShape != null
+                            if (et.EntityDesignerViewModel.ModelXRef.GetExisting(entityShape) is Model.Designer.EntityTypeShape modelEntityShape
                                 && modelEntityTypeShapeCollection.Contains(modelEntityShape) == false)
                             {
                                 modelEntityTypeShapeCollection.Add(modelEntityShape);
@@ -3182,10 +3034,9 @@ namespace Microsoft.Data.Entity.Design.Package
                 // explorer case
                 if (SelectedExplorerItem != null)
                 {
-                    var explorerComplexType = SelectedExplorerItem as ExplorerComplexType;
-                    if (explorerComplexType != null)
+                    if (SelectedExplorerItem is ExplorerComplexType explorerComplexType)
                     {
-                        var complexType = explorerComplexType.ModelItem as ModelEntity.ComplexType;
+                        ModelEntity.ComplexType complexType = explorerComplexType.ModelItem as ModelEntity.ComplexType;
                         Debug.Assert(complexType != null, "ModelItem is not a ComplexType");
                         if (complexType != null)
                         {
@@ -3194,11 +3045,10 @@ namespace Microsoft.Data.Entity.Design.Package
                         return;
                     }
 
-                    var explorerProperty = SelectedExplorerItem as ExplorerProperty;
-                    if (explorerProperty != null
+                    if (SelectedExplorerItem is ExplorerProperty explorerProperty
                         && explorerProperty.Parent is ExplorerComplexType)
                     {
-                        var property = explorerProperty.ModelItem as ModelEntity.Property;
+                        ModelEntity.Property property = explorerProperty.ModelItem as ModelEntity.Property;
                         Debug.Assert(property != null, "ModelItem is not a Property");
                         if (property != null)
                         {
@@ -3207,10 +3057,9 @@ namespace Microsoft.Data.Entity.Design.Package
                         return;
                     }
 
-                    var explorerEnumType = SelectedExplorerItem as ExplorerEnumType;
-                    if (explorerEnumType != null)
+                    if (SelectedExplorerItem is ExplorerEnumType explorerEnumType)
                     {
-                        var enumType = explorerEnumType.ModelItem as ModelEntity.EnumType;
+                        ModelEntity.EnumType enumType = explorerEnumType.ModelItem as ModelEntity.EnumType;
                         Debug.Assert(enumType != null, "ModelItem is not a EnumType");
                         if (enumType != null)
                         {
@@ -3246,8 +3095,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusPaste(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 if (MonitorSelection != null
                     && MonitorSelection.CurrentWindow is MicrosoftDataEntityDesignDocView
@@ -3283,7 +3131,6 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         private void OnMenuPaste(object sender, EventArgs e)
         {
             var diagram = GetDiagram();
@@ -3299,31 +3146,30 @@ namespace Microsoft.Data.Entity.Design.Package
                     Debug.Assert(propertiesCompartment != null, "PropertiesCompartment not found");
                     if (propertiesCompartment != null)
                     {
-                        var entityShape = propertiesCompartment.ParentShape as EntityTypeShape;
+                        EntityTypeShape entityShape = propertiesCompartment.ParentShape as EntityTypeShape;
                         Debug.Assert(entityShape != null, "entityShape should not be null");
                         if (entityShape != null)
                         {
-                            var entityType = entityShape.ModelElement as EntityType;
+                            EntityType entityType = entityShape.ModelElement as EntityType;
                             Debug.Assert(entityType != null, "entityType should not be null");
                             if (entityType != null)
                             {
-                                var modelEntity =
+                                ModelEntity.EntityType modelEntity =
                                     entityType.EntityDesignerViewModel.ModelXRef.GetExisting(entityType) as ModelEntity.EntityType;
                                 Debug.Assert(modelEntity != null, "modelEntity should not be null");
                                 if (modelEntity != null)
                                 {
-                                    var cpc = new CommandProcessorContext(
+                                    CommandProcessorContext cpc = new CommandProcessorContext(
                                         diagram.ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId,
                                         Resources.Tx_Paste);
 
                                     // When a property is selected, that means the user wants to paste the property next to the selected property.
                                     ModelEntity.InsertPropertyPosition position = null;
-                                    var vmProperty = SingleSelection as PropertyBase;
                                     // Check if there is only 1 property is selected, we will add the properties at the last position if there are multiple selected properties.
                                     if (IsSingleSelection()
-                                        && vmProperty != null)
+                                        && SingleSelection is PropertyBase vmProperty)
                                     {
-                                        var modelProperty =
+                                        ModelEntity.PropertyBase modelProperty =
                                             entityType.EntityDesignerViewModel.ModelXRef.GetExisting(vmProperty) as ModelEntity.PropertyBase;
                                         Debug.Assert(
                                             modelProperty != null,
@@ -3334,8 +3180,8 @@ namespace Microsoft.Data.Entity.Design.Package
                                         }
                                     }
 
-                                    var cmd = new CopyPropertiesCommand(clipboardProperties, modelEntity, position);
-                                    var cp = new CommandProcessor(cpc, cmd);
+                                    CopyPropertiesCommand cmd = new CopyPropertiesCommand(clipboardProperties, modelEntity, position);
+                                    CommandProcessor cp = new CommandProcessor(cpc, cmd);
                                     cp.Invoke();
                                     // Ensure that newly created properties are selected.
                                     // Since we dont support copy and past for navigation properties, we can safely assume pass the entity's PropertiesCompartment.
@@ -3348,7 +3194,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 else
                 {
                     // Get Model Diagram
-                    var modelDiagram = diagram.GetModel().ModelXRef.GetExisting(diagram) as Diagram;
+                    Diagram modelDiagram = diagram.GetModel().ModelXRef.GetExisting(diagram) as Diagram;
                     Debug.Assert(modelDiagram != null, "Could not find model diagram for diagram with title:" + diagram.Title);
 
                     if (modelDiagram != null)
@@ -3359,10 +3205,10 @@ namespace Microsoft.Data.Entity.Design.Package
                             && clipboardEntities.ClipboardEntities != null
                             && clipboardEntities.ClipboardEntities.Count > 0)
                         {
-                            var cpc = new CommandProcessorContext(
+                            CommandProcessorContext cpc = new CommandProcessorContext(
                                 diagram.ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, Resources.Tx_Paste);
                             Command cmd = new CopyEntitiesCommand(modelDiagram, clipboardEntities, Command.ModelSpace.Conceptual);
-                            var cp = new CommandProcessor(cpc, cmd);
+                            CommandProcessor cp = new CommandProcessor(cpc, cmd);
                             diagram.Arranger.Start(GetPositionForNewElements());
                             cp.Invoke();
                             diagram.Arranger.End();
@@ -3379,13 +3225,12 @@ namespace Microsoft.Data.Entity.Design.Package
             // we only support copy and paste in Designer and Model Browser window, copy/paste on other windows should be a no-op.
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         private void HandleOnMenuPasteInExplorerWindow()
         {
             // explorer case
             var uri = Utils.FileName2Uri(CurrentDocData.FileName);
             var editingContext = PackageManager.Package.DocumentFrameMgr.EditingContextManager.GetNewOrExistingContext(uri);
-            var cpc = new CommandProcessorContext(editingContext, EfiTransactionOriginator.ExplorerWindowOriginatorId, Resources.Tx_Paste);
+            CommandProcessorContext cpc = new CommandProcessorContext(editingContext, EfiTransactionOriginator.ExplorerWindowOriginatorId, Resources.Tx_Paste);
 
             var clipboardComplexType = CopyPasteUtils.GetComplexTypeFromClipboard();
             var clipboardEnumType = CopyPasteUtils.GetEnumTypeFromClipboard();
@@ -3394,28 +3239,28 @@ namespace Microsoft.Data.Entity.Design.Package
 
             if (clipboardComplexType != null)
             {
-                var explorerComplexTypes = GetExplorerPasteTarget() as ExplorerComplexTypes;
+                ExplorerComplexTypes explorerComplexTypes = GetExplorerPasteTarget() as ExplorerComplexTypes;
                 Debug.Assert(
                     explorerComplexTypes != null,
                     "Unexpected attempt to copy a clipboard with a complex type when the following Explorer object is selected: "
                     + SelectedExplorerItem.Name);
                 if (explorerComplexTypes != null)
                 {
-                    var cmd = new CopyComplexTypeCommand(clipboardComplexType);
+                    CopyComplexTypeCommand cmd = new CopyComplexTypeCommand(clipboardComplexType);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     newlyCreatedObject = cmd.ComplexType;
                 }
             }
             else if (clipboardEnumType != null)
             {
-                var explorerEnumTypes = GetExplorerPasteTarget() as ExplorerEnumTypes;
+                ExplorerEnumTypes explorerEnumTypes = GetExplorerPasteTarget() as ExplorerEnumTypes;
                 Debug.Assert(
                     explorerEnumTypes != null,
                     "Unexpected attempt to copy a clipboard with a enum type when the following Explorer object is selected: "
                     + SelectedExplorerItem.Name);
                 if (explorerEnumTypes != null)
                 {
-                    var cmd = new CopyEnumTypeCommand(clipboardEnumType);
+                    CopyEnumTypeCommand cmd = new CopyEnumTypeCommand(clipboardEnumType);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     newlyCreatedObject = cmd.EnumType;
                 }
@@ -3428,21 +3273,21 @@ namespace Microsoft.Data.Entity.Design.Package
                     "The object(s) in the clipboard are of type neither ComplexTypeClipboardFormat nor PropertiesClipboardFormat");
                 if (clipboardProperties != null)
                 {
-                    var explorerComplexType = GetExplorerPasteTarget() as ExplorerComplexType;
+                    ExplorerComplexType explorerComplexType = GetExplorerPasteTarget() as ExplorerComplexType;
                     Debug.Assert(
                         explorerComplexType != null,
                         "Unexpected attempt to copy a clipboard containing a set of Property object(s) when the following Explorer object is selected: "
                         + SelectedExplorerItem.Name);
                     if (explorerComplexType != null)
                     {
-                        var complexType = explorerComplexType.ModelItem as ModelEntity.ComplexType;
+                        ModelEntity.ComplexType complexType = explorerComplexType.ModelItem as ModelEntity.ComplexType;
                         Debug.Assert(
                             complexType != null,
                             "When attempting to copy a clipboard containing a set of Property object(s), ModelItem has unexpected type "
                             + explorerComplexType.ModelItem.GetType().FullName);
                         if (complexType != null)
                         {
-                            var cmd = new CopyPropertiesCommand(clipboardProperties, complexType);
+                            CopyPropertiesCommand cmd = new CopyPropertiesCommand(clipboardProperties, complexType);
                             CommandProcessor.InvokeSingleCommand(cpc, cmd);
                             newlyCreatedObject = cmd.Properties.FirstOrDefault();
                                 // in this case just select the first property since we don't support multi select in model browser.
@@ -3461,7 +3306,6 @@ namespace Microsoft.Data.Entity.Design.Package
         ///     Return the parent to which the currently selected Clipboard contents should be added
         ///     by a Paste Command based on the currently selected Explorer item
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         private static ExplorerEFElement GetExplorerPasteTarget()
         {
             var selectedExplorerItem = SelectedExplorerItem;
@@ -3482,7 +3326,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         // user has selected another ComplexType node in the Explorer
                         // in this case the pasted ComplexType will be a sibling of the selected
                         // ComplexType and the target node is the parent ComplexTypes dummy node
-                        var complexTypesExplorerElement = selectedExplorerItem.Parent as ExplorerComplexTypes;
+                        ExplorerComplexTypes complexTypesExplorerElement = selectedExplorerItem.Parent as ExplorerComplexTypes;
                         Debug.Assert(
                             complexTypesExplorerElement != null,
                             "Parent of ComplexType node is of type " + selectedExplorerItem.Parent.GetType().FullName
@@ -3505,7 +3349,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         // user has selected another EnumType node in the Explorer
                         // in this case the pasted ComplexType will be a sibling of the selected
                         // EnumType and the target node is the parent EnumTypes dummy node
-                        var enumTypesExplorerElement = selectedExplorerItem.Parent as ExplorerEnumTypes;
+                        ExplorerEnumTypes enumTypesExplorerElement = selectedExplorerItem.Parent as ExplorerEnumTypes;
                         Debug.Assert(
                             enumTypesExplorerElement != null,
                             "Parent of EnumType node is of type " + selectedExplorerItem.Parent.GetType().FullName
@@ -3524,8 +3368,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         return selectedExplorerItem;
                     }
 
-                    var explorerProperty = selectedExplorerItem as ExplorerConceptualProperty;
-                    if (explorerProperty != null
+                    if (selectedExplorerItem is ExplorerConceptualProperty explorerProperty
                         && explorerProperty.Parent is ExplorerComplexType)
                     {
                         // user has selected a ComplexType Property node in the Explorer
@@ -3575,10 +3418,9 @@ namespace Microsoft.Data.Entity.Design.Package
             {
                 var uri = Utils.FileName2Uri(CurrentDocData.FileName);
                 ModelManager modelManager = PackageManager.Package.ModelManager;
-                var artifact = modelManager.GetArtifact(uri) as EntityDesignArtifact;
 
                 // artifact may be null when we are shutting down
-                if (artifact != null)
+                if (modelManager.GetArtifact(uri) is EntityDesignArtifact artifact)
                 {
                     return artifact.IsDesignerSafeAndEditSafe();
                 }
@@ -3604,8 +3446,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         private void IsArtifactDesignerSafeAndEditSafeHandler(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 if (IsArtifactDesignerSafeAndEditSafe() == false)
                 {
@@ -3616,8 +3457,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         private void IsDiagramLockedHandler(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 var diagram = GetDiagram();
                 if (diagram != null)
@@ -3632,7 +3472,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         private static EventHandler CombineEventHandler(params EventHandler[] eventHandlers)
         {
-            var d = Delegate.Combine(eventHandlers);
+            Delegate d = Delegate.Combine(eventHandlers);
             return d as EventHandler;
         }
 
@@ -3650,7 +3490,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusAddComplexType(object sender, EventArgs e)
         {
-            var cmd = sender as DynamicStatusMenuCommand;
+            DynamicStatusMenuCommand cmd = sender as DynamicStatusMenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a DynamicStatusMenuCommand");
             if (cmd != null)
             {
@@ -3681,29 +3521,24 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal void OnMenuAddComplexType(object sender, EventArgs e)
         {
             var uri = Utils.FileName2Uri(CurrentDocData.FileName);
             var editingContext = PackageManager.Package.DocumentFrameMgr.EditingContextManager.GetNewOrExistingContext(uri);
-            var cpc = new CommandProcessorContext(
+            CommandProcessorContext cpc = new CommandProcessorContext(
                 editingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, Design.Resources.Tx_AddComplexType);
             var complexType = CreateComplexTypeCommand.CreateComplexTypeWithDefaultName(cpc);
             Debug.Assert(complexType != null, "Creating ComplexType failed");
             if (complexType != null)
             {
                 var frame = ExplorerFrame;
-                if (frame != null)
-                {
-                    frame.NavigateToElementAndPutInRenameMode(complexType);
-                }
+                frame?.NavigateToElementAndPutInRenameMode(complexType);
             }
         }
 
         internal void OnStatusGoToDefinition(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Enabled = cmd.Visible = false;
                 var diagram = GetDiagram();
@@ -3714,9 +3549,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     if (SelectedComplexProperty != null)
                     {
                         cmd.Visible = true;
-                        var complexProperty =
-                            diagram.ModelElement.ModelXRef.GetExisting(SelectedComplexProperty) as ModelEntity.ComplexConceptualProperty;
-                        if (complexProperty != null
+                        if (diagram.ModelElement.ModelXRef.GetExisting(SelectedComplexProperty) is ModelEntity.ComplexConceptualProperty complexProperty
                             && complexProperty.ComplexType.Status == BindingStatus.Known)
                         {
                             cmd.Enabled = true;
@@ -3727,8 +3560,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 {
                     if (SelectedExplorerItem != null)
                     {
-                        var complexProperty = SelectedExplorerItem.ModelItem as ModelEntity.ComplexConceptualProperty;
-                        if (complexProperty != null)
+                        if (SelectedExplorerItem.ModelItem is ModelEntity.ComplexConceptualProperty complexProperty)
                         {
                             cmd.Visible = true;
                             if (complexProperty.ComplexType.Status == BindingStatus.Known)
@@ -3768,8 +3600,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusCreateComplexType(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 var enable = false;
                 var selectedProperty = SelectedProperty;
@@ -3779,8 +3610,8 @@ namespace Microsoft.Data.Entity.Design.Package
                     foreach (var obj in CurrentSelection)
                     {
                         // enable command only if all selected objects are non-key Properties from same Entity
-                        var property = obj as Property;
-                        var scalarProperty = property as ScalarProperty;
+                        Property property = obj as Property;
+                        ScalarProperty scalarProperty = property as ScalarProperty;
                         if (property == null
                             || property.EntityType != selectedProperty.EntityType
                             ||
@@ -3806,17 +3637,17 @@ namespace Microsoft.Data.Entity.Design.Package
                     selectedProperty.EntityType != null && selectedProperty.EntityType.EntityDesignerViewModel != null,
                     "could not find view model");
                 var viewModel = selectedProperty.EntityType.EntityDesignerViewModel;
-                var modelProperties = new List<ModelEntity.Property>();
+                List<ModelEntity.Property> modelProperties = new List<ModelEntity.Property>();
                 foreach (var obj in CurrentSelection)
                 {
-                    var property = obj as Property;
+                    Property property = obj as Property;
                     Debug.Assert(
                         property != null && property.EntityType == selectedProperty.EntityType,
                         "Selected object is not a property or is from another EnityType");
                     if (property != null
                         && property.EntityType == selectedProperty.EntityType)
                     {
-                        var modelProperty = viewModel.ModelXRef.GetExisting(property) as ModelEntity.Property;
+                        ModelEntity.Property modelProperty = viewModel.ModelXRef.GetExisting(property) as ModelEntity.Property;
                         Debug.Assert(modelProperty != null, "Selected Property is not mapped to a model Property");
                         if (modelProperty != null)
                         {
@@ -3826,25 +3657,22 @@ namespace Microsoft.Data.Entity.Design.Package
                 }
 
                 // create ComplexType from selected properties
-                var modelEntity = viewModel.ModelXRef.GetExisting(selectedProperty.EntityType) as ModelEntity.EntityType;
+                ModelEntity.EntityType modelEntity = viewModel.ModelXRef.GetExisting(selectedProperty.EntityType) as ModelEntity.EntityType;
                 Debug.Assert(modelEntity != null, "Couldn't find model EntityType");
                 if (modelEntity != null
                     && modelProperties.Count > 0)
                 {
-                    var cpc = new CommandProcessorContext(
+                    CommandProcessorContext cpc = new CommandProcessorContext(
                         viewModel.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, Resources.Tx_CreateComplexType);
-                    var cmd = new CreateComplexTypeFromPropertiesCommand(modelEntity, modelProperties);
-                    var cp = new CommandProcessor(cpc, cmd);
+                    CreateComplexTypeFromPropertiesCommand cmd = new CreateComplexTypeFromPropertiesCommand(modelEntity, modelProperties);
+                    CommandProcessor cp = new CommandProcessor(cpc, cmd);
                     cp.Invoke();
                     var complexType = cmd.ComplexType;
                     Debug.Assert(complexType != null, "Creating ComplexType failed");
                     if (complexType != null)
                     {
                         var frame = ExplorerFrame;
-                        if (frame != null)
-                        {
-                            frame.NavigateToElementAndPutInRenameMode(complexType);
-                        }
+                        frame?.NavigateToElementAndPutInRenameMode(complexType);
                     }
                 }
             }
@@ -3852,12 +3680,10 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusExplorerComplexTypes(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (cmd != null)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Enabled = cmd.Visible = false;
-                var explorerCT = SelectedExplorerItem as ExplorerComplexType;
-                if (explorerCT != null
+                if (SelectedExplorerItem is ExplorerComplexType explorerCT
                     && explorerCT.ModelItem is ModelEntity.ComplexType)
                 {
                     cmd.Enabled = cmd.Visible = true;
@@ -3865,22 +3691,21 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal void OnMenuExplorerComplexTypes(object sender, EventArgs e)
         {
-            var explorerCT = SelectedExplorerItem as ExplorerComplexType;
+            ExplorerComplexType explorerCT = SelectedExplorerItem as ExplorerComplexType;
             Debug.Assert(explorerCT != null, "Unexpected object selected");
             if (explorerCT != null)
             {
-                var complexType = explorerCT.ModelItem as ModelEntity.ComplexType;
+                ModelEntity.ComplexType complexType = explorerCT.ModelItem as ModelEntity.ComplexType;
                 Debug.Assert(complexType != null, "ModelItem is not ComplexType");
                 if (complexType != null)
                 {
-                    var cModel = complexType.RuntimeModelRoot() as ModelEntity.ConceptualEntityModel;
+                    ModelEntity.ConceptualEntityModel cModel = complexType.RuntimeModelRoot() as ModelEntity.ConceptualEntityModel;
                     Debug.Assert(cModel != null, "Conceptual model is null");
                     if (cModel != null)
                     {
-                        using (var dialog = new ComplexTypePickerDialog(cModel, complexType))
+                        using (ComplexTypePickerDialog dialog = new ComplexTypePickerDialog(cModel, complexType))
                         {
                             if (dialog.ShowDialog() == DialogResult.OK)
                             {
@@ -3888,20 +3713,17 @@ namespace Microsoft.Data.Entity.Design.Package
                                 if (returnType != null)
                                 {
                                     var uri = Utils.FileName2Uri(CurrentDocData.FileName);
-                                    var context = new EfiTransactionContext();
+                                    EfiTransactionContext context = new EfiTransactionContext();
                                     var editingContext =
                                         PackageManager.Package.DocumentFrameMgr.EditingContextManager.GetNewOrExistingContext(uri);
-                                    var cpc = new CommandProcessorContext(
+                                    CommandProcessorContext cpc = new CommandProcessorContext(
                                         editingContext, EfiTransactionOriginator.ExplorerWindowOriginatorId,
                                         Design.Resources.Tx_CreateScalarProperty, null, context);
                                     var property = CreateComplexTypePropertyCommand.CreateDefaultProperty(cpc, complexType, returnType);
                                     if (property != null)
                                     {
                                         var frame = ExplorerFrame;
-                                        if (frame != null)
-                                        {
-                                            frame.NavigateToElementAndPutInRenameMode(property);
-                                        }
+                                        frame?.NavigateToElementAndPutInRenameMode(property);
                                     }
                                 }
                             }
@@ -3913,8 +3735,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusAddNewTemplate(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Visible = true;
                 if (IsArtifactInNonMiscFilesProject())
@@ -3928,8 +3749,6 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsRegisterNewDialogFilters.UnregisterAddNewItemDialogFilter(System.UInt32)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsRegisterNewDialogFilters.RegisterAddNewItemDialogFilter(Microsoft.VisualStudio.Shell.Interop.IVsFilterAddProjectItemDlg,System.UInt32@)")]
         internal void OnMenuAddNewTemplate(object sender, EventArgs e)
         {
             uint dwFilterCookie = 0;
@@ -3949,7 +3768,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         // Register my filter
                         registerNewDialogFilters.RegisterAddNewItemDialogFilter(new AddNewItemDialogFilter(), out dwFilterCookie);
 
-                        var dte = (DTE)Services.ServiceProvider.GetService(typeof(DTE));
+                        DTE dte = (DTE)Services.ServiceProvider.GetService(typeof(DTE));
 
                         // Show the "Add...New...Item" dialog via DTE
                         AddArtifactGeneratorWizard.EdmxUri = Utils.FileName2Uri(CurrentDocData.FileName);
@@ -3981,8 +3800,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusAddNewDiagram(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Enabled = cmd.Visible = false;
                 var diagram = GetDiagram();
@@ -4026,7 +3844,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var uri = Utils.FileName2Uri(CurrentDocData.FileName);
             var editingContext = PackageManager.Package.DocumentFrameMgr.EditingContextManager.GetNewOrExistingContext(uri);
-            var cpc = new CommandProcessorContext(
+            CommandProcessorContext cpc = new CommandProcessorContext(
                 editingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, Design.Resources.Tx_CreateDiagram);
             var diagram = CreateDiagramCommand.CreateDiagramWithDefaultName(cpc);
             return diagram;
@@ -4039,8 +3857,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusOpenDiagram(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Enabled = cmd.Visible = false;
                 var diagram = GetDiagram();
@@ -4066,10 +3883,9 @@ namespace Microsoft.Data.Entity.Design.Package
         internal void OnMenuOpenDiagram(object sender, EventArgs e)
         {
             var contextItem = DiagramManagerContextItem;
-            var explorerDiagram = SelectedExplorerItem as ExplorerDiagram;
 
             if (contextItem != null
-                && explorerDiagram != null)
+                && SelectedExplorerItem is ExplorerDiagram explorerDiagram)
             {
                 contextItem.DiagramManager.OpenDiagram(explorerDiagram.DiagramMoniker, true);
             }
@@ -4077,7 +3893,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusAddToDiagram(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
+            MenuCommand cmd = sender as MenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a MenuCommand");
             if (cmd != null)
             {
@@ -4086,14 +3902,12 @@ namespace Microsoft.Data.Entity.Design.Package
                 if (SingleSelection == null
                     && SelectedExplorerItem != null)
                 {
-                    var dslDiagram = CurrentMicrosoftDataEntityDesignDocView.CurrentDiagram as EntityDesignerDiagram;
-                    if (dslDiagram != null)
+                    if (CurrentMicrosoftDataEntityDesignDocView.CurrentDiagram is EntityDesignerDiagram dslDiagram)
                     {
-                        var modelDiagram = dslDiagram.ModelElement.ModelXRef.GetExisting(dslDiagram) as Diagram;
                         var efElement = SelectedExplorerItem.ModelItem;
 
                         if (efElement != null
-                            && modelDiagram != null)
+                            && dslDiagram.ModelElement.ModelXRef.GetExisting(dslDiagram) is Diagram modelDiagram)
                         {
                             cmd.Enabled = cmd.Visible = ((SelectedExplorerItem is ExplorerConceptualEntityType
                                                           || SelectedExplorerItem is ExplorerConceptualAssociation
@@ -4116,12 +3930,9 @@ namespace Microsoft.Data.Entity.Design.Package
             if (SelectedExplorerItem != null
                 && CurrentMicrosoftDataEntityDesignDocView != null)
             {
-                var diagram = CurrentMicrosoftDataEntityDesignDocView.Diagram as IViewDiagram;
+                IViewDiagram diagram = CurrentMicrosoftDataEntityDesignDocView.Diagram as IViewDiagram;
 
-                if (diagram != null)
-                {
-                    diagram.AddOrShowEFElementInDiagram(SelectedExplorerItem.ModelItem);
-                }
+                diagram?.AddOrShowEFElementInDiagram(SelectedExplorerItem.ModelItem);
             }
         }
 
@@ -4132,8 +3943,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusCloseDiagram(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Enabled = cmd.Visible = false;
                 var diagram = GetDiagram();
@@ -4158,9 +3968,8 @@ namespace Microsoft.Data.Entity.Design.Package
         internal void OnMenuCloseDiagram(object sender, EventArgs e)
         {
             var contextItem = DiagramManagerContextItem;
-            var explorerDiagram = SelectedExplorerItem as ExplorerDiagram;
             if (contextItem != null
-                && explorerDiagram != null)
+                && SelectedExplorerItem is ExplorerDiagram explorerDiagram)
             {
                 contextItem.DiagramManager.CloseDiagram(explorerDiagram.DiagramMoniker);
             }
@@ -4185,8 +3994,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusMoveToNewDiagram(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Enabled = cmd.Visible = false;
                 // We only show the menu item if entity diagram is active (GetDiagram() will return non null value).
@@ -4252,11 +4060,8 @@ namespace Microsoft.Data.Entity.Design.Package
                             // The code below ensures that new diagram node is selected and in rename mode in model browser window.
                             var frame = ExplorerFrame;
                             Debug.Assert(frame != null, "Explorer frame is null");
-                            if (frame != null)
-                            {
-                                // set the focus to the newly created diagram in model browser. This step must be done as the last step because other operation could cause focus to change.
-                                frame.NavigateToElementAndPutInRenameMode(modelDiagram);
-                            }
+                            // set the focus to the newly created diagram in model browser. This step must be done as the last step because other operation could cause focus to change.
+                            frame?.NavigateToElementAndPutInRenameMode(modelDiagram);
                         }
                     }
                 }
@@ -4270,8 +4075,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         internal void OnStatusRemoveFromDiagram(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Enabled = cmd.Visible = false;
 
@@ -4300,7 +4104,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 return false;
             }
 
-            var allowedTypes = new List<Type>
+            List<Type> allowedTypes = new List<Type>
                 {
                     typeof(PropertyBase),
                     typeof(InheritanceConnector),
@@ -4323,7 +4127,6 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <summary>
         ///     Event handler to delete shapes (diagram items) and corresponding model items.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal void OnMenuRemoveFromDiagram(object sender, EventArgs e)
         {
             var diagram = GetDiagram();
@@ -4344,7 +4147,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
                     if (AreAllSelectedItemsTypeof<EntityTypeShape>())
                     {
-                        IList<Command> deleteCommands = new List<Command>();
+                        IList<Command> deleteCommands = [];
                         foreach (var ets in SelectedEntityTypeShapes)
                         {
                             // check if the EntityTypeShape model element is not null.
@@ -4353,7 +4156,7 @@ namespace Microsoft.Data.Entity.Design.Package
                             if (ets.TypedModelElement != null)
                             {
                                 var viewModelEntityType = ets.TypedModelElement;
-                                var modelEntityTypeShape =
+                                Model.Designer.EntityTypeShape modelEntityTypeShape =
                                     viewModelEntityType.EntityDesignerViewModel.ModelXRef.GetExisting(ets) as Model.Designer.EntityTypeShape;
                                 Debug.Assert(
                                     modelEntityTypeShape != null,
@@ -4381,7 +4184,7 @@ namespace Microsoft.Data.Entity.Design.Package
                             }
                             var uri = Utils.FileName2Uri(CurrentDocData.FileName);
                             var editingContext = PackageManager.Package.DocumentFrameMgr.EditingContextManager.GetNewOrExistingContext(uri);
-                            var cp = new CommandProcessor(
+                            CommandProcessor cp = new CommandProcessor(
                                 editingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, transactionName, deleteCommands);
                             cp.Invoke();
                         }
@@ -4396,8 +4199,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// </summary>
         internal void OnStatusIncludeRelatedEntityType(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Enabled = cmd.Visible = false;
                 // We only show the menu item if entity diagram is active (GetDiagram() will return non null value).
@@ -4413,7 +4215,6 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <summary>
         ///     Event handler to create the related entity-types of the selected entity-type to a diagram.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal void OnMenuIncludeRelatedEntityType(object sender, EventArgs e)
         {
             var diagram = GetDiagram();
@@ -4421,14 +4222,14 @@ namespace Microsoft.Data.Entity.Design.Package
 
             if (diagram != null)
             {
-                var entityTypeShape = SingleSelection as EntityTypeShape;
+                EntityTypeShape entityTypeShape = SingleSelection as EntityTypeShape;
                 Debug.Assert(entityTypeShape != null, "EntityTypeShape is null.");
 
                 if (entityTypeShape != null)
                 {
-                    var modelDiagram = diagram.ModelElement.ModelXRef.GetExisting(diagram) as Diagram;
+                    Diagram modelDiagram = diagram.ModelElement.ModelXRef.GetExisting(diagram) as Diagram;
                     Debug.Assert(modelDiagram != null, "Could not get the model diagram for diagram with title:" + diagram.Title);
-                    var entityType = diagram.ModelElement.ModelXRef.GetExisting(entityTypeShape.ModelElement) as ModelEntity.EntityType;
+                    ModelEntity.EntityType entityType = diagram.ModelElement.ModelXRef.GetExisting(entityTypeShape.ModelElement) as ModelEntity.EntityType;
                     Debug.Assert(entityType != null, "EntityType is null");
 
                     if (modelDiagram != null
@@ -4436,7 +4237,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     {
                         var uri = Utils.FileName2Uri(CurrentDocData.FileName);
                         var editingContext = PackageManager.Package.DocumentFrameMgr.EditingContextManager.GetNewOrExistingContext(uri);
-                        var cpc = new CommandProcessorContext(
+                        CommandProcessorContext cpc = new CommandProcessorContext(
                             editingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, Resources.Tx_IncludeRelatedEntityTypeShape);
 
                         // Find all related entity types.
@@ -4454,7 +4255,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         try
                         {
                             diagram.Arranger.Start(PointD.Empty);
-                            var delegateCommand = new DelegateCommand(
+                            DelegateCommand delegateCommand = new DelegateCommand(
                                 () =>
                                     {
                                         foreach (var et in relatedEntityTypesNotInDiagram)
@@ -4480,8 +4281,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// </summary>
         internal void OnStatusMoveDiagramsToSeparateFile(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Enabled = cmd.Visible = false;
 
@@ -4494,7 +4294,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 {
                     // Only show if the diagram artifact is not null
                     var modelManager = PackageManager.Package.ModelManager;
-                    var artifact = modelManager.GetArtifact(uri) as EntityDesignArtifact;
+                    EntityDesignArtifact artifact = modelManager.GetArtifact(uri) as EntityDesignArtifact;
                     Debug.Assert(artifact != null, "There is no EntityDesignArtifact with URI:" + uri.LocalPath + " in modelmanager.");
 
                     if (artifact != null
@@ -4520,14 +4320,14 @@ namespace Microsoft.Data.Entity.Design.Package
                 if (editingContext != null)
                 {
                     var efArtifactService = editingContext.GetEFArtifactService();
-                    var entityDesignArtifact = efArtifactService.Artifact as EntityDesignArtifact;
+                    EntityDesignArtifact entityDesignArtifact = efArtifactService.Artifact as EntityDesignArtifact;
 
                     // Don't need to put the transaction name in resource string table since we clear the VS undo stack after the command is executed.
-                    var cpc = new CommandProcessorContext(
+                    CommandProcessorContext cpc = new CommandProcessorContext(
                         editingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, "MoveDiagrams");
                     MigrateDiagramInformationCommand.DoMigrate(cpc, entityDesignArtifact);
                     // Save the EDMX file.
-                    var rdt = new RunningDocumentTable(Services.ServiceProvider);
+                    RunningDocumentTable rdt = new RunningDocumentTable(Services.ServiceProvider);
                     rdt.SaveFileIfDirty(CurrentDocData.FileName);
                 }
             }
@@ -4546,30 +4346,27 @@ namespace Microsoft.Data.Entity.Design.Package
         /// </summary>
         internal void OnStatusPropertyMove(object sender, EventArgs e)
         {
-            var cmd = sender as MenuCommand;
-            if (null != cmd)
+            if (sender is MenuCommand cmd)
             {
                 cmd.Enabled = cmd.Visible = false;
                 var diagram = GetDiagram();
                 if (diagram != null)
                 {
-                    var properties = CurrentSelection.OfType<PropertyBase>().ToList();
+                    List<PropertyBase> properties = CurrentSelection.OfType<PropertyBase>().ToList();
                     // Check if all the selected items are properties.
                     if (CurrentSelection.Count == properties.Count
                         && properties.Count > 0)
                     {
-                        var propertyTypes = new HashSet<Type>();
-                        var entityTypes = new HashSet<EntityType>();
+                        HashSet<Type> propertyTypes = new HashSet<Type>();
+                        HashSet<EntityType> entityTypes = new HashSet<EntityType>();
                         foreach (var property in properties)
                         {
-                            var navProp = property as NavigationProperty;
-                            var prop = property as Property;
-                            if (navProp != null)
+                            if (property is NavigationProperty navProp)
                             {
                                 propertyTypes.Add(typeof(NavigationProperty));
                                 entityTypes.Add(navProp.EntityType);
                             }
-                            if (prop != null)
+                            if (property is Property prop)
                             {
                                 propertyTypes.Add(typeof(Property));
                                 entityTypes.Add(prop.EntityType);
@@ -4617,7 +4414,6 @@ namespace Microsoft.Data.Entity.Design.Package
         ///     - Call command to move properties and passed in the list that is created from previous step.
         ///     - Ensure that the properties that are moved are still selected after the move.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         private void DoSelectedPropertiesMove(MoveDirection moveDirection, uint moveStep)
         {
             Debug.Assert(
@@ -4636,7 +4432,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
                 if (entityType != null)
                 {
-                    var entityTypeShape = PresentationViewsSubject.GetPresentation(entityType).FirstOrDefault() as EntityTypeShape;
+                    EntityTypeShape entityTypeShape = PresentationViewsSubject.GetPresentation(entityType).FirstOrDefault() as EntityTypeShape;
                     Debug.Assert(entityTypeShape != null, "Could not find the shape for entity-type: " + entityType.Name);
 
                     if (entityTypeShape != null)
@@ -4645,11 +4441,11 @@ namespace Microsoft.Data.Entity.Design.Package
                                               ? entityTypeShape.NavigationCompartment
                                               : entityTypeShape.PropertiesCompartment;
                         var entityDesignerViewModel = entityType.EntityDesignerViewModel;
-                        var modelProperties = new List<ModelEntity.PropertyBase>();
+                        List<ModelEntity.PropertyBase> modelProperties = new List<ModelEntity.PropertyBase>();
 
                         foreach (var property in CurrentSelection.OfType<PropertyBase>())
                         {
-                            var modelProperty = entityDesignerViewModel.ModelXRef.GetExisting(property) as ModelEntity.PropertyBase;
+                            ModelEntity.PropertyBase modelProperty = entityDesignerViewModel.ModelXRef.GetExisting(property) as ModelEntity.PropertyBase;
                             Debug.Assert(
                                 modelProperty != null, "Unable to get the model property for property : " + property.Name + "  from XRef.");
                             if (modelProperty != null)
@@ -4662,7 +4458,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         {
                             var uri = Utils.FileName2Uri(CurrentDocData.FileName);
                             var editingContext = PackageManager.Package.DocumentFrameMgr.EditingContextManager.GetNewOrExistingContext(uri);
-                            var cpc = new CommandProcessorContext(
+                            CommandProcessorContext cpc = new CommandProcessorContext(
                                 editingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, Resources.Tx_MoveProperty);
                             CommandProcessor.InvokeSingleCommand(cpc, new MovePropertiesCommand(modelProperties, moveDirection, moveStep));
 
@@ -4699,12 +4495,12 @@ namespace Microsoft.Data.Entity.Design.Package
                     {
                         var entityDesignerViewModel = diagram.ModelElement;
 
-                        var selections = new DiagramItemCollection();
+                        DiagramItemCollection selections = new DiagramItemCollection();
                         // Loop through model property, find the DSL property from model xref.
                         // Given the DSL property find the index of the property in the ElementListCompartment.
                         foreach (var property in modelProperties)
                         {
-                            var vmProperty = entityDesignerViewModel.ModelXRef.GetExisting(property) as PropertyBase;
+                            PropertyBase vmProperty = entityDesignerViewModel.ModelXRef.GetExisting(property) as PropertyBase;
                             Debug.Assert(vmProperty != null, "Unable to find DSL model property for property:" + property.DisplayName);
 
                             if (vmProperty != null)
@@ -4734,7 +4530,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusAddEnumType(object sender, EventArgs e)
         {
-            var cmd = sender as DynamicStatusMenuCommand;
+            DynamicStatusMenuCommand cmd = sender as DynamicStatusMenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a DynamicStatusMenuCommand");
             if (cmd != null)
             {
@@ -4784,7 +4580,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         internal void OnStatusConvertToEnum(object sender, EventArgs e)
         {
-            var cmd = sender as DynamicStatusMenuCommand;
+            DynamicStatusMenuCommand cmd = sender as DynamicStatusMenuCommand;
             Debug.Assert(cmd != null, "could not cast sender as a DynamicStatusMenuCommand");
             if (cmd != null)
             {
@@ -4826,13 +4622,13 @@ namespace Microsoft.Data.Entity.Design.Package
 
                         if (rootViewModel != null)
                         {
-                            var modelProperty = rootViewModel.ModelXRef.GetExisting(selectedProperty) as ModelEntity.ConceptualProperty;
+                            ModelEntity.ConceptualProperty modelProperty = rootViewModel.ModelXRef.GetExisting(selectedProperty) as ModelEntity.ConceptualProperty;
 
                             Debug.Assert(modelProperty != null, "Unable to find model ConceptualProperty.");
 
                             if (modelProperty != null)
                             {
-                                var cpc = new CommandProcessorContext(
+                                CommandProcessorContext cpc = new CommandProcessorContext(
                                     editingContext, EfiTransactionOriginator.EntityDesignerOriginatorId
                                     , Design.Resources.Tx_UpdatePropertyType);
                                 CommandProcessor.InvokeSingleCommand(
@@ -4863,7 +4659,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 pfFilter = 1; // exclude
                 if (pszTemplateFile != null)
                 {
-                    var fi = new FileInfo(pszTemplateFile);
+                    FileInfo fi = new FileInfo(pszTemplateFile);
                     if (fi.Name.StartsWith("ADONETArtifactGenerator_", StringComparison.OrdinalIgnoreCase)
                         || fi.Name.StartsWith("DbContext_", StringComparison.OrdinalIgnoreCase))
                     {

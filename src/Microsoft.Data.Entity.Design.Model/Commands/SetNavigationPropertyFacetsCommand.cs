@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     Navigation Properties have some optional facets that can be set and you use this command to set them.
     /// </summary>
@@ -30,7 +30,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _setterAccessModifier = setterAccessModifier;
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(_property != null, "InvokeInternal is called when _property is null.");

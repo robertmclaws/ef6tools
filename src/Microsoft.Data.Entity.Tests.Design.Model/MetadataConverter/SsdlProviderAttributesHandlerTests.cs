@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System;
-    using System.Xml;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class SsdlProviderAttributesHandlerTests
     {
@@ -24,33 +24,32 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         [TestMethod]
         public void SsdlProviderAttributesHandler_updates_provider_invariant_name_and_manifest_token_for_SqlCE()
         {
-            for (var i = 1; i <= 3; i++)
-            {
-                var schemaVersion = new Version(i, 0, 0, 0);
-                var xmlDoc = new XmlDocument();
-                xmlDoc.LoadXml(
-                    string.Format(
-                        EdmxTemplate,
-                        SchemaManager.GetEDMXNamespaceName(schemaVersion),
-                        SchemaManager.GetSSDLNamespaceName(schemaVersion),
-                        "System.Data.SqlServerCe.3.5",
-                        "3.5"));
+            // Only Version3 is supported
+            Version schemaVersion = new Version(3, 0, 0, 0);
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(
+                string.Format(
+                    EdmxTemplate,
+                    SchemaManager.GetEDMXNamespaceName(schemaVersion),
+                    SchemaManager.GetSSDLNamespaceName(schemaVersion),
+                    "System.Data.SqlServerCe.3.5",
+                    "3.5"));
 
-                new SsdlProviderAttributesHandler(schemaVersion).HandleConversion(xmlDoc);
+            new SsdlProviderAttributesHandler(schemaVersion).HandleConversion(xmlDoc);
 
-                xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@Provider").Value.Should().Be(
-                    "System.Data.SqlServerCe.4.0");
+            xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@Provider").Value.Should().Be(
+                "System.Data.SqlServerCe.4.0");
 
-                xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@ProviderManifestToken").Value.Should().Be(
-                    "4.0");
-            }
+            xmlDoc.SelectSingleNode("//*[local-name() = 'Schema']/@ProviderManifestToken").Value.Should().Be(
+                "4.0");
         }
 
         [TestMethod]
         public void SsdlProviderAttributesHandler_does_not_modify_manifest_token_for_non_SqlCE()
         {
-            var schemaVersion = new Version(1, 0, 0, 0);
-            var xmlDoc = new XmlDocument();
+            // Only Version3 is supported
+            Version schemaVersion = new Version(3, 0, 0, 0);
+            XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(
                 string.Format(
                     EdmxTemplate,
@@ -71,8 +70,9 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         [TestMethod]
         public void SsdlProviderAttributesHandler_does_not_modify_manifest_token_for_SqlCE_if_not_3_5()
         {
-            var schemaVersion = new Version(1, 0, 0, 0);
-            var xmlDoc = new XmlDocument();
+            // Only Version3 is supported
+            Version schemaVersion = new Version(3, 0, 0, 0);
+            XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(
                 string.Format(
                     EdmxTemplate,

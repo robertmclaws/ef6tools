@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal static class FunctionImportNameNormalizer
     {
         internal static NormalizedName NameNormalizer(EFElement parent, string refName)
@@ -18,24 +18,19 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
             var entityContainerName = string.Empty;
 
-            var parentFunctionImport = parent as FunctionImport;
-            var parentFunctionImportMapping = parent as FunctionImportMapping;
-
             Symbol symbol = null;
 
             // are we trying to normalize the name of actual FunctionImport in the EC?
-            if (parentFunctionImport != null)
+            if (parent is FunctionImport parentFunctionImport)
             {
-                var ec = parentFunctionImport.Parent as BaseEntityContainer;
-                if (ec != null)
+                if (parentFunctionImport.Parent is BaseEntityContainer ec)
                 {
                     entityContainerName = ec.EntityContainerName;
                 }
             }
-            else if (parentFunctionImportMapping != null)
+            else if (parent is FunctionImportMapping parentFunctionImportMapping)
             {
-                var ecm = parentFunctionImportMapping.Parent as EntityContainerMapping;
-                if (ecm != null)
+                if (parentFunctionImportMapping.Parent is EntityContainerMapping ecm)
                 {
                     entityContainerName = ecm.CdmEntityContainer.RefName;
                 }
@@ -46,12 +41,9 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 symbol = new Symbol(entityContainerName, refName);
             }
 
-            if (symbol == null)
-            {
-                symbol = new Symbol(refName);
-            }
+            symbol ??= new Symbol(refName);
 
-            var normalizedName = new NormalizedName(symbol, null, null, refName);
+            NormalizedName normalizedName = new NormalizedName(symbol, null, null, refName);
             return normalizedName;
         }
     }

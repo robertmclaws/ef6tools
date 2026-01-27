@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-
     // Represents multiple Properties info stored in Clipboard
     [Serializable]
     internal class PropertiesClipboardFormat
     {
-        private readonly List<PropertyClipboardFormat> _properties = new List<PropertyClipboardFormat>();
+        private readonly List<PropertyClipboardFormat> _properties = [];
 
         internal PropertiesClipboardFormat(IEnumerable<Property> properties)
         {

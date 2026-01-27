@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     This command creates a new complex property and lets you define the name and type of the property.
     /// </summary>
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class CreateComplexPropertyCommand : Command
     {
         internal string Name { get; set; }
@@ -100,8 +99,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _insertPosition = insertPosition;
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "EntityType")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit
@@ -112,8 +109,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // check for uniqueness
-            string msg;
-            if (!ModelHelper.ValidateEntityPropertyName(EntityType, Name, true, out msg))
+            if (!ModelHelper.ValidateEntityPropertyName(EntityType, Name, true, out string msg))
             {
                 throw new CommandValidationFailedException(msg);
             }
@@ -130,14 +126,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             else if (!String.IsNullOrEmpty(_typeName))
             {
                 // separate this name into the namespace and name parts
-                string typeNamespace;
-                string typeLocalName;
-                EFNormalizableItemDefaults.SeparateRefNameIntoParts(_typeName, out typeNamespace, out typeLocalName);
+                EFNormalizableItemDefaults.SeparateRefNameIntoParts(_typeName, out string typeNamespace, out string typeLocalName);
 
                 // look to see if the referenced complex type exists (it may not if they are pasting across models)
                 // just search on local name since two models will have different namespaces probably
                 ComplexType type = null;
-                var cem = EntityType.EntityModel as ConceptualEntityModel;
+                ConceptualEntityModel cem = EntityType.EntityModel as ConceptualEntityModel;
                 foreach (var c in cem.ComplexTypes())
                 {
                     if (string.Compare(typeLocalName, c.LocalName.Value, StringComparison.CurrentCultureIgnoreCase) == 0)
@@ -152,7 +146,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 {
                     // if we didn't find the complex type locally, write out the type name - but for the local namespace
                     // this will let the user subsequently copy the complex type and this property will start working again
-                    var typeSymbol = new Symbol(cem.Namespace.Value, typeLocalName);
+                    Symbol typeSymbol = new Symbol(cem.Namespace.Value, typeLocalName);
                     _createdProperty.ComplexType.SetXAttributeValue(typeSymbol.ToDisplayString());
                 }
                 else
@@ -191,16 +185,16 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// <returns>The new Complex Property</returns>
         internal static ComplexConceptualProperty CreateDefaultProperty(CommandProcessorContext cpc, string name, EntityType entityType)
         {
-            var model = entityType.EntityModel as ConceptualEntityModel;
+            ConceptualEntityModel model = entityType.EntityModel as ConceptualEntityModel;
             ComplexType type = null;
             foreach (var complexType in model.ComplexTypes())
             {
                 type = complexType;
                 break;
             }
-            var cpcd = new CreateComplexPropertyCommand(name, entityType, type);
+            CreateComplexPropertyCommand cpcd = new CreateComplexPropertyCommand(name, entityType, type);
 
-            var cp = new CommandProcessor(cpc, cpcd);
+            CommandProcessor cp = new CommandProcessor(cpc, cpcd);
             cp.Invoke();
 
             return cpcd.Property;
@@ -225,7 +219,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             CommandProcessorContext cpc, string name, EntityType entityType, string typeName,
             string concurrencyMode, string getterAccessModifier, string setterAccessModifier, InsertPropertyPosition insertPosition)
         {
-            var cmd = new CreateComplexPropertyCommand(name, entityType, typeName, insertPosition);
+            CreateComplexPropertyCommand cmd = new CreateComplexPropertyCommand(name, entityType, typeName, insertPosition);
             cmd.PostInvokeEvent += (o, eventsArgs) =>
                 {
                     var complexProperty = cmd.Property;
@@ -247,7 +241,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                         }
                     }
                 };
-            var cp = new CommandProcessor(cpc, cmd);
+            CommandProcessor cp = new CommandProcessor(cpc, cmd);
             cp.Invoke();
             return cmd.Property;
         }

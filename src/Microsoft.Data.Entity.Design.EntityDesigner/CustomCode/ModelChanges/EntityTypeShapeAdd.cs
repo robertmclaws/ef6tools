@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
+using EntityTypeShape = Microsoft.Data.Entity.Design.EntityDesigner.View.EntityTypeShape;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
-    using EntityTypeShape = Microsoft.Data.Entity.Design.EntityDesigner.View.EntityTypeShape;
-
     internal class EntityTypeShapeAdd : EntityTypeShapeModelChange
     {
         internal EntityTypeShapeAdd(EntityTypeShape entityShape)
@@ -28,13 +28,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
             Debug.Assert(viewModel != null, "Unable to find root view model from entity-type-shape:" + entityTypeShape.AccessibleName);
             if (viewModel != null)
             {
-                var entityType = viewModel.ModelXRef.GetExisting(entityTypeShape.ModelElement) as EntityType;
-                var diagram = viewModel.ModelXRef.GetExisting(entityTypeShape.Diagram) as Diagram;
+                EntityType entityType = viewModel.ModelXRef.GetExisting(entityTypeShape.ModelElement) as EntityType;
+                Diagram diagram = viewModel.ModelXRef.GetExisting(entityTypeShape.Diagram) as Diagram;
                 Debug.Assert(entityType != null && diagram != null);
                 if (entityType != null
                     && diagram != null)
                 {
-                    var cmd = new CreateEntityTypeShapeCommand(diagram, entityType);
+                    CreateEntityTypeShapeCommand cmd = new CreateEntityTypeShapeCommand(diagram, entityType);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     var modelEntityShape = cmd.EntityTypeShape;
                     Debug.Assert(modelEntityShape != null);

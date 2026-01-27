@@ -22,7 +22,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Unnamed.
         /// </summary>
-        public static string Acc_Unnamed {
+        internal static string Acc_Unnamed {
             get {
                 return ResourceManager.GetString("Acc_Unnamed", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0}: An association between EntityTypes {1} {2}.
         /// </summary>
-        public static string AccDesc_Association {
+        internal static string AccDesc_Association {
             get {
                 return ResourceManager.GetString("AccDesc_Association", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0}: The Conceptual Model of an Entity Data Model..
         /// </summary>
-        public static string AccDesc_EntityDesignerViewModel {
+        internal static string AccDesc_EntityDesignerViewModel {
             get {
                 return ResourceManager.GetString("AccDesc_EntityDesignerViewModel", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0}: An EDM EntityType.
         /// </summary>
-        public static string AccDesc_EntityType {
+        internal static string AccDesc_EntityType {
             get {
                 return ResourceManager.GetString("AccDesc_EntityType", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The EntityType name..
         /// </summary>
-        public static string AccDesc_EntityTypeHeader {
+        internal static string AccDesc_EntityTypeHeader {
             get {
                 return ResourceManager.GetString("AccDesc_EntityTypeHeader", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to An EntityType&apos;s navigation properties..
         /// </summary>
-        public static string AccDesc_EntityTypeNavigationPropertyCompartment {
+        internal static string AccDesc_EntityTypeNavigationPropertyCompartment {
             get {
                 return ResourceManager.GetString("AccDesc_EntityTypeNavigationPropertyCompartment", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to An EntityType&apos;s scalar properties..
         /// </summary>
-        public static string AccDesc_EntityTypeScalarPropertyCompartment {
+        internal static string AccDesc_EntityTypeScalarPropertyCompartment {
             get {
                 return ResourceManager.GetString("AccDesc_EntityTypeScalarPropertyCompartment", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0}: The inheritance hierarchy between EntityTypes {1} and {2}..
         /// </summary>
-        public static string AccDesc_Inheritance {
+        internal static string AccDesc_Inheritance {
             get {
                 return ResourceManager.GetString("AccDesc_Inheritance", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0}: An EntityType&apos;s navigation property..
         /// </summary>
-        public static string AccDesc_NavigationProperty {
+        internal static string AccDesc_NavigationProperty {
             get {
                 return ResourceManager.GetString("AccDesc_NavigationProperty", resourceCulture);
             }
@@ -144,7 +144,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0}: An EntityType&apos;s scalar property..
         /// </summary>
-        public static string AccDesc_ScalarProperty {
+        internal static string AccDesc_ScalarProperty {
             get {
                 return ResourceManager.GetString("AccDesc_ScalarProperty", resourceCulture);
             }
@@ -153,7 +153,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Rename using the &apos;F2&apos; key. Access properties of the EntityType by using the Up and Down arrow keys. Add or remove properties by using the Insert and Delete keys. Collapse or expand using Ctrl+Up and Ctrl+Down. Current state is: {0}..
         /// </summary>
-        public static string AccHelp_EntityType {
+        internal static string AccHelp_EntityType {
             get {
                 return ResourceManager.GetString("AccHelp_EntityType", resourceCulture);
             }
@@ -162,7 +162,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Navigation Properties Compartment. Collapse or expand using Ctrl+Up and Ctrl+Down. Current state is: {0}..
         /// </summary>
-        public static string AccHelp_EntityTypeNavigationPropertyCompartment {
+        internal static string AccHelp_EntityTypeNavigationPropertyCompartment {
             get {
                 return ResourceManager.GetString("AccHelp_EntityTypeNavigationPropertyCompartment", resourceCulture);
             }
@@ -171,7 +171,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Properties Compartment. Collapse or expand using Ctrl+Up and Ctrl+Down. Current state is: {0}..
         /// </summary>
-        public static string AccHelp_EntityTypeScalarPropertyCompartment {
+        internal static string AccHelp_EntityTypeScalarPropertyCompartment {
             get {
                 return ResourceManager.GetString("AccHelp_EntityTypeScalarPropertyCompartment", resourceCulture);
             }
@@ -180,7 +180,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Name.
         /// </summary>
-        public static string AccName_EntityTypeHeader {
+        internal static string AccName_EntityTypeHeader {
             get {
                 return ResourceManager.GetString("AccName_EntityTypeHeader", resourceCulture);
             }
@@ -189,7 +189,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Navigation Properties.
         /// </summary>
-        public static string AccName_EntityTypeNavigationPropertyCompartment {
+        internal static string AccName_EntityTypeNavigationPropertyCompartment {
             get {
                 return ResourceManager.GetString("AccName_EntityTypeNavigationPropertyCompartment", resourceCulture);
             }
@@ -198,7 +198,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
-        public static string AccName_EntityTypeScalarPropertyCompartment {
+        internal static string AccName_EntityTypeScalarPropertyCompartment {
             get {
                 return ResourceManager.GetString("AccName_EntityTypeScalarPropertyCompartment", resourceCulture);
             }
@@ -207,7 +207,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap BaseTypeIcon {
+        internal static System.Drawing.Bitmap BaseTypeIcon {
             get {
                 object obj = ResourceManager.GetObject("BaseTypeIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -217,7 +217,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap ChevronCollapsed {
+        internal static System.Drawing.Bitmap ChevronCollapsed {
             get {
                 object obj = ResourceManager.GetObject("ChevronCollapsed", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -227,7 +227,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap ChevronExpanded {
+        internal static System.Drawing.Bitmap ChevronExpanded {
             get {
                 object obj = ResourceManager.GetObject("ChevronExpanded", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -237,7 +237,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Association.
         /// </summary>
-        public static string CompClassName_Association {
+        internal static string CompClassName_Association {
             get {
                 return ResourceManager.GetString("CompClassName_Association", resourceCulture);
             }
@@ -246,7 +246,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to EntityType.
         /// </summary>
-        public static string CompClassName_EntityType {
+        internal static string CompClassName_EntityType {
             get {
                 return ResourceManager.GetString("CompClassName_EntityType", resourceCulture);
             }
@@ -255,7 +255,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Inheritance.
         /// </summary>
-        public static string CompClassName_Inheritance {
+        internal static string CompClassName_Inheritance {
             get {
                 return ResourceManager.GetString("CompClassName_Inheritance", resourceCulture);
             }
@@ -264,7 +264,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Navigation Property.
         /// </summary>
-        public static string CompClassName_NavigationProperty {
+        internal static string CompClassName_NavigationProperty {
             get {
                 return ResourceManager.GetString("CompClassName_NavigationProperty", resourceCulture);
             }
@@ -273,7 +273,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Scalar Property.
         /// </summary>
-        public static string CompClassName_ScalarProperty {
+        internal static string CompClassName_ScalarProperty {
             get {
                 return ResourceManager.GetString("CompClassName_ScalarProperty", resourceCulture);
             }
@@ -282,7 +282,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap ComplexProperty {
+        internal static System.Drawing.Bitmap ComplexProperty {
             get {
                 object obj = ResourceManager.GetObject("ComplexProperty", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -292,7 +292,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
-        public static string CustomDialog_CancelButton {
+        internal static string CustomDialog_CancelButton {
             get {
                 return ResourceManager.GetString("CustomDialog_CancelButton", resourceCulture);
             }
@@ -301,7 +301,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
-        public static string CustomDialog_OKButton {
+        internal static string CustomDialog_OKButton {
             get {
                 return ResourceManager.GetString("CustomDialog_OKButton", resourceCulture);
             }
@@ -310,7 +310,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Custom Zoom.
         /// </summary>
-        public static string CustomZoom_DialogTitle {
+        internal static string CustomZoom_DialogTitle {
             get {
                 return ResourceManager.GetString("CustomZoom_DialogTitle", resourceCulture);
             }
@@ -319,7 +319,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Percentage zoom:.
         /// </summary>
-        public static string CustomZoom_ZoomLevel {
+        internal static string CustomZoom_ZoomLevel {
             get {
                 return ResourceManager.GetString("CustomZoom_ZoomLevel", resourceCulture);
             }
@@ -329,7 +329,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         ///   Looks up a localized string similar to The Entity Data Model Designer is unable to display the file you requested.\n\n
         ///The Entity Framework is not available in the target framework currently specified for the project. You can change the target framework of the project or edit the model in the {0}..
         /// </summary>
-        public static string DesignerWatermark_EDMNotSupported {
+        internal static string DesignerWatermark_EDMNotSupported {
             get {
                 return ResourceManager.GetString("DesignerWatermark_EDMNotSupported", resourceCulture);
             }
@@ -338,7 +338,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Model Browser.
         /// </summary>
-        public static string DesignerWatermarkModelBrowserLink {
+        internal static string DesignerWatermarkModelBrowserLink {
             get {
                 return ResourceManager.GetString("DesignerWatermarkModelBrowserLink", resourceCulture);
             }
@@ -347,7 +347,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The Entity Data Model Designer is unable to display the file you requested.\n\nThe Database Project &apos;{0}&apos; could not be found or is in the process of loading.\n\nYou can edit the model using the {1}..
         /// </summary>
-        public static string DesignerWatermarkResolveErrorText {
+        internal static string DesignerWatermarkResolveErrorText {
             get {
                 return ResourceManager.GetString("DesignerWatermarkResolveErrorText", resourceCulture);
             }
@@ -356,7 +356,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The Entity Data Model Designer is unable to display the file you requested\n\nYou can edit the model using the {0}..
         /// </summary>
-        public static string DesignerWatermarkSafeModeErrorText {
+        internal static string DesignerWatermarkSafeModeErrorText {
             get {
                 return ResourceManager.GetString("DesignerWatermarkSafeModeErrorText", resourceCulture);
             }
@@ -367,7 +367,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         ///Create new entities in the model by dragging items from the {0}.\n
         ///Add existing entities and relationships to this diagram by dragging them from the {1}..
         /// </summary>
-        public static string DesignerWatermarkText {
+        internal static string DesignerWatermarkText {
             get {
                 return ResourceManager.GetString("DesignerWatermarkText", resourceCulture);
             }
@@ -376,7 +376,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Toolbox.
         /// </summary>
-        public static string DesignerWatermarkToolboxLink {
+        internal static string DesignerWatermarkToolboxLink {
             get {
                 return ResourceManager.GetString("DesignerWatermarkToolboxLink", resourceCulture);
             }
@@ -385,7 +385,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The Entity Data Model Designer is unable to display the file you requested.\n\nThe file references an XML namespace that is inconsistent with the Entity Framework schema version of the model. You can {1} the XML namespace reference to match the Entity Framework schema version or edit the model in the {0}..
         /// </summary>
-        public static string DesignerWatermarkUpgradeErrorText {
+        internal static string DesignerWatermarkUpgradeErrorText {
             get {
                 return ResourceManager.GetString("DesignerWatermarkUpgradeErrorText", resourceCulture);
             }
@@ -394,7 +394,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to modify.
         /// </summary>
-        public static string DesignerWatermarkUpgradeLink {
+        internal static string DesignerWatermarkUpgradeLink {
             get {
                 return ResourceManager.GetString("DesignerWatermarkUpgradeLink", resourceCulture);
             }
@@ -403,7 +403,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to XML Editor.
         /// </summary>
-        public static string DesignerWatermarkXmlEditorLink {
+        internal static string DesignerWatermarkXmlEditorLink {
             get {
                 return ResourceManager.GetString("DesignerWatermarkXmlEditorLink", resourceCulture);
             }
@@ -412,7 +412,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap EntityGlyph {
+        internal static System.Drawing.Bitmap EntityGlyph {
             get {
                 object obj = ResourceManager.GetObject("EntityGlyph", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -422,7 +422,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0}Set.
         /// </summary>
-        public static string EntitySetNameSuffix {
+        internal static string EntitySetNameSuffix {
             get {
                 return ResourceManager.GetString("EntitySetNameSuffix", resourceCulture);
             }
@@ -431,7 +431,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Association &apos;{0}&apos; is a self join from &apos;{1}&apos; to &apos;{2}&apos;..
         /// </summary>
-        public static string Error_AssociationIsSelfJoin {
+        internal static string Error_AssociationIsSelfJoin {
             get {
                 return ResourceManager.GetString("Error_AssociationIsSelfJoin", resourceCulture);
             }
@@ -440,7 +440,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Association &apos;{0}&apos; already exists in the model. Please specify another name..
         /// </summary>
-        public static string Error_AssociationNameDuplicate {
+        internal static string Error_AssociationNameDuplicate {
             get {
                 return ResourceManager.GetString("Error_AssociationNameDuplicate", resourceCulture);
             }
@@ -449,7 +449,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Association name &apos;{0}&apos; is not valid..
         /// </summary>
-        public static string Error_AssociationNameInvalid {
+        internal static string Error_AssociationNameInvalid {
             get {
                 return ResourceManager.GetString("Error_AssociationNameInvalid", resourceCulture);
             }
@@ -458,7 +458,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to AssociationSet &apos;{0}&apos; already exists in the model. Please specify another name..
         /// </summary>
-        public static string Error_AssociationSetNameDuplicate {
+        internal static string Error_AssociationSetNameDuplicate {
             get {
                 return ResourceManager.GetString("Error_AssociationSetNameDuplicate", resourceCulture);
             }
@@ -467,7 +467,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to AssociationSet name &apos;{0}&apos; is not valid..
         /// </summary>
-        public static string Error_AssociationSetNameInvalid {
+        internal static string Error_AssociationSetNameInvalid {
             get {
                 return ResourceManager.GetString("Error_AssociationSetNameInvalid", resourceCulture);
             }
@@ -476,7 +476,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; has a circular inheritance relationship: {1}.
         /// </summary>
-        public static string Error_CircularEntityInheritanceFound {
+        internal static string Error_CircularEntityInheritanceFound {
             get {
                 return ResourceManager.GetString("Error_CircularEntityInheritanceFound", resourceCulture);
             }
@@ -485,7 +485,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Setting base type for {0} to {1} would cause circular inheritance. Adding inheritance aborted..
         /// </summary>
-        public static string Error_CircularInheritanceAborted {
+        internal static string Error_CircularInheritanceAborted {
             get {
                 return ResourceManager.GetString("Error_CircularInheritanceAborted", resourceCulture);
             }
@@ -494,7 +494,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to An unknown error was encountered while trying to reload the document. You should close and reload the document. Error Text: &apos;{0}&apos;..
         /// </summary>
-        public static string Error_DiagramShouldBeReloaded {
+        internal static string Error_DiagramShouldBeReloaded {
             get {
                 return ResourceManager.GetString("Error_DiagramShouldBeReloaded", resourceCulture);
             }
@@ -503,7 +503,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The model does not have an EntityContainer..
         /// </summary>
-        public static string Error_EntityContainerMissing {
+        internal static string Error_EntityContainerMissing {
             get {
                 return ResourceManager.GetString("Error_EntityContainerMissing", resourceCulture);
             }
@@ -512,7 +512,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is not referenced by any EntitySet..
         /// </summary>
-        public static string Error_EntityInNoEntitySet {
+        internal static string Error_EntityInNoEntitySet {
             get {
                 return ResourceManager.GetString("Error_EntityInNoEntitySet", resourceCulture);
             }
@@ -521,7 +521,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to EntityType &apos;{0}&apos; already exists in the model or conflicts with the EntityContainer name, or there is an existing property named &apos;{0}&apos; in this entity&apos;s inheritance chain. Please specify another name..
         /// </summary>
-        public static string Error_EntityNameDuplicate {
+        internal static string Error_EntityNameDuplicate {
             get {
                 return ResourceManager.GetString("Error_EntityNameDuplicate", resourceCulture);
             }
@@ -530,7 +530,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to EntityType name &apos;{0}&apos; is not valid..
         /// </summary>
-        public static string Error_EntityNameInvalid {
+        internal static string Error_EntityNameInvalid {
             get {
                 return ResourceManager.GetString("Error_EntityNameInvalid", resourceCulture);
             }
@@ -539,7 +539,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to EntitySet &apos;{0}&apos; already exists in the model. Please specify another name..
         /// </summary>
-        public static string Error_EntitySetNameDuplicate {
+        internal static string Error_EntitySetNameDuplicate {
             get {
                 return ResourceManager.GetString("Error_EntitySetNameDuplicate", resourceCulture);
             }
@@ -548,7 +548,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to EntitySet name &apos;{0}&apos; is not valid..
         /// </summary>
-        public static string Error_EntitySetNameInvalid {
+        internal static string Error_EntitySetNameInvalid {
             get {
                 return ResourceManager.GetString("Error_EntitySetNameInvalid", resourceCulture);
             }
@@ -557,7 +557,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Model alias &apos;{0}&apos; is not valid..
         /// </summary>
-        public static string Error_ModelAliasInvalid {
+        internal static string Error_ModelAliasInvalid {
             get {
                 return ResourceManager.GetString("Error_ModelAliasInvalid", resourceCulture);
             }
@@ -566,7 +566,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The model does not have a namespace..
         /// </summary>
-        public static string Error_ModelNamespaceEmpty {
+        internal static string Error_ModelNamespaceEmpty {
             get {
                 return ResourceManager.GetString("Error_ModelNamespaceEmpty", resourceCulture);
             }
@@ -575,7 +575,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Model namespace &apos;{0}&apos; is not valid..
         /// </summary>
-        public static string Error_ModelNamespaceInvalid {
+        internal static string Error_ModelNamespaceInvalid {
             get {
                 return ResourceManager.GetString("Error_ModelNamespaceInvalid", resourceCulture);
             }
@@ -584,7 +584,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Navigation property &apos;{0}&apos; already exists in the entity. Please specify another name..
         /// </summary>
-        public static string Error_NavigationPropertyNameDuplicate {
+        internal static string Error_NavigationPropertyNameDuplicate {
             get {
                 return ResourceManager.GetString("Error_NavigationPropertyNameDuplicate", resourceCulture);
             }
@@ -593,7 +593,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Navigation Name &apos;{0}&apos; is not valid..
         /// </summary>
-        public static string Error_NavigationPropertyNameInvalid {
+        internal static string Error_NavigationPropertyNameInvalid {
             get {
                 return ResourceManager.GetString("Error_NavigationPropertyNameInvalid", resourceCulture);
             }
@@ -602,7 +602,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Artifact Service has not yet been initialized..
         /// </summary>
-        public static string Error_NoArtifactService {
+        internal static string Error_NoArtifactService {
             get {
                 return ResourceManager.GetString("Error_NoArtifactService", resourceCulture);
             }
@@ -611,7 +611,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Cannot find the root of the conceptual model..
         /// </summary>
-        public static string Error_NoConceptualModelRoot {
+        internal static string Error_NoConceptualModelRoot {
             get {
                 return ResourceManager.GetString("Error_NoConceptualModelRoot", resourceCulture);
             }
@@ -620,7 +620,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to MaxLength &apos;{0}&apos; is not allowed. Values should be between 0 and {1} or the reserved value &apos;Max&apos;..
         /// </summary>
-        public static string Error_PropertyFacetMaxLengthInvalid {
+        internal static string Error_PropertyFacetMaxLengthInvalid {
             get {
                 return ResourceManager.GetString("Error_PropertyFacetMaxLengthInvalid", resourceCulture);
             }
@@ -629,7 +629,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Precision &apos;{0}&apos; is not allowed. Values should be between {1} and {2}..
         /// </summary>
-        public static string Error_PropertyFacetPrecisionInvalid {
+        internal static string Error_PropertyFacetPrecisionInvalid {
             get {
                 return ResourceManager.GetString("Error_PropertyFacetPrecisionInvalid", resourceCulture);
             }
@@ -638,7 +638,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Scale &apos;{0}&apos; is not allowed. Values should be between {1} and {2}..
         /// </summary>
-        public static string Error_PropertyFacetScaleInvalid {
+        internal static string Error_PropertyFacetScaleInvalid {
             get {
                 return ResourceManager.GetString("Error_PropertyFacetScaleInvalid", resourceCulture);
             }
@@ -647,7 +647,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Property &apos;{0}&apos; already exists in the entity. Please specify another name..
         /// </summary>
-        public static string Error_PropertyNameDuplicate {
+        internal static string Error_PropertyNameDuplicate {
             get {
                 return ResourceManager.GetString("Error_PropertyNameDuplicate", resourceCulture);
             }
@@ -656,7 +656,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1021.
         /// </summary>
-        public static string ErrorCode_AssociationIsSelfJoin {
+        internal static string ErrorCode_AssociationIsSelfJoin {
             get {
                 return ResourceManager.GetString("ErrorCode_AssociationIsSelfJoin", resourceCulture);
             }
@@ -665,7 +665,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1020.
         /// </summary>
-        public static string ErrorCode_AssociationNameInvalid {
+        internal static string ErrorCode_AssociationNameInvalid {
             get {
                 return ResourceManager.GetString("ErrorCode_AssociationNameInvalid", resourceCulture);
             }
@@ -674,7 +674,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to W1015.
         /// </summary>
-        public static string ErrorCode_AssociationSetMissingAssociation {
+        internal static string ErrorCode_AssociationSetMissingAssociation {
             get {
                 return ResourceManager.GetString("ErrorCode_AssociationSetMissingAssociation", resourceCulture);
             }
@@ -683,7 +683,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to W1016.
         /// </summary>
-        public static string ErrorCode_AssociationSetMissingEnd1EntitySet {
+        internal static string ErrorCode_AssociationSetMissingEnd1EntitySet {
             get {
                 return ResourceManager.GetString("ErrorCode_AssociationSetMissingEnd1EntitySet", resourceCulture);
             }
@@ -692,7 +692,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to W1017.
         /// </summary>
-        public static string ErrorCode_AssociationSetMissingEnd2EntitySet {
+        internal static string ErrorCode_AssociationSetMissingEnd2EntitySet {
             get {
                 return ResourceManager.GetString("ErrorCode_AssociationSetMissingEnd2EntitySet", resourceCulture);
             }
@@ -701,7 +701,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1007.
         /// </summary>
-        public static string ErrorCode_AssociationSetNameInvalid {
+        internal static string ErrorCode_AssociationSetNameInvalid {
             get {
                 return ResourceManager.GetString("ErrorCode_AssociationSetNameInvalid", resourceCulture);
             }
@@ -710,7 +710,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1006.
         /// </summary>
-        public static string ErrorCode_CircularEntityInheritanceFound {
+        internal static string ErrorCode_CircularEntityInheritanceFound {
             get {
                 return ResourceManager.GetString("ErrorCode_CircularEntityInheritanceFound", resourceCulture);
             }
@@ -719,7 +719,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1010.
         /// </summary>
-        public static string ErrorCode_EntityContainerMissing {
+        internal static string ErrorCode_EntityContainerMissing {
             get {
                 return ResourceManager.GetString("ErrorCode_EntityContainerMissing", resourceCulture);
             }
@@ -728,7 +728,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to W1011.
         /// </summary>
-        public static string ErrorCode_EntityHasNoKeys {
+        internal static string ErrorCode_EntityHasNoKeys {
             get {
                 return ResourceManager.GetString("ErrorCode_EntityHasNoKeys", resourceCulture);
             }
@@ -737,7 +737,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to W1012.
         /// </summary>
-        public static string ErrorCode_EntityInMultipleEntitySets {
+        internal static string ErrorCode_EntityInMultipleEntitySets {
             get {
                 return ResourceManager.GetString("ErrorCode_EntityInMultipleEntitySets", resourceCulture);
             }
@@ -746,7 +746,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1013.
         /// </summary>
-        public static string ErrorCode_EntityInNoEntitySet {
+        internal static string ErrorCode_EntityInNoEntitySet {
             get {
                 return ResourceManager.GetString("ErrorCode_EntityInNoEntitySet", resourceCulture);
             }
@@ -755,7 +755,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1005.
         /// </summary>
-        public static string ErrorCode_EntityNameInvalid {
+        internal static string ErrorCode_EntityNameInvalid {
             get {
                 return ResourceManager.GetString("ErrorCode_EntityNameInvalid", resourceCulture);
             }
@@ -764,7 +764,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to W1014.
         /// </summary>
-        public static string ErrorCode_EntitySetEntityMissing {
+        internal static string ErrorCode_EntitySetEntityMissing {
             get {
                 return ResourceManager.GetString("ErrorCode_EntitySetEntityMissing", resourceCulture);
             }
@@ -773,7 +773,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1008.
         /// </summary>
-        public static string ErrorCode_EntitySetNameInvalid {
+        internal static string ErrorCode_EntitySetNameInvalid {
             get {
                 return ResourceManager.GetString("ErrorCode_EntitySetNameInvalid", resourceCulture);
             }
@@ -782,7 +782,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to W1004.
         /// </summary>
-        public static string ErrorCode_ModelAliasEmpty {
+        internal static string ErrorCode_ModelAliasEmpty {
             get {
                 return ResourceManager.GetString("ErrorCode_ModelAliasEmpty", resourceCulture);
             }
@@ -791,7 +791,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1003.
         /// </summary>
-        public static string ErrorCode_ModelAliasInvalid {
+        internal static string ErrorCode_ModelAliasInvalid {
             get {
                 return ResourceManager.GetString("ErrorCode_ModelAliasInvalid", resourceCulture);
             }
@@ -800,7 +800,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1002.
         /// </summary>
-        public static string ErrorCode_ModelNamespaceEmpty {
+        internal static string ErrorCode_ModelNamespaceEmpty {
             get {
                 return ResourceManager.GetString("ErrorCode_ModelNamespaceEmpty", resourceCulture);
             }
@@ -809,7 +809,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1001.
         /// </summary>
-        public static string ErrorCode_ModelNamespaceInvalid {
+        internal static string ErrorCode_ModelNamespaceInvalid {
             get {
                 return ResourceManager.GetString("ErrorCode_ModelNamespaceInvalid", resourceCulture);
             }
@@ -818,7 +818,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to E1009.
         /// </summary>
-        public static string ErrorCode_PropertyNameInvalid {
+        internal static string ErrorCode_PropertyNameInvalid {
             get {
                 return ResourceManager.GetString("ErrorCode_PropertyNameInvalid", resourceCulture);
             }
@@ -827,7 +827,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Collapsed.
         /// </summary>
-        public static string ExpandedStateCollapsed {
+        internal static string ExpandedStateCollapsed {
             get {
                 return ResourceManager.GetString("ExpandedStateCollapsed", resourceCulture);
             }
@@ -836,7 +836,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Expanded.
         /// </summary>
-        public static string ExpandedStateExpanded {
+        internal static string ExpandedStateExpanded {
             get {
                 return ResourceManager.GetString("ExpandedStateExpanded", resourceCulture);
             }
@@ -845,7 +845,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Export Diagram As.
         /// </summary>
-        public static string ExportAsImageTitle {
+        internal static string ExportAsImageTitle {
             get {
                 return ResourceManager.GetString("ExportAsImageTitle", resourceCulture);
             }
@@ -854,7 +854,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Browse....
         /// </summary>
-        public static string ExportImage_BrowseButton {
+        internal static string ExportImage_BrowseButton {
             get {
                 return ResourceManager.GetString("ExportImage_BrowseButton", resourceCulture);
             }
@@ -863,7 +863,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to EntityDesignerDiagram.
         /// </summary>
-        public static string ExportImage_DefaultFileName {
+        internal static string ExportImage_DefaultFileName {
             get {
                 return ResourceManager.GetString("ExportImage_DefaultFileName", resourceCulture);
             }
@@ -872,7 +872,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Export Diagram.
         /// </summary>
-        public static string ExportImage_DialogTitle {
+        internal static string ExportImage_DialogTitle {
             get {
                 return ResourceManager.GetString("ExportImage_DialogTitle", resourceCulture);
             }
@@ -881,7 +881,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Please enter a file name..
         /// </summary>
-        public static string ExportImage_EnterFileNameError {
+        internal static string ExportImage_EnterFileNameError {
             get {
                 return ResourceManager.GetString("ExportImage_EnterFileNameError", resourceCulture);
             }
@@ -890,7 +890,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Export.
         /// </summary>
-        public static string ExportImage_ExportButton {
+        internal static string ExportImage_ExportButton {
             get {
                 return ResourceManager.GetString("ExportImage_ExportButton", resourceCulture);
             }
@@ -899,7 +899,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to File name:.
         /// </summary>
-        public static string ExportImage_FileNameLabel {
+        internal static string ExportImage_FileNameLabel {
             get {
                 return ResourceManager.GetString("ExportImage_FileNameLabel", resourceCulture);
             }
@@ -908,7 +908,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Image Format:.
         /// </summary>
-        public static string ExportImage_FormatLabel {
+        internal static string ExportImage_FormatLabel {
             get {
                 return ResourceManager.GetString("ExportImage_FormatLabel", resourceCulture);
             }
@@ -917,7 +917,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The file name contains invalid characters..
         /// </summary>
-        public static string ExportImage_InvalidFileNameError {
+        internal static string ExportImage_InvalidFileNameError {
             get {
                 return ResourceManager.GetString("ExportImage_InvalidFileNameError", resourceCulture);
             }
@@ -926,7 +926,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Location:.
         /// </summary>
-        public static string ExportImage_LocationLabel {
+        internal static string ExportImage_LocationLabel {
             get {
                 return ResourceManager.GetString("ExportImage_LocationLabel", resourceCulture);
             }
@@ -935,7 +935,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The selected location does not exist..
         /// </summary>
-        public static string ExportImage_LocationNotExistError {
+        internal static string ExportImage_LocationNotExistError {
             get {
                 return ResourceManager.GetString("ExportImage_LocationNotExistError", resourceCulture);
             }
@@ -944,7 +944,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Options:.
         /// </summary>
-        public static string ExportImage_OptionsLabel {
+        internal static string ExportImage_OptionsLabel {
             get {
                 return ResourceManager.GetString("ExportImage_OptionsLabel", resourceCulture);
             }
@@ -953,7 +953,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Overwrite existing file.
         /// </summary>
-        public static string ExportImage_OverwriteCheckbox {
+        internal static string ExportImage_OverwriteCheckbox {
             get {
                 return ResourceManager.GetString("ExportImage_OverwriteCheckbox", resourceCulture);
             }
@@ -962,7 +962,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Select export location.
         /// </summary>
-        public static string ExportImage_SelectLocation {
+        internal static string ExportImage_SelectLocation {
             get {
                 return ResourceManager.GetString("ExportImage_SelectLocation", resourceCulture);
             }
@@ -971,7 +971,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Please select a location..
         /// </summary>
-        public static string ExportImage_SelectLocationError {
+        internal static string ExportImage_SelectLocationError {
             get {
                 return ResourceManager.GetString("ExportImage_SelectLocationError", resourceCulture);
             }
@@ -980,7 +980,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Show data types.
         /// </summary>
-        public static string ExportImage_ShowTypes {
+        internal static string ExportImage_ShowTypes {
             get {
                 return ResourceManager.GetString("ExportImage_ShowTypes", resourceCulture);
             }
@@ -989,7 +989,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Transparent Background.
         /// </summary>
-        public static string ExportImage_TransparentBackground {
+        internal static string ExportImage_TransparentBackground {
             get {
                 return ResourceManager.GetString("ExportImage_TransparentBackground", resourceCulture);
             }
@@ -998,7 +998,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Windows 24-bit bitmap (*.bmp).
         /// </summary>
-        public static string ImageFormatBmp {
+        internal static string ImageFormatBmp {
             get {
                 return ResourceManager.GetString("ImageFormatBmp", resourceCulture);
             }
@@ -1007,7 +1007,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Graphic Interchange Format (*.gif).
         /// </summary>
-        public static string ImageFormatGif {
+        internal static string ImageFormatGif {
             get {
                 return ResourceManager.GetString("ImageFormatGif", resourceCulture);
             }
@@ -1016,7 +1016,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to JPEG Interchange format (*.jpg).
         /// </summary>
-        public static string ImageFormatJpeg {
+        internal static string ImageFormatJpeg {
             get {
                 return ResourceManager.GetString("ImageFormatJpeg", resourceCulture);
             }
@@ -1025,7 +1025,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Mermaid ER Diagram (*.mmd).
         /// </summary>
-        public static string ImageFormatMermaid {
+        internal static string ImageFormatMermaid {
             get {
                 return ResourceManager.GetString("ImageFormatMermaid", resourceCulture);
             }
@@ -1034,7 +1034,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Portable Network Graphics (*.png).
         /// </summary>
-        public static string ImageFormatPng {
+        internal static string ImageFormatPng {
             get {
                 return ResourceManager.GetString("ImageFormatPng", resourceCulture);
             }
@@ -1043,7 +1043,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Scalable Vector Graphics (*.svg).
         /// </summary>
-        public static string ImageFormatSvg {
+        internal static string ImageFormatSvg {
             get {
                 return ResourceManager.GetString("ImageFormatSvg", resourceCulture);
             }
@@ -1052,7 +1052,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Tagged Image File Format (*.tif).
         /// </summary>
-        public static string ImageFormatTiff {
+        internal static string ImageFormatTiff {
             get {
                 return ResourceManager.GetString("ImageFormatTiff", resourceCulture);
             }
@@ -1061,7 +1061,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0} is in an association with {1}.
         /// </summary>
-        public static string IsInAssociationWith {
+        internal static string IsInAssociationWith {
             get {
                 return ResourceManager.GetString("IsInAssociationWith", resourceCulture);
             }
@@ -1070,7 +1070,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0} is inherited from {1}.
         /// </summary>
-        public static string IsInheritedFrom {
+        internal static string IsInheritedFrom {
             get {
                 return ResourceManager.GetString("IsInheritedFrom", resourceCulture);
             }
@@ -1079,7 +1079,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to File &apos;{0}&apos; exists.\nOverwrite?.
         /// </summary>
-        public static string MsgBox_ConfirmFileOverwrite {
+        internal static string MsgBox_ConfirmFileOverwrite {
             get {
                 return ResourceManager.GetString("MsgBox_ConfirmFileOverwrite", resourceCulture);
             }
@@ -1088,7 +1088,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to ADO.NET Entity Data Model Designer.
         /// </summary>
-        public static string MsgBox_Title {
+        internal static string MsgBox_Title {
             get {
                 return ResourceManager.GetString("MsgBox_Title", resourceCulture);
             }
@@ -1097,7 +1097,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap NavigationProperty {
+        internal static System.Drawing.Bitmap NavigationProperty {
             get {
                 object obj = ResourceManager.GetObject("NavigationProperty", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -1107,7 +1107,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap Property {
+        internal static System.Drawing.Bitmap Property {
             get {
                 object obj = ResourceManager.GetObject("Property", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -1117,7 +1117,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap PropertyPK {
+        internal static System.Drawing.Bitmap PropertyPK {
             get {
                 object obj = ResourceManager.GetObject("PropertyPK", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -1127,7 +1127,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Retarget XML namespaces to be consistent with the Entity Framework schema version..
         /// </summary>
-        public static string RetargetDocumentFromWatermarkTransactionName {
+        internal static string RetargetDocumentFromWatermarkTransactionName {
             get {
                 return ResourceManager.GetString("RetargetDocumentFromWatermarkTransactionName", resourceCulture);
             }
@@ -1136,7 +1136,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Source: {0} ({1})\nTarget: {2} ({3}).
         /// </summary>
-        public static string Tooltip_AssociationConnector {
+        internal static string Tooltip_AssociationConnector {
             get {
                 return ResourceManager.GetString("Tooltip_AssociationConnector", resourceCulture);
             }
@@ -1145,7 +1145,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Add Association.
         /// </summary>
-        public static string Tx_AddAssociation {
+        internal static string Tx_AddAssociation {
             get {
                 return ResourceManager.GetString("Tx_AddAssociation", resourceCulture);
             }
@@ -1154,7 +1154,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Add EntityType.
         /// </summary>
-        public static string Tx_AddEntityType {
+        internal static string Tx_AddEntityType {
             get {
                 return ResourceManager.GetString("Tx_AddEntityType", resourceCulture);
             }
@@ -1163,7 +1163,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Add Inheritance.
         /// </summary>
-        public static string Tx_AddInheritance {
+        internal static string Tx_AddInheritance {
             get {
                 return ResourceManager.GetString("Tx_AddInheritance", resourceCulture);
             }
@@ -1172,7 +1172,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Add Scalar Property.
         /// </summary>
-        public static string Tx_AddScalarProperty {
+        internal static string Tx_AddScalarProperty {
             get {
                 return ResourceManager.GetString("Tx_AddScalarProperty", resourceCulture);
             }
@@ -1181,7 +1181,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Create Diagram.
         /// </summary>
-        public static string Tx_CreateDiagram {
+        internal static string Tx_CreateDiagram {
             get {
                 return ResourceManager.GetString("Tx_CreateDiagram", resourceCulture);
             }
@@ -1190,7 +1190,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Add FunctionImport.
         /// </summary>
-        public static string Tx_CreateFunctionImport {
+        internal static string Tx_CreateFunctionImport {
             get {
                 return ResourceManager.GetString("Tx_CreateFunctionImport", resourceCulture);
             }
@@ -1199,7 +1199,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Drop Items.
         /// </summary>
-        public static string Tx_DropItems {
+        internal static string Tx_DropItems {
             get {
                 return ResourceManager.GetString("Tx_DropItems", resourceCulture);
             }
@@ -1208,7 +1208,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Layout diagram.
         /// </summary>
-        public static string Tx_LayoutDiagram {
+        internal static string Tx_LayoutDiagram {
             get {
                 return ResourceManager.GetString("Tx_LayoutDiagram", resourceCulture);
             }
@@ -1217,7 +1217,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Paste Entity.
         /// </summary>
-        public static string Tx_PasteEntity {
+        internal static string Tx_PasteEntity {
             get {
                 return ResourceManager.GetString("Tx_PasteEntity", resourceCulture);
             }
@@ -1226,7 +1226,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Paste Scalar Property.
         /// </summary>
-        public static string Tx_PasteScalarProperty {
+        internal static string Tx_PasteScalarProperty {
             get {
                 return ResourceManager.GetString("Tx_PasteScalarProperty", resourceCulture);
             }
@@ -1235,7 +1235,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Expand or Collapse Shape(s).
         /// </summary>
-        public static string Tx_SetEntityTypeIsExpandedProperty {
+        internal static string Tx_SetEntityTypeIsExpandedProperty {
             get {
                 return ResourceManager.GetString("Tx_SetEntityTypeIsExpandedProperty", resourceCulture);
             }
@@ -1244,7 +1244,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Set Grid Visibility.
         /// </summary>
-        public static string Tx_SetGridVisibility {
+        internal static string Tx_SetGridVisibility {
             get {
                 return ResourceManager.GetString("Tx_SetGridVisibility", resourceCulture);
             }
@@ -1253,7 +1253,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Set Member Format Value.
         /// </summary>
-        public static string Tx_SetMemberFormatValue {
+        internal static string Tx_SetMemberFormatValue {
             get {
                 return ResourceManager.GetString("Tx_SetMemberFormatValue", resourceCulture);
             }
@@ -1262,7 +1262,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Set Snap To Grid.
         /// </summary>
-        public static string Tx_SetSnapToGrid {
+        internal static string Tx_SetSnapToGrid {
             get {
                 return ResourceManager.GetString("Tx_SetSnapToGrid", resourceCulture);
             }
@@ -1271,7 +1271,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Set Zoom.
         /// </summary>
-        public static string Tx_SetZoom {
+        internal static string Tx_SetZoom {
             get {
                 return ResourceManager.GetString("Tx_SetZoom", resourceCulture);
             }
@@ -1280,7 +1280,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Inheritance relationship not changed..
         /// </summary>
-        public static string UserCancel_ChangeInheritance {
+        internal static string UserCancel_ChangeInheritance {
             get {
                 return ResourceManager.GetString("UserCancel_ChangeInheritance", resourceCulture);
             }
@@ -1289,7 +1289,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Inheritance relationship not created..
         /// </summary>
-        public static string UserCancel_NewInheritance {
+        internal static string UserCancel_NewInheritance {
             get {
                 return ResourceManager.GetString("UserCancel_NewInheritance", resourceCulture);
             }
@@ -1298,7 +1298,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to AssociationSet &apos;{0}&apos; does not reference an association. .
         /// </summary>
-        public static string Warning_AssociationSetMissingAssociation {
+        internal static string Warning_AssociationSetMissingAssociation {
             get {
                 return ResourceManager.GetString("Warning_AssociationSetMissingAssociation", resourceCulture);
             }
@@ -1307,7 +1307,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to AssociationSet &apos;{0}&apos; is missing an End1 EntitySet..
         /// </summary>
-        public static string Warning_AssociationSetMissingEnd1EntitySet {
+        internal static string Warning_AssociationSetMissingEnd1EntitySet {
             get {
                 return ResourceManager.GetString("Warning_AssociationSetMissingEnd1EntitySet", resourceCulture);
             }
@@ -1316,7 +1316,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to AssociationSet &apos;{0}&apos; is missing an End2 EntitySet..
         /// </summary>
-        public static string Warning_AssociationSetMissingEnd2EntitySet {
+        internal static string Warning_AssociationSetMissingEnd2EntitySet {
             get {
                 return ResourceManager.GetString("Warning_AssociationSetMissingEnd2EntitySet", resourceCulture);
             }
@@ -1325,7 +1325,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to EntityType &apos;{0}&apos; does not have any keys. Please specify a key or inherit from an entity that defines a key..
         /// </summary>
-        public static string Warning_EntityHasNoKeys {
+        internal static string Warning_EntityHasNoKeys {
             get {
                 return ResourceManager.GetString("Warning_EntityHasNoKeys", resourceCulture);
             }
@@ -1334,7 +1334,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to EntityType &apos;{0}&apos; found in multiple EntitySets: &apos;{1}&apos;..
         /// </summary>
-        public static string Warning_EntityInMultipleEntitySets {
+        internal static string Warning_EntityInMultipleEntitySets {
             get {
                 return ResourceManager.GetString("Warning_EntityInMultipleEntitySets", resourceCulture);
             }
@@ -1343,7 +1343,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to EntitySet &apos;{0}&apos; does not reference an EntityType..
         /// </summary>
-        public static string Warning_EntitySetEntityMissing {
+        internal static string Warning_EntitySetEntityMissing {
             get {
                 return ResourceManager.GetString("Warning_EntitySetEntityMissing", resourceCulture);
             }
@@ -1352,7 +1352,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Properties {
         /// <summary>
         ///   Looks up a localized string similar to No model alias specified..
         /// </summary>
-        public static string Warning_ModelAliasEmpty {
+        internal static string Warning_ModelAliasEmpty {
             get {
                 return ResourceManager.GetString("Warning_ModelAliasEmpty", resourceCulture);
             }

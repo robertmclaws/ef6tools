@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to create a ScalarProperty that lives in a ModificationFunction.  This is different
     ///     than those ScalarProperties that can be added to an EndProperty or MappingFragment.
@@ -108,8 +108,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         protected override void ProcessPreReqCommands()
         {
-            var prereq = GetPreReqCommand(CreateFunctionComplexPropertyCommand.PrereqId) as CreateFunctionComplexPropertyCommand;
-            if (prereq != null)
+            if (GetPreReqCommand(CreateFunctionComplexPropertyCommand.PrereqId) is CreateFunctionComplexPropertyCommand prereq)
             {
                 _parentComplexProperty = prereq.FunctionComplexProperty;
                 CommandValidation.ValidateFunctionComplexProperty(_parentComplexProperty);
@@ -117,8 +116,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "parm")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit
@@ -197,7 +194,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                        + _sp.ParameterName.RefName + ")"));
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static FunctionScalarProperty CreateFunctionScalarPropertyInAssociationEnd(
             ModificationFunction mf, Property entityProperty, NavigationProperty pointingNavProperty, Parameter parm, string version)
         {
@@ -285,30 +281,25 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             return CreateFunctionScalarPropertyCommon(fae, entityProperty, parm, version);
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static FunctionScalarProperty CreateFunctionScalarPropertyCommon(
             EFElement parent, Property property, Parameter parm, string version)
         {
-            var fsp = new FunctionScalarProperty(parent, null);
+            FunctionScalarProperty fsp = new FunctionScalarProperty(parent, null);
             fsp.Name.SetRefName(property);
             fsp.ParameterName.SetRefName(parm);
             if (string.IsNullOrEmpty(version) == false)
             {
                 fsp.Version.Value = version;
             }
-
-            var mf = parent as ModificationFunction;
-            var fae = parent as FunctionAssociationEnd;
-            var fcp = parent as FunctionComplexProperty;
-            if (mf != null)
+            if (parent is ModificationFunction mf)
             {
                 mf.AddScalarProperty(fsp);
             }
-            else if (fae != null)
+            else if (parent is FunctionAssociationEnd fae)
             {
                 fae.AddScalarProperty(fsp);
             }
-            else if (fcp != null)
+            else if (parent is FunctionComplexProperty fcp)
             {
                 fcp.AddScalarProperty(fsp);
             }

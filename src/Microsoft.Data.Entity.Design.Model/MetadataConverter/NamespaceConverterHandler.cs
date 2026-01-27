@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Xml;
+using System.Xml.Xsl;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Xml;
-    using System.Xml.Xsl;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal sealed class NamespaceConverterHandler : MetadataConverterHandler
     {
         private readonly XslCompiledTransform _xsltTransform;
@@ -50,7 +50,6 @@ namespace Microsoft.Data.Entity.Design.Model
                  </xsl:template>
              </xsl:stylesheet>";
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal NamespaceConverterHandler(Version sourceSchemaVersion, Version targetSchemaVersion)
         {
             var template = String.Format(
@@ -62,7 +61,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
             _xsltTransform = new XslCompiledTransform();
 
-            using (var reader = XmlReader.Create(new StringReader(template)))
+            using (XmlReader reader = XmlReader.Create(new StringReader(template)))
             {
                 _xsltTransform.Load(reader);
             }
@@ -71,20 +70,19 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <summary>
         ///     Change csdl, ssdl, msl and EDMX namespaces
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         protected override XmlDocument DoHandleConversion(XmlDocument doc)
         {
-            using (var memoryStream = new MemoryStream())
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                using (var xmlWriter = XmlWriter.Create(memoryStream, _xsltTransform.OutputSettings))
+                using (XmlWriter xmlWriter = XmlWriter.Create(memoryStream, _xsltTransform.OutputSettings))
                 {
                     _xsltTransform.Transform(doc.CreateNavigator(), null, xmlWriter);
                 }
 
                 memoryStream.Position = 0;
-                using (var reader = XmlReader.Create(memoryStream))
+                using (XmlReader reader = XmlReader.Create(memoryStream))
                 {
-                    var resultDocument = new XmlDocument { PreserveWhitespace = true };
+                    XmlDocument resultDocument = new XmlDocument { PreserveWhitespace = true };
                     resultDocument.Load(reader);
                     return resultDocument;
                 }

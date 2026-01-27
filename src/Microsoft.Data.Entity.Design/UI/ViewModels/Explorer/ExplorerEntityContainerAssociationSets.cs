@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     Dummy element which contains the AssociationSets inside the EntityContainer
     // </summary>
@@ -36,8 +36,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             // load children from model
             // note: have to go to parent to get this as this is a dummy node
-            var container = Parent.ModelItem as BaseEntityContainer;
-            if (container != null)
+            if (Parent.ModelItem is BaseEntityContainer container)
             {
                 foreach (var child in container.AssociationSets())
                 {
@@ -64,8 +63,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var assocSet = efElementToInsert as AssociationSet;
-            if (assocSet != null)
+            if (efElementToInsert is AssociationSet assocSet)
             {
                 var explorerAssocSet = AddAssociationSet(assocSet);
                 var index = _associationSets.IndexOf(explorerAssocSet);
@@ -79,8 +77,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerAssocSet = efElementToRemove as ExplorerAssociationSet;
-            if (explorerAssocSet == null)
+            if (efElementToRemove is not ExplorerAssociationSet explorerAssocSet)
             {
                 Debug.Fail(
                     string.Format(
@@ -95,7 +92,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         private ExplorerAssociationSet AddAssociationSet(AssociationSet entityType)
         {
-            var explorerAssocSet =
+            ExplorerAssociationSet explorerAssocSet =
                 ModelToExplorerModelXRef.GetNew(_context, entityType, this, typeof(ExplorerAssociationSet)) as ExplorerAssociationSet;
             _associationSets.Insert(explorerAssocSet);
             return explorerAssocSet;

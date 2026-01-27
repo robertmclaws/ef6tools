@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Controls
 {
-    using System.Windows.Forms;
-
     // <summary>
     //     This class overrides the default behavior of the Up and Down arrow (cursor) keys on a radio button to call an event handler. This
     //     allows users of this control to react to those events themselves to override the default focusing behavior which would otherwise be taken.

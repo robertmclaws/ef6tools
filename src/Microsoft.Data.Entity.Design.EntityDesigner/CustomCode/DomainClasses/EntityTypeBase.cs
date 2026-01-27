@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using DslResources = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Entity;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     abstract partial class EntityTypeBase
     {
         public string EntitySetName
@@ -18,8 +16,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             {
                 if (EntityDesignerViewModel != null)
                 {
-                    var modelEntityType = EntityDesignerViewModel.ModelXRef.GetExisting(this) as Model.Entity.EntityType;
-                    if (modelEntityType != null)
+                    if (EntityDesignerViewModel.ModelXRef.GetExisting(this) is Model.Entity.EntityType modelEntityType)
                     {
                         var entitySet = modelEntityType.EntitySet;
                         if (entitySet != null)
@@ -44,8 +41,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 
             // We need to look at the model to get the base-type name; the view-model might not have it.
             // In multiple diagram scenario, the base entity-type might not exist in the current diagram.
-            var modelEntityType = modelXRef.GetExisting(this) as ConceptualEntityType;
-            if (modelEntityType != null
+            if (modelXRef.GetExisting(this) is ConceptualEntityType modelEntityType
                 && modelEntityType.BaseType != null
                 && modelEntityType.BaseType.Target != null)
             {
@@ -70,7 +66,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 
             try
             {
-                var keyList = new List<String>();
+                List<string> keyList = new List<String>();
                 foreach (var property in GetKeyProperties())
                 {
                     keyList.Add(property.Name);
@@ -103,7 +99,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                         Name, circularPath));
             }
 
-            var keyProperties = new List<Property>();
+            List<Property> keyProperties = new List<Property>();
             if (BaseType != null)
             {
                 keyProperties.AddRange(BaseType.GetKeyProperties());
@@ -121,11 +117,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         /// <returns></returns>
         internal List<Property> GetLocalKeyProperties()
         {
-            var keyProperties = new List<Property>();
+            List<Property> keyProperties = new List<Property>();
             foreach (var property in Properties)
             {
-                var scalarProperty = property as ScalarProperty;
-                if (scalarProperty != null
+                if (property is ScalarProperty scalarProperty
                     && scalarProperty.EntityKey)
                 {
                     keyProperties.Add(property);
@@ -143,8 +138,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         {
             var hasCircularInheritance = false;
 
-            var visited = new Dictionary<EntityTypeBase, int>();
-            visited.Add(this, 0);
+            Dictionary<EntityTypeBase, int> visited = new Dictionary<EntityTypeBase, int>
+            {
+                { this, 0 }
+            };
 
             var circularPath = Name;
             circularPathFound = circularPath;
@@ -184,7 +181,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             }
             else
             {
-                names = new List<string>();
+                names = [];
             }
 
             foreach (var property in Properties)

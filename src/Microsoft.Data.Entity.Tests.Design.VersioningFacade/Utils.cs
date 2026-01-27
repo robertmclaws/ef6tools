@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.IO;
+using System.Xml;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Moq;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.IO;
-    using System.Reflection;
-    using System.Xml;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Moq;
-
     internal class Utils
     {
         private static DbProviderServices _sqlProviderServices;
@@ -26,10 +25,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade
         {
             get
             {
-                if (_sqlProviderServices == null)
-                {
-                    _sqlProviderServices = DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient");
-                }
+                _sqlProviderServices ??= DependencyResolver.GetService<DbProviderServices>("System.Data.SqlClient");
                 return _sqlProviderServices;
             }
         }
@@ -52,19 +48,18 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade
 
         public static StoreItemCollection CreateStoreItemCollection(string ssdl)
         {
-            var mockResolver = new Mock<IDbDependencyResolver>();
+            Mock<IDbDependencyResolver> mockResolver = new Mock<IDbDependencyResolver>();
             mockResolver.Setup(
                 r => r.GetService(
                     It.Is<Type>(t => t == typeof(DbProviderServices)),
                     It.IsAny<string>())).Returns(SqlProviderServicesInstance);
 
-            IList<EdmSchemaError> errors;
 
             return StoreItemCollection.Create(
                 new[] { XmlReader.Create(new StringReader(ssdl)) },
                 null,
                 mockResolver.Object,
-                out errors);
+                out IList<EdmSchemaError> errors);
         }
     }
 }

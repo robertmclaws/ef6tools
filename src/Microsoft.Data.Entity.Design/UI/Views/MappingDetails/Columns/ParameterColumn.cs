@@ -1,19 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
-    using System.Diagnostics.CodeAnalysis;
-
     // <summary>
     //     Based on the type of item being shown, show the correct text for the Column Name column.
     // </summary>
@@ -26,8 +27,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         public override object /* PropertyDescriptor */ GetValue(object component)
         {
-            var elem = component as MappingEFElement;
-            if (elem != null)
+            if (component is MappingEFElement elem)
             {
                 EnsureTypeConverters(elem);
                 return new MappingLovEFElement(elem, elem.Name);
@@ -52,7 +52,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 ||
                 component is MappingModificationFunctionMapping)
             {
-                var mappingElement = component as MappingEFElement;
+                MappingEFElement mappingElement = component as MappingEFElement;
 
                 Debug.Assert(mappingElement != null, "The component should be a MappingEFElement");
                 if (mappingElement.ModelItem != null)
@@ -65,7 +65,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         // This method receives changes as MappingLovElements (user used the mouse)
         // or as strings (user used the keyboard)
-        [SuppressMessage("Microsoft.Performance", "CA1820:TestForEmptyStringsUsingStringLength", Justification = "We already test for null earlier, here we want to just test against the empty string. Testing length would require that the string exists which is often not the case.")]
         public override void /* PropertyDescriptor */ SetValue(object component, object value)
         {
             // the user clicked off of the drop-down without choosing a value
@@ -83,7 +82,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
             // see if the incoming value is a string
             var valueAsString = value as string;
-            var lovElement = value as MappingLovEFElement;
+            MappingLovEFElement lovElement = value as MappingLovEFElement;
             if (lovElement == null
                 && valueAsString == null)
             {
@@ -92,8 +91,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var mrb = component as MappingResultBinding;
-            if (mrb != null)
+            if (component is MappingResultBinding mrb)
             {
                 if (mrb.ModelItem != null)
                 {
@@ -137,8 +135,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var mfm = component as MappingModificationFunctionMapping;
-            if (mfm != null)
+            if (component is MappingModificationFunctionMapping mfm)
             {
                 // if value is a string then we've called SetValue after an edit using keyboard
                 // so lookup correct MappingLovElement and use that going forward
@@ -160,7 +157,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 }
                 else
                 {
-                    var func = lovElement.ModelElement as Function;
+                    Function func = lovElement.ModelElement as Function;
                     Debug.Assert(
                         func != null,
                         "component is a MappingModificationFunctionMapping but value.ModelElement is of type " + value.GetType().FullName);
@@ -170,7 +167,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                         if (mfm.ModelItem != null)
                         {
                             // they switched to a different one so delete the old underlying model item and then create a new one
-                            var cpc = new CommandProcessorContext(
+                            CommandProcessorContext cpc = new CommandProcessorContext(
                                 Host.Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_UpdateMappingFragment);
                             mfm.SwitchModelItem(cpc, Host.Context, func, true);
                         }
@@ -227,8 +224,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
             // is in place when a drop-down is navigated to using the keyboard
             EnsureTypeConverters(component as MappingEFElement);
 
-            var mrb = component as MappingResultBinding;
-            if (mrb != null)
+            if (component is MappingResultBinding mrb)
             {
                 if (mrb.ResultBinding == null)
                 {
@@ -244,9 +240,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         internal override bool AllowKeyDownProcessing(KeyEventArgs e, object component)
         {
-            var mrb = component as MappingResultBinding;
             // if the in place edit is a regular text box and Delete key is pressed, we should disallow special key processing.
-            if (mrb != null
+            if (component is MappingResultBinding mrb
                 && e.KeyCode == Keys.Delete)
             {
                 return false;

@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Security;
+using System.Xml;
+using System.Xml.Schema;
+
 namespace Microsoft.Data.Entity.Design.Model.Validation
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Security;
-    using System.Xml;
-    using System.Xml.Schema;
-
     /// <summary>
     ///     This class can be used to validate attribute content specific *before* updating an xml document, and without revalidating the entire document.
     ///     There is a *major* assumption in this class, namely that an XmlSchemaType for an attribute can be determined deterministically from a series of element names,
@@ -90,18 +90,17 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         }
 
         // returns true if the given string is valid for the SchemaSet associated with this instance
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected bool IsValidXmlDocument(string documentText)
         {
             var failed = false;
-            var svec = new SchemaValidationErrorCollector();
+            SchemaValidationErrorCollector svec = new SchemaValidationErrorCollector();
             try
             {
-                var settings = new XmlReaderSettings { Schemas = SchemaSet, ValidationType = ValidationType.Schema };
+                XmlReaderSettings settings = new XmlReaderSettings { Schemas = SchemaSet, ValidationType = ValidationType.Schema };
                 settings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
                 settings.ValidationEventHandler += svec.ValidationCallBack;
 
-                using (var reader = XmlReader.Create(new StringReader(documentText), settings))
+                using (XmlReader reader = XmlReader.Create(new StringReader(documentText), settings))
                 {
                     while (reader.Read())
                     {
@@ -137,9 +136,8 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             // prime the pump.  The first node on the stack should be a global element.
             var curr = attributePathCopy.PopFront();
-            var schemaElement = GetXmlSchemaObject(SchemaSet.GlobalElements, curr.qname) as XmlSchemaElement;
 
-            if (schemaElement == null)
+            if (GetXmlSchemaObject(SchemaSet.GlobalElements, curr.qname) is not XmlSchemaElement schemaElement)
             {
                 Debug.Fail("Unable to find Global Schema Element " + curr.qname);
                 return null;
@@ -157,8 +155,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
             {
                 curr = attributePathCopy.PopFront();
 
-                var xsct = schemaType as XmlSchemaComplexType;
-                if (xsct != null)
+                if (schemaType is XmlSchemaComplexType xsct)
                 {
                     if (curr.type == AttributePath.QNameNodeTypePair.NodeType.Element)
                     {
@@ -168,11 +165,8 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                         {
                             xe = GetXmlSchemaElementFromParticle(xsct.Particle, curr.qname);
 
-                            if (xe == null)
-                            {
-                                // check the content type particle
-                                xe = GetXmlSchemaElementFromParticle(xsct.ContentTypeParticle, curr.qname);
-                            }
+                            // check the content type particle
+                            xe ??= GetXmlSchemaElementFromParticle(xsct.ContentTypeParticle, curr.qname);
 
                             if (xe == null)
                             {
@@ -195,13 +189,10 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                     {
                         // we need to find an attribute
                         // see if it is a global attribute first
-                        var xa = GetXmlSchemaObject(SchemaSet.GlobalAttributes, curr.qname) as XmlSchemaAttribute;
+                        XmlSchemaAttribute xa = GetXmlSchemaObject(SchemaSet.GlobalAttributes, curr.qname) as XmlSchemaAttribute;
 
                         // if that doesn't work try to see whether it's an attribute on the XmlSchemaComplexType xsct
-                        if (xa == null)
-                        {
-                            xa = GetXmlSchemaAttributeFromXmlSchemaGroupBase(xsct, curr.qname);
-                        }
+                        xa ??= GetXmlSchemaAttributeFromXmlSchemaGroupBase(xsct, curr.qname);
 
                         if (xa == null)
                         {
@@ -234,13 +225,11 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         private XmlSchemaElement GetXmlSchemaElementFromParticle(XmlSchemaParticle particle, XmlQualifiedName qname)
         {
             XmlSchemaElement xe = null;
-            var xsgb = particle as XmlSchemaGroupBase;
-            var xsgr = particle as XmlSchemaGroupRef;
-            if (xsgb != null)
+            if (particle is XmlSchemaGroupBase xsgb)
             {
                 xe = GetXmlElementFromXmlSchemaGroupBase(xsgb, qname);
             }
-            else if (xsgr != null)
+            else if (particle is XmlSchemaGroupRef xsgr)
             {
                 xe = GetXmlElementFromXmlSchemaGroupBase(xsgr.Particle, qname);
             }
@@ -319,8 +308,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
             {
                 if (xsct.ContentModel != null)
                 {
-                    var complexContentExtension = xsct.ContentModel.Content as XmlSchemaComplexContentExtension;
-                    if (complexContentExtension != null)
+                    if (xsct.ContentModel.Content is XmlSchemaComplexContentExtension complexContentExtension)
                     {
                         attr = GetXmlSchemaAttributeFromAttributeCollection(complexContentExtension.Attributes, qname);
                     }
@@ -329,8 +317,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             if (attr == null)
             {
-                var baseXsct = xsct.BaseXmlSchemaType as XmlSchemaComplexType;
-                if (baseXsct != null)
+                if (xsct.BaseXmlSchemaType is XmlSchemaComplexType baseXsct)
                 {
                     attr = GetXmlSchemaAttributeFromXmlSchemaGroupBase(baseXsct, qname);
                 }
@@ -361,9 +348,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             foreach (var xo in attributes)
             {
-                var xsagr = xo as XmlSchemaAttributeGroupRef;
-                var xa = xo as XmlSchemaAttribute;
-                if (xsagr != null)
+                if (xo is XmlSchemaAttributeGroupRef xsagr)
                 {
                     var xsag = GetXmlSchemaAttributeGroupFromAttributeGroupRef(xsagr);
 
@@ -374,7 +359,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
                     xmlSchemaAttribute = GetXmlSchemaAttributeFromAttributeCollection(xsag.Attributes, qname);
                 }
-                else if (xa != null)
+                else if (xo is XmlSchemaAttribute xa)
                 {
                     if (xa.QualifiedName.Equals(qname))
                     {
@@ -428,22 +413,20 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         /// <summary>
         ///     Returns the XmlSchemaElement named by the given qname from the specified XmlSchemaGroupBase
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         private XmlSchemaElement GetXmlElementFromXmlSchemaGroupBase(XmlSchemaGroupBase xsgb, XmlQualifiedName curr)
         {
             XmlSchemaElement schemaElement = null;
 
             foreach (var xso in xsgb.Items)
             {
-                var xsgr = xso as XmlSchemaGroupRef;
-                if (xsgr != null)
+                if (xso is XmlSchemaGroupRef xsgr)
                 {
                     schemaElement = GetXmlElementFromXmlSchemaGroupBase(xsgr.Particle, curr);
                 }
                 else if (xso is XmlSchemaElement)
                 {
 
-                    var xse = xso as XmlSchemaElement;
+                    XmlSchemaElement xse = xso as XmlSchemaElement;
                     if (xse.QualifiedName.Equals(curr))
                     {
                         schemaElement = xse;
@@ -451,7 +434,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                 }
                 else if (xso is XmlSchemaChoice)
                 {
-                    var xsc = xso as XmlSchemaChoice;
+                    XmlSchemaChoice xsc = xso as XmlSchemaChoice;
                     schemaElement = GetXmlSchemaElement(xsc.Items, curr);
                 }
                 else if (xso is XmlSchemaAny)
@@ -460,7 +443,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                 }
                 else if (xso is XmlSchemaSequence)
                 {
-                    var xss = xso as XmlSchemaSequence;
+                    XmlSchemaSequence xss = xso as XmlSchemaSequence;
                     schemaElement = GetXmlSchemaElement(xss.Items, curr);
                 }
                 else
@@ -484,10 +467,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         private XmlSchemaType GetXmlSchemaTypeFromXmlSchemaElement(XmlSchemaElement schemaElement)
         {
             var schemaType = schemaElement.SchemaType;
-            if (schemaType == null)
-            {
-                schemaType = GetXmlSchemaObject(SchemaSet.GlobalTypes, schemaElement.SchemaTypeName) as XmlSchemaType;
-            }
+            schemaType ??= GetXmlSchemaObject(SchemaSet.GlobalTypes, schemaElement.SchemaTypeName) as XmlSchemaType;
 
             if (schemaType == null)
             {
@@ -497,10 +477,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                     schemaElement = SchemaSet.GlobalElements[schemaElement.QualifiedName] as XmlSchemaElement;
                     schemaType = schemaElement.SchemaType;
                 }
-                if (schemaType == null)
-                {
-                    schemaType = GetXmlSchemaObject(SchemaSet.GlobalTypes, schemaElement.SchemaTypeName) as XmlSchemaType;
-                }
+                schemaType ??= GetXmlSchemaObject(SchemaSet.GlobalTypes, schemaElement.SchemaTypeName) as XmlSchemaType;
             }
 
             Debug.Assert(schemaType != null, "Unable to find schema type " + schemaElement.SchemaTypeName + " in schemaSet's GlobalTypes");
@@ -535,16 +512,14 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
             XmlSchemaElement xeelement = null;
             foreach (var xo in schemaObjects)
             {
-                var xe = xo as XmlSchemaElement;
-                var xs = xo as XmlSchemaSequence;
-                if (xe != null)
+                if (xo is XmlSchemaElement xe)
                 {
                     if (xe.QualifiedName.Equals(qname))
                     {
                         xeelement = xe;
                     }
                 }
-                else if (xs != null)
+                else if (xo is XmlSchemaSequence xs)
                 {
                     xeelement = GetXmlSchemaElement(xs.Items, qname);
                 }
@@ -588,7 +563,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             internal AttributePath Clone()
             {
-                var clone = new AttributePath();
+                AttributePath clone = new AttributePath();
                 var array = _stack.ToArray();
                 for (var i = array.Length - 1; i > -1; i--)
                 {

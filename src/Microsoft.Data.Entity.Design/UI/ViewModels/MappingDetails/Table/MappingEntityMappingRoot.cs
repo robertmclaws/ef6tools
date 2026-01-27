@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 {
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-
     internal class MappingEntityMappingRoot : MappingEFElement
     {
         public MappingEntityMappingRoot(EditingContext context, EFElement modelItem, MappingEFElement parent)

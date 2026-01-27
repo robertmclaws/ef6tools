@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     This class provides the view level information for a condition in a mapping fragment.
     // </summary>
@@ -73,7 +73,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                         //
                         EntityType table = MappingStorageEntityType.StorageEntityType;
 
-                        var tableColumn = table.GetFirstNamedChildByLocalName(_modelItemColumnName) as Property;
+                        Property tableColumn = table.GetFirstNamedChildByLocalName(_modelItemColumnName) as Property;
                         Debug.Assert(tableColumn != null, "Failed looking up table column for Condition.");
 
                         if (tableColumn != null)
@@ -96,7 +96,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                     }
                 }
 
-                var cond = ModelItem as Condition;
+                Condition cond = ModelItem as Condition;
                 if (cond != null)
                 {
                     Debug.Assert(cond.ColumnName.Status == BindingStatus.Known, "Why are we mapping an unresolved condition?");
@@ -169,13 +169,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                     // is it different than what we have already?
                     if (string.CompareOrdinal(ColumnName, newColumnName) != 0)
                     {
-                        var tableColumn =
+                        Property tableColumn =
                             MappingStorageEntityType.StorageEntityType.GetFirstNamedChildByLocalName(newColumnName) as Property;
                         Debug.Assert(tableColumn != null, "tableColumn should not be null");
 
-                        var cpc = new CommandProcessorContext(
+                        CommandProcessorContext cpc = new CommandProcessorContext(
                             Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeConditionColumn);
-                        var cmd = new ChangeConditionColumnCommand(Condition, tableColumn);
+                        ChangeConditionColumnCommand cmd = new ChangeConditionColumnCommand(Condition, tableColumn);
                         CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     }
                 }
@@ -237,9 +237,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                             conditionValue = String.Empty;
                         }
 
-                        var cpc = new CommandProcessorContext(
+                        CommandProcessorContext cpc = new CommandProcessorContext(
                             Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeConditionValue);
-                        var cmd = new ChangeConditionPredicateCommand(Condition, isNull, conditionValue);
+                        ChangeConditionPredicateCommand cmd = new ChangeConditionPredicateCommand(Condition, isNull, conditionValue);
                         CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     }
                 }
@@ -336,9 +336,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                             conditionValue = newValue;
                         }
 
-                        var cpc = new CommandProcessorContext(
+                        CommandProcessorContext cpc = new CommandProcessorContext(
                             Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeConditionValue);
-                        var cmd = new ChangeConditionPredicateCommand(Condition, isNull, conditionValue);
+                        ChangeConditionPredicateCommand cmd = new ChangeConditionPredicateCommand(Condition, isNull, conditionValue);
                         CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     }
                 }
@@ -353,11 +353,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 
         internal override Dictionary<MappingLovEFElement, string> GetListOfValues(ListOfValuesCollection type)
         {
-            var lov = new Dictionary<MappingLovEFElement, string>();
+            Dictionary<MappingLovEFElement, string> lov = new Dictionary<MappingLovEFElement, string>();
 
             if (type == ListOfValuesCollection.FirstColumn)
             {
-                var properties = new List<Property>();
+                List<Property> properties = new List<Property>();
 
                 // fill our list initially with all columns
                 properties.AddRange(MappingStorageEntityType.StorageEntityType.Properties());
@@ -366,7 +366,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                 // because it is useful in a TPH scenario to have the property mapped as well as used in a condition
                 foreach (var child in MappingStorageEntityType.Children)
                 {
-                    var mc = child as MappingCondition;
+                    MappingCondition mc = child as MappingCondition;
                     Debug.Assert(mc != null, "expected child to be of type MappingCondition, instead got type " + child.GetType().FullName);
                     if (mc.Condition != null
                         &&
@@ -429,7 +429,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             Debug.Assert(MappingStorageEntityType.StorageEntityType != null, "The parent item isn't set up correctly");
             Debug.Assert(underlyingModelItem != null, "underlyingModelItem must not be null");
 
-            var tableColumn = underlyingModelItem as Property;
+            Property tableColumn = underlyingModelItem as Property;
             Debug.Assert(
                 tableColumn != null, "underlyingModelItem must be of type Property, actual type = " + underlyingModelItem.GetType().FullName);
 
@@ -442,14 +442,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             EntityType entityType = MappingConceptualEntityType.ConceptualEntityType;
 
             // create a context if we weren't passed one
-            if (cpc == null)
-            {
-                cpc = new CommandProcessorContext(
+            cpc ??= new CommandProcessorContext(
                     Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_CreateCondition);
-            }
 
             // use empty string as a default condition value
-            var cmd = new CreateFragmentConditionCommand(entityType, tableColumn, null, String.Empty);
+            CreateFragmentConditionCommand cmd = new CreateFragmentConditionCommand(entityType, tableColumn, null, String.Empty);
 
             // set up our post event to fix up the view model
             cmd.PostInvokeEvent += (o, eventsArgs) =>
@@ -465,7 +462,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             try
             {
                 // now make the change
-                var cp = new CommandProcessor(cpc, cmd);
+                CommandProcessor cp = new CommandProcessor(cpc, cmd);
                 cp.Invoke();
             }
             catch
@@ -487,11 +484,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             if (IsModelItemDeleted() == false)
             {
                 // create a context if we weren't passed one
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_DeleteCondition);
-                }
 
                 // use the item's delete command
                 var deleteCommand = Condition.GetDeleteCommand();

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>

@@ -1,19 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using EnvDTE;
-
     internal class ModelTransformContextImpl : ModelTransformExtensionContext, IDisposable
     {
         private readonly ProjectItem _projectItem;
         private XDocument _original;
         private XDocument _current;
-        private readonly List<ExtensionError> _errors = new List<ExtensionError>();
+        private readonly List<ExtensionError> _errors = [];
         private readonly Version _targetSchemaVersion;
         private bool _isDisposed;
 
@@ -100,28 +101,19 @@ namespace Microsoft.Data.Entity.Design.Extensibility
         {
             get
             {
-                if (_beforeEvent == null)
-                {
-                    _beforeEvent = OnBeforeChange;
-                }
+                _beforeEvent ??= OnBeforeChange;
                 return _beforeEvent;
             }
         }
 
         private void AddEventHandler()
         {
-            if (_original != null)
-            {
-                _original.Changing += BeforeEventHandler;
-            }
+            _original?.Changing += BeforeEventHandler;
         }
 
         private void RemoveEventHandler()
         {
-            if (_original != null)
-            {
-                _original.Changing -= BeforeEventHandler;
-            }
+            _original?.Changing -= BeforeEventHandler;
         }
 
         private void OnBeforeChange(object sender, XObjectChangeEventArgs e)

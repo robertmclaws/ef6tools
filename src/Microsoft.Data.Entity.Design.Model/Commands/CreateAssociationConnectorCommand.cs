@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateAssociationConnectorCommand : Command
     {
         private readonly Diagram _diagram;
@@ -22,10 +22,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _association = association;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
-            var associationConnector = new AssociationConnector(_diagram, null);
+            AssociationConnector associationConnector = new AssociationConnector(_diagram, null);
             _diagram.AddAssociationConnector(associationConnector);
 
             associationConnector.Association.SetRefName(_association);

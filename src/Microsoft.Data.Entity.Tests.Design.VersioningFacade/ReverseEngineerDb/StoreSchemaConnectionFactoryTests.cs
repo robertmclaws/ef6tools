@@ -1,23 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using SystemDataCommon = System.Data.Common;
+using System;
+using System.Data.Entity.Core;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.IO;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using System.Security;
+using System.Xml;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Moq;
+using Moq.Protected;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Data.Entity.Core;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.IO;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using System.Security;
-    using System.Xml;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Moq;
-    using Moq.Protected;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class StoreSchemaConnectionFactoryTests
     {
@@ -34,7 +33,6 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 
             foreach (var targetEFVersion in EntityFrameworkVersion.GetAllVersions())
             {
-                Version actualEFVersion;
 
                 var entityConnection =
                     new StoreSchemaConnectionFactory().Create(
@@ -42,15 +40,11 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
                         "System.Data.SqlClient",
                         "Server=test",
                         targetEFVersion,
-                        out actualEFVersion);
+                        out Version actualEFVersion);
 
                 entityConnection.Should().NotBeNull();
-                var expectedVersion =
-                    targetEFVersion == EntityFrameworkVersion.Version2
-                        ? EntityFrameworkVersion.Version1
-                        : targetEFVersion;
-
-                actualEFVersion.Should().Be(expectedVersion);
+                // Since only Version3 is supported, the actual version should match the target version
+                actualEFVersion.Should().Be(targetEFVersion);
             }
         }
 
@@ -98,7 +92,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         public void Create_throws_ProviderIncompatibleException_for_invalid_schema_Ssdl()
         {
             var mockProviderServices = SetupMockProviderServices();
-            var mockProviderManifest = new Mock<DbProviderManifest>();
+            Mock<DbProviderManifest> mockProviderManifest = new Mock<DbProviderManifest>();
             mockProviderManifest
                 .Protected()
                 .Setup<XmlReader>("GetDbInformation", ItExpr.Is<string>(s => s == DbProviderManifest.StoreSchemaDefinitionVersion3))
@@ -125,7 +119,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         public void Create_throws_ProviderIncompatibleException_for_invalid_schema_Msl()
         {
             var mockProviderServices = SetupMockProviderServices();
-            var mockProviderManifest = new Mock<DbProviderManifest>();
+            Mock<DbProviderManifest> mockProviderManifest = new Mock<DbProviderManifest>();
 
             mockProviderManifest
                 .Protected()
@@ -157,7 +151,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 
         private static Mock<DbProviderServices> SetupMockProviderServices()
         {
-            var mockProviderServices = new Mock<DbProviderServices>();
+            Mock<DbProviderServices> mockProviderServices = new Mock<DbProviderServices>();
             mockProviderServices
                 .Protected()
                 .Setup<string>("GetDbProviderManifestToken", ItExpr.IsAny<SystemDataCommon.DbConnection>())
@@ -168,7 +162,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 
         private static Mock<IDbDependencyResolver> SetupMockResolver(Mock<DbProviderServices> mockProviderServices)
         {
-            var mockResolver = new Mock<IDbDependencyResolver>();
+            Mock<IDbDependencyResolver> mockResolver = new Mock<IDbDependencyResolver>();
             mockResolver
                 .Setup(
                     r => r.GetService(

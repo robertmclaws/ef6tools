@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.IO;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System.IO;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal class EntityDesignFrameWrapper : FrameWrapper
     {
         private enum EditorTypes
@@ -66,10 +66,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     && IsEscherDocument
                     && EditorType == EditorTypes.Escher)
                 {
-                    var artifact = PackageManager.Package.ModelManager.GetArtifact(Uri) as EntityDesignArtifact;
-
                     // artifact may be null during shutdown
-                    if (artifact != null)
+                    if (PackageManager.Package.ModelManager.GetArtifact(Uri) is EntityDesignArtifact artifact)
                     {
                         if (artifact.IsDesignerSafeAndEditSafe())
                         {

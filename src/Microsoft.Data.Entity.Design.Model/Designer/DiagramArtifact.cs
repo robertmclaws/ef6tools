@@ -1,20 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml.Linq;
+using System.Xml.Schema;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Xml.Linq;
-    using System.Xml.Schema;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
-    using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-
     internal class DiagramArtifact : EFArtifact
     {
         private EFDesignerInfoRoot _designerInfoRoot;
@@ -163,11 +162,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns></returns>
         protected internal override HashSet<string> GetNamespaces()
         {
-            if (_namespaces == null)
-            {
-                _namespaces = new HashSet<string>();
-                _namespaces.Add(SchemaManager.GetEDMXNamespaceName(SchemaVersion));
-            }
+            _namespaces ??= [SchemaManager.GetEDMXNamespaceName(SchemaVersion)];
 
             return _namespaces;
         }

@@ -1,17 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-
     internal class JoinTableDiscoverer : INavigationPropertyConfigurationDiscoverer
     {
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         public IFluentConfiguration Discover(NavigationProperty navigationProperty, DbModel model)
         {
             Debug.Assert(navigationProperty != null, "navigationProperty is null.");
@@ -45,14 +43,14 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
 
             // NOTE: Join table names are nondeterministic at runtime, so we'll always
             //       configure them during reverse engineer
-            var configuration = new JoinTableConfiguration { Table = storeEntitySet.Table ?? storeEntitySet.Name };
+            JoinTableConfiguration configuration = new JoinTableConfiguration { Table = storeEntitySet.Table ?? storeEntitySet.Name };
 
             if (storeEntitySet.Schema != "dbo")
             {
                 configuration.Schema = storeEntitySet.Schema;
             }
 
-            var fromEndEntityType = (EntityType)fromEndMember.GetEntityType();
+            EntityType fromEndEntityType = (EntityType)fromEndMember.GetEntityType();
 
             if (!fromEndEntityType.KeyMembers.Zip(leftKeys, (m, n) => new { KeyMember = m, KeyName = n })
                 .All(p => p.KeyName == p.KeyMember.DeclaringType.Name + "_" + p.KeyMember.Name))

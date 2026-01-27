@@ -2,40 +2,38 @@
 
 using VsErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 using VsShell = Microsoft.VisualStudio.Shell.Interop;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Globalization;
+using System.Runtime.InteropServices;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+using Microsoft.Data.Entity.Design.UI.Views.EntityDesigner;
+using Microsoft.Data.Entity.Design.UI.Views.Explorer;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Modeling.Shell;
 
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Globalization;
-    using System.Runtime.InteropServices;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-    using Microsoft.Data.Entity.Design.UI.Views.EntityDesigner;
-    using Microsoft.Data.Entity.Design.UI.Views.Explorer;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     Mapping details window
     // </summary>
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     [Guid("CDBDEE54-B399-484b-B763-DB2C3393D646")]
     internal class MappingDetailsWindow : TreeGridDesignerToolWindow
     {
@@ -279,7 +277,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
 
         internal void UpdateSelection()
         {
-            var newSelection = new HashSet<EFObject>();
+            HashSet<EFObject> newSelection = new HashSet<EFObject>();
             if (SelectedModelItem != null
                 && TreeControl.CurrentColumn < TreeControl.Columns.Length
                 && TreeControl.Columns[TreeControl.CurrentColumn] != null)
@@ -291,7 +289,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
                 EFObject modelItemForDescriptor = null;
                 if (SelectedModelItem is ScalarProperty)
                 {
-                    var scalarProperty = SelectedModelItem as ScalarProperty;
+                    ScalarProperty scalarProperty = SelectedModelItem as ScalarProperty;
                     if (currentColumnType.IsAssignableFrom(typeof(ValueColumn))
                         || currentColumnType.IsAssignableFrom(typeof(PropertyColumn)))
                     {
@@ -304,7 +302,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
                 }
                 else if (SelectedModelItem is FunctionScalarProperty)
                 {
-                    var functionScalarProperty = SelectedModelItem as FunctionScalarProperty;
+                    FunctionScalarProperty functionScalarProperty = SelectedModelItem as FunctionScalarProperty;
                     if (currentColumnType.IsAssignableFrom(typeof(PropertyColumn)))
                     {
                         modelItemForDescriptor = functionScalarProperty.Name.Target;
@@ -374,7 +372,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
         // <summary>
         //     This will work with an item selected in either the Designer or the Explorer.
         // </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void ProcessSelectionFromOtherWindows(Selection selection)
         {
             _lastPrimarySelection = selection.PrimarySelection;
@@ -387,9 +384,9 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
 
             if (selection.PrimarySelection != null)
             {
-                var property = selection.PrimarySelection as Property;
-                var navProp = selection.PrimarySelection as NavigationProperty;
-                var entityTypeShape = selection.PrimarySelection as EntityTypeShape;
+                Property property = selection.PrimarySelection as Property;
+                NavigationProperty navProp = selection.PrimarySelection as NavigationProperty;
+                EntityTypeShape entityTypeShape = selection.PrimarySelection as EntityTypeShape;
 
                 MappingDetailsWindowContainer.SetHintColor(Color.Transparent);
 
@@ -494,8 +491,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
                 }
 
                 // set the screen if the user selected a FunctionImport
-                var fi = selection.PrimarySelection as FunctionImport;
-                if (fi != null
+                if (selection.PrimarySelection is FunctionImport fi
                     && fi.FunctionImportMapping != null)
                 {
                     // only show mappings for FuntionImports that ReturnType is either EntityType or ComplexType
@@ -539,18 +535,14 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
         internal Association GetAssociationFromLastPrimarySelection()
         {
             // see if user selected a navigation property, and treat the mapping view as if the user selected an association
-            var navProp = _lastPrimarySelection as NavigationProperty;
             Association association = null;
-            if (navProp != null)
+            if (_lastPrimarySelection is NavigationProperty navProp)
             {
                 association = navProp.Relationship.Target;
             }
 
             // set the screen if the user selected an association or a navigation property
-            if (association == null)
-            {
-                association = _lastPrimarySelection as Association;
-            }
+            association ??= _lastPrimarySelection as Association;
             return association;
         }
 
@@ -600,19 +592,13 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
             }
 
             // clear our view model
-            if (_currentMappingDetailsInfo != null)
-            {
-                _currentMappingDetailsInfo.ViewModel = null;
-            }
+            _currentMappingDetailsInfo?.ViewModel = null;
 
             // empty the toolwindow (cause watermark to show)
             DoSelectionChanged((object)null);
 
             // update the toolbar buttons
-            if (MappingDetailsWindowContainer != null)
-            {
-                MappingDetailsWindowContainer.UpdateToolbar();
-            }
+            MappingDetailsWindowContainer?.UpdateToolbar();
         }
 
         // <summary>
@@ -688,10 +674,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
         // </summary>
         private void OnExplorerSelectionChanged(ExplorerSelection selection)
         {
-            if (_currentMappingDetailsInfo != null)
-            {
-                _currentMappingDetailsInfo.SelectionSource = EntityMappingSelectionSource.ModelBrowser;
-            }
+            _currentMappingDetailsInfo?.SelectionSource = EntityMappingSelectionSource.ModelBrowser;
             ProcessSelectionFromOtherWindows(selection);
         }
 
@@ -700,10 +683,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
         // </summary>
         private void OnEntityDesignerSelectionChanged(EntityDesignerSelection selection)
         {
-            if (_currentMappingDetailsInfo != null)
-            {
-                _currentMappingDetailsInfo.SelectionSource = EntityMappingSelectionSource.EntityDesigner;
-            }
+            _currentMappingDetailsInfo?.SelectionSource = EntityMappingSelectionSource.EntityDesigner;
             ProcessSelectionFromOtherWindows(selection);
         }
 
@@ -821,8 +801,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
                         var obj = info.Branch.GetObject(branchRow, 0, TreeGridDesignerBranch.BrowsingObject, ref options);
 
                         // if this is a mapping element, then check to see if its managing the passed in EFObject
-                        var mel = obj as MappingEFElement;
-                        if (mel != null
+                        if (obj is MappingEFElement mel
                             && mel.ModelItem != null
                             && mel.ModelItem.Equals(item))
                         {
@@ -857,7 +836,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
                     var obj = info.Branch.GetObject(info.Row, info.Column, TreeGridDesignerBranch.BrowsingObject, ref options);
 
                     // return it if we found a view model element (may be null)
-                    var mel = obj as MappingEFElement;
+                    MappingEFElement mel = obj as MappingEFElement;
                     return mel;
                 }
 
@@ -933,7 +912,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
 
         public void SetWatermarkInfo(string text)
         {
-            var wm = new TreeGridDesignerWatermarkInfo(text);
+            TreeGridDesignerWatermarkInfo wm = new TreeGridDesignerWatermarkInfo(text);
             SetWatermarkInfo(wm);
         }
 

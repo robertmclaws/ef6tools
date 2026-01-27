@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+
 namespace Microsoft.Data.Entity.Design.Core.Controls
 {
-    using System;
-    using System.Diagnostics;
-    using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Input;
-    using System.Windows.Media;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -147,11 +147,11 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
             //    </ControlTemplate>
             //</UserControl.Resources>
 
-            var factory = new FrameworkElementFactory(typeof(TextBox));
+            FrameworkElementFactory factory = new FrameworkElementFactory(typeof(TextBox));
             factory.SetValue(NameProperty, textBoxName);
             factory.AddHandler(LostKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(textBox_LostKeyboardFocus));
             factory.AddHandler(PreviewKeyDownEvent, new KeyEventHandler(textBox_PreviewKeyDown));
-            var editModeTemplate = new ControlTemplate(typeof(EditableContentControl));
+            ControlTemplate editModeTemplate = new ControlTemplate(typeof(EditableContentControl));
             editModeTemplate.VisualTree = factory;
             editModeTemplate.Seal();
             Resources.Add(editModeTemplateKey, editModeTemplate);
@@ -188,14 +188,11 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
         {
             if (e.NewValue != e.OldValue)
             {
-                var edtCont = (EditableContentControl)d;
+                EditableContentControl edtCont = (EditableContentControl)d;
                 if (edtCont.HasContent)
                 {
                     var txtBox = edtCont.GetTextBox();
-                    if (txtBox != null)
-                    {
-                        txtBox.Style = (Style)e.NewValue;
-                    }
+                    txtBox?.Style = (Style)e.NewValue;
                 }
             }
         }
@@ -211,7 +208,7 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
 
         private void RaiseTextChangedEvent()
         {
-            var newEventArgs = new RoutedEventArgs(TextChangedEvent);
+            RoutedEventArgs newEventArgs = new RoutedEventArgs(TextChangedEvent);
             RaiseEvent(newEventArgs);
         }
 
@@ -244,8 +241,7 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
         {
             if (e.NewValue != e.OldValue)
             {
-                var editableContentControl = d as EditableContentControl;
-                if (editableContentControl != null)
+                if (d is EditableContentControl editableContentControl)
                 {
                     var inEditMode = (bool)e.NewValue;
                     if (inEditMode)
@@ -294,10 +290,7 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
         {
             // find first focusable ancestor for handling F2
             _focusableAncestor = GetFirstFocusableAncestor(this);
-            if (_focusableAncestor != null)
-            {
-                _focusableAncestor.KeyDown += focusableAncestor_KeyDown;
-            }
+            _focusableAncestor?.KeyDown += focusableAncestor_KeyDown;
         }
 
         /// <summary>
@@ -307,10 +300,7 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
         /// <param name="e">This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</param>
         protected virtual void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            if (_focusableAncestor != null)
-            {
-                _focusableAncestor.KeyDown -= focusableAncestor_KeyDown;
-            }
+            _focusableAncestor?.KeyDown -= focusableAncestor_KeyDown;
         }
 
         private static UIElement GetFirstFocusableAncestor(UIElement focusableAncestor)
@@ -331,10 +321,7 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
         {
             if (!_isEditing)
             {
-                if (_savedOriginalTemplate == null)
-                {
-                    _savedOriginalTemplate = Template;
-                }
+                _savedOriginalTemplate ??= Template;
                 Template = Resources[editModeTemplateKey] as ControlTemplate;
                 ApplyTemplate();
 
@@ -379,7 +366,6 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
             return double.PositiveInfinity;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         private void FindScrollViewer()
         {
             if (_scrollViewer == null)
@@ -439,12 +425,9 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
                     var textBox = GetTextBox();
                     Text = textBox.Text;
                     var bd = GetBindingExpression(TextProperty);
-                    if (bd != null)
-                    {
-                        // make sure target reflects new value (which may be different
-                        // from text entered in the textbox)
-                        bd.UpdateTarget();
-                    }
+                    // make sure target reflects new value (which may be different
+                    // from text entered in the textbox)
+                    bd?.UpdateTarget();
                 }
                 // ensure that if it does not need to be commited, there should not be an error
                 Debug.Assert(
@@ -470,7 +453,7 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
 
         private TextBox GetTextBox()
         {
-            var textBox = VisualTreeHelper.GetChild(this, 0) as TextBox;
+            TextBox textBox = VisualTreeHelper.GetChild(this, 0) as TextBox;
             Debug.Assert(
                 textBox != null && textBox.Name == textBoxName,
                 "GetTextBox should only be called if EditModeTemplate is the active control template.");
@@ -480,8 +463,7 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
 
         private void textBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
-            var ctMenu = e.NewFocus as ContextMenu;
-            if (ctMenu == null
+            if (e.NewFocus is not ContextMenu ctMenu
                 || ctMenu.PlacementTarget != sender)
             {
                 OnEndEdit();

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics;
-
     /// <summary>
     ///     The purpose of this class is to define a distinct type for the Base Type
     ///     property of an EntityType so that we can map this to a particular ItemDescriptor
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var owner = Parent as ConceptualEntityType;
+                ConceptualEntityType owner = Parent as ConceptualEntityType;
                 Debug.Assert(owner != null, "this.Parent should be a " + typeof(ConceptualEntityType));
                 return owner;
             }

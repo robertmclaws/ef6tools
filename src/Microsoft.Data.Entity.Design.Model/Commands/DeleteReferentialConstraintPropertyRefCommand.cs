@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class DeleteReferentialConstraintPropertyRefCommand : DeleteEFElementCommand
     {
         /// <summary>
@@ -20,7 +20,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             get
             {
-                var elem = EFElement as PropertyRef;
+                PropertyRef elem = EFElement as PropertyRef;
                 Debug.Assert(elem != null, "underlying element does not exist or is not a PropertyRef");
                 if (elem == null)
                 {
@@ -34,11 +34,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             // find the ordinal pair of this property ref in the dependent section
 
-            var role = PropertyRef.Parent as ReferentialConstraintRole;
-            if (role != null)
+            if (PropertyRef.Parent is ReferentialConstraintRole role)
             {
-                var rc = role.Parent as ReferentialConstraint;
-                if (rc != null)
+                if (role.Parent is ReferentialConstraint rc)
                 {
                     // find the "other" ReferentialConstraint
                     var other = rc.Principal;
@@ -76,7 +74,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         private static int GetOrdinalPosition(PropertyRef pr)
         {
             var i = 0;
-            var parent = pr.Parent as PropertyRefContainer;
+            PropertyRefContainer parent = pr.Parent as PropertyRefContainer;
             foreach (var p in parent.PropertyRefs)
             {
                 if (p == pr)

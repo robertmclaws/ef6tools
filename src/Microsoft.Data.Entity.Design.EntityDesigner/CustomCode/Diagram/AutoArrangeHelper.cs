@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 {
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Properties;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     internal class AutoArrangeHelper
     {
         /// <summary>
@@ -21,14 +21,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
             public void Start()
             {
-                if (Objects == null)
-                {
-                    Objects = new List<ShapeElement>();
-                }
-                if (HiddenObjects == null)
-                {
-                    HiddenObjects = new List<ShapeElement>();
-                }
+                Objects ??= [];
+                HiddenObjects ??= [];
 
                 Tracking = true;
             }
@@ -67,22 +61,21 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                     || _autoArrangeInfo.HiddenObjects.Count > 0)
                 {
                     //Arrange the new elemenst before the transaction finishes:
-                    using (var t = diagram.Store.TransactionManager.BeginTransaction(Resources.Tx_LayoutDiagram))
+                    using (var t = diagram.Store.TransactionManager.BeginTransaction(EntityDesignerRes.Tx_LayoutDiagram))
                     {
                         //Place single object where the user dropped, and multiple get autoarranged
                         if (_autoArrangeInfo.Objects.Count > 0)
                         {
                             //Place the first entity-type-shape to where the user released the mouse and auto layout the rest.
                             var haveDropPoint = (!_autoArrangeDropPoint.IsEmpty);
-                            var shapesToAutoLayout = new List<ShapeElement>();
+                            List<ShapeElement> shapesToAutoLayout = new List<ShapeElement>();
 
                             var hasSetUserDefinedPosition = false;
 
                             foreach (var shape in _autoArrangeInfo.Objects)
                             {
-                                var firstShape = shape as EntityTypeShape;
                                 if (haveDropPoint
-                                    && firstShape != null
+                                    && shape is EntityTypeShape firstShape
                                     && !hasSetUserDefinedPosition)
                                 {
                                     firstShape.Location = _autoArrangeDropPoint;
@@ -110,7 +103,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                     {
                         foreach (var se in _autoArrangeInfo.HiddenObjects)
                         {
-                            var cs = se as EntityTypeShape;
+                            EntityTypeShape cs = se as EntityTypeShape;
                             cs.Location = new PointD(0, 0);
                         }
 

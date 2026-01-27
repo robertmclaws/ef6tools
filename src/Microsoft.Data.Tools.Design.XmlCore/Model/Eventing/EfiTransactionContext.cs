@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Model.Eventing
 {
-    using System;
-    using System.Collections.Generic;
-
     // All user data that are stored in transaction context must implement this interface.
     internal interface ITransactionContextItem
     {
@@ -25,7 +25,7 @@ namespace Microsoft.Data.Entity.Design.Model.Eventing
 
         public EfiTransactionContext()
         {
-            _contextInfo = new Dictionary<string, ITransactionContextItem>();
+            _contextInfo = [];
         }
 
         #endregion
@@ -44,8 +44,7 @@ namespace Microsoft.Data.Entity.Design.Model.Eventing
                 throw new ArgumentNullException("key");
             }
 
-            ITransactionContextItem result;
-            if (_contextInfo.TryGetValue(key, out result)
+            if (_contextInfo.TryGetValue(key, out ITransactionContextItem result)
                 && result is T)
             {
                 value = (T)result;
@@ -83,10 +82,7 @@ namespace Microsoft.Data.Entity.Design.Model.Eventing
                 throw new ArgumentNullException("key");
             }
 
-            if (_contextInfo != null)
-            {
-                _contextInfo.Remove(key);
-            }
+            _contextInfo?.Remove(key);
         }
 
         /// <summary>

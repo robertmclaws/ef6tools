@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateEnumTypeMemberCommand : Command
     {
         internal static readonly string PrereqId = "CreateEnumTypeMemberCommand";
@@ -43,22 +43,19 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (EnumType == null)
             {
-                var prereq = GetPreReqCommand(CreateEnumTypeCommand.PrereqId) as CreateEnumTypeCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateEnumTypeCommand.PrereqId) is CreateEnumTypeCommand prereq)
                 {
                     EnumType = prereq.EnumType;
                 }
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
-            string errorMessage;
 
             // Check if the EnumTypeMember is unique among its sibling.
             // Note that member names are case sensitive so it is perfectly legal to have members with the same names but differs in case (for e.g. member vs. MEMBER)
-            if (ModelHelper.IsUniqueName(typeof(EnumTypeMember), EnumType, Name, true, out errorMessage) == false)
+            if (ModelHelper.IsUniqueName(typeof(EnumTypeMember), EnumType, Name, true, out string errorMessage) == false)
             {
                 throw new CommandValidationFailedException(errorMessage);
             }
@@ -78,7 +75,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                         String.Format(CultureInfo.CurrentCulture, Resources.BadEnumTypeMemberValue, Value));
                 }
 
-                var member = new EnumTypeMember(EnumType, null);
+                EnumTypeMember member = new EnumTypeMember(EnumType, null);
                 member.LocalName.Value = Name;
 
                 if (String.IsNullOrWhiteSpace(Value) == false)

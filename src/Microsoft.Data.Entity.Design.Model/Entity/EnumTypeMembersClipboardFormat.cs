@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-
     [Serializable]
     internal class EnumTypeMembersClipboardFormat
     {
-        private readonly List<EnumTypeMemberClipboardFormat> _members = new List<EnumTypeMemberClipboardFormat>();
+        private readonly List<EnumTypeMemberClipboardFormat> _members = [];
 
         public EnumTypeMembersClipboardFormat(IEnumerable<EnumTypeMember> members)
         {

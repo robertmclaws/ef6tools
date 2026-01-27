@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-
     internal class SchemaFilterEntryBag
     {
         internal ICollection<EntityStoreSchemaFilterEntry> IncludedTableEntries { get; set; }
@@ -17,12 +17,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
         internal SchemaFilterEntryBag()
         {
-            IncludedTableEntries = new List<EntityStoreSchemaFilterEntry>();
-            IncludedViewEntries = new List<EntityStoreSchemaFilterEntry>();
-            IncludedSprocEntries = new List<EntityStoreSchemaFilterEntry>();
-            ExcludedTableEntries = new List<EntityStoreSchemaFilterEntry>();
-            ExcludedViewEntries = new List<EntityStoreSchemaFilterEntry>();
-            ExcludedSprocEntries = new List<EntityStoreSchemaFilterEntry>();
+            IncludedTableEntries = [];
+            IncludedViewEntries = [];
+            IncludedSprocEntries = [];
+            ExcludedTableEntries = [];
+            ExcludedViewEntries = [];
+            ExcludedSprocEntries = [];
         }
 
         // <summary>
@@ -35,7 +35,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         // <param name="schemaFilterPolicy">The policy used for optimizing changes. We will store a </param>
         internal IList<EntityStoreSchemaFilterEntry> CollapseAndOptimize(SchemaFilterPolicy schemaFilterPolicy)
         {
-            var optimizedFilterEntryList = new List<EntityStoreSchemaFilterEntry>();
+            List<EntityStoreSchemaFilterEntry> optimizedFilterEntryList = new List<EntityStoreSchemaFilterEntry>();
             // 
             //  Add filter entries. Since catalog & schema can be null values, we pass null values for them into the allow-all/exclude-all filters.   
             //  Passing in null will mean the filter will "accept" any value, including string values.  Passing in "%" will mean it will accept any 

@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Validation;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-
     internal class Condition : PropertyMappingBase
     {
         internal static readonly string ElementName = "Condition";
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as AssociationSetMapping;
+                AssociationSetMapping parent = Parent as AssociationSetMapping;
                 return parent;
             }
         }
@@ -49,10 +49,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_isNullAttr == null)
-                {
-                    _isNullAttr = new IsNullDefaultableValue(this);
-                }
+                _isNullAttr ??= new IsNullDefaultableValue(this);
                 return _isNullAttr;
             }
         }
@@ -82,10 +79,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_valueAttr == null)
-                {
-                    _valueAttr = new ValueDefaultableValue(this);
-                }
+                _valueAttr ??= new ValueDefaultableValue(this);
                 return _valueAttr;
             }
         }
@@ -185,7 +179,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             if (Name.Status == BindingStatus.Known
                 && ColumnName.Status == BindingStatus.Known)
             {
-                var errorInfo = new ErrorInfo(
+                ErrorInfo errorInfo = new ErrorInfo(
                     ErrorInfo.Severity.ERROR, Resources.RESOLVE_CONDITION_BOUND_TO_PROP_AND_COLUMN, this,
                     ErrorCodes.RESOLVE_CONDITION_BOUND_TO_PROP_AND_COLUMN, ErrorClass.ResolveError);
                 artifactSet.AddError(errorInfo);

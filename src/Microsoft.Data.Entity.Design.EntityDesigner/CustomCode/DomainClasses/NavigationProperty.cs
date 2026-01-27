@@ -1,17 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     internal partial class NavigationProperty : IContainRelatedElementsToEmphasizeWhenSelected
     {
         /// <summary>

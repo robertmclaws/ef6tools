@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using Moq;
+using Moq.Protected;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
 {
-    using System;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using Moq;
-    using Moq.Protected;
-
     internal class ModelBuilderWizardFormHelper
     {
         public static ModelBuilderWizardForm CreateWizard(ModelGenerationOption generationOption = (ModelGenerationOption)(-1),
             Project project = null, string modelPath = null, IServiceProvider serviceProvider = null)
         {
-            var modelBuilderSettings =
+            ModelBuilderSettings modelBuilderSettings =
                 new ModelBuilderSettings
                 {
                     Project = project ?? MockDTE.CreateProject(),
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
 
         public static ModelBuilderWizardForm CreateWizard(ModelBuilderSettings modelBuilderSettings, IServiceProvider serviceProvider = null)
         {
-            var mockWizard = new Mock<ModelBuilderWizardForm>(
+            Mock<ModelBuilderWizardForm> mockWizard = new Mock<ModelBuilderWizardForm>(
                 serviceProvider ?? Mock.Of<IServiceProvider>(),
                 modelBuilderSettings,
                 ModelBuilderWizardForm.WizardMode.PerformAllFunctionality)

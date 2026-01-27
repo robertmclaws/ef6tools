@@ -1,21 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class ComplexType : DocumentableAnnotatableElement
     {
         internal static readonly string ElementName = "ComplexType";
 
         private DefaultableValue<string> _typeAccessAttr;
-        private readonly List<Property> _properties = new List<Property>();
+        private readonly List<Property> _properties = [];
 
         internal ComplexType(ConceptualEntityModel model, XElement element)
             : base(model, element)
@@ -29,10 +29,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_typeAccessAttr == null)
-                {
-                    _typeAccessAttr = new TypeAccessDefaultableValue(this);
-                }
+                _typeAccessAttr ??= new TypeAccessDefaultableValue(this);
                 return _typeAccessAttr;
             }
         }
@@ -91,8 +88,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child = efContainer as Property;
-            if (child != null)
+            if (efContainer is Property child)
             {
                 _properties.Remove(child);
                 return;
@@ -130,13 +126,12 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == Property.ElementName)
             {
                 Property prop;
-                var conceptualModel = (ConceptualEntityModel)GetParentOfType(typeof(ConceptualEntityModel));
+                ConceptualEntityModel conceptualModel = (ConceptualEntityModel)GetParentOfType(typeof(ConceptualEntityModel));
                 Debug.Assert(
                     conceptualModel != null,
                     typeof(ComplexType).Name + "ParseSingleElement: Unable to find parent of type ConceptualEntityModel");
@@ -181,8 +176,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         /// <returns></returns>
         internal override string GetRefNameForBinding(ItemBinding binding)
         {
-            var fi = binding.Parent as FunctionImport;
-            if (fi != null)
+            if (binding.Parent is FunctionImport fi)
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,

@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         {
             get
             {
-                var args = new TreeGridDesignerBranchChangedArgs();
+                TreeGridDesignerBranchChangedArgs args = new TreeGridDesignerBranchChangedArgs();
                 args._insertingItem = true;
                 return args;
             }
@@ -31,7 +31,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         {
             get
             {
-                var args = new TreeGridDesignerBranchChangedArgs();
+                TreeGridDesignerBranchChangedArgs args = new TreeGridDesignerBranchChangedArgs();
                 args._deletingItem = true;
                 return args;
             }

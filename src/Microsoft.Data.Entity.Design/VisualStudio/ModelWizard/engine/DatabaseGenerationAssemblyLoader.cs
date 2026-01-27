@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Reflection;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.DatabaseGeneration;
+using VSLangProj80;
+using VsWebSite;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Reflection;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration;
-    using VSLangProj80;
-    using VsWebSite;
-
     internal class DatabaseGenerationAssemblyLoader : IAssemblyLoader
     {
         private readonly bool _isWebsite;
@@ -20,28 +20,25 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
         internal DatabaseGenerationAssemblyLoader(Project project, string vsInstallPath)
         {
-            _assembliesInstalledUnderVisualStudio = new Dictionary<string, string>();
-            // For these DLLs we should use the version pre-installed under the VS directory,
-            // not whatever reference the project may have
-            _assembliesInstalledUnderVisualStudio.Add(
-                "ENTITYFRAMEWORK", Path.Combine(vsInstallPath, "EntityFramework.dll"));
-            _assembliesInstalledUnderVisualStudio.Add(
-                "ENTITYFRAMEWORK.SQLSERVER", Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll"));
-            _assembliesInstalledUnderVisualStudio.Add(
-                "ENTITYFRAMEWORK.SQLSERVERCOMPACT", Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll"));
+            _assembliesInstalledUnderVisualStudio = new Dictionary<string, string>
+            {
+                // For these DLLs we should use the version pre-installed under the VS directory,
+                // not whatever reference the project may have
+                { "ENTITYFRAMEWORK", Path.Combine(vsInstallPath, "EntityFramework.dll") },
+                { "ENTITYFRAMEWORK.SQLSERVER", Path.Combine(vsInstallPath, "EntityFramework.SqlServer.dll") },
+                { "ENTITYFRAMEWORK.SQLSERVERCOMPACT", Path.Combine(vsInstallPath, "EntityFramework.SqlServerCompact.dll") }
+            };
 
-            _projectReferenceLookup = new Dictionary<string, Reference3>();
-            _websiteReferenceLookup = new Dictionary<string, AssemblyReference>();
+            _projectReferenceLookup = [];
+            _websiteReferenceLookup = [];
             if (project != null)
             {
-                var vsProject = project.Object as VSProject2;
-                var vsWebSite = project.Object as VSWebSite;
-                if (vsProject != null)
+                if (project.Object is VSProject2 vsProject)
                 {
                     _isWebsite = false;
                     CacheProjectReferences(vsProject);
                 }
-                else if (vsWebSite != null)
+                else if (project.Object is VSWebSite vsWebSite)
                 {
                     _isWebsite = true;
                     CacheWebsiteReferences(vsWebSite);
@@ -93,7 +90,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
         #region IAssemblyLoader Members
 
-        [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods")]
         public Assembly LoadAssembly(string assemblyName)
         {
             var pathToLoad = GetAssemblyPath(assemblyName);
@@ -111,24 +107,21 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
         internal string GetAssemblyPath(string assemblyName)
         {
-            string pathToAssembly;
-            if (_assembliesInstalledUnderVisualStudio.TryGetValue(assemblyName.ToUpperInvariant(), out pathToAssembly))
+            if (_assembliesInstalledUnderVisualStudio.TryGetValue(assemblyName.ToUpperInvariant(), out string pathToAssembly))
             {
                 return pathToAssembly;
             }
 
             if (_isWebsite)
             {
-                AssemblyReference assemblyReference;
-                if (_websiteReferenceLookup.TryGetValue(assemblyName, out assemblyReference))
+                if (_websiteReferenceLookup.TryGetValue(assemblyName, out AssemblyReference assemblyReference))
                 {
                     return assemblyReference.FullPath;
                 }
             }
             else
             {
-                Reference3 assemblyReference;
-                if (_projectReferenceLookup.TryGetValue(assemblyName, out assemblyReference))
+                if (_projectReferenceLookup.TryGetValue(assemblyName, out Reference3 assemblyReference))
                 {
                     return assemblyReference.Path;
                 }

@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Drawing.Design;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-
     // We need to differentiate EFEntityTypeShapeDescriptor from EFEntityTypeDescriptor because
     // There is additional property that we want to show for Entity type shape (for example: color).
     internal class EFEntityTypeShapeDescriptor : EFEntityTypeDescriptor

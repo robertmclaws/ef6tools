@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring;
+
 namespace Microsoft.Data.Entity.Design.Refactoring
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using EnvDTE;
-    using EnvDTE80;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring;
-
     internal static class CodeElementUtilities
     {
         private const string AddToFuncFormat = "AddTo{0}";
@@ -58,8 +58,8 @@ namespace Microsoft.Data.Entity.Design.Refactoring
 
                     if (searchResults.Count > 0)
                     {
-                        var fileToChanges = new Dictionary<string, List<RefactorChange>>();
-                        var designerFileChanges = new List<RefactorChange>();
+                        Dictionary<string, List<RefactorChange>> fileToChanges = new Dictionary<string, List<RefactorChange>>();
+                        List<RefactorChange> designerFileChanges = new List<RefactorChange>();
 
                         foreach (var searchResult in searchResults)
                         {
@@ -67,10 +67,9 @@ namespace Microsoft.Data.Entity.Design.Refactoring
                             // hydration completes. Instead we just show the changes from the exercising (application) code.
                             if (!string.Equals(searchResult.FileName, generatedItemPath, StringComparison.OrdinalIgnoreCase))
                             {
-                                List<RefactorChange> refactorChanges;
-                                if (!fileToChanges.TryGetValue(searchResult.FileName, out refactorChanges))
+                                if (!fileToChanges.TryGetValue(searchResult.FileName, out List<RefactorChange> refactorChanges))
                                 {
-                                    refactorChanges = new List<RefactorChange>();
+                                    refactorChanges = [];
                                     fileToChanges.Add(searchResult.FileName, refactorChanges);
                                 }
 
@@ -93,9 +92,8 @@ namespace Microsoft.Data.Entity.Design.Refactoring
 
                         // Add designer file change
                         var rootFileName = codeElement.ProjectItem.get_FileNames(1);
-                        bool doesProjectHaveFileName;
                         var rootProjectName = VsUtils.GetProjectPathWithName(
-                            codeElement.ProjectItem.ContainingProject, out doesProjectHaveFileName);
+                            codeElement.ProjectItem.ContainingProject, out bool doesProjectHaveFileName);
 
                         // The code element start line will include attributes for the class, so the get the line where the actual class name is
                         // we need to use the results from the IVsObjectSearch and get the search result immediately after the CodeElements startline.
@@ -115,7 +113,7 @@ namespace Microsoft.Data.Entity.Design.Refactoring
 
                         if (rootNodeChange != null)
                         {
-                            var textChangeProposal = new VsLangTextChangeProposal(
+                            VsLangTextChangeProposal textChangeProposal = new VsLangTextChangeProposal(
                                 rootProjectName, rootFileName, newName, codeElement.FullName, true);
                             textChangeProposal.StartColumn = rootNodeChange.Value.ColumnNumber - 1;
                             textChangeProposal.EndColumn = textChangeProposal.StartColumn + oldName.Length;
@@ -141,9 +139,8 @@ namespace Microsoft.Data.Entity.Design.Refactoring
                                     var textBufferLine = change.LineNumber - 1;
                                     var textBufferColumn = change.ColumnNumber - 1;
 
-                                    bool projectHasFilename;
-                                    var projectFullPath = VsUtils.GetProjectPathWithName(owningProject, out projectHasFilename);
-                                    var textChangeProposal = new VsLangTextChangeProposal(
+                                    var projectFullPath = VsUtils.GetProjectPathWithName(owningProject, out bool projectHasFilename);
+                                    VsLangTextChangeProposal textChangeProposal = new VsLangTextChangeProposal(
                                         projectFullPath, fileName, newName, codeElement.FullName);
                                     textChangeProposal.StartColumn = textBufferColumn;
                                     textChangeProposal.EndColumn = textChangeProposal.StartColumn + oldName.Length;
@@ -160,22 +157,19 @@ namespace Microsoft.Data.Entity.Design.Refactoring
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "CodeElement")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "CreateVBCodeElementSearchResult")]
         private static VsObjectSearchResult CreateVBCodeElementSearchResult(CodeElement2 codeElement)
         {
             var column = codeElement.StartPoint.LineCharOffset;
             var line = codeElement.StartPoint.Line;
-            int lineLength;
             string lineText;
             string prefix;
 
             // Try to locate the element name on the startline.
-            using (var textBuffer = VsTextLinesFromFile.Load(codeElement.ProjectItem.get_FileNames(1)))
+            using (VsTextLinesFromFile textBuffer = VsTextLinesFromFile.Load(codeElement.ProjectItem.get_FileNames(1)))
             {
                 // Buffer values are zero based, codeElement values are 1 based.
                 var bufferLine = line - 1;
-                NativeMethods.ThrowOnFailure(textBuffer.GetLengthOfLine(bufferLine, out lineLength));
+                NativeMethods.ThrowOnFailure(textBuffer.GetLengthOfLine(bufferLine, out int lineLength));
                 NativeMethods.ThrowOnFailure(textBuffer.GetLineText(bufferLine, 0, bufferLine, lineLength, out lineText));
             }
 
@@ -221,10 +215,7 @@ namespace Microsoft.Data.Entity.Design.Refactoring
             ObjectSearchLanguage objectSearchLanguage,
             ref Dictionary<CodeElement2, Tuple<string, string>> codeElementsToRename)
         {
-            if (codeElementsToRename == null)
-            {
-                codeElementsToRename = new Dictionary<CodeElement2, Tuple<string, string>>();
-            }
+            codeElementsToRename ??= [];
 
             var newName = renameData.NewName;
             var oldName = renameData.OldName;
@@ -269,10 +260,9 @@ namespace Microsoft.Data.Entity.Design.Refactoring
                     string oldFuncName;
                     string newFuncName;
 
-                    var function = (CodeFunction)codeElement;
-                    var parentType = function.Parent as CodeType;
+                    CodeFunction function = (CodeFunction)codeElement;
                     var oldFactoryFuncName = string.Format(CultureInfo.InvariantCulture, CreateFuncFormat, oldName);
-                    if (parentType != null
+                    if (function.Parent is CodeType parentType
                         && parentType.Name.Equals(oldName, StringComparison.Ordinal)
                         && function.Name.Equals(oldFactoryFuncName, StringComparison.Ordinal))
                     {

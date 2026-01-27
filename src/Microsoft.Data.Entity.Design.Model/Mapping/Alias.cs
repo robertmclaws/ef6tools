@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class Alias : EFElement
     {
         internal static readonly string ElementName = "Alias";
@@ -29,7 +29,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as MappingModel;
+                MappingModel parent = Parent as MappingModel;
                 Debug.Assert(parent != null, "this.Parent should be a MappingModel");
                 return parent;
             }
@@ -42,10 +42,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_keyAttr == null)
-                {
-                    _keyAttr = new KeyDefaultableValue(this);
-                }
+                _keyAttr ??= new KeyDefaultableValue(this);
                 return _keyAttr;
             }
         }
@@ -75,13 +72,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_value == null)
-                {
-                    _value = new SingleItemBinding<BaseEntityModel>(
+                _value ??= new SingleItemBinding<BaseEntityModel>(
                         this,
                         AttributeValue,
                         null);
-                }
                 return _value;
             }
         }

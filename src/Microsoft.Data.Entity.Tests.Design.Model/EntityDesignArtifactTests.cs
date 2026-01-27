@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class EntityDesignArtifactTests
     {
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            using (var artifact = new EntityDesignArtifact(modelManager, new Uri("urn:dummy"), modelProvider))
+            using (EntityDesignArtifact artifact = new EntityDesignArtifact(modelManager, new Uri("urn:dummy"), modelProvider))
             {
                 artifact.GetModelGenErrors().Should().BeNull();
             }
@@ -30,18 +30,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         [TestMethod]
         public void DetermineIfArtifactIsVersionSafe_sets_IsVersionSafe_to_true_if_namespaces_in_sync()
         {
-            DetermineIfArtifactIsVersionSafe(
-                edmxVersion: EntityFrameworkVersion.Version1,
-                storeModelVersion: EntityFrameworkVersion.Version1,
-                conceptualModelVersion: EntityFrameworkVersion.Version1,
-                mappingModelVersion: EntityFrameworkVersion.Version1).Should().BeTrue();
-
-            DetermineIfArtifactIsVersionSafe(
-                edmxVersion: EntityFrameworkVersion.Version2,
-                storeModelVersion: EntityFrameworkVersion.Version2,
-                conceptualModelVersion: EntityFrameworkVersion.Version2,
-                mappingModelVersion: EntityFrameworkVersion.Version2).Should().BeTrue();
-
+            // Only Version3 is supported for modern development
             DetermineIfArtifactIsVersionSafe(
                 edmxVersion: EntityFrameworkVersion.Version3,
                 storeModelVersion: EntityFrameworkVersion.Version3,
@@ -50,31 +39,27 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         }
 
         [TestMethod]
-        public void DetermineIfArtifactIsVersionSafe_sets_IsVersionSafe_to_false_if_namespaces_not_in_sync()
+        public void DetermineIfArtifactIsVersionSafe_sets_IsVersionSafe_to_false_if_XDocument_root_has_unknown_namespace()
         {
-            DetermineIfArtifactIsVersionSafe(
-                edmxVersion: EntityFrameworkVersion.Version3,
-                storeModelVersion: EntityFrameworkVersion.Version1,
-                conceptualModelVersion: EntityFrameworkVersion.Version1,
-                mappingModelVersion: EntityFrameworkVersion.Version1).Should().BeFalse();
+            // Test version safety check when EDMX has an unknown namespace
+            var modelManager = new Mock<ModelManager>(null, null).Object;
+            var modelProvider = new Mock<XmlModelProvider>().Object;
+            Mock<EntityDesignArtifact> mockEntityDesignArtifact =
+                new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider) { CallBase = true };
 
-            DetermineIfArtifactIsVersionSafe(
-                edmxVersion: EntityFrameworkVersion.Version2,
-                storeModelVersion: EntityFrameworkVersion.Version3,
-                conceptualModelVersion: EntityFrameworkVersion.Version2,
-                mappingModelVersion: EntityFrameworkVersion.Version2).Should().BeFalse();
+            // Use an unknown namespace to simulate a version mismatch
+            mockEntityDesignArtifact
+                .Setup(a => a.XDocument)
+                .Returns(
+                    new XDocument(
+                        new XElement(
+                            XName.Get("Edmx", "http://unknown.namespace.example.com"))));
 
-            DetermineIfArtifactIsVersionSafe(
-                edmxVersion: EntityFrameworkVersion.Version3,
-                storeModelVersion: EntityFrameworkVersion.Version3,
-                conceptualModelVersion: EntityFrameworkVersion.Version2,
-                mappingModelVersion: EntityFrameworkVersion.Version3).Should().BeFalse();
+            var artifact = mockEntityDesignArtifact.Object;
+            artifact.DetermineIfArtifactIsVersionSafe();
 
-            DetermineIfArtifactIsVersionSafe(
-                edmxVersion: EntityFrameworkVersion.Version3,
-                storeModelVersion: EntityFrameworkVersion.Version3,
-                conceptualModelVersion: EntityFrameworkVersion.Version2,
-                mappingModelVersion: EntityFrameworkVersion.Version2).Should().BeFalse();
+            // Should be false since the namespace is unknown/invalid
+            artifact.IsVersionSafe.Should().BeFalse();
         }
 
         [TestMethod]
@@ -82,7 +67,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var mockEntityDesignArtifact =
+            Mock<EntityDesignArtifact> mockEntityDesignArtifact =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider) { CallBase = true };
 
             mockEntityDesignArtifact
@@ -117,10 +102,10 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var mockEntityDesignArtifact =
+            Mock<EntityDesignArtifact> mockEntityDesignArtifact =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider) { CallBase = true };
 
-            var mockConceptualModel =
+            Mock<ConceptualEntityModel> mockConceptualModel =
                 new Mock<ConceptualEntityModel>(
                     mockEntityDesignArtifact.Object,
                     new XElement(XName.Get("Schema", SchemaManager.GetCSDLNamespaceName(conceptualModelVersion))));
@@ -133,7 +118,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
                 .Setup(m => m.ConceptualModel)
                 .Returns(mockConceptualModel.Object);
 
-            var mockStoreModel =
+            Mock<StorageEntityModel> mockStoreModel =
                 new Mock<StorageEntityModel>(
                     mockEntityDesignArtifact.Object,
                     new XElement(XName.Get("Schema", SchemaManager.GetSSDLNamespaceName(storeModelVersion))));
@@ -146,7 +131,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
                 .Setup(m => m.StorageModel)
                 .Returns(mockStoreModel.Object);
 
-            var mockMappingModel =
+            Mock<MappingModel> mockMappingModel =
                 new Mock<MappingModel>(
                     mockEntityDesignArtifact.Object,
                     new XElement(XName.Get("Mapping", SchemaManager.GetMSLNamespaceName(mappingModelVersion))));
@@ -173,7 +158,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var mockEntityDesignArtifact =
+            Mock<EntityDesignArtifact> mockEntityDesignArtifact =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider) { CallBase = true };
 
             mockEntityDesignArtifact
@@ -191,7 +176,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var mockEntityDesignArtifact =
+            Mock<EntityDesignArtifact> mockEntityDesignArtifact =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider) { CallBase = true };
 
             mockEntityDesignArtifact

@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.VisualStudio.Modeling.Validation;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using System;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Properties;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.VisualStudio.Modeling.Validation;
-
     [ValidationState(ValidationState.Disabled)]
     internal partial class EntityType
     {
@@ -20,8 +20,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         {
             if (!EscherAttributeContentValidator.IsValidCsdlEntityTypeName(Name))
             {
-                var message = String.Format(CultureInfo.CurrentCulture, Resources.Error_EntityNameInvalid, Name);
-                context.LogError(message, Resources.ErrorCode_EntityNameInvalid, this);
+                var message = String.Format(CultureInfo.CurrentCulture, EntityDesignerRes.Error_EntityNameInvalid, Name);
+                context.LogError(message, EntityDesignerRes.ErrorCode_EntityNameInvalid, this);
             }
         }
 
@@ -39,9 +39,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                 {
                     var errorMessage = String.Format(
                         CultureInfo.CurrentCulture,
-                        Resources.Warning_EntityHasNoKeys, Name);
+                        EntityDesignerRes.Warning_EntityHasNoKeys, Name);
 
-                    context.LogError(errorMessage, Resources.ErrorCode_EntityHasNoKeys, this);
+                    context.LogError(errorMessage, EntityDesignerRes.ErrorCode_EntityHasNoKeys, this);
                 }
             }
             catch (InvalidOperationException)
@@ -62,10 +62,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             {
                 var errorMessage = String.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.Error_CircularEntityInheritanceFound,
+                    EntityDesignerRes.Error_CircularEntityInheritanceFound,
                     Name, circularPath);
 
-                context.LogError(errorMessage, Resources.ErrorCode_CircularEntityInheritanceFound, this);
+                context.LogError(errorMessage, EntityDesignerRes.ErrorCode_CircularEntityInheritanceFound, this);
             }
         }
     }

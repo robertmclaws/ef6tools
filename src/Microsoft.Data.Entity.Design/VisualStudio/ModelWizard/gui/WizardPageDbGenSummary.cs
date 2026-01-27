@@ -1,28 +1,27 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Activities;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Globalization;
+using System.IO;
+using System.Security;
+using System.Threading;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.WizardFramework;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 {
-    using System;
-    using System.Activities;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Globalization;
-    using System.IO;
-    using System.Security;
-    using System.Threading;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.WizardFramework;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal partial class WizardPageDbGenSummary : WizardPageBase
     {
         internal WorkflowApplication _workflowInstance;
@@ -63,9 +62,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             return base.OnActivate();
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         public override void OnActivated()
         {
             base.OnActivated();
@@ -116,8 +112,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 EdmItemCollection edm = null;
                 using (new VsUtils.HourglassHelper())
                 {
-                    IList<EdmSchemaError> schemaErrors;
-                    edm = Wizard.ModelBuilderSettings.Artifact.GetEdmItemCollectionFromArtifact(out schemaErrors);
+                    edm = Wizard.ModelBuilderSettings.Artifact.GetEdmItemCollectionFromArtifact(out IList<EdmSchemaError> schemaErrors);
 
                     Debug.Assert(
                         edm != null && schemaErrors.Count == 0,
@@ -260,8 +255,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             return base.OnDeactivate();
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         internal override bool OnWizardFinish()
         {
             if (Wizard.ModelBuilderSettings.DdlStringReader != null)
@@ -275,8 +268,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
                 // Resolve the project URI
                 Uri projectUri = null;
-                bool projectHasFilename;
-                var projectFullName = VsUtils.GetProjectPathWithName(Wizard.Project, out projectHasFilename);
+                var projectFullName = VsUtils.GetProjectPathWithName(Wizard.Project, out bool projectHasFilename);
 
                 try
                 {
@@ -359,7 +351,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 // If the parent directory does not exist, then we do not proceed
                 try
                 {
-                    var fileInfo = new FileInfo(ddlFilePath);
+                    FileInfo fileInfo = new FileInfo(ddlFilePath);
                     var parentDirInfo = fileInfo.Directory;
                     if (parentDirInfo != null)
                     {
@@ -580,9 +572,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                             Wizard.EnableButton(ButtonType.Cancel, true);
 
                             // Examine the SSDL output. Display an error if we can't find it.
-                            object ssdlOutputObj;
                             var ssdlOutput = String.Empty;
-                            if (e.Outputs.TryGetValue(DatabaseGeneration.EdmConstants.ssdlOutputName, out ssdlOutputObj)
+                            if (e.Outputs.TryGetValue(DatabaseGeneration.EdmConstants.ssdlOutputName, out object ssdlOutputObj)
                                 && ssdlOutputObj != null
                                 && !String.IsNullOrEmpty(ssdlOutput = ssdlOutputObj as string))
                             {
@@ -590,9 +581,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                             }
 
                             // Examine the MSL output. Display an error if we can't find it.
-                            object mslOutputObj;
                             var mslOutput = String.Empty;
-                            if (e.Outputs.TryGetValue(DatabaseGeneration.EdmConstants.mslOutputName, out mslOutputObj)
+                            if (e.Outputs.TryGetValue(DatabaseGeneration.EdmConstants.mslOutputName, out object mslOutputObj)
                                 && mslOutputObj != null
                                 && !String.IsNullOrEmpty(mslOutput = mslOutputObj as string))
                             {
@@ -600,9 +590,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                             }
 
                             // Examine the DDL output. Display an error if we can't find it.
-                            object ddlOutputObj;
                             var ddlOutput = String.Empty;
-                            if (e.Outputs.TryGetValue(DatabaseGeneration.EdmConstants.ddlOutputName, out ddlOutputObj)
+                            if (e.Outputs.TryGetValue(DatabaseGeneration.EdmConstants.ddlOutputName, out object ddlOutputObj)
                                 && ddlOutputObj != null
                                 && !String.IsNullOrEmpty(ddlOutput = ddlOutputObj as string))
                             {

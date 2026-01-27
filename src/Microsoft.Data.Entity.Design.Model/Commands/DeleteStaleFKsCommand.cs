@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     TODO 565946: This implements some temporary functionality to allow us to delete FKs between PKs from the entity designer model,
     ///     since IModelElements for FKs between PKs currently have no information (not even a name) once they are deleted.
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Debug.Assert(model != null, "Model was null, could not delete stale Fks between Pks");
             if (model != null)
             {
-                var associationsToDelete = new List<Association>();
+                List<Association> associationsToDelete = new List<Association>();
 
                 foreach (var association in model.Associations())
                 {
@@ -50,20 +50,20 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
                 foreach (var association in associationsToDelete)
                 {
-                    var deleteAssociationSetCommand = new DeleteEFElementCommand(
+                    DeleteEFElementCommand deleteAssociationSetCommand = new DeleteEFElementCommand(
                         (c, subCpc) =>
                             {
-                                var cmd = c as DeleteEFElementCommand;
+                                DeleteEFElementCommand cmd = c as DeleteEFElementCommand;
                                 cmd.EFElement = ModelHelper.FindAssociationSet(model, association.Name.Value);
                                 return cmd.EFElement != null;
                             });
 
                     CommandProcessor.InvokeSingleCommand(cpc, deleteAssociationSetCommand);
 
-                    var deleteAssociationCmd = new DeleteAssociationCommand(
+                    DeleteAssociationCommand deleteAssociationCmd = new DeleteAssociationCommand(
                         (c, subCpc) =>
                             {
-                                var cmd = c as DeleteAssociationCommand;
+                                DeleteAssociationCommand cmd = c as DeleteAssociationCommand;
                                 // Checking the model again for the association in case it's deleted already.
                                 cmd.EFElement = ModelHelper.FindAssociation(model, association.Name.Value);
                                 return cmd.EFElement != null;

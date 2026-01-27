@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui.ViewModels
 {
-    using System;
-    using System.CodeDom;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
-
     internal class RuntimeConfigViewModel
     {
         private readonly string _helpUrl;
         private readonly string _message;
         private readonly RuntimeConfigState _state;
-        private readonly ICollection<EntityFrameworkVersionOption> _entityFrameworkVersions = new List<EntityFrameworkVersionOption>();
+        private readonly ICollection<EntityFrameworkVersionOption> _entityFrameworkVersions = [];
 
         public RuntimeConfigViewModel(
             Version targetNetFrameworkVersion,
@@ -22,106 +22,50 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui.ViewModels
             bool isModernProviderAvailable,
             bool isCodeFirst)
         {
-            // Note: For modern .NET projects (.NET Core, .NET 5+), targetNetFrameworkVersion is null
-            if (targetNetFrameworkVersion != null &&
-                targetNetFrameworkVersion == NetFrameworkVersioningHelper.NetFrameworkVersion3_5)
+            // Simplified for modern development - only EF6+ is supported
+            if (installedEntityFrameworkVersion != null && installedEntityFrameworkVersion >= RuntimeVersion.Version6)
             {
-                Debug.Assert(!isCodeFirst, "CodeFirst not supported on .NET Framework 3.5");
+                if (!isModernProviderAvailable)
+                {
+                    _entityFrameworkVersions.Add(
+                        new EntityFrameworkVersionOption(installedEntityFrameworkVersion)
+                            {
+                                Disabled = true,
+                                IsDefault = true
+                            });
 
-                _entityFrameworkVersions.Add(new EntityFrameworkVersionOption(RuntimeVersion.Latest) { Disabled = true });
-                _entityFrameworkVersions.Add(new EntityFrameworkVersionOption(RuntimeVersion.Version1) { IsDefault = true });
-
-                _message = Resources.RuntimeConfig_Net35;
+                    _state = RuntimeConfigState.Error;
+                    _message = WizardResources.RuntimeConfig_SixInstalledButNoProvider;
+                    _helpUrl = WizardResources.RuntimeConfig_LearnProvidersUrl;
+                }
+                else
+                {
+                    _entityFrameworkVersions.Add(new EntityFrameworkVersionOption(installedEntityFrameworkVersion) { IsDefault = true });
+                    _state = RuntimeConfigState.Skip;
+                }
             }
             else
             {
-                if (installedEntityFrameworkVersion != null)
+                // No EF6 installed yet
+                if (isModernProviderAvailable)
                 {
-                    if (installedEntityFrameworkVersion < RuntimeVersion.Version6)
+                    _entityFrameworkVersions.Add(new EntityFrameworkVersionOption(RuntimeVersion.Latest) { IsDefault = true });
+
+                    if (isCodeFirst)
                     {
-                        Debug.Assert(!isCodeFirst, "CodeFirst only valid for no EF or EF6");
-
-                        _entityFrameworkVersions.Add(new EntityFrameworkVersionOption(RuntimeVersion.Latest) { Disabled = true });
-                        if (installedEntityFrameworkVersion == RuntimeVersion.Version4)
-                        {
-                            // EF V4 (i.e. System.Data.Entity) is installed, but when we go through the wizard we
-                            // will end up with DbContext templates which will automatically install V5 of the
-                            // runtime - so update the options so that the only choice other than V6 is V5
-                            installedEntityFrameworkVersion =
-                                targetNetFrameworkVersion == NetFrameworkVersioningHelper.NetFrameworkVersion4
-                                    ? RuntimeVersion.Version5Net40
-                                    : RuntimeVersion.Version5Net45;
-                        }
-                        _entityFrameworkVersions.Add(
-                            new EntityFrameworkVersionOption(installedEntityFrameworkVersion, targetNetFrameworkVersion)
-                                {
-                                    IsDefault = true
-                                });
-
-                        _message = Resources.RuntimeConfig_BelowSixInstalled;
-                    }
-                    else if (!isModernProviderAvailable)
-                    {
-                        _entityFrameworkVersions.Add(
-                            new EntityFrameworkVersionOption(installedEntityFrameworkVersion)
-                                {
-                                    Disabled = true,
-                                    IsDefault = true
-                                });
-
-                        _state = RuntimeConfigState.Error;
-                        _message = Resources.RuntimeConfig_SixInstalledButNoProvider;
-                        _helpUrl = Resources.RuntimeConfig_LearnProvidersUrl;
-                    }
-                    else
-                    {
-                        _entityFrameworkVersions.Add(new EntityFrameworkVersionOption(installedEntityFrameworkVersion) { IsDefault = true });
-
                         _state = RuntimeConfigState.Skip;
                     }
                 }
                 else
                 {
-                    if (isModernProviderAvailable)
+                    _state = RuntimeConfigState.Error;
+                    _entityFrameworkVersions.Add(new EntityFrameworkVersionOption(RuntimeVersion.Latest)
                     {
-                        _entityFrameworkVersions.Add(new EntityFrameworkVersionOption(RuntimeVersion.Latest) { IsDefault = true });
-
-                        if (!isCodeFirst)
-                        {
-                            _entityFrameworkVersions.Add(
-                                new EntityFrameworkVersionOption(RuntimeVersion.Version5(targetNetFrameworkVersion)));
-                            _message = Resources.RuntimeConfig_TargetingHint;
-                            _helpUrl = Resources.RuntimeConfig_LearnTargetingUrl;
-                        }
-                        else
-                        {
-                            _state = RuntimeConfigState.Skip;
-                        }
-                    }
-                    else
-                    {
-                        if (isCodeFirst)
-                        {
-                            _state = RuntimeConfigState.Error;
-                            _entityFrameworkVersions.Add(new EntityFrameworkVersionOption(RuntimeVersion.Latest)
-                            {
-                                Disabled = true, 
-                                IsDefault = true
-                            });
-                        }
-                        else
-                        {
-                            _entityFrameworkVersions.Add(new EntityFrameworkVersionOption(RuntimeVersion.Latest) { Disabled = true });
-                            _entityFrameworkVersions.Add(
-                                new EntityFrameworkVersionOption(RuntimeVersion.Version5(targetNetFrameworkVersion))
-                                {
-                                    IsDefault = true
-                                });                            
-                        }
-
-                        _message = Resources.RuntimeConfig_NoProvider;
-                        _helpUrl = Resources.RuntimeConfig_LearnProvidersUrl;
-                    }
+                        Disabled = true,
+                        IsDefault = true
+                    });
+                    _message = WizardResources.RuntimeConfig_NoProvider;
+                    _helpUrl = WizardResources.RuntimeConfig_LearnProvidersUrl;
                 }
             }
 

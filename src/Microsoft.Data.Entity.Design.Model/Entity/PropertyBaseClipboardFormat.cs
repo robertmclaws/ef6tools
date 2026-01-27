@@ -1,14 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Reflection;
-
     [Serializable]
     internal abstract class PropertyBaseClipboardFormat : AnnotatableElementClipboardFormat
     {
@@ -26,8 +22,6 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         }
 
         // Validate the Property attributes members are represented.
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "property")]
         private void ValidateAttributes(PropertyBase property)
         {
 #if DEBUG

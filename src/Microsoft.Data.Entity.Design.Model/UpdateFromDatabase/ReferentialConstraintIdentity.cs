@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
-
     internal class ReferentialConstraintIdentity
     {
         //
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
             }
             else
             {
-                var rcid = new ReferentialConstraintIdentity();
+                ReferentialConstraintIdentity rcid = new ReferentialConstraintIdentity();
                 rcid._propertyIdentities = AssociationPropertyIdentity.CreateIdentitiesFromReferentialConstraint(referentialConstraint);
                 return rcid;
             }
@@ -46,7 +46,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal string TraceString()
         {
-            var sb = new StringBuilder("[" + typeof(ReferentialConstraintIdentity).Name);
+            StringBuilder sb = new StringBuilder("[" + typeof(ReferentialConstraintIdentity).Name);
             sb.Append(
                 " " + EFToolsTraceUtils.FormatNamedEnumerable(
                     "propertyIdentities", _propertyIdentities,
@@ -67,8 +67,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         public override bool Equals(object obj)
         {
-            var that = obj as ReferentialConstraintIdentity;
-            if (that != null)
+            if (obj is ReferentialConstraintIdentity that)
             {
                 return (ReferentialConstraintIdentityComparer.Instance.Compare(this, that) == 0);
             }
@@ -121,7 +120,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         /// <returns></returns>
         internal IEnumerable<DatabaseObject> GetDependentTables()
         {
-            var tables = new HashSet<DatabaseObject>();
+            HashSet<DatabaseObject> tables = new HashSet<DatabaseObject>();
             foreach (var pmi in _propertyIdentities)
             {
                 foreach (var dc in pmi.DependentColumns)

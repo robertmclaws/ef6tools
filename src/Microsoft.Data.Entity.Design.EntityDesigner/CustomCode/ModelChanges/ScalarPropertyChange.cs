@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Property = Microsoft.Data.Entity.Design.Model.Entity.Property;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Property = Microsoft.Data.Entity.Design.Model.Entity.Property;
-
     internal class ScalarPropertyKeyChange : ViewModelChange
     {
         private readonly ScalarProperty _property;
@@ -26,9 +24,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var property = viewModel.ModelXRef.GetExisting(_property) as Property;
+                Property property = viewModel.ModelXRef.GetExisting(_property) as Property;
                 Debug.Assert(property != null);
-                var cmd = new SetKeyPropertyCommand(property, _property.EntityKey);
+                SetKeyPropertyCommand cmd = new SetKeyPropertyCommand(property, _property.EntityKey);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
         }

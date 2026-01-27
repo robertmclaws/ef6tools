@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-
     // <summary>
     //     Abstract base class for all Mapping XyzColumn classes.
     // </summary>
@@ -27,12 +27,11 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
         {
             base.OnValueChanged(component, e);
 
-            var columnArgs = e as ColumnValueChangedEventArgs;
-            if (columnArgs != null)
+            if (e is ColumnValueChangedEventArgs columnArgs)
             {
-                var column = component as BaseColumn;
+                BaseColumn column = component as BaseColumn;
 
-                var mappingDetailsWindow = column.Host as MappingDetailsWindow;
+                MappingDetailsWindow mappingDetailsWindow = column.Host as MappingDetailsWindow;
                 Debug.Assert(mappingDetailsWindow != null, "MappingWindow is null");
                 if (mappingDetailsWindow != null)
                 {
@@ -40,8 +39,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                     if (columnArgs.Args != null)
                     {
                         var treeItemInfo = mappingDetailsWindow.TreeControl.SelectedItemInfo;
-                        var branch = treeItemInfo.Branch as ITreeGridDesignerBranch;
-                        if (branch != null)
+                        if (treeItemInfo.Branch is ITreeGridDesignerBranch branch)
                         {
                             // need to set Row and Column values here
                             columnArgs.Args.Row = treeItemInfo.Row;
@@ -57,11 +55,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
                     // calling this should null out the converter mappings and display an updated drop down
                     // whenever a descriptor value has changed.
-                    var resettableConverter = _converter as IResettableConverter;
-                    if (resettableConverter != null)
-                    {
-                        resettableConverter.Reset();
-                    }
+                    IResettableConverter resettableConverter = _converter as IResettableConverter;
+                    resettableConverter?.Reset();
 
                     // refreshes the property window
                     mappingDetailsWindow.UpdateSelection();
@@ -107,10 +102,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
             Debug.Assert(context != null, "Null context");
             if (context != null)
             {
-                var mappingElement = context.Instance as MappingEFElement;
-                var propertyDescriptor = context.PropertyDescriptor as BaseColumn;
-                if (mappingElement != null
-                    && propertyDescriptor != null)
+                if (context.Instance is MappingEFElement mappingElement
+                    && context.PropertyDescriptor is BaseColumn propertyDescriptor)
                 {
                     propertyDescriptor.EnsureTypeConverters(mappingElement);
                 }
@@ -134,9 +127,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
         public override object /* TypeConverter */ ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
             // if context is null we are passing in a string (possibly from dropdown) via keyboard entry
-            var stringValue = value as string;
             if (context == null
-                && stringValue != null)
+                && value is string stringValue)
             {
                 return stringValue;
             }

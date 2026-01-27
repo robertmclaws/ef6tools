@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-
     /// <summary>
     ///     This is a base class for commands that mutate the model.  Derived classes must override
     ///     InvokeInternal() and can optionally override PreInvoke() and PostInvoke();
@@ -22,8 +22,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
     {
         private string _id;
         private CommandProcessor _processor;
-        private readonly Dictionary<string, Command> _preReqCommands = new Dictionary<string, Command>();
-        private readonly Dictionary<string, object> _properties = new Dictionary<string, object>();
+        private readonly Dictionary<string, Command> _preReqCommands = [];
+        private readonly Dictionary<string, object> _properties = [];
         private Func<Command, CommandProcessorContext, bool> _bindingAction;
         private CommandStatusValues _commandStatus;
 
@@ -216,7 +216,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// <param name="cpc"></param>
         protected virtual void PostInvoke(CommandProcessorContext cpc)
         {
-            var eventArgs = new CommandEventArgs(cpc);
+            CommandEventArgs eventArgs = new CommandEventArgs(cpc);
             if (PostInvokeEvent != null)
             {
                 PostInvokeEvent(this, eventArgs);
@@ -234,8 +234,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// <returns></returns>
         protected Command GetPreReqCommand(string id)
         {
-            Command command = null;
-            _preReqCommands.TryGetValue(id, out command);
+            _preReqCommands.TryGetValue(id, out Command command);
             return command;
         }
 

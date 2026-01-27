@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class MappingModel : EFRuntimeModelRoot
     {
         internal static readonly string ElementName = "Mapping";
@@ -16,16 +16,13 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         internal static readonly string AttributeShouldDefaultUnspecifiedMaps = "ShouldDefaultUnspecifiedMaps";
 
         private DefaultableValue<bool> _defaultUnspecifiedMaps;
-        private readonly List<Alias> _aliases = new List<Alias>();
-        private readonly List<EntityContainerMapping> _entityContainerMappings = new List<EntityContainerMapping>();
+        private readonly List<Alias> _aliases = [];
+        private readonly List<EntityContainerMapping> _entityContainerMappings = [];
 
         internal MappingModel(EntityDesignArtifact parent, XElement element)
             : base(parent, element)
         {
-            if (parent != null)
-            {
-                parent.MappingModel = this;
-            }
+            parent?.MappingModel = this;
         }
 
         /// <summary>
@@ -41,10 +38,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_defaultUnspecifiedMaps == null)
-                {
-                    _defaultUnspecifiedMaps = new ShouldDefaultUnspecifiedMapsDefaultableValue(this);
-                }
+                _defaultUnspecifiedMaps ??= new ShouldDefaultUnspecifiedMapsDefaultableValue(this);
                 return _defaultUnspecifiedMaps;
             }
         }
@@ -132,15 +126,13 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as Alias;
-            if (child1 != null)
+            if (efContainer is Alias child1)
             {
                 _aliases.Remove(child1);
                 return;
             }
 
-            var child2 = efContainer as EntityContainerMapping;
-            if (child2 != null)
+            if (efContainer is EntityContainerMapping child2)
             {
                 _entityContainerMappings.Remove(child2);
                 return;
@@ -182,18 +174,17 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == Alias.ElementName)
             {
-                var a = new Alias(this, elem);
+                Alias a = new Alias(this, elem);
                 a.Parse(unprocessedElements);
                 _aliases.Add(a);
             }
             else if (elem.Name.LocalName == EntityContainerMapping.ElementName)
             {
-                var ecm = new EntityContainerMapping(this, elem);
+                EntityContainerMapping ecm = new EntityContainerMapping(this, elem);
                 _entityContainerMappings.Add(ecm);
                 ecm.Parse(unprocessedElements);
             }

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Diagnostics;
-
     internal class FunctionDetailsV1RowView : FunctionDetailsRowView
     {
         private const int ProcSchemaIndex = 0;

@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Microsoft.VisualStudio.XmlEditor;
+using XmlModel = Microsoft.Data.Tools.XmlDesignerBase.Model.XmlModel;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Microsoft.VisualStudio.XmlEditor;
-    using XmlModel = Microsoft.Data.Tools.XmlDesignerBase.Model.XmlModel;
-
     internal sealed class VSXmlTransaction : XmlTransaction
     {
         private readonly XmlEditingScope _editorTransaction;
         private readonly VSXmlModelProvider _provider;
 
         private readonly Dictionary<XmlModelChange, IXmlChange> _changeMap =
-            new Dictionary<XmlModelChange, IXmlChange>();
+            [];
 
         public VSXmlTransaction(
             VSXmlModelProvider provider,
@@ -115,7 +115,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 
         public override IEnumerable<IXmlChange> Changes(XmlModel model)
         {
-            var vsXmlModel = model as VSXmlModel;
+            VSXmlModel vsXmlModel = model as VSXmlModel;
             Debug.Assert(vsXmlModel != null);
             if (vsXmlModel != null)
             {
@@ -139,16 +139,14 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 
         private IXmlChange GetXmlChange(XmlModelChange modelChange)
         {
-            IXmlChange result = null;
-            if (_changeMap.TryGetValue(modelChange, out result))
+            if (_changeMap.TryGetValue(modelChange, out IXmlChange result))
             {
                 return result;
             }
 
             if (result == null)
             {
-                var addChange = modelChange as AddNodeChange;
-                if (addChange != null)
+                if (modelChange is AddNodeChange addChange)
                 {
                     result = new VSXmlAddNodeChange(addChange);
                 }
@@ -156,8 +154,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 
             if (result == null)
             {
-                var removeChange = modelChange as RemoveNodeChange;
-                if (removeChange != null)
+                if (modelChange is RemoveNodeChange removeChange)
                 {
                     result = new VSXmlRemoveNodeChange(removeChange);
                 }
@@ -165,8 +162,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 
             if (result == null)
             {
-                var nodeNameChange = modelChange as NodeNameChange;
-                if (nodeNameChange != null)
+                if (modelChange is NodeNameChange nodeNameChange)
                 {
                     result = new VSXmlNodeNameChange(nodeNameChange);
                 }
@@ -174,8 +170,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 
             if (result == null)
             {
-                var nodeValueChange = modelChange as NodeValueChange;
-                if (nodeValueChange != null)
+                if (modelChange is NodeValueChange nodeValueChange)
                 {
                     result = new VSXmlNodeValueChange(nodeValueChange);
                 }

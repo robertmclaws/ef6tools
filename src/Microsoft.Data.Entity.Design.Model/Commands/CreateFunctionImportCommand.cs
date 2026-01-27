@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Resources = Microsoft.Data.Entity.Design.Model.Resources;
-
     /// <summary>
     ///     Use this command to create a FunctionImport in the C-Side from a Function (stored procedure) in
     ///     the S-Side and a specified return type.
@@ -28,7 +27,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
     ///     &lt;Parameter Name=&quot;SalesOrderHeaderId&quot; Type=&quot;Int32&quot; Mode=&quot;in&quot;&gt;&lt;/Parameter&gt;
     ///     &lt;/FunctionImport&gt;
     /// </summary>
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class CreateFunctionImportCommand : Command
     {
         private FunctionImport _fi;
@@ -88,8 +86,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (ReturnSingleType == null)
             {
-                var prereq = GetPreReqCommand(CreateComplexTypeCommand.PrereqId) as CreateComplexTypeCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateComplexTypeCommand.PrereqId) is CreateComplexTypeCommand prereq)
                 {
                     CommandValidation.ValidateComplexType(prereq.ComplexType);
                     ReturnSingleType = prereq.ComplexType;
@@ -99,9 +96,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ReturnSingleType")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ParameterDefinitions")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit
@@ -131,8 +125,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // that EntityType's EntitySet. For other functions, don't set
             // the EntitySet.
             var returnSingleTypeString = ReturnSingleType as string;
-            var returnSingleTypeComplexType = ReturnSingleType as ComplexType;
-            var returnSingleTypeEntity = ReturnSingleType as EntityType;
+            ComplexType returnSingleTypeComplexType = ReturnSingleType as ComplexType;
+            EntityType returnSingleTypeEntity = ReturnSingleType as EntityType;
 
             Debug.Assert(
                 returnSingleTypeString != null || returnSingleTypeComplexType != null || returnSingleTypeEntity != null,
@@ -185,7 +179,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static void UpdateFunctionImportParameters(
             CommandProcessorContext cpc, FunctionImport fi, IEnumerable<ParameterDefinition> parameterDefinitions)
         {
@@ -195,7 +188,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 foreach (var definition in parameterDefinitions)
                 {
-                    var conceptualFunctionParam = new Parameter(fi, null);
+                    Parameter conceptualFunctionParam = new Parameter(fi, null);
                     conceptualFunctionParam.LocalName.Value = definition.Name;
                     conceptualFunctionParam.Mode.Value = definition.Mode;
                     conceptualFunctionParam.Type.Value = definition.Type;
@@ -206,7 +199,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static void UpdateFunctionImportParameters(CommandProcessorContext cpc, FunctionImport fi, Function function)
         {
             DeleteAllParameters(cpc, fi);
@@ -225,13 +217,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     // Parameter EFElement conveniently can be used in both the C-Side and S-Side.
                     foreach (var storageFunctionParam in function.Parameters())
                     {
-                        var conceptualFunctionParam = new Parameter(fi, null);
+                        Parameter conceptualFunctionParam = new Parameter(fi, null);
 
                         conceptualFunctionParam.LocalName.Value = storageFunctionParam.LocalName.Value;
                         conceptualFunctionParam.Mode.Value = storageFunctionParam.Mode.Value;
 
-                        string conceptualFunctionParamValue;
-                        if (storeToEdmPrimitiveMap.TryGetValue(storageFunctionParam.Type.Value, out conceptualFunctionParamValue))
+                        if (storeToEdmPrimitiveMap.TryGetValue(storageFunctionParam.Type.Value, out string conceptualFunctionParamValue))
                         {
                             conceptualFunctionParam.Type.Value = conceptualFunctionParamValue;
                         }
@@ -249,11 +240,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         private static void DeleteAllParameters(CommandProcessorContext cpc, FunctionImport fi)
         {
-            IList<Parameter> parametersToDelete = new List<Parameter>();
-            foreach (var parameter in fi.Parameters())
-            {
-                parametersToDelete.Add(parameter);
-            }
+            IList<Parameter> parametersToDelete = [.. fi.Parameters()];
             foreach (var parameter in parametersToDelete)
             {
                 DeleteEFElementCommand.DeleteInTransaction(cpc, parameter);

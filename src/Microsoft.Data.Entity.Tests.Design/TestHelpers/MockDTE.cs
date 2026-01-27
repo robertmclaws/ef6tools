@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using EnvDTE;
+using Microsoft.VisualStudio.Shell.Interop;
+using Moq;
+using VSLangProj;
+using VSLangProj80;
+using VsWebSite;
+using Constants = EnvDTE.Constants;
+
 namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
-    using EnvDTE;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Moq;
-    using VSLangProj;
-    using VSLangProj80;
-    using VsWebSite;
-    using Constants = EnvDTE.Constants;
-
     internal class MockDTE
     {
         public const string CSharpProjectKind = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
@@ -85,7 +85,7 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
 
         public static Reference CreateReference(string name, string version)
         {
-            var reference = new Mock<Reference>();
+            Mock<Reference> reference = new Mock<Reference>();
             reference.SetupGet(r => r.Name).Returns(name);
             reference.SetupGet(r => r.Version).Returns(version);
 
@@ -95,7 +95,7 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
         public static Reference3 CreateReference3(
             string name, string version, string identity = null, string path = null, bool isResolved = false)
         {
-            var reference = new Mock<Reference3>();
+            Mock<Reference3> reference = new Mock<Reference3>();
             reference.SetupGet(r => r.Name).Returns(name);
             reference.SetupGet(r => r.Version).Returns(version);
             if (identity != null)
@@ -113,7 +113,7 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
 
         public static AssemblyReference CreateAssemblyReference(string strongName, string path = null)
         {
-            var assemblyReference = new Mock<AssemblyReference>();
+            Mock<AssemblyReference> assemblyReference = new Mock<AssemblyReference>();
             assemblyReference.SetupGet(r => r.StrongName).Returns(strongName);
             if (path != null)
             {
@@ -125,9 +125,9 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
 
         public static Mock<ProjectItem> CreateProjectItem(string path)
         {
-            var mockProjectItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> mockProjectItem = new Mock<ProjectItem>();
 
-            var mockProperties = new Mock<Properties>() { CallBase = true};
+            Mock<Properties> mockProperties = new Mock<Properties>() { CallBase = true};
 
             mockProjectItem.Setup(p => p.Properties).Returns(mockProperties.Object);
 
@@ -152,7 +152,7 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
             Hierarchy = CreateVsHierarchy(targetFrameworkMoniker, Project);
             Solution = CreateVsSolution(Hierarchy);
 
-            var mockServiceProvider = new Mock<IServiceProvider>();
+            Mock<IServiceProvider> mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider
                 .Setup(m => m.GetService(typeof(IVsSolution)))
                 .Returns(Solution);
@@ -170,7 +170,7 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
 
             object projectItem = mockProjectItem.Object;
 
-            var mockHierarchy = Mock.Get(Hierarchy);
+            Mock<IVsHierarchy> mockHierarchy = Mock.Get(Hierarchy);
             mockHierarchy.
                 Setup(
                     m => m.GetProperty(
@@ -191,7 +191,7 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
 
         private static IVsHierarchy CreateVsHierarchy(object targetFrameworkMoniker, object project)
         {
-            var mockHierarchy = new Mock<IVsHierarchy>();
+            Mock<IVsHierarchy> mockHierarchy = new Mock<IVsHierarchy>();
             mockHierarchy
                 .Setup(m => m.GetProperty(VSITEMID_ROOT, VSHPROPID_TargetFrameworkMoniker, out targetFrameworkMoniker))
                 .Returns(S_OK);
@@ -209,7 +209,7 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
 
         private static IVsSolution CreateVsSolution(IVsHierarchy hierarchy)
         {
-            var mockSolution = new Mock<IVsSolution>();
+            Mock<IVsSolution> mockSolution = new Mock<IVsSolution>();
             mockSolution
                 .Setup(m => m.GetProjectOfUniqueName(It.IsAny<string>(), out hierarchy))
                 .Returns(S_OK);
@@ -224,7 +224,7 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
             IDictionary<string, object> properties,
             IDictionary<string, object> configurationProperties)
         {
-            var mockProject = new Mock<Project>();
+            Mock<Project> mockProject = new Mock<Project>();
             mockProject.Setup(m => m.UniqueName).Returns(projectUniqueName);
             mockProject.SetupGet(p => p.Object).Returns(vsProject);
             mockProject.SetupGet(p => p.Kind).Returns(kind);
@@ -233,17 +233,17 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
 
             if (configurationProperties != null)
             {
-                var configurationPropertiesList = configurationProperties.Select(p => CreateProperty(p.Key, p.Value))
+                List<Property> configurationPropertiesList = configurationProperties.Select(p => CreateProperty(p.Key, p.Value))
                     .ToList();
 
-                var activeConfigurationProperties = new Mock<Properties>();
+                Mock<Properties> activeConfigurationProperties = new Mock<Properties>();
                 activeConfigurationProperties.As<IEnumerable>().Setup(p => p.GetEnumerator())
                     .Returns(() => configurationPropertiesList.GetEnumerator());
 
-                var configuration = new Mock<Configuration>();
+                Mock<Configuration> configuration = new Mock<Configuration>();
                 configuration.SetupGet(c => c.Properties).Returns(activeConfigurationProperties.Object);
 
-                var configurationManager = new Mock<ConfigurationManager>();
+                Mock<ConfigurationManager> configurationManager = new Mock<ConfigurationManager>();
                 configurationManager.SetupGet(m => m.ActiveConfiguration).Returns(configuration.Object);
 
                 mockProject.SetupGet(p => p.ConfigurationManager).Returns(configurationManager.Object);
@@ -260,13 +260,13 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
                 return null;
             }
 
-            var mockReferences = new Mock<References>();
+            Mock<References> mockReferences = new Mock<References>();
             mockReferences.Setup(r => r.GetEnumerator())
                 .Returns(() => references.GetEnumerator());
             mockReferences.As<IEnumerable>().Setup(r => r.GetEnumerator())
                 .Returns(() => references.GetEnumerator());
 
-            var mockVsProject2 = new Mock<VSProject2>();
+            Mock<VSProject2> mockVsProject2 = new Mock<VSProject2>();
             mockVsProject2.SetupGet(p => p.References).Returns(mockReferences.Object);
 
             return mockVsProject2.Object;
@@ -279,8 +279,8 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
                 return null;
             }
 
-            var vsWebSite = new Mock<VSWebSite>();
-            var vsAssemblyReferences = new Mock<AssemblyReferences>();
+            Mock<VSWebSite> vsWebSite = new Mock<VSWebSite>();
+            Mock<AssemblyReferences> vsAssemblyReferences = new Mock<AssemblyReferences>();
             vsAssemblyReferences.As<IEnumerable>()
                 .Setup(r => r.GetEnumerator())
                 .Returns(references.GetEnumerator());
@@ -294,9 +294,9 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
         {
             if (properties != null)
             {
-                var propertyList = properties.Select(p => CreateProperty(p.Key, p.Value)).ToList();
+                List<Property> propertyList = properties.Select(p => CreateProperty(p.Key, p.Value)).ToList();
 
-                var projectProperties = new Mock<Properties>();
+                Mock<Properties> projectProperties = new Mock<Properties>();
                 projectProperties.As<IEnumerable>().Setup(p => p.GetEnumerator())
                     .Returns(() => propertyList.GetEnumerator());
                 projectProperties.Setup(p => p.Item(It.IsAny<string>()))
@@ -308,7 +308,7 @@ namespace Microsoft.Data.Entity.Tests.Design.TestHelpers
 
         private static Property CreateProperty(string name, object value)
         {
-            var property = new Mock<Property>();
+            Mock<Property> property = new Mock<Property>();
             property.SetupGet(p => p.Name).Returns(name);
             property.SetupGet(p => p.Value).Returns(value);
 

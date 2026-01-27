@@ -1,29 +1,29 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Permissions;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
+using System.Windows.Forms.VisualStyles;
+using Accessibility;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.Win32;
+using Timer = System.Windows.Forms.Timer;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Globalization;
-    using System.Runtime.InteropServices;
-    using System.Security;
-    using System.Security.Permissions;
-    using System.Text;
-    using System.Threading;
-    using System.Windows.Forms;
-    using System.Windows.Forms.Design;
-    using System.Windows.Forms.VisualStyles;
-    using Accessibility;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.Win32;
-    using Timer = System.Windows.Forms.Timer;
-
     #region ModifySelectionAction enum
 
     /// <summary>
@@ -156,10 +156,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             /// </summary>
             public override sealed void OnTextChanged()
             {
-                if (Parent != null)
-                {
-                    Parent.LabelEditTextChanged();
-                }
+                Parent?.LabelEditTextChanged();
             }
 
             /// <summary>
@@ -167,10 +164,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             /// </summary>
             public override sealed void OnLostFocus()
             {
-                if (Parent != null)
-                {
-                    Parent.DismissLabelEdit(false, false);
-                }
+                Parent?.DismissLabelEdit(false, false);
             }
 
             /// <summary>
@@ -179,10 +173,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             /// <param name="oldFlags">The old value of the Flags property</param>
             protected override void OnFlagsChanged(VirtualTreeInPlaceControls oldFlags)
             {
-                if (Parent != null)
-                {
-                    Parent.LabelEditFlagsChanged(oldFlags, Flags);
-                }
+                Parent?.LabelEditFlagsChanged(oldFlags, Flags);
             }
 
             /// <summary>
@@ -335,10 +326,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
                 set
                 {
-                    if (Parent != null)
-                    {
-                        Parent.SetStateFlag(VTCStateFlags.LabelEditDirty, value);
-                    }
+                    Parent?.SetStateFlag(VTCStateFlags.LabelEditDirty, value);
                 }
             }
 
@@ -547,9 +535,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 var fReturnUpdate = ((ssi.smoothScrollFlags & Flags.ReturnUpdateRect) != 0);
                 var fEmptySrc = ssi.srcRect.IsEmpty;
                 var fEmptyClip = ssi.clipRect.IsEmpty;
-                var srcRect = new NativeMethods.RECT(ssi.srcRect);
-                var clipRect = new NativeMethods.RECT(ssi.clipRect);
-                var updateRect = new NativeMethods.RECT(0, 0, 0, 0);
+                NativeMethods.RECT srcRect = new NativeMethods.RECT(ssi.srcRect);
+                NativeMethods.RECT clipRect = new NativeMethods.RECT(ssi.clipRect);
+                NativeMethods.RECT updateRect = new NativeMethods.RECT(0, 0, 0, 0);
                 var fImmediate = (0 != (ssi.smoothScrollFlags & Flags.Immediate))
                                  || ((0 == (ssi.smoothScrollFlags & Flags.IgnoreSettings)) && !SmoothScrollingEnabled);
                 var flagParam = 0;
@@ -568,8 +556,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 if ((fEmptySrc != fEmptyClip) || fEmptySrc)
                 {
                     // Create boxed objects as needed to get IntPtr values
-                    var srcHandle = new GCHandle();
-                    var clipHandle = new GCHandle();
+                    GCHandle srcHandle = new GCHandle();
+                    GCHandle clipHandle = new GCHandle();
                     var pSrc = IntPtr.Zero;
                     var pClip = IntPtr.Zero;
                     if (!fEmptySrc)
@@ -582,8 +570,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         clipHandle = GCHandle.Alloc(clipRect, GCHandleType.Pinned);
                         pClip = clipHandle.AddrOfPinnedObject();
                     }
-                    var srcRef = new HandleRef(owner, pSrc);
-                    var clipRef = new HandleRef(owner, pClip);
+                    HandleRef srcRef = new HandleRef(owner, pSrc);
+                    HandleRef clipRef = new HandleRef(owner, pClip);
                     if (fReturnUpdate)
                     {
                         retVal = NativeMethods.ScrollWindowEx(
@@ -827,28 +815,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             if (disposing)
             {
-                if (components != null)
-                {
-                    components.Dispose();
-                }
-                if (myInPlaceControl != null)
-                {
-                    myInPlaceControl.InPlaceControl.Dispose();
-                }
-                if (myImageList != null)
-                {
-                    myImageList.RecreateHandle -= ImageListRecreated;
-                }
+                components?.Dispose();
+                myInPlaceControl?.InPlaceControl.Dispose();
+                myImageList?.RecreateHandle -= ImageListRecreated;
                 MultiColumnHighlightFocusPen = null;
-                if (myBoldFont != null)
-                {
-                    myBoldFont.Dispose();
-                }
+                myBoldFont?.Dispose();
                 myBoldFont = null;
-                if (focusPen != null)
-                {
-                    focusPen.Dispose();
-                }
+                focusPen?.Dispose();
                 focusPen = null;
             }
             base.Dispose(disposing);
@@ -1403,8 +1376,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }; // Disabled flat
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "handle")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static ImageList CreateStandardCheckboxImages(Size basedOnSize)
         {
             ImageList retVal = null;
@@ -1448,9 +1419,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     ButtonState.Checked | ButtonState.Inactive | ButtonState.Flat,
                     ButtonState.Inactive | ButtonState.Flat
                 };
-            using (var bmp = new Bitmap((themedStates.Length + flatStates.Length) * cxImage, cyImage))
+            using (Bitmap bmp = new Bitmap((themedStates.Length + flatStates.Length) * cxImage, cyImage))
             {
-                using (var g = Graphics.FromImage(bmp))
+                using (Graphics g = Graphics.FromImage(bmp))
                 {
                     g.FillRectangle(Brushes.Transparent, 0, 0, bmp.Width, bmp.Height);
                     for (var i = 0; i < themedStates.Length; ++i)
@@ -1554,12 +1525,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.SetScrollPos(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+ScrollBarType,System.Int32,System.Boolean)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.InvalidateRect(System.IntPtr,System.IntPtr,System.Boolean)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.GetClientRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@)")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void _WndProc(ref Message m)
         {
             int lParam;
@@ -1581,7 +1546,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     var remainingHeight = clientRect.height - visibleItemHeight;
                     if (remainingHeight > 0)
                     {
-                        using (var g = Graphics.FromHdc(m.WParam))
+                        using (Graphics g = Graphics.FromHdc(m.WParam))
                         {
                             Brush backBrush = null;
                             EnsureBrush(ref backBrush, BackColor);
@@ -1747,7 +1712,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                 if (IsSelected(myMouseDownHitInfo.Row))
                                 {
                                     checkForDrag = false;
-                                    var p = new Point((int)m.LParam);
+                                    Point p = new Point((int)m.LParam);
                                     if (CheckForDragBegin(
                                         p.X, p.Y, myMouseDownHitInfo.Row, myMouseDownHitInfo.DisplayColumn, ref localCallDefWndProc))
                                     {
@@ -1791,7 +1756,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                 &&
                                 (!multiSelect || IsSelected(myMouseDownHitInfo.Row)))
                             {
-                                var p = new Point((int)m.LParam);
+                                Point p = new Point((int)m.LParam);
                                 var dummyPending = false;
                                 if (CheckForDragBegin(
                                     p.X, p.Y, myMouseDownHitInfo.Row, myMouseDownHitInfo.DisplayColumn, ref dummyPending))
@@ -1862,10 +1827,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     {
                         // update tooltips and checkbox hot-track state. 
                         UpdateMouseTargets();
-                        if (myTooltip != null)
-                        {
-                            myTooltip.Relay(m.WParam, m.LParam);
-                        }
+                        myTooltip?.Relay(m.WParam, m.LParam);
                     }
                     base.WndProc(ref m);
                     break;
@@ -1874,10 +1836,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     {
                         // update tooltips and checkbox hot-track state. 
                         UpdateMouseTargets();
-                        if (myTooltip != null)
-                        {
-                            myTooltip.Relay(m.WParam, m.LParam);
-                        }
+                        myTooltip?.Relay(m.WParam, m.LParam);
                     }
                     base.WndProc(ref m);
                     break;
@@ -2022,7 +1981,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 case NativeMethods.WM_SIZE:
                     {
                         lParam = (int)m.LParam;
-                        var curSize = new Size(NativeMethods.UnsignedLOWORD(lParam), NativeMethods.UnsignedHIWORD(lParam));
+                        Size curSize = new Size(NativeMethods.UnsignedLOWORD(lParam), NativeMethods.UnsignedHIWORD(lParam));
                         var cacheLastSize = myLastSize;
                         var checkHScrollHack =
                             !GetStateFlag(VTCStateFlags.InFirstWmSize) &&
@@ -2046,7 +2005,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                         case NativeMethods.RegionType.Complex:
                                         case NativeMethods.RegionType.Simple:
                                             {
-                                                var testRect = new NativeMethods.RECT(0, 0, cacheLastSize.Width, cacheLastSize.Height);
+                                                NativeMethods.RECT testRect = new NativeMethods.RECT(0, 0, cacheLastSize.Width, cacheLastSize.Height);
                                                 if (NativeMethods.RectInRegion(hRgn, ref testRect))
                                                 {
                                                     scrollRegionClean = false;
@@ -2086,7 +2045,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             {
                                 if (scrollRegionClean)
                                 {
-                                    var ssi = new SmoothScroll.Info(m.HWnd, myLastSize.Width - cacheLastSize.Width, 0);
+                                    SmoothScroll.Info ssi = new SmoothScroll.Info(m.HWnd, myLastSize.Width - cacheLastSize.Width, 0);
                                     ssi.scrollWindowFlags = NativeMethods.ScrollWindowFlags.Invalidate
                                                             | NativeMethods.ScrollWindowFlags.Erase;
                                     ssi.smoothScrollFlags = SmoothScroll.Flags.Immediate;
@@ -2118,7 +2077,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         {
                             // DefWndProc does nothing if there are no items in the tree, so we
                             // need to do it ourselves to get the scrollbar to move.
-                            var si = new NativeMethods.SCROLLINFO(0);
+                            NativeMethods.SCROLLINFO si = new NativeMethods.SCROLLINFO(0);
                             si.fMask = NativeMethods.ScrollInfoFlags.All;
                             NativeMethods.GetScrollInfo(m.HWnd, NativeMethods.ScrollBarType.Horizontal, ref si);
                             var newPos = si.nPos;
@@ -2425,7 +2384,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 var punkAcc = Marshal.GetIUnknownForObject(iacc);
                 try
                 {
-                    var IID_IAccessible = new Guid(NativeMethods.uuid_IAccessible);
+                    Guid IID_IAccessible = new Guid(NativeMethods.uuid_IAccessible);
                     message.Result = NativeMethods.LresultFromObject(
                         ref IID_IAccessible, message.WParam, new HandleRef(accessibleObject, punkAcc));
                 }
@@ -2451,8 +2410,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 // not much point in processing them now.
                 return;
             }
-            var dis = (NativeMethods.DRAWITEMSTRUCT)m.GetLParam(typeof(NativeMethods.DRAWITEMSTRUCT));
-            var bounds = Rectangle.FromLTRB(dis.rcItem.left, dis.rcItem.top, dis.rcItem.right, dis.rcItem.bottom);
+            NativeMethods.DRAWITEMSTRUCT dis = (NativeMethods.DRAWITEMSTRUCT)m.GetLParam(typeof(NativeMethods.DRAWITEMSTRUCT));
+            Rectangle bounds = Rectangle.FromLTRB(dis.rcItem.left, dis.rcItem.top, dis.rcItem.right, dis.rcItem.bottom);
             if (!ClientRectangle.IntersectsWith(bounds))
             {
                 return;
@@ -2461,7 +2420,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             var oldPal = NativeMethods.SelectPalette(dc, Graphics.GetHalftonePalette(), 1);
             try
             {
-                using (var g = Graphics.FromHdc(dc))
+                using (Graphics g = Graphics.FromHdc(dc))
                 {
                     //UNDONE
                     //					if (HorizontalScrollbar) 
@@ -2469,7 +2428,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     //						bounds.Width = Math.Max(MaxItemWidth, bounds.Width);
                     //					}
 
-                    var state = (DrawItemState)dis.itemState;
+                    DrawItemState state = (DrawItemState)dis.itemState;
                     if (dis.itemId == CaretIndex)
                     {
                         state |= DrawItemState.Focus;
@@ -2538,8 +2497,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 if (myTree != null
                     && myTree.VisibleItemCount > 0)
                 {
-                    bool restart;
-                    var searchString = SearchString.Increment(e.KeyChar, out restart);
+                    var searchString = SearchString.Increment(e.KeyChar, out bool restart);
                     if (searchString.Length != 0)
                     {
                         e.Handled = true;
@@ -2551,9 +2509,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         {
                             itemStart = 0;
                         }
-                        int selectionColumn;
-                        int nativeSelectionColumn;
-                        ResolveSelectionColumn(itemStart, out selectionColumn, out nativeSelectionColumn);
+                        ResolveSelectionColumn(itemStart, out int selectionColumn, out int nativeSelectionColumn);
                         if (restart)
                         {
                             ++itemStart;
@@ -2622,8 +2578,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     Control.OnKeyDown override
         /// </summary>
         /// <param name="e">KeyEventArgs</param>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode")]
         protected override void OnKeyDown(KeyEventArgs e)
         {
             var iNewCaret = VirtualTreeConstant.NullIndex;
@@ -2666,8 +2620,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         }
                         else if (iCaret != VirtualTreeConstant.NullIndex)
                         {
-                            int nativeSourceColumn;
-                            ResolveSelectionColumn(iCaret, out sourceColumn, out nativeSourceColumn);
+                            ResolveSelectionColumn(iCaret, out sourceColumn, out int nativeSourceColumn);
                             if (myTree.IsExpanded(iCaret, nativeSourceColumn))
                             {
                                 myTree.ToggleExpansion(iCaret, nativeSourceColumn);
@@ -2704,8 +2657,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         var iCaret = CurrentIndex;
                         if (iCaret != VirtualTreeConstant.NullIndex)
                         {
-                            int nativeSourceColumn;
-                            ResolveSelectionColumn(iCaret, out sourceColumn, out nativeSourceColumn);
+                            ResolveSelectionColumn(iCaret, out sourceColumn, out int nativeSourceColumn);
                             puntChar = true;
                             ExpandRecurse(iCaret, nativeSourceColumn);
                         }
@@ -2718,8 +2670,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         puntChar = true;
                         if (iCaret != VirtualTreeConstant.NullIndex)
                         {
-                            int nativeSourceColumn;
-                            ResolveSelectionColumn(iCaret, out sourceColumn, out nativeSourceColumn);
+                            ResolveSelectionColumn(iCaret, out sourceColumn, out int nativeSourceColumn);
                             iNewCaret = myTree.GetParentIndex(iCaret, nativeSourceColumn);
                         }
                         break;
@@ -2849,8 +2800,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         }
                         else if (iCaret != VirtualTreeConstant.NullIndex)
                         {
-                            int nativeSourceColumn;
-                            ResolveSelectionColumn(iCaret, out sourceColumn, out nativeSourceColumn);
+                            ResolveSelectionColumn(iCaret, out sourceColumn, out int nativeSourceColumn);
                             if (!myTree.IsExpanded(iCaret, nativeSourceColumn)
                                 && myTree.IsExpandable(iCaret, nativeSourceColumn))
                             {
@@ -2911,8 +2861,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         if (iCaret != VirtualTreeConstant.NullIndex)
                         {
                             puntChar = true;
-                            int nativeSourceColumn;
-                            ResolveSelectionColumn(iCaret, out sourceColumn, out nativeSourceColumn);
+                            ResolveSelectionColumn(iCaret, out sourceColumn, out int nativeSourceColumn);
                             if ((testState == myTree.IsExpanded(iCaret, nativeSourceColumn))
                                 && myTree.IsExpandable(iCaret, nativeSourceColumn))
                             {
@@ -3018,8 +2967,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         }
 
                         var findNextItemWithDown = false;
-                        int nativeSourceColumn;
-                        ResolveSelectionColumn(iCaret, out sourceColumn, out nativeSourceColumn);
+                        ResolveSelectionColumn(iCaret, out sourceColumn, out int nativeSourceColumn);
                         var expansion = myTree.GetBlankExpansion(iNewCaret, sourceColumn, myColumnPermutation);
                         if (expansion.AnchorColumn != sourceColumn)
                         {
@@ -3118,8 +3066,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         }
 
                         var findNextItemWithUp = false;
-                        int nativeSourceColumn;
-                        ResolveSelectionColumn(iCaret, out sourceColumn, out nativeSourceColumn);
+                        ResolveSelectionColumn(iCaret, out sourceColumn, out int nativeSourceColumn);
                         preserveSelectionOnColumnShift = false;
                         var expansion = myTree.GetBlankExpansion(iNewCaret, sourceColumn, myColumnPermutation);
                         if (expansion.AnchorColumn != sourceColumn
@@ -3171,8 +3118,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         var iCaret = CurrentIndex;
                         if (iCaret != VirtualTreeConstant.NullIndex)
                         {
-                            int nativeSourceColumn;
-                            ResolveSelectionColumn(iCaret, out sourceColumn, out nativeSourceColumn);
+                            ResolveSelectionColumn(iCaret, out sourceColumn, out int nativeSourceColumn);
                             if (nativeSourceColumn != VirtualTreeConstant.NullIndex
                                 && myTree != null
                                 && myTree.IsExpandable(iCaret, nativeSourceColumn))
@@ -3195,8 +3141,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
                 else
                 {
-                    int nativeSourceColumn;
-                    ResolveSelectionColumn(iCaret, out targetColumn, out nativeSourceColumn);
+                    ResolveSelectionColumn(iCaret, out targetColumn, out int nativeSourceColumn);
                     var targetCoordinate = myTree.GetNavigationTarget(navDirection, iCaret, targetColumn, myColumnPermutation);
                     if (targetCoordinate.IsValid)
                     {
@@ -3219,8 +3164,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 var iCaret = CurrentIndex;
                 if (iCaret != VirtualTreeConstant.NullIndex)
                 {
-                    int nativeSourceColumn;
-                    ResolveSelectionColumn(iCaret, out targetColumn, out nativeSourceColumn);
+                    ResolveSelectionColumn(iCaret, out targetColumn, out int nativeSourceColumn);
                 }
             }
             if (iNewCaret != VirtualTreeConstant.NullIndex)
@@ -3258,12 +3202,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 // Make sure all of the WM_CHARS are cleared out if we're not punting this
                 // character so that we ignore the correct characters.
-                NativeMethods.MSG msg;
                 var hWnd = Handle;
                 while ((myPuntChars > 0)
                        &&
                        NativeMethods.PeekMessage(
-                           out msg, hWnd, NativeMethods.WM_CHAR, NativeMethods.WM_CHAR, NativeMethods.PeekMessageAction.Remove))
+                           out NativeMethods.MSG msg, hWnd, NativeMethods.WM_CHAR, NativeMethods.WM_CHAR, NativeMethods.PeekMessageAction.Remove))
                 {
                     --myPuntChars;
                 }
@@ -3283,8 +3226,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             //NT4 SP6A : SendMessage Fails. So First check whether the point is in Client Co-ordinates and then
             //call Sendmessage.
             //
-            NativeMethods.RECT r;
-            var hr = NativeMethods.GetClientRect(Handle, out r);
+            var hr = NativeMethods.GetClientRect(Handle, out NativeMethods.RECT r);
             if (NativeMethods.Succeeded(hr)
                 && r.left <= x
                 && x < r.right
@@ -3312,14 +3254,12 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return IndexFromPoint(clientPoint.X, clientPoint.Y);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.GetClientRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@)")]
         private bool SizeWnd(int cxWnd, int cyWnd)
         {
             if (cxWnd == 0
                 || cyWnd == 0)
             {
-                NativeMethods.RECT rc;
-                NativeMethods.GetClientRect(Handle, out rc);
+                NativeMethods.GetClientRect(Handle, out NativeMethods.RECT rc);
                 cxWnd = rc.right;
                 cyWnd = rc.bottom;
             }
@@ -3449,9 +3389,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             else
             {
-                int itemLeft;
-                int itemWidth;
-                myHeaderBounds.GetColumnBounds(fullPercentWidth, column, extendThroughColumn, out itemLeft, out itemWidth);
+                myHeaderBounds.GetColumnBounds(fullPercentWidth, column, extendThroughColumn, out int itemLeft, out int itemWidth);
                 adjustRightWidthForScrollbar = adjustRightWidthForScrollbar && myHeaderBounds.HasVariableBounds;
                 itemRect.X = itemLeft;
                 itemRect.Width = itemWidth;
@@ -3481,9 +3419,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         public Rectangle GetItemRectangle(int row, int column)
         {
             CheckIndex(row);
-            NativeMethods.RECT rect;
-            NativeMethods.SendMessage(Handle, NativeMethods.LB_GETITEMRECT, row, out rect);
-            var itemRect = Rectangle.FromLTRB(rect.left, rect.top, rect.right, rect.bottom);
+            NativeMethods.SendMessage(Handle, NativeMethods.LB_GETITEMRECT, row, out NativeMethods.RECT rect);
+            Rectangle itemRect = Rectangle.FromLTRB(rect.left, rect.top, rect.right, rect.bottom);
 
             if (myMctree != null)
             {
@@ -3515,8 +3452,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
                 var xOffset = (level * myIndentWidth);
 
-                int imageWidth;
-                var stringWidth = ListItemStringWidth(ref info, alternateText, out imageWidth);
+                var stringWidth = ListItemStringWidth(ref info, alternateText, out int imageWidth);
                 xOffset += imageWidth;
                 FullRect.X += xOffset;
                 if (textRectOnly && ((stringWidth + xOffset) < FullRect.Width))
@@ -3577,7 +3513,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.InvalidateRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@,System.Boolean)")]
         private void InvalidateStateImage(int absIndex, int displayColumn, int stateImageLeft)
         {
             if (Redraw)
@@ -3595,16 +3530,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     stateImageLeft += (level * myIndentWidth) - myXPos;
                 }
 
-                if (myColumnPermutation != null)
-                {
-                    myColumnPermutation.GetNativeColumn(displayColumn);
-                }
+                myColumnPermutation?.GetNativeColumn(displayColumn);
 
                 var stateImageTop = (absIndex - TopIndex) * myItemHeight;
                 if (stateImageTop >= 0
                     && stateImageTop < ClientSize.Height)
                 {
-                    var rect = new NativeMethods.RECT(
+                    NativeMethods.RECT rect = new NativeMethods.RECT(
                         stateImageLeft, stateImageTop, stateImageLeft + myStateImageWidth, stateImageTop + myStateImageWidth);
                     NativeMethods.InvalidateRect(Handle, ref rect, false);
                 }
@@ -3696,8 +3628,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         protected virtual void OnDrawItem(DrawItemEventArgs e)
         {
             DoDrawItem(e);
-            var handler = Events[EVENT_DRAWITEM] as DrawItemEventHandler;
-            if (handler != null)
+            if (Events[EVENT_DRAWITEM] is DrawItemEventHandler handler)
             {
                 handler(this, e);
             }
@@ -3709,8 +3640,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="e">ContextMenuEventArgs</param>
         protected virtual void OnContextMenuInvoked(ContextMenuEventArgs e)
         {
-            var handler = Events[EVENT_CONTEXTMENU] as ContextMenuEventHandler;
-            if (handler != null)
+            if (Events[EVENT_CONTEXTMENU] is ContextMenuEventHandler handler)
             {
                 handler(this, e);
             }
@@ -3723,17 +3653,12 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="e"></param>
         protected virtual void OnLabelEditControlChanged(EventArgs e)
         {
-            var handler = Events[EVENT_LABELEDITCONTROLCHANGED] as EventHandler;
-
-            if (handler != null)
+            if (Events[EVENT_LABELEDITCONTROLCHANGED] is EventHandler handler)
             {
                 handler(this, e);
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "e")]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         private new void OnDoubleClick(EventArgs e)
         {
             // Hide this version of OnDoubleClick
@@ -3745,8 +3670,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="e">VirtualTreeControl specific DoubleClickEventArgs</param>
         protected virtual void OnDoubleClick(DoubleClickEventArgs e)
         {
-            var handler = Events[EVENT_DOUBLECLICK] as DoubleClickEventHandler;
-            if (handler != null)
+            if (Events[EVENT_DOUBLECLICK] is DoubleClickEventHandler handler)
             {
                 handler(this, e);
             }
@@ -3814,8 +3738,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="e">EventArgs</param>
         protected virtual void OnSelectionChanged(EventArgs e)
         {
-            var handler = Events[EVENT_SELCHANGED] as EventHandler;
-            if (handler != null)
+            if (Events[EVENT_SELCHANGED] is EventHandler handler)
             {
                 handler(this, e);
             }
@@ -3966,7 +3889,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             internal PositionTracker[] GetPositionTrackers()
             {
                 var selCount = (restoreSelection == null) ? 0 : restoreSelection.Length;
-                var retVal = new PositionTracker[TRACKINDEX_FirstSelection + selCount];
+                PositionTracker[] retVal = new PositionTracker[TRACKINDEX_FirstSelection + selCount];
                 var column = restoreColumn;
                 retVal[TRACKINDEX_RestoreTop].Initialize(restoreTop, -1);
                 retVal[TRACKINDEX_Caret].Initialize(restoreCaret, column);
@@ -4224,7 +4147,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
             }
 
-            [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.SetScrollPos(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+ScrollBarType,System.Int32,System.Boolean)")]
             internal void Restore(VirtualTreeControl ctl)
             {
                 var itemCount = ctl.ItemCount;
@@ -4313,7 +4235,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         private void OnItemMoved(object sender, ItemMovedEventArgs e)
         {
             BeginUpdate();
-            var stateTracker = new ListBoxStateTracker(this);
+            ListBoxStateTracker stateTracker = new ListBoxStateTracker(this);
             stateTracker.ApplyChange(ref e);
             stateTracker.Restore(this);
             EndUpdate();
@@ -4334,11 +4256,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 e.IsExpansionToggle);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.InvalidateRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@,System.Boolean)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.ValidateRect(System.IntPtr,System.IntPtr)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.ValidateRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.GetClientRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@)")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void OnToggleExpansion(
             int visibleItemCount, int absIndex, int column, int change, int blanksAboveChange,
             SubItemColumnAdjustmentCollection subItemChanges, bool isExpansionToggle)
@@ -4357,7 +4274,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 SubItemColumnAdjustment columnAdjustment;
                 var changeCount = subItemChanges.Count;
                 var selIndex = CurrentIndex;
-                int displayColumnDummy;
                 var nativeSelectionColumn = -1;
                 for (var i = 0; i < changeCount; ++i)
                 {
@@ -4373,7 +4289,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         {
                             if (nativeSelectionColumn == -1)
                             {
-                                ResolveSelectionColumn(selIndex, out displayColumnDummy, out nativeSelectionColumn);
+                                ResolveSelectionColumn(selIndex, out int displayColumnDummy, out nativeSelectionColumn);
                             }
                             if (columnAdjustment.Column != nativeSelectionColumn)
                             {
@@ -4396,14 +4312,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 return;
             }
             var hWnd = Handle;
-            NativeMethods.RECT pendingUpdateRect;
-            var paintPending = NativeMethods.GetUpdateRect(hWnd, out pendingUpdateRect, false);
+            var paintPending = NativeMethods.GetUpdateRect(hWnd, out NativeMethods.RECT pendingUpdateRect, false);
             BeginUpdate();
 
             // We need the top index for both cases to determine if it has changed.
             // A top index change indicates that the whole window needs refreshing,
             // no change indicates we only need to update the portion below absIndex.
-            var stateTracker = new ListBoxStateTracker(this);
+            ListBoxStateTracker stateTracker = new ListBoxStateTracker(this);
             // The window's listbox doesn't allow a mechanism for inserting
             // items in a no-data listbox, so everything vital (selection, caret,
             // and top index) must be explicitly maintained. LB_DELETESTRING does
@@ -4484,10 +4399,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     stateTracker.startTop == TopIndex)
                 {
                     NativeMethods.RECT itemRect;
-                    NativeMethods.RECT anchorRect;
-                    NativeMethods.RECT clientRect;
                     var offsetAnchor = fullRowChangeBegin != -1;
-                    NativeMethods.SendMessage(hWnd, NativeMethods.LB_GETITEMRECT, absIndex, out anchorRect);
+                    NativeMethods.SendMessage(hWnd, NativeMethods.LB_GETITEMRECT, absIndex, out NativeMethods.RECT anchorRect);
                     itemRect = anchorRect;
                     if (offsetAnchor)
                     {
@@ -4505,7 +4418,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             itemRect.top -= 1;
                         }
                     }
-                    NativeMethods.GetClientRect(hWnd, out clientRect);
+                    NativeMethods.GetClientRect(hWnd, out NativeMethods.RECT clientRect);
                     var restoreXPos = stateTracker.restoreXPos;
                     if (anchorRect.bottom >= clientRect.top
                         && anchorRect.top <= clientRect.bottom)
@@ -4528,7 +4441,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                 var numColumns = ColumnCount;
                                 var lastColumn = numColumns - 1;
 
-                                var columnRect = Rectangle.FromLTRB(clientRect.left, clientRect.top, clientRect.right, clientRect.bottom);
+                                Rectangle columnRect = Rectangle.FromLTRB(clientRect.left, clientRect.top, clientRect.right, clientRect.bottom);
                                 LimitRectToColumn(lastColumn, ref columnRect);
                                 clientRect.right -= columnRect.Width;
                             }
@@ -4592,9 +4505,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         }
                         if (leftColumn != rightColumn)
                         {
-                            int columnLeft;
-                            int columnWidth;
-                            GetColumnBounds(leftColumn, rightColumn, out columnLeft, out columnWidth);
+                            GetColumnBounds(leftColumn, rightColumn, out int columnLeft, out int columnWidth);
                             columnRect.Width = columnWidth;
                             columnRect.X = columnLeft;
                         }
@@ -4647,7 +4558,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 // the expansion to change. Expanding from bottom to top means
                 // our remaining stack always contains absIndexes not affected
                 // by any expansions.
-                var remaining = new Stack<int>(256);
+                Stack<int> remaining = new Stack<int>(256);
                 remaining.Push(absIndex);
 
                 while (remaining.Count > 0)
@@ -4745,7 +4656,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     }
                     if (allowRecursion)
                     {
-                        var stateTracker = new ListBoxStateTracker(this);
+                        ListBoxStateTracker stateTracker = new ListBoxStateTracker(this);
                         if (change != 0)
                         {
                             // UNDONE_NOW: The blank expansion is wrong. We need to pass real data here.
@@ -4790,7 +4701,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 BeginUpdate();
                 DismissLabelEdit(true, false); // cancel outstanding label edits prior to refresh
-                var tree = sender as ITree;
+                ITree tree = sender as ITree;
                 // use the tree's VisibleItemCount (bug 63308)
                 ItemCount = tree.Root != null ? tree.VisibleItemCount : 0;
                 EndUpdate();
@@ -4825,7 +4736,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             OnDisplayDataChanged(e.Changes, e.StartRow, e.Column, e.Count);
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void OnDisplayDataChanged(VirtualTreeDisplayDataChanges changes, int row, int column, int count)
         {
             if (IsHandleCreated)
@@ -4965,8 +4875,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="y">The y position, in client coordinates.</param>
         public VirtualTreeHitInfo HitInfo(int x, int y)
         {
-            ExtraHitInfo extraInfo;
-            return HitInfo(x, y, out extraInfo, false);
+            return HitInfo(x, y, out ExtraHitInfo extraInfo, false);
         }
 
         /// <summary>
@@ -4977,8 +4886,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="y">The y position, in client coordinates.</param>
         public VirtualTreeExtendedHitInfo HitInfoExtended(int x, int y)
         {
-            ExtraHitInfo extraInfo;
-            var hitInfo = HitInfo(x, y, out extraInfo, true);
+            var hitInfo = HitInfo(x, y, out ExtraHitInfo extraInfo, true);
             return new VirtualTreeExtendedHitInfo(ref hitInfo, ref extraInfo);
         }
 
@@ -5048,8 +4956,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             else
             {
-                int leftIncr;
-                column = myHeaderBounds.ColumnHitTest(fullPercentWidth, x, out leftIncr, out itemWidth);
+                column = myHeaderBounds.ColumnHitTest(fullPercentWidth, x, out int leftIncr, out itemWidth);
                 itemLeft += leftIncr;
             }
             if (adjustRight)
@@ -5137,8 +5044,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode")]
         private VirtualTreeHitInfo HitInfo(int x, int y, out ExtraHitInfo extraInfo, bool populateExtras)
         {
             extraInfo = new ExtraHitInfo();
@@ -5295,7 +5200,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             else
             {
                 x -= xItemStart;
-                var tddMasks = new VirtualTreeDisplayDataMasks(
+                VirtualTreeDisplayDataMasks tddMasks = new VirtualTreeDisplayDataMasks(
                     VirtualTreeDisplayMasks.State, VirtualTreeDisplayStates.Bold | VirtualTreeDisplayStates.TextAlignFar);
                 if (myImageWidth > 0)
                 {
@@ -5567,7 +5472,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             if (e.Clicks == 2)
             {
-                var doubleClickArgs = new DoubleClickEventArgs(this, e.Button, e.X, e.Y);
+                DoubleClickEventArgs doubleClickArgs = new DoubleClickEventArgs(this, e.Button, e.X, e.Y);
                 OnDoubleClick(doubleClickArgs);
                 if (doubleClickArgs.Handled)
                 {
@@ -5688,9 +5593,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             var retVal = false;
             if (iCaret != VirtualTreeConstant.NullIndex)
             {
-                int nativeSourceColumn;
-                int sourceColumn;
-                ResolveSelectionColumn(iCaret, out sourceColumn, out nativeSourceColumn);
+                ResolveSelectionColumn(iCaret, out int sourceColumn, out int nativeSourceColumn);
                 if (StateRefreshChanges.None != ToggleAndSynchronizeState(iCaret, nativeSourceColumn))
                 {
                     retVal = true;
@@ -5753,15 +5656,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             base.OnRightToLeftChanged(e);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "value")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private StringFormat StringFormat
         {
             get
             {
                 if (myStringFormat == null)
                 {
-                    var format = new StringFormat();
+                    StringFormat format = new StringFormat();
                     // Adjust string format for Rtl controls
                     if (RightToLeft == RightToLeft.Yes)
                     {
@@ -5794,11 +5695,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             set
             {
                 Debug.Assert(value == null);
-                if (myStringFormat != null)
-                {
-                    myStringFormat.Dispose();
-                    myStringFormat = null;
-                }
+                myStringFormat?.Dispose();
+                myStringFormat = null;
             }
         }
 
@@ -5884,9 +5782,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode")]
         private void DoDrawItem(
             DrawItemEventArgs e, int column, int nativeColumn, bool windowFocused, bool itemFocused, bool columnSelected,
             bool dontDrawLeadingGridline, bool trailingColumn, Rectangle itemBounds)
@@ -5944,10 +5839,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             var branch = info.Branch;
             var text = info.Blank ? null : branch.GetText(info.Row, info.Column);
-            if (text == null)
-            {
-                text = string.Empty;
-            }
+            text ??= string.Empty;
 
             //Debug.WriteLine(text + " " + myXPos.ToString() + " " + e.Bounds.Left.ToString());
             //			bool expandable =
@@ -5963,7 +5855,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 var expansion = myTree.GetBlankExpansion(e.Index, column, myColumnPermutation);
                 var anchorInfo = myTree.GetItemInfo(expansion.TopRow, expansion.AnchorColumn, false);
                 tdd = VirtualTreeDisplayData.Empty;
-                var tddMasks = new VirtualTreeDisplayDataMasks(
+                VirtualTreeDisplayDataMasks tddMasks = new VirtualTreeDisplayDataMasks(
                     VirtualTreeDisplayMasks.Image |
                     VirtualTreeDisplayMasks.ImageOverlays |
                     VirtualTreeDisplayMasks.State |
@@ -5986,7 +5878,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             else
             {
-                var tddMasks = new VirtualTreeDisplayDataMasks(
+                VirtualTreeDisplayDataMasks tddMasks = new VirtualTreeDisplayDataMasks(
                     VirtualTreeDisplayMasks.Image |
                     VirtualTreeDisplayMasks.ImageOverlays |
                     VirtualTreeDisplayMasks.State |
@@ -6204,7 +6096,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
                 if (remainingWidth > 0)
                 {
-                    var textBounds = new Rectangle(0, 0, remainingWidth, bounds.Height);
+                    Rectangle textBounds = new Rectangle(0, 0, remainingWidth, bounds.Height);
                     var gridWidth = remainingWidth;
                     if (drawingEditCell && !drawFullEditCell)
                     {
@@ -6232,7 +6124,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
                         // Draw the text
                         //
-                        var stringBounds = new Rectangle(
+                        Rectangle stringBounds = new Rectangle(
                             textBounds.X + 1,
                             textBounds.Y + border,
                             textBounds.Width - 1,
@@ -6371,7 +6263,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
         private Pen focusPen;
 
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "value")]
         private Pen MultiColumnHighlightFocusPen
         {
             get
@@ -6381,7 +6272,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     var foreColor = SystemColors.WindowText;
                     var backColor = SelectedItemActiveBackColor;
 
-                    using (var b = new Bitmap(2, 2))
+                    using (Bitmap b = new Bitmap(2, 2))
                     {
                         b.SetPixel(1, 0, backColor);
                         b.SetPixel(0, 1, backColor);
@@ -6439,17 +6330,12 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
                 else if (overlayIndex != 0)
                 {
-                    // Use the index as a list of bits into the indices array.
-                    // Do this typed if possible. It returns an IList to be CLS
-                    // compliant.
-                    int[] indicesArray;
-                    IList<int> typedList;
                     int indicesCount;
                     int curIndex;
                     int curBit;
                     indicesCount = overlayIndices.Count;
                     curBit = 1 << (indicesCount - 1);
-                    if (null != (indicesArray = overlayIndices as int[]))
+                    if (overlayIndices is int[] indicesArray)
                     {
                         for (curIndex = indicesCount - 1; curIndex >= 0; --curIndex)
                         {
@@ -6460,7 +6346,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             curBit >>= 1;
                         }
                     }
-                    else if (null != (typedList = overlayIndices as IList<int>))
+                    else if (overlayIndices is IList<int> typedList)
                     {
                         for (curIndex = indicesCount - 1; curIndex >= 0; --curIndex)
                         {
@@ -6493,7 +6379,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void DrawIndentLines(
             Graphics graphics, Color backColor, Color foreColor, int absIndex, int nativeColumn, VirtualTreeItemInfo info,
             VirtualTreeDisplayData tdd, int remainingWidth, int adjustedItemHeight, ref int textLeft)
@@ -6546,7 +6431,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                 --level;
                                 iColumn = 0;
                                 iRow = expanded ? 1 : 0;
-                                var destRect = new Rectangle(textLeft - myIndentWidth, 0, myIndentWidth, adjustedItemHeight);
+                                Rectangle destRect = new Rectangle(textLeft - myIndentWidth, 0, myIndentWidth, adjustedItemHeight);
                                 if (destRect.Left < remainingWidth)
                                 {
                                     // Ensure indent image doesn't draw outside bounding rectangle for this column
@@ -6647,7 +6532,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             var cySrc = myItemHeight;
                             textLeft = level * cxSrc;
                             var skipGlyph = false;
-                            var destRect = new Rectangle((level - 1) * cxSrc, 0, cxSrc, cySrc);
+                            Rectangle destRect = new Rectangle((level - 1) * cxSrc, 0, cxSrc, cySrc);
 
                             if (info.Blank)
                             {
@@ -6760,12 +6645,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         // Helper functions for managing brushes and pens
         private static void EnsureBrush(ref Brush brush, Color color)
         {
-            if (brush == null)
-            {
-                brush = color.IsSystemColor
+            brush ??= color.IsSystemColor
                             ? SystemBrushes.FromSystemColor(color)
                             : new SolidBrush(color);
-            }
         }
 
         private static void CleanBrush(ref Brush brush, Color color)
@@ -6782,12 +6664,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
         private static void EnsurePen(ref Pen pen, Color color)
         {
-            if (pen == null)
-            {
-                pen = color.IsSystemColor
+            pen ??= color.IsSystemColor
                           ? SystemPens.FromSystemColor(color)
                           : new Pen(color);
-            }
         }
 
         private static void CleanPen(ref Pen pen, Color color)
@@ -6844,7 +6723,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         private int ListItemStringWidth(Graphics graphics, ref VirtualTreeItemInfo info, string alternateText, out int imageWidth)
         {
             imageWidth = 0;
-            var tddMasks = new VirtualTreeDisplayDataMasks(VirtualTreeDisplayMasks.State, VirtualTreeDisplayStates.Bold);
+            VirtualTreeDisplayDataMasks tddMasks = new VirtualTreeDisplayDataMasks(VirtualTreeDisplayMasks.State, VirtualTreeDisplayStates.Bold);
             var fCheckImage = myImageWidth > 0;
             var fCheckState = myStateImageWidth > 0;
             if (fCheckImage)
@@ -7011,8 +6890,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 iLastToCheck = iFirstToCheck;
                 iFirstToCheck = iTemp;
             }
-            int iNewFirstMax, iNewLastMax;
-            var cxMax = ComputeWidthOfRange(iFirstToCheck, iLastToCheck - iFirstToCheck + 1, out iNewFirstMax, out iNewLastMax);
+            var cxMax = ComputeWidthOfRange(iFirstToCheck, iLastToCheck - iFirstToCheck + 1, out int iNewFirstMax, out int iNewLastMax);
             UpdateMaxWidth(cxMax, iNewFirstMax, iNewLastMax, false);
 
             CalcScrollBars();
@@ -7148,8 +7026,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 iLastToCheck = iFirstToCheck;
                 iFirstToCheck = iTemp;
             }
-            int iNewFirstMax, iNewLastMax;
-            var cxMax = ComputeWidthOfRange(iFirstToCheck, iLastToCheck - iFirstToCheck + 1, out iNewFirstMax, out iNewLastMax);
+            var cxMax = ComputeWidthOfRange(iFirstToCheck, iLastToCheck - iFirstToCheck + 1, out int iNewFirstMax, out int iNewLastMax);
             UpdateMaxWidth(cxMax, iNewFirstMax, iNewLastMax, fAlwaysResetMax);
 
             CalcScrollBars();
@@ -7178,12 +7055,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             else if (ItemCount != 0)
             {
-                int iNewFirstMax, iNewLastMax;
                 var cxMax = ComputeWidthOfRange(
                     iTop,
                     Math.Min(iTop + myPartlyVisibleCountIgnoreHScroll, cShowing) - iTop,
-                    out iNewFirstMax,
-                    out iNewLastMax);
+                    out int iNewFirstMax,
+                    out int iNewLastMax);
                 fRecalc = UpdateMaxWidth(cxMax, iNewFirstMax, iNewLastMax, true);
             }
             else
@@ -7257,7 +7133,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         }
 
         //  Sets position of horizontal scroll bar and scrolls window to match that position
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.SetScrollPos(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+ScrollBarType,System.Int32,System.Boolean)")]
         private bool SetLeft(int x)
         {
             if (!HasHorizontalScrollBar)
@@ -7304,7 +7179,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return true;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.GetWindowRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@)"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.SetScrollRange(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+ScrollBarType,System.Int32,System.Int32,System.Boolean)")]
         private void VScrollCompleted()
         {
             //Check the horizontal scrollbar.  Note that this differs
@@ -7394,8 +7268,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 iLastToCheck = iFirstToCheck;
                 iFirstToCheck = iTemp;
             }
-            int iNewFirstMax, iNewLastMax;
-            var iNewWidth = ComputeWidthOfRange(iFirstToCheck, iLastToCheck - iFirstToCheck + 1, out iNewFirstMax, out iNewLastMax);
+            var iNewWidth = ComputeWidthOfRange(iFirstToCheck, iLastToCheck - iFirstToCheck + 1, out int iNewFirstMax, out int iNewLastMax);
             UpdateMaxWidth(iNewWidth, iNewFirstMax, iNewLastMax, fForceUpdate);
             if (!GetStateFlag(VTCStateFlags.InHorizontalAdjust)
                 &&
@@ -7454,13 +7327,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 if (iMouseVertShift != 0)
                 {
                     //Vegas#30045, move the mouse with the down button on the scroll bar
-                    NativeMethods.POINT pnt;
-                    NativeMethods.GetCursorPos(out pnt);
+                    NativeMethods.GetCursorPos(out NativeMethods.POINT pnt);
                     if (mouseShift == MouseShiftStyle.PageDown)
                     {
                         //See if the scrollbar addition will shift the down button under the mouse
-                        NativeMethods.RECT rctWindow;
-                        NativeMethods.GetWindowRect(hWnd, out rctWindow);
+                        NativeMethods.GetWindowRect(hWnd, out NativeMethods.RECT rctWindow);
                         //NYI: Is the edge height correct here? Should we check for non-3D borders instead?
                         if (pnt.y
                             < rctWindow.bottom - SystemInformation.Border3DSize.Height
@@ -7572,7 +7443,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 var lastLevel = -1;
                 var lastIsSimple = false;
                 int curWidth;
-                int imageWidth;
                 var baseOffset = 0;
                 while (columnItems.MoveNext())
                 {
@@ -7587,8 +7457,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         }
                         baseOffset = (lastLevel + levelAdjust) * myIndentWidth;
                     }
-                    var info = new VirtualTreeItemInfo(columnItems.Branch, columnItems.RowInBranch, columnItems.ColumnInBranch, 0);
-                    curWidth = ListItemStringWidth(g, ref info, out imageWidth);
+                    VirtualTreeItemInfo info = new VirtualTreeItemInfo(columnItems.Branch, columnItems.RowInBranch, columnItems.ColumnInBranch, 0);
+                    curWidth = ListItemStringWidth(g, ref info, out int imageWidth);
                     curWidth += baseOffset + imageWidth;
                     if (maxWidth == curWidth)
                     {
@@ -7612,9 +7482,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <returns></returns>
         protected int ComputeColumnWidth(int column)
         {
-            int firstMaxDummy;
-            int lastMaxDummy;
-            return ComputeWidthOfRange(column, 0, myTree.VisibleItemCount, out firstMaxDummy, out lastMaxDummy);
+            return ComputeWidthOfRange(column, 0, myTree.VisibleItemCount, out int firstMaxDummy, out int lastMaxDummy);
         }
 
         #endregion //Scrolling Functions
@@ -7752,11 +7620,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             set
             {
                 Debug.Assert(value == null);
-                if (myBoldFont != null)
-                {
-                    myBoldFont.Dispose();
-                    myBoldFont = null;
-                }
+                myBoldFont?.Dispose();
+                myBoldFont = null;
                 myBoldFont = value;
             }
         }
@@ -7768,10 +7633,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         protected override void OnFontChanged(EventArgs e)
         {
             BoldFont = null;
-            if (myHeaderContainer != null)
-            {
-                myHeaderContainer.Font = Font;
-            }
+            myHeaderContainer?.Font = Font;
             CalcTextHeight();
             CalcItemHeight();
             ScrollBarsAfterSetWidth(VirtualTreeConstant.NullIndex);
@@ -7782,7 +7644,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     Get the current index of an item. If there is a caret but no item
         ///     anchor, then this will return -1, whereas CurrentIndex returns 0.
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "hWnd")]
         protected int CurrentIndexCheckAnchor
         {
             get
@@ -7810,7 +7671,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     Get or set the current index of the control. Combine with CurrentColumn
         ///     to figure out the current cell coordinate.
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "hWnd")]
         [Browsable(false)]
         [DefaultValue(-1)]
         public int CurrentIndex
@@ -7945,7 +7805,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     Displays the scrollbar on the left instead of the right.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.SetWindowLong(System.IntPtr,System.Int32,System.Int32)")]
         [DefaultValue(false)]
         public bool LeftScrollBar
         {
@@ -8022,7 +7881,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return myTree.EnumerateColumnItems(mySelectionColumn, myColumnPermutation, ExtendSelectionToAnchors, indices, false);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.InvalidateRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@,System.Boolean)")]
         private void RedrawVisibleSelectedItems()
         {
             var caretIndex = CurrentIndex; // invalidate this separately first, because the caret may exist outside selected area.
@@ -8040,7 +7898,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             if (GetStyleFlag(VTCStyleFlags.MultiSelect))
             {
-                using (var selEnum = new SelectedIndexEnumerator(this))
+                using (SelectedIndexEnumerator selEnum = new SelectedIndexEnumerator(this))
                 {
                     while (selEnum.MoveNext()
                            && selEnum.Current <= lastVisible)
@@ -8165,10 +8023,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 {
                     return;
                 }
-                if (myImageList != null)
-                {
-                    myImageList.RecreateHandle -= ImageListRecreated;
-                }
+                myImageList?.RecreateHandle -= ImageListRecreated;
                 SetImageList(value);
                 if (value != null)
                 {
@@ -8364,13 +8219,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     Calculate the item height
         /// </summary>
         /// <param name="forceReset">Always reset, even if the height has not changed. Used during window recreation.</param>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.GetClientRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@)")]
         private void CalcItemHeight(bool forceReset)
         {
             if (IsHandleCreated)
             {
-                NativeMethods.RECT rc;
-                NativeMethods.GetClientRect(Handle, out rc);
+                NativeMethods.GetClientRect(Handle, out NativeMethods.RECT rc);
                 var cyWnd = rc.bottom;
                 var newHeight = Math.Max(myImageHeight, myTextHeight) + (HasHorizontalGridLines ? 1 : 0);
                 if (forceReset || newHeight != myItemHeight)
@@ -8578,18 +8431,12 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             public void OnQueryContinueDrag(QueryContinueDragEventArgs args)
             {
-                if (Branch != null)
-                {
-                    Branch.OnQueryContinueDrag(args, Row, Column);
-                }
+                Branch?.OnQueryContinueDrag(args, Row, Column);
             }
 
             public void OnGiveFeedback(GiveFeedbackEventArgs args)
             {
-                if (Branch != null)
-                {
-                    Branch.OnGiveFeedback(args, Row, Column);
-                }
+                Branch?.OnGiveFeedback(args, Row, Column);
             }
 
             public IBranch Branch;
@@ -8602,7 +8449,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         private DragSourceOwner mySingleDragSource; // Used for a single drag source
         private List<DragSourceOwner> myDragSources; // Used for multiple drag sources
 
-        [SuppressMessage("Microsoft.Mobility", "CA1601:DoNotUseTimersThatPreventPowerStateChanges")]
         private void OnDragTimerTick(Object sender, EventArgs eventArgs)
         {
             var inBumpScroll = GetStateFlag(VTCStateFlags.InBumpScroll);
@@ -8711,7 +8557,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Mobility", "CA1601:DoNotUseTimersThatPreventPowerStateChanges")]
         private void DoDragOverBumpScroll(Point clientPoint)
         {
             // check if we're in the bump scroll region
@@ -8746,7 +8591,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 if (HasVerticalScrollBar)
                 {
-                    var scrollInfo = new NativeMethods.SCROLLINFO();
+                    NativeMethods.SCROLLINFO scrollInfo = new NativeMethods.SCROLLINFO();
                     scrollInfo.fMask = NativeMethods.ScrollInfoFlags.Range | NativeMethods.ScrollInfoFlags.Position;
                     NativeMethods.GetScrollInfo(Handle, NativeMethods.ScrollBarType.Vertical, ref scrollInfo);
                     if (scrollInfo.nPos < scrollInfo.nMax)
@@ -8769,7 +8614,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 if (HasHorizontalScrollBar)
                 {
-                    var scrollInfo = new NativeMethods.SCROLLINFO();
+                    NativeMethods.SCROLLINFO scrollInfo = new NativeMethods.SCROLLINFO();
                     scrollInfo.fMask = NativeMethods.ScrollInfoFlags.Range | NativeMethods.ScrollInfoFlags.Position;
                     NativeMethods.GetScrollInfo(Handle, NativeMethods.ScrollBarType.Horizontal, ref scrollInfo);
                     if (scrollInfo.nPos < scrollInfo.nMax)
@@ -8817,10 +8662,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         private void ClearDragSources()
         {
             mySingleDragSource.Clear();
-            if (myDragSources != null)
-            {
-                myDragSources.Clear();
-            }
+            myDragSources?.Clear();
         }
 
         /// <summary>
@@ -8845,7 +8687,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     try
                     {
                         List<VirtualTreeStartDragData> sourceData = null;
-                        var firstDragData = new VirtualTreeStartDragData();
+                        VirtualTreeStartDragData firstDragData = new VirtualTreeStartDragData();
                         var intersectEffects = GetStateFlag(VTCStateFlags.CombineDragEffectsWithAnd);
                         var allowedEffects = DragDropEffects.None;
                         var totalCount = 0;
@@ -8885,12 +8727,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                         // We're moving from a single item to multiple items.
                                         // Move our single drag data and source information into
                                         // lists.
-                                        sourceData = new List<VirtualTreeStartDragData>();
-                                        sourceData.Add(firstDragData);
-                                        if (myDragSources == null)
-                                        {
-                                            myDragSources = new List<DragSourceOwner>();
-                                        }
+                                        sourceData = [firstDragData];
+                                        myDragSources ??= [];
                                         myDragSources.Add(mySingleDragSource);
                                         mySingleDragSource.Clear();
                                     }
@@ -8960,7 +8798,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             var multipleSources = myDragSources != null && myDragSources.Count > 0;
             if (singleSource || multipleSources)
             {
-                var args = new QueryContinueDragEventArgs(0, false, DragAction.Cancel);
+                QueryContinueDragEventArgs args = new QueryContinueDragEventArgs(0, false, DragAction.Cancel);
                 DragSourceOwner owner;
                 if (singleSource)
                 {
@@ -9141,7 +8979,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 {
                     itemRect.Width = (GetItemRectangle(myDropRow, expansion.RightColumn).Right - itemRect.X);
                 }
-                var rect = new NativeMethods.RECT(itemRect);
+                NativeMethods.RECT rect = new NativeMethods.RECT(itemRect);
                 NativeMethods.RedrawWindow(
                     Handle, ref rect, IntPtr.Zero, NativeMethods.RedrawWindowFlags.Invalidate | NativeMethods.RedrawWindowFlags.Erase);
             }
@@ -9156,7 +8994,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         // Return true if the user moves a certain number of pixels in any direction
         private bool CheckForDragBegin(int x, int y, int row, int column, ref bool lButtonDownPending)
         {
-            NativeMethods.MSG msg;
             var dragSize = SystemInformation.DragSize;
 
             if (dragSize.Width == 0)
@@ -9164,7 +9001,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 dragSize = SystemInformation.DoubleClickSize;
             }
 
-            var testRect = new Rectangle(
+            Rectangle testRect = new Rectangle(
                 PointToScreen(new Point(x - dragSize.Width, y - dragSize.Height)),
                 new Size(dragSize.Width + dragSize.Width, dragSize.Height + dragSize.Height));
 
@@ -9180,7 +9017,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             var retVal = false;
             do
             {
-                if (NativeMethods.PeekMessage(out msg, IntPtr.Zero, 0, 0, NativeMethods.PeekMessageAction.Remove))
+                if (NativeMethods.PeekMessage(out NativeMethods.MSG msg, IntPtr.Zero, 0, 0, NativeMethods.PeekMessageAction.Remove))
                 {
                     // See if the application wants to process the message...
                     //UNDONE: Should probably provide a different message
@@ -9410,11 +9247,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     {
                         // Make a data object to put on the clipboard, unless the
                         // returned object is already a data object.
-                        var dataObj = dragData.Data as IDataObject;
-                        if (dataObj == null)
-                        {
-                            dataObj = new DataObject(dragData.Data);
-                        }
+                        IDataObject dataObj = dragData.Data as IDataObject;
+                        dataObj ??= new DataObject(dragData.Data);
                         Clipboard.SetDataObject(dataObj);
                         return true;
                     }
@@ -9488,11 +9322,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 {
                     return false;
                 }
-                int nativeSelectionColumn;
-                ResolveSelectionColumn(index, out selectionColumn, out nativeSelectionColumn);
+                ResolveSelectionColumn(index, out selectionColumn, out int nativeSelectionColumn);
                 var info = myTree.GetItemInfo(
                     index, (myColumnPermutation != null) ? myColumnPermutation.GetNativeColumn(selectionColumn) : selectionColumn, false);
-                var args = new DragEventArgs(
+                DragEventArgs args = new DragEventArgs(
                     dataObject, 0, -1, -1, DragDropEffects.Copy | DragDropEffects.Link | DragDropEffects.Move, DragDropEffects.None);
                 info.Branch.OnDragEvent(this, info.Row, info.Column, DragEventType.Enter, args);
                 if ((args.Effect & args.AllowedEffect) != DragDropEffects.None)
@@ -9523,7 +9356,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         private class ToolTipControl : Control
         {
             private readonly VirtualTreeControl myParent;
-            [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources")]
             private IntPtr myStringBuffer = IntPtr.Zero;
             private string myLastString;
             private RectangleF myTextRect;
@@ -9533,14 +9365,14 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             protected override void OnMouseDown(MouseEventArgs e)
             {
-                var newPoint = new Point(e.X, e.Y);
+                Point newPoint = new Point(e.X, e.Y);
                 newPoint = myParent.PointToClient(PointToScreen(newPoint));
                 myParent.OnMouseDown(new MouseEventArgs(e.Button, e.Clicks, newPoint.X, newPoint.Y, e.Delta));
             }
 
             protected override void OnMouseUp(MouseEventArgs e)
             {
-                var newPoint = new Point(e.X, e.Y);
+                Point newPoint = new Point(e.X, e.Y);
                 newPoint = myParent.PointToClient(PointToScreen(newPoint));
                 myParent.OnMouseUp(new MouseEventArgs(e.Button, e.Clicks, newPoint.X, newPoint.Y, e.Delta));
             }
@@ -9595,14 +9427,14 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             protected override void CreateHandle()
             {
-                var icc = new NativeMethods.INITCOMMONCONTROLSEX();
+                NativeMethods.INITCOMMONCONTROLSEX icc = new NativeMethods.INITCOMMONCONTROLSEX();
                 icc.dwICC = NativeMethods.ICC_TAB_CLASSES;
                 NativeMethods.InitCommonControlsEx(icc);
 
                 base.CreateHandle();
                 if (IsHandleCreated)
                 {
-                    var ti = new NativeMethods.TOOLINFO();
+                    NativeMethods.TOOLINFO ti = new NativeMethods.TOOLINFO();
                     ti.SetSize();
                     ti.uFlags = NativeMethods.TTF_IDISHWND | NativeMethods.TTF_TRANSPARENT;
                     ti.hwnd = myParent.Handle;
@@ -9617,7 +9449,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             protected override void OnPaint(PaintEventArgs pe)
             {
                 // Fix CT 64185. Need to recreate graphic object, else tooltip does not show on long text.
-                using (var g = Graphics.FromHwnd(Handle))
+                using (Graphics g = Graphics.FromHwnd(Handle))
                 {
                     base.OnPaint(pe);
 
@@ -9629,7 +9461,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         if (myFormat.Trimming != StringTrimming.None)
                         {
                             // don't allow the tooltip to trim the string at all.
-                            using (var noTrimFormat = new StringFormat(myFormat))
+                            using (StringFormat noTrimFormat = new StringFormat(myFormat))
                             {
                                 noTrimFormat.Trimming = StringTrimming.None;
                                 StringRenderer.DrawString(
@@ -9665,7 +9497,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             public void Relay(IntPtr wParam, IntPtr lParam)
             {
-                var msg = new NativeMethods.MSG();
+                NativeMethods.MSG msg = new NativeMethods.MSG();
                 msg.lParam = lParam;
                 msg.wParam = wParam;
                 msg.message = NativeMethods.WM_MOUSEMOVE;
@@ -9686,16 +9518,12 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 return SetStringBuffer(text);
             }
 
-            [SuppressMessage("Microsoft.Globalization", "CA1307:SpecifyStringComparison")]
             private IntPtr SetStringBuffer(string text)
             {
                 // UNDONE: Can we ensure sufficient common control
                 // version support to force UNICODE via a WM_NOTIFYFORMAT
                 // message?
-                if (text == null)
-                {
-                    text = string.Empty;
-                }
+                text ??= string.Empty;
                 if (text == myLastString
                     || myLastString.CompareTo(text) == 0)
                 {
@@ -9742,10 +9570,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     stringHeight = Math.Max(
                         StringRenderer.MeasureString(UseCompatibleTextRendering, g, tipString, Font, myFormat).Height, ctl.myTextHeight);
                 }
-                var textDimsInt = new Size();
+                Size textDimsInt = new Size();
                 textDimsInt.Width = stringWidth;
                 textDimsInt.Height = stringHeight;
-                var windowRect = new Rectangle(ctl.PointToScreen(myFullLabelRectangle.Location), textDimsInt);
+                Rectangle windowRect = new Rectangle(ctl.PointToScreen(myFullLabelRectangle.Location), textDimsInt);
 
                 // add padding for the client rectangle
                 windowRect.Inflate(1, 1);
@@ -9789,7 +9617,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
                 else
                 {
-                    var rect = NativeMethods.RECT.FromXYWH(windowRect.X, windowRect.Y, windowRect.Width, windowRect.Height);
+                    NativeMethods.RECT rect = NativeMethods.RECT.FromXYWH(windowRect.X, windowRect.Y, windowRect.Width, windowRect.Height);
                     NativeMethods.SendMessage(Handle, NativeMethods.TTM_ADJUSTRECT, 0, out rect);
                     myTextRect = new RectangleF(
                         PointToClient(new Point(rect.left, rect.top)), new SizeF(textDimsInt.Width, textDimsInt.Height));
@@ -9821,7 +9649,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 NativeMethods.SendMessage(ctrlhWnd, NativeMethods.TTM_ACTIVATE, 0, hWnd);
                 if (hit.Row != VirtualTreeConstant.NullIndex)
                 {
-                    var ti = new NativeMethods.TOOLINFO();
+                    NativeMethods.TOOLINFO ti = new NativeMethods.TOOLINFO();
                     ti.SetSize();
                     ti.uId = Handle;
                     ti.uFlags = NativeMethods.TTF_IDISHWND;
@@ -9872,7 +9700,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         // Updates state of the control when the mouse position changes.  Currently updates
         // tooltip and checkbox hot-track states.  Return value currently indicates whether or
         // not a tooltip is showing after returning from this method.
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private bool UpdateMouseTargets()
         {
             if (!IsHandleCreated)
@@ -9880,12 +9707,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 return false;
             }
 
-            NativeMethods.POINT pt;
             var rectClipped = false;
             var containedInClient = true;
 
-            NativeMethods.GetCursorPos(out pt);
-            var mousePos = new Point(pt.x, pt.y);
+            NativeMethods.GetCursorPos(out NativeMethods.POINT pt);
+            Point mousePos = new Point(pt.x, pt.y);
             NativeMethods.ScreenToClient(Handle, ref pt);
 
             ExtraHitInfo extraInfo;
@@ -10054,9 +9880,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         private void StartLabelEdit(bool explicitActivation, int message, ref bool immediateActivation)
         {
             var requestImmediate = immediateActivation;
-            int nativeSelectionColumn;
-            int selectionColumn;
-            ResolveSelectionColumn(myEditIndex, out selectionColumn, out nativeSelectionColumn);
+            ResolveSelectionColumn(myEditIndex, out int selectionColumn, out int nativeSelectionColumn);
             if (null == DoLabelEdit(myEditIndex, selectionColumn, message, explicitActivation, ref immediateActivation))
             {
                 if (requestImmediate && !immediateActivation)
@@ -10084,9 +9908,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
 
             var sizeToText = (myInPlaceControl.Flags & VirtualTreeInPlaceControls.SizeToText) != 0;
-            int selectionColumn;
-            int nativeSelectionColumn;
-            ResolveSelectionColumn(myEditIndex, out selectionColumn, out nativeSelectionColumn);
+            ResolveSelectionColumn(myEditIndex, out int selectionColumn, out int nativeSelectionColumn);
             var rcLabel = GetItemRectangle(
                 myEditIndex, selectionColumn, true, sizeToText, sizeToText ? myInPlaceControl.InPlaceControl.Text : null);
             var stringWidth = rcLabel.Width;
@@ -10208,23 +10030,12 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             var inPlaceEdit = editData.CustomInPlaceEdit;
             var maxTextLength = editData.MaxTextLength;
 
-            if (labelText == null)
-            {
-                // Note: Don't compare to String.Empty. This allows the
-                // user to return String.Empty to display an edit box with
-                // nothing in it.
-                labelText = info.Branch.GetText(info.Row, info.Column);
-            }
+            // Note: Don't compare to String.Empty. This allows the
+            // user to return String.Empty to display an edit box with
+            // nothing in it.
+            labelText ??= info.Branch.GetText(info.Row, info.Column);
 
-            if (inPlaceEdit == null)
-                // Alternate condition is not used. Without this check,
-                // an invalid type will automatically throw a casting
-                // exception in CreateEditInPlaceWindow, which is better
-                // than silently ignoring the user setting.
-                //|| !inPlaceEditType.IsSubclassOf(typeof(IVirtualTreeInPlaceControl)))
-            {
-                inPlaceEdit = typeof(VirtualTreeInPlaceEditControl);
-            }
+            inPlaceEdit ??= typeof(VirtualTreeInPlaceEditControl);
 
             ScrollIntoView(absRow, column);
             myEditColumn = column;
@@ -10391,8 +10202,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     {
                         // Relocate the branch and item for the object and
                         // ask them to commit.
-                        int nativeSelectionColumn;
-                        ResolveSelectionColumn(iEdit, out selectionColumn, out nativeSelectionColumn);
+                        ResolveSelectionColumn(iEdit, out selectionColumn, out int nativeSelectionColumn);
                         var info = myTree.GetItemInfo(iEdit, nativeSelectionColumn, false);
 
                         var editCode = (myCustomInPlaceCommit == null)
@@ -10460,8 +10270,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     {
                         if (selectionColumn != -1)
                         {
-                            int nativeSelectionColumn;
-                            ResolveSelectionColumn(iEdit, out selectionColumn, out nativeSelectionColumn);
+                            ResolveSelectionColumn(iEdit, out selectionColumn, out int nativeSelectionColumn);
                         }
                         InvalidateAreaForLabelEdit(iEdit, selectionColumn, editCtl);
                     }
@@ -10517,15 +10326,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return DisplayException(Site, exception);
         }
 
-        [SuppressMessage("Whitehorse.CustomRules", "WH01:DoNotUseMessageBoxShow",
-            Justification = "[graysonm] Only using MessageBox.Show as a fallback.")]
         internal static bool DisplayException(IServiceProvider serviceProvider, Exception ex)
         {
             if (serviceProvider != null)
             {
-                var uiService = serviceProvider.GetService(typeof(IUIService)) as IUIService;
-
-                if (uiService != null)
+                if (serviceProvider.GetService(typeof(IUIService)) is IUIService uiService)
                 {
                     uiService.ShowError(ex);
                     return true;
@@ -10543,7 +10348,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return true;
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         private IVirtualTreeInPlaceControl CreateEditInPlaceWindow(
             string labelText, int maxTextLength, int column, int message, object inPlaceEdit)
         {
@@ -10594,7 +10398,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return retVal;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.InvalidateRect(System.IntPtr,System.IntPtr,System.Boolean)")]
         private void SetEditInPlaceSize(IVirtualTreeInPlaceControl edit, int stringWidth, ref Rectangle boundingRect)
         {
             var editCtl = edit.InPlaceControl;
@@ -10603,7 +10406,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             if ((edit.Flags & VirtualTreeInPlaceControls.SizeToText) != 0)
             {
                 //Size stringSize = new Size(stringWidth, myItemHeight);
-                var stringSize = new Size(stringWidth, myItemHeight);
+                Size stringSize = new Size(stringWidth, myItemHeight);
                 if (HasHorizontalGridLines)
                 {
                     stringSize.Height -= 1;
@@ -10614,7 +10417,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
                 // position the text rect based on the text rect passed in
                 // if wrapping, center the edit control around the text mid point
-                var textRect = new Rectangle(0, 0, stringSize.Width, stringSize.Height);
+                Rectangle textRect = new Rectangle(0, 0, stringSize.Width, stringSize.Height);
                 textRect.Offset(
                     boundingRect.Left,
                     boundingRect.Top + (boundingRect.Height - textRect.Height) / 2);
@@ -10626,7 +10429,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 // Make sure that the whole edit window is always visible.
                 // We should not extend it to the outside of the parent window.
                 //
-                var clippedRect = Rectangle.Intersect(ClientRectangle, textRect);
+                Rectangle clippedRect = Rectangle.Intersect(ClientRectangle, textRect);
                 if (!clippedRect.IsEmpty)
                 {
                     textRect = clippedRect;
@@ -10635,7 +10438,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 //
                 // Inflate it after the clipping, because it's ok to hide border.
                 //
-                var rcFormat = new NativeMethods.RECT(edit.FormattingRectangle);
+                NativeMethods.RECT rcFormat = new NativeMethods.RECT(edit.FormattingRectangle);
 
                 // Turn the margins inside-out so we can AdjustWindowRect on them.
                 rcFormat.top = -rcFormat.top;
@@ -10708,7 +10511,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes")]
         private void DoAccessibilitySelectionChange(int row, int column, AccItemSettings settings, AccessibleSelection selectionState)
         {
             if (0 != (selectionState & AccessibleSelection.TakeSelection))
@@ -10884,16 +10686,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             var accData = info.Branch.GetAccessibilityData(info.Row, info.Column);
             helpFile = accData.HelpFile;
-            if (helpFile == null)
-            {
-                helpFile = string.Empty;
-            }
+            helpFile ??= string.Empty;
             helpId = accData.HelpContextId;
             helpText = accData.HelpText;
-            if (helpText == null)
-            {
-                helpText = string.Empty;
-            }
+            helpText ??= string.Empty;
             AccessibilityReplacementField[] replacementFields;
             var locValue = info.Branch.GetAccessibleValue(info.Row, info.Column);
             var locName = accData.NameFormatString;
@@ -10901,10 +10697,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 || locName.Length == 0)
             {
                 locName = info.Branch.GetAccessibleName(info.Row, info.Column);
-                if (locName == null)
-                {
-                    locName = string.Empty;
-                }
+                locName ??= string.Empty;
             }
             else
             {
@@ -10969,7 +10762,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             state = locState;
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private string FormatReplacementFields(
             int row, int column, ref VirtualTreeItemInfo info, string formatString, AccessibilityReplacementField[] replacementFields,
             string[] imageDescriptions, string[] stateImageDescriptions)
@@ -11063,8 +10855,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             var columnCount = 1;
                             if (myMctree != null)
                             {
-                                var mcBranch = branch as IMultiColumnBranch;
-                                if (mcBranch != null)
+                                if (branch is IMultiColumnBranch mcBranch)
                                 {
                                     // UNDONE: Column Permutation
                                     columnCount = Math.Min(
@@ -11157,19 +10948,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                                             // separator later if the primary image had no text
                                                             startString = null;
                                                         }
-                                                        // Use the index as a list of bits into the indices array.
-                                                        // Do this typed if possible. It returns an IList to be CLS
-                                                        // compliant. Note that this differs from the drawing routines
-                                                        // for the images, which draw backwards, while this contatenates forwards.
-                                                        int[] indicesArray;
-                                                        IList<int> typedList;
                                                         var overlayIndex = imageIndex;
                                                         int indicesCount;
                                                         int curIndex;
                                                         int curBit;
                                                         indicesCount = overlayIndices.Count;
                                                         curBit = 1;
-                                                        if (null != (indicesArray = overlayIndices as int[]))
+                                                        if (overlayIndices is int[] indicesArray)
                                                         {
                                                             for (curIndex = 0; curIndex < indicesCount; ++curIndex)
                                                             {
@@ -11185,7 +10970,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                                                 curBit <<= 1;
                                                             }
                                                         }
-                                                        else if (null != (typedList = overlayIndices as IList<int>))
+                                                        else if (overlayIndices is IList<int> typedList)
                                                         {
                                                             for (curIndex = 0; curIndex < indicesCount; ++curIndex)
                                                             {
@@ -11434,8 +11219,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 AccessibleObject retVal = null;
                 var tree = ctl.Tree;
                 var info = tree.GetItemInfo(baseRow, nativeBaseColumn, false);
-                var mcBranch = info.Branch as IMultiColumnBranch;
-                if (mcBranch != null)
+                if (info.Branch is IMultiColumnBranch mcBranch)
                 {
                     var simpleCell = true;
                     var useColInfo = false;
@@ -11453,7 +11237,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         }
                     }
                     var style = mcBranch.ColumnStyles(localColumn);
-                    var colInfo = new VirtualTreeItemInfo();
+                    VirtualTreeItemInfo colInfo = new VirtualTreeItemInfo();
                     style = mcBranch.ColumnStyles(localColumn);
                     switch (style)
                     {
@@ -11544,12 +11328,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 var simpleCell = true;
                 var tree = ctl.Tree;
                 var info = tree.GetItemInfo(baseRow, nativeBaseColumn, false);
-                var mcBranch = info.Branch as IMultiColumnBranch;
-                if (mcBranch != null)
+                if (info.Branch is IMultiColumnBranch mcBranch)
                 {
                     var nativeColumn = nativeBaseColumn + localColumn;
                     var style = mcBranch.ColumnStyles(localColumn);
-                    var colInfo = new VirtualTreeItemInfo();
+                    VirtualTreeItemInfo colInfo = new VirtualTreeItemInfo();
                     switch (style)
                     {
                         case SubItemCellStyles.Expandable:
@@ -11924,8 +11707,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 if (ctl.MultiColumnTree != null)
                 {
-                    var mcBranch = info.Branch as IMultiColumnBranch;
-                    if (mcBranch != null)
+                    if (info.Branch is IMultiColumnBranch mcBranch)
                     {
                         // If Column is not 0, then we're looking at an expandable cell. Expandable
                         // cells cannot have multiple columns.

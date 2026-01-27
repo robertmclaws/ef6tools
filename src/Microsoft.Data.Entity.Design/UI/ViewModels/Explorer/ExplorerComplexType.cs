@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class ExplorerComplexType : EntityDesignExplorerEFElement
     {
         private readonly TypedChildList<ExplorerProperty> _properties = new TypedChildList<ExplorerProperty>();
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         private void LoadPropertiesFromModel()
         {
             // load Properties from model
-            var complexType = ModelItem as ComplexType;
+            ComplexType complexType = ModelItem as ComplexType;
             Debug.Assert(
                 complexType != null, "Underlying ComplexType is null calculating Properties for ExplorerComplexType with name " + Name);
             if (complexType != null)
@@ -58,8 +58,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var prop = efElementToInsert as Property;
-            if (prop != null)
+            if (efElementToInsert is Property prop)
             {
                 var explorerProp = AddProperty(prop);
                 var index = _properties.IndexOf(explorerProp);
@@ -72,8 +71,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerProperty = efElementToRemove as ExplorerProperty;
-            if (explorerProperty != null)
+            if (efElementToRemove is ExplorerProperty explorerProperty)
             {
                 var indexOfRemovedChild = _properties.Remove(explorerProperty);
                 return (indexOfRemovedChild < 0) ? false : true;

@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
+using InheritanceConnector = Microsoft.Data.Entity.Design.EntityDesigner.View.InheritanceConnector;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
-    using InheritanceConnector = Microsoft.Data.Entity.Design.EntityDesigner.View.InheritanceConnector;
-
     internal class InheritanceConnectorAdd : InheritanceConnectorModelChange
     {
         internal InheritanceConnectorAdd(InheritanceConnector inheritanceConnector)
@@ -36,16 +36,15 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var modelEntityTypeBase = viewModel.ModelXRef.GetExisting(inheritanceConnector.ModelElement) as EntityTypeBaseType;
-                if (modelEntityTypeBase != null)
+                if (viewModel.ModelXRef.GetExisting(inheritanceConnector.ModelElement) is EntityTypeBaseType modelEntityTypeBase)
                 {
-                    var modelEntity = modelEntityTypeBase.Parent as EntityType;
-                    var modelDiagram = viewModel.ModelXRef.GetExisting(inheritanceConnector.Diagram) as Diagram;
+                    EntityType modelEntity = modelEntityTypeBase.Parent as EntityType;
+                    Diagram modelDiagram = viewModel.ModelXRef.GetExisting(inheritanceConnector.Diagram) as Diagram;
                     Debug.Assert(modelEntity != null && modelDiagram != null);
                     if (modelEntity != null
                         && modelDiagram != null)
                     {
-                        var cmd = new CreateInheritanceConnectorCommand(modelDiagram, modelEntity);
+                        CreateInheritanceConnectorCommand cmd = new CreateInheritanceConnectorCommand(modelDiagram, modelEntity);
                         CommandProcessor.InvokeSingleCommand(cpc, cmd);
                         var modelInheritanceConnector = cmd.InheritanceConnector;
                         viewModel.ModelXRef.Add(modelInheritanceConnector, inheritanceConnector, viewModel.EditingContext);

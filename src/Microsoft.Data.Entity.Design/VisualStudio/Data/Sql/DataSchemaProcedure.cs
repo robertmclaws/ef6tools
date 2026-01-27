@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using EdmxModel = Microsoft.Data.Entity.Design.Model;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.VisualStudio.Data.Services.RelationalObjectModel;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio.Data.Sql
 {
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.VisualStudio.Data.Services.RelationalObjectModel;
-
     internal class DataSchemaProcedure : DataSchemaObject, IDataSchemaProcedure
     {
         private readonly IVsDataExecutableObject _executableObject;
@@ -30,7 +30,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Data.Sql
             {
                 if (_parameters == null)
                 {
-                    _parameters = new List<IDataSchemaParameter>();
+                    _parameters = [];
                     foreach (var parameter in _executableObject.Parameters)
                     {
                         _parameters.Add(new DataSchemaParameter(Server, parameter));
@@ -50,10 +50,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Data.Sql
             {
                 if (_columns == null)
                 {
-                    _columns = new List<IDataSchemaColumn>();
+                    _columns = [];
 
-                    var tabularData = _executableObject as IVsDataTabularObject;
-                    if (tabularData != null)
+                    if (_executableObject is IVsDataTabularObject tabularData)
                     {
                         foreach (var column in tabularData.Columns)
                         {
@@ -74,8 +73,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Data.Sql
             get
             {
                 IDataSchemaParameter result = null;
-                var function = _executableObject as IVsDataScalarFunction;
-                if (function != null)
+                if (_executableObject is IVsDataScalarFunction function)
                 {
                     result = new DataSchemaParameter(Server, function.ReturnValue);
                 }

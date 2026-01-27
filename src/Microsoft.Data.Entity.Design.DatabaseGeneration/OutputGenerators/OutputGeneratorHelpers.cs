@@ -1,17 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
 {
-    using System;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal static class OutputGeneratorHelpers
     {
         // <summary>
@@ -55,7 +54,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
         // </summary>
         internal static string GetStorageAssociationNameFromManyToMany(AssociationEndMember principalEnd)
         {
-            var association = principalEnd.DeclaringType as AssociationType;
+            AssociationType association = principalEnd.DeclaringType as AssociationType;
             Debug.Assert(
                 association != null, "The DeclaringType of the AssociationEndMember " + principalEnd.Name + " should be an AssociationType");
             Debug.Assert(principalEnd != null, "The principal end cannot be null");
@@ -140,8 +139,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
         {
             foreach (var extendedProperty in metadataItem.MetadataProperties.Where(mp => mp.PropertyKind == PropertyKind.Extended))
             {
-                var exPropertyElement = extendedProperty.Value as XElement;
-                if (exPropertyElement != null)
+                if (extendedProperty.Value is XElement exPropertyElement)
                 {
                     // find the CopyToSSDL attribute - if it exists it can be in any EDMX namespace
                     var copyToSSDLAttribute = exPropertyElement.Attributes().FirstOrDefault(
@@ -153,7 +151,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                         {
                             // CopyToSsdl is true, so let's copy this extended property
                             var exAttributeNamespace = copyToSSDLAttribute.Name.Namespace;
-                            var newExPropertyElement = new XElement(exPropertyElement);
+                            XElement newExPropertyElement = new XElement(exPropertyElement);
                             var newCopyToSsdlAttribute = newExPropertyElement.Attribute(exAttributeNamespace + "CopyToSSDL");
                             newCopyToSsdlAttribute.Remove();
 
@@ -161,10 +159,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                             if (namespacePrefix != null)
                             {
                                 var xmlnsEdmxAttr = newExPropertyElement.Attribute(XNamespace.Xmlns + namespacePrefix);
-                                if (xmlnsEdmxAttr != null)
-                                {
-                                    xmlnsEdmxAttr.Remove();
-                                }
+                                xmlnsEdmxAttr?.Remove();
                             }
                             xContainer.Add(newExPropertyElement);
                         }

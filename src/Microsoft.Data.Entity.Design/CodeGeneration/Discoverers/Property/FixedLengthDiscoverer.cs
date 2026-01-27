@@ -1,10 +1,10 @@
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Diagnostics;
-    using System.Linq;
-
     internal class FixedLengthDiscoverer : LengthDiscovererBase
     {
         public override IConfiguration Discover(EdmProperty property, DbModel model)

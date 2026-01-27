@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Threading;
+using System.Windows.Forms;
+
 namespace Microsoft.VisualStudio.TestTools.VsIdeTesting
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Threading;
-    using System.Windows.Forms;
-
     /// <summary>
     ///     Helper class to invoke a method on UI thread.
     /// </summary>
@@ -76,7 +76,6 @@ namespace Microsoft.VisualStudio.TestTools.VsIdeTesting
         ///     The control itself does not know about UI thread. How it works is:
         ///     control.Invoke is called on the same thread where Control was initialized.
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "handle")]
         public static void Initialize()
         {
             Trace.WriteLine(

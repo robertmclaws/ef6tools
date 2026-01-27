@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Drawing.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.TypeEditors;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.ComponentModel;
-    using System.Drawing.Design;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.TypeEditors;
-
     internal class EFPropertyDescriptorBase<T> : EFPropertyBaseDescriptor<T>
         where T : Property
     {
@@ -38,7 +38,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
                 // if BoolOrNone.NoneValue.Equals(value) then remove the attribute by sending null
                 var valueToSet = (BoolOrNone.NoneValue.Equals(value) ? null : value);
-                var cmd = new ChangePropertyTypeNullableCommand(TypedEFElement, valueToSet);
+                ChangePropertyTypeNullableCommand cmd = new ChangePropertyTypeNullableCommand(TypedEFElement, valueToSet);
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
@@ -88,7 +88,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             set
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                var cmd = new UpdateDefaultableValueCommand<string>(TypedEFElement.ConcurrencyMode, value);
+                UpdateDefaultableValueCommand<string> cmd = new UpdateDefaultableValueCommand<string>(TypedEFElement.ConcurrencyMode, value);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
         }
@@ -120,7 +120,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 // if DefaultableValueUIntOrNone.NoneValue.Equals(value) then remove the attribute by sending null
                 var valueToSet =
                     (DefaultableValueUIntOrNone.NoneValue.Equals(value) ? null : value);
-                var cmd = new ChangePropertyTypeLengthCommand(TypedEFElement, valueToSet);
+                ChangePropertyTypeLengthCommand cmd = new ChangePropertyTypeLengthCommand(TypedEFElement, valueToSet);
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
@@ -152,7 +152,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
                 // if BoolOrNone.NoneValue.Equals(value) then remove the attribute by sending null
                 var valueToSet = (BoolOrNone.NoneValue.Equals(value) ? null : value);
-                var cmd =
+                UpdateDefaultableValueCommand<BoolOrNone> cmd =
                     new UpdateDefaultableValueCommand<BoolOrNone>(TypedEFElement.FixedLength, valueToSet);
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
@@ -185,7 +185,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
                 // if DefaultableValueUIntOrNone.NoneValue.Equals(value) then remove the attribute by sending null
                 var valueToSet = (DefaultableValueUIntOrNone.NoneValue.Equals(value) ? null : value);
-                var cmd = new ChangePropertyTypePrecisionCommand(TypedEFElement, valueToSet);
+                ChangePropertyTypePrecisionCommand cmd = new ChangePropertyTypePrecisionCommand(TypedEFElement, valueToSet);
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
@@ -217,7 +217,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
                 // if DefaultableValueUIntOrNone.NoneValue.Equals(value) then remove the attribute by sending null
                 var valueToSet = (DefaultableValueUIntOrNone.NoneValue.Equals(value) ? null : value);
-                var cmd = new ChangePropertyTypeScaleCommand(TypedEFElement, valueToSet);
+                ChangePropertyTypeScaleCommand cmd = new ChangePropertyTypeScaleCommand(TypedEFElement, valueToSet);
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
@@ -249,7 +249,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
                 // if BoolOrNone.NoneValue.Equals(value) then remove the attribute by sending null
                 var valueToSet = (BoolOrNone.NoneValue.Equals(value) ? null : value);
-                var cmd =
+                UpdateDefaultableValueCommand<BoolOrNone> cmd =
                     new UpdateDefaultableValueCommand<BoolOrNone>(TypedEFElement.Unicode, valueToSet);
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);

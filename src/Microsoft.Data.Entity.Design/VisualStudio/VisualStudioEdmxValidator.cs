@@ -1,24 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using EnvDTE;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
-
     internal static class VisualStudioEdmxValidator
     {
         internal static bool LoadAndValidateAllFilesInProject(
@@ -27,27 +27,23 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             // clear all errors for this project
             ErrorListHelper.ClearHierarchyErrors(pHierProj);
 
-            var fileFinder = new VSFileFinder(EntityDesignArtifact.ExtensionEdmx);
+            VSFileFinder fileFinder = new VSFileFinder(EntityDesignArtifact.ExtensionEdmx);
             fileFinder.FindInProject(pHierProj);
 
-            var edmxFilesToValidate = new List<VSFileFinder.VSFileInfo>(fileFinder.MatchingFiles);
+            List<VSFileFinder.VSFileInfo> edmxFilesToValidate = new List<VSFileFinder.VSFileInfo>(fileFinder.MatchingFiles);
 
             return LoadAndValidateFiles(edmxFilesToValidate, doEscherValidation, shouldValidateArtifact);
         }
 
         internal static bool LoadAndValidateFiles(params Uri[] uris)
         {
-            var filesToValidate = new List<VSFileFinder.VSFileInfo>();
+            List<VSFileFinder.VSFileInfo> filesToValidate = new List<VSFileFinder.VSFileInfo>();
             foreach (var uri in uris)
             {
-                Project project;
-                IVsHierarchy projectHierarchy;
-                uint itemId;
-                bool isDocumentInProject;
                 VSFileFinder.VSFileInfo fileInfo;
 
                 VSHelpers.GetProjectAndFileInfoForPath(
-                    uri.LocalPath, PackageManager.Package, out projectHierarchy, out project, out itemId, out isDocumentInProject);
+                    uri.LocalPath, PackageManager.Package, out IVsHierarchy projectHierarchy, out Project project, out uint itemId, out bool isDocumentInProject);
                 fileInfo.Hierarchy = projectHierarchy;
                 fileInfo.ItemId = itemId;
                 fileInfo.Path = uri.LocalPath;
@@ -58,14 +54,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             return LoadAndValidateFiles(filesToValidate, doEscherValidation: true, shouldValidateArtifact: a => true);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static bool LoadAndValidateFiles(
             IEnumerable<VSFileFinder.VSFileInfo> edmxFilesToValidate, bool doEscherValidation, Func<EFArtifact, bool> shouldValidateArtifact)
         {
             var validationSuccessful = true;
 
             // load all the artifacts, and clear out the error list for them.
-            using (var modelManager = new EntityDesignModelManager(new VSArtifactFactory(), new VSArtifactSetFactory()))
+            using (EntityDesignModelManager modelManager = new EntityDesignModelManager(new VSArtifactFactory(), new VSArtifactSetFactory()))
             {
                 foreach (var vsFileInfo in edmxFilesToValidate)
                 {
@@ -120,7 +115,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
             errorList.Clear();
 
-            var artifactSet = (EntityDesignArtifactSet)artifact.ArtifactSet;
+            EntityDesignArtifactSet artifactSet = (EntityDesignArtifactSet)artifact.ArtifactSet;
             Debug.Assert(
                 artifactSet.Artifacts.OfType<EntityDesignArtifact>().Count() == 1,
                 "Expected there is 1 instance of EntityDesignArtifact; Actual:" +
@@ -141,15 +136,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             return true;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsHierarchy.GetSite(Microsoft.VisualStudio.OLE.Interop.IServiceProvider@)")]
         private static EFArtifact GetArtifactForValidation(Uri uri, IVsHierarchy hierarchy, ModelManager modelManager)
         {
-            IServiceProvider oleServiceProvider = null;
             var modelListener = PackageManager.Package.ModelChangeEventListener;
-            hierarchy.GetSite(out oleServiceProvider);
+            hierarchy.GetSite(out IServiceProvider oleServiceProvider);
             System.IServiceProvider sp = new ServiceProvider(oleServiceProvider);
-            var escherDocData = VSHelpers.GetDocData(sp, uri.LocalPath) as IEntityDesignDocData;
 
             EFArtifact artifact = null;
             //
@@ -159,14 +150,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             // the document changes, and we currently don't support that.
             //
 
-            if (escherDocData != null)
+            if (VSHelpers.GetDocData(sp, uri.LocalPath) is IEntityDesignDocData escherDocData)
             {
                 artifact = PackageManager.Package.ModelManager.GetNewOrExistingArtifact(
                     uri, new VSXmlModelProvider(PackageManager.Package, PackageManager.Package));
-                if (modelListener != null)
-                {
-                    modelListener.OnBeforeValidateModel(VSHelpers.GetProject(hierarchy), artifact, true);
-                }
+                modelListener?.OnBeforeValidateModel(VSHelpers.GetProject(hierarchy), artifact, true);
             }
             else
             {
@@ -176,10 +164,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     // Using the LoaderBasedXmlModelProvider will let us catch XML scanner and parser errors (the xml editor will try to 
                     // recover from these, and we won't know that the problem occurred. 
                     artifact = modelManager.GetNewOrExistingArtifact(uri, new StandaloneXmlModelProvider(PackageManager.Package));
-                    if (modelListener != null)
-                    {
-                        modelListener.OnBeforeValidateModel(VSHelpers.GetProject(hierarchy), artifact, true);
-                    }
+                    modelListener?.OnBeforeValidateModel(VSHelpers.GetProject(hierarchy), artifact, true);
                 }
             }
 

@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateOrUpdateEndPropertyCommand : CreateEndPropertyCommand
     {
         internal IEnumerable<Property> ConceptualKeyProperties { get; set; }
@@ -35,7 +36,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // Update Scalar properties
             if (endProperty != null)
             {
-                var oldScalarProperties = endProperty.ScalarProperties().ToList();
+                List<ScalarProperty> oldScalarProperties = endProperty.ScalarProperties().ToList();
                 foreach (var oldProperty in oldScalarProperties)
                 {
                     oldProperty.Delete();
@@ -51,7 +52,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 while (conceptualEnumerator.MoveNext()
                        && storageEnumerator.MoveNext())
                 {
-                    var createEndScalarCommand = new CreateEndScalarPropertyCommand(
+                    CreateEndScalarPropertyCommand createEndScalarCommand = new CreateEndScalarPropertyCommand(
                         endProperty, conceptualEnumerator.Current, storageEnumerator.Current);
 
                     CommandProcessor.InvokeSingleCommand(cpc, createEndScalarCommand);

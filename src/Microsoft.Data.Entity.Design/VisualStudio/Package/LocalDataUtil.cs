@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data.Common;
+using System.Diagnostics;
+using System.IO;
+using EnvDTE;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.Data.Common;
-    using System.Diagnostics;
-    using System.IO;
-    using EnvDTE;
-
     internal class LocalDataUtil
     {
         internal static readonly string PROVIDER_NAME_SQLCLIENT = "System.Data.SqlClient";
@@ -36,10 +36,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 return null;
             }
 
-            var providerConnectionStringBuilder = new DbConnectionStringBuilder();
+            DbConnectionStringBuilder providerConnectionStringBuilder = new DbConnectionStringBuilder();
             providerConnectionStringBuilder.ConnectionString = providerConnectionString;
-            object filePathObject;
-            providerConnectionStringBuilder.TryGetValue(filePathKey, out filePathObject);
+            providerConnectionStringBuilder.TryGetValue(filePathKey, out object filePathObject);
             var filePath = filePathObject as string;
             if (string.IsNullOrEmpty(filePath))
             {
@@ -73,10 +72,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             if (0 == string.CompareOrdinal(providerInvariantName, PROVIDER_NAME_SQLCLIENT) ||
                 0 == string.CompareOrdinal(providerInvariantName, PROVIDER_NAME_MICROSOFT_SQLCLIENT))
             {
-                var providerConnectionStringBuilder = new DbConnectionStringBuilder();
+                DbConnectionStringBuilder providerConnectionStringBuilder = new DbConnectionStringBuilder();
                 providerConnectionStringBuilder.ConnectionString = providerConnectionString;
-                object ignoreResult;
-                if (providerConnectionStringBuilder.TryGetValue(CONNECTION_PROPERTY_ATTACH_DB_FILENAME, out ignoreResult))
+                if (providerConnectionStringBuilder.TryGetValue(CONNECTION_PROPERTY_ATTACH_DB_FILENAME, out object ignoreResult))
                 {
                     return true;
                 }
@@ -96,10 +94,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             if (0 == string.CompareOrdinal(providerInvariantName, PROVIDER_NAME_OLEDB))
             {
                 // This is an OleDb connection string, verify if it is using the Jet provider.
-                var providerConnectionStringBuilder = new DbConnectionStringBuilder();
+                DbConnectionStringBuilder providerConnectionStringBuilder = new DbConnectionStringBuilder();
                 providerConnectionStringBuilder.ConnectionString = providerConnectionString;
-                object oleDbProviderObject;
-                providerConnectionStringBuilder.TryGetValue(CONNECTION_PROPERTY_PROVIDER, out oleDbProviderObject);
+                providerConnectionStringBuilder.TryGetValue(CONNECTION_PROPERTY_PROVIDER, out object oleDbProviderObject);
                 var oleDbProvider = oleDbProviderObject as string;
 
                 Debug.Assert(oleDbProvider != null, "Expected the provider connection string to contain a 'provider' property.");

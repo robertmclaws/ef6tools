@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Xml.Linq;
-
     internal abstract class EFNameableItem : EFNormalizableItem
     {
         internal const string AttributeName = "Name";
@@ -54,7 +54,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal virtual DefaultableValue<string> LocalName
         {
-            get { return _localName ?? (_localName = new LocalNameDefaultableValue(this)); }
+            get { return _localName ??= new LocalNameDefaultableValue(this); }
         }
 
         private class LocalNameDefaultableValue : DefaultableValue<string>

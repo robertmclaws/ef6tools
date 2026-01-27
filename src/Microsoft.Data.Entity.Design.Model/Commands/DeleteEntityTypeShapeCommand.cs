@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Designer;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-
     internal class DeleteEntityTypeShapeCommand : DeleteEFElementCommand
     {
         /// <summary>
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             get
             {
-                var elem = EFElement as EntityTypeShape;
+                EntityTypeShape elem = EFElement as EntityTypeShape;
                 Debug.Assert(elem != null, "underlying element does not exist or is not an EntityTypeShape");
                 if (elem == null)
                 {

@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class CreateReferentialConstraintCommand : Command
     {
         internal AssociationEnd PrincipalEnd { get; set; }
@@ -68,8 +68,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             if (PrincipalEnd == null
                 || DependentEnd == null)
             {
-                var prereq = GetPreReqCommand(CreateStorageAssociationCommand.PrereqId) as CreateStorageAssociationCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateStorageAssociationCommand.PrereqId) is CreateStorageAssociationCommand prereq)
                 {
                     PrincipalEnd = prereq.AssociationPkEnd;
                     DependentEnd = prereq.AssociationFkEnd;
@@ -79,10 +78,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "PrincipalEnd")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "DependentEnd")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(
@@ -93,22 +88,22 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 throw new InvalidOperationException("InvokeInternal is called when PrincipalEnd or DependentEnd is null.");
             }
 
-            var association = PrincipalEnd.Parent as Association;
+            Association association = PrincipalEnd.Parent as Association;
             Debug.Assert(
                 association != null && association == DependentEnd.Parent, "Association parent for both ends must agree and be not null");
 
-            var principalProps = PrincipalProperties.ToList();
-            var dependentProps = DependentProperties.ToList();
+            List<Property> principalProps = PrincipalProperties.ToList();
+            List<Property> dependentProps = DependentProperties.ToList();
 
             Debug.Assert(principalProps.Count == dependentProps.Count, "Number of principal and dependent properties must agree");
             Debug.Assert(principalProps.Count > 0, "Number of properties must be positive");
 
-            var referentialConstraint = new ReferentialConstraint(association, null);
+            ReferentialConstraint referentialConstraint = new ReferentialConstraint(association, null);
             association.ReferentialConstraint = referentialConstraint;
             XmlModelHelper.NormalizeAndResolve(referentialConstraint);
 
-            var principalRole = new ReferentialConstraintRole(referentialConstraint, null);
-            var dependentRole = new ReferentialConstraintRole(referentialConstraint, null);
+            ReferentialConstraintRole principalRole = new ReferentialConstraintRole(referentialConstraint, null);
+            ReferentialConstraintRole dependentRole = new ReferentialConstraintRole(referentialConstraint, null);
 
             var service = cpc.EditingContext.GetEFArtifactService();
             // we can't pass the type of referential constraint role ("Principal" or "Dependent")

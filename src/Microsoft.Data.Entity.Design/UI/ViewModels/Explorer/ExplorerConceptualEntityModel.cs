@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class ExplorerConceptualEntityModel : ExplorerEntityModel
     {
         // Ghost nodes are grouping nodes in the EDM Browser which 
@@ -93,8 +93,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         private void LoadEntityContainersFromModel()
         {
             // load entity container children from model
-            var em = ModelItem as ConceptualEntityModel;
-            if (em != null)
+            if (ModelItem is ConceptualEntityModel em)
             {
                 foreach (ConceptualEntityContainer child in em.EntityContainers())
                 {
@@ -162,8 +161,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var entityContainer = efElementToInsert as ConceptualEntityContainer;
-            if (entityContainer != null)
+            if (efElementToInsert is ConceptualEntityContainer entityContainer)
             {
                 _entityContainers.Insert(
                     (ExplorerConceptualEntityContainer)
@@ -177,8 +175,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerEntityContainer = efElementToRemove as ExplorerConceptualEntityContainer;
-            if (explorerEntityContainer == null)
+            if (efElementToRemove is not ExplorerConceptualEntityContainer explorerEntityContainer)
             {
                 Debug.Fail(
                     string.Format(

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.Metadata
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Xml;
-
     internal static class StoreItemCollectionExtensions
     {
         public static void WriteSsdl(this StoreItemCollection storeItemCollection, XmlWriter writer, string schemaNamespaceName = null)

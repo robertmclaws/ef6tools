@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using LegacyMetadata = System.Data.Metadata.Edm;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Xml;
 
 namespace Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
-    using System.Xml;
-
     internal abstract class CodeGeneratorBase
     {
         /// <summary>
@@ -32,9 +31,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen
         protected static IList<EdmSchemaError> FromLegacySchemaErrors(IEnumerable<LegacyMetadata.EdmSchemaError> legacyEdmSchemaErrors)
         {
             return
-                legacyEdmSchemaErrors == null
-                    ? null
-                    : legacyEdmSchemaErrors.Select(
+                legacyEdmSchemaErrors?.Select(
                         e => new EdmSchemaError(
                                  e.Message, e.ErrorCode,
                                  e.Severity == LegacyMetadata.EdmSchemaErrorSeverity.Warning
@@ -49,9 +46,8 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen
                 EntityFrameworkVersion.IsValidVersion(targetEntityFrameworkVersion),
                 "invalid targetEntityFrameworkVersion");
 
-            return targetEntityFrameworkVersion == EntityFrameworkVersion.Version1
-                       ? (CodeGeneratorBase)new EntityClassGenerator(language)
-                       : new EntityCodeGenerator(language, targetEntityFrameworkVersion);
+            // Always use EntityCodeGenerator with Version3 - legacy EntityClassGenerator removed
+            return new EntityCodeGenerator(language, EntityFrameworkVersion.Version3);
         }
     }
 }

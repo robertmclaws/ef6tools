@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Drawing;
+using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
 {
-    using System.Drawing;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class SvgStyleHelperTests
     {
@@ -122,9 +122,8 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void ToSvgColorWithOpacity_handles_semi_transparent_colors()
         {
-            var semiTransparent = Color.FromArgb(128, 255, 0, 0);
-            string opacity;
-            var color = SvgStylesheetManager.ToSvgColorWithOpacity(semiTransparent, out opacity);
+            Color semiTransparent = Color.FromArgb(128, 255, 0, 0);
+            var color = SvgStylesheetManager.ToSvgColorWithOpacity(semiTransparent, out string opacity);
 
             color.Should().Be("#FF0000");
             opacity.Should().NotBeNull();
@@ -134,8 +133,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void ToSvgColorWithOpacity_returns_null_opacity_for_opaque_colors()
         {
-            string opacity;
-            var color = SvgStylesheetManager.ToSvgColorWithOpacity(Color.Red, out opacity);
+            var color = SvgStylesheetManager.ToSvgColorWithOpacity(Color.Red, out string opacity);
 
             color.Should().Be("#FF0000");
             opacity.Should().BeNull();

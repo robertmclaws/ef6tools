@@ -1,30 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using ModelDesigner = Microsoft.Data.Entity.Design.Model.Designer;
 using ModelDiagram = Microsoft.Data.Tools.Model.Diagram;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
 
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-
     internal class Diagrams : EFElement
     {
         internal static readonly string ElementName = "Diagrams";
 
-        private readonly List<Diagram> _diagrams = new List<Diagram>();
+        private readonly List<Diagram> _diagrams = [];
 
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         internal Diagrams(EFElement parent, XElement element)
             : base(parent, element)
         {
@@ -93,8 +90,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var diagram = efContainer as Diagram;
-            if (diagram != null)
+            if (efContainer is Diagram diagram)
             {
                 _diagrams.Remove(diagram);
             }
@@ -120,12 +116,11 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == Diagram.ElementName)
             {
-                var diagram = new Diagram(this, elem);
+                Diagram diagram = new Diagram(this, elem);
                 diagram.Parse(unprocessedElements);
                 _diagrams.Add(diagram);
             }
@@ -161,7 +156,6 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         // If yes, we will inject commands that mutates the diagram model to the transaction.
         // For example: If an association is created between 2 entity-types and the entity-types are exist in the diagram,
         // we will add CreateAssociationConnector command to the transaction.
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         private void OnBeforeModelChangesCommitted(object sender, EfiChangingEventArgs e)
         {
             if (e.CommandProcessorContext != null)
@@ -171,8 +165,8 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
                 if (_diagrams != null)
                 {
                     // Copy the current Xml changes over since we are going to modifying the transaction
-                    var xmlChangesCopy = new List<IXmlChange>();
-                    var shapeChangeInfoSet = new HashSet<ShapeChangeInformation>();
+                    List<IXmlChange> xmlChangesCopy = new List<IXmlChange>();
+                    HashSet<ShapeChangeInformation> shapeChangeInfoSet = new HashSet<ShapeChangeInformation>();
 
                     foreach (var xmlChange in e.CommandProcessorContext.EfiTransaction.XmlChanges)
                     {
@@ -180,7 +174,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
                         // annotations for it
                         if (xmlChange.Node.NodeType == XmlNodeType.Text)
                         {
-                            var text = xmlChange.Node as XText;
+                            XText text = xmlChange.Node as XText;
                             var trimmedValue = text.Value.Trim();
                             if (String.IsNullOrEmpty(trimmedValue))
                             {
@@ -189,7 +183,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
                         }
 
                         // Ignore changes to annotations
-                        var externalModelChange = new EFArtifact.ExternalXMLModelChange(xmlChange, artifact.ExpectEFObjectForXObject);
+                        EFArtifact.ExternalXMLModelChange externalModelChange = new EFArtifact.ExternalXMLModelChange(xmlChange, artifact.ExpectEFObjectForXObject);
                         if (externalModelChange.IsAnnotationChange(artifact.GetNamespaces()))
                         {
                             continue;
@@ -202,24 +196,18 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
                         var changedEFObject = externalModelChange.ChangedEFObject;
                         if (changedEFObject != null)
                         {
-                            var diagramObject = changedEFObject as ModelDiagram.BaseDiagramObject;
-
-                            if (diagramObject != null)
+                            if (changedEFObject is ModelDiagram.BaseDiagramObject diagramObject)
                             {
-                                var changedEntityTypeShape = changedEFObject as EntityTypeShape;
-                                var changedAssociationConnector = changedEFObject as AssociationConnector;
-                                var changedInheritanceConnector = changedEFObject as InheritanceConnector;
-
-                                var shapeChangeInformation = new ShapeChangeInformation();
-                                if (changedEntityTypeShape != null)
+                                ShapeChangeInformation shapeChangeInformation = new ShapeChangeInformation();
+                                if (changedEFObject is EntityTypeShape changedEntityTypeShape)
                                 {
                                     shapeChangeInformation.ModelEFObject = changedEntityTypeShape.EntityType.Target;
                                 }
-                                else if (changedAssociationConnector != null)
+                                else if (changedEFObject is AssociationConnector changedAssociationConnector)
                                 {
                                     shapeChangeInformation.ModelEFObject = changedAssociationConnector.Association.Target;
                                 }
-                                else if (changedInheritanceConnector != null)
+                                else if (changedEFObject is InheritanceConnector changedInheritanceConnector)
                                 {
                                     shapeChangeInformation.ModelEFObject = changedInheritanceConnector.EntityType.Target;
                                 }
@@ -253,23 +241,19 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
                         if (changedEFObject != null
                             && ModelHelper.GetBaseModelRoot(changedEFObject) is ConceptualEntityModel)
                         {
-                            var entityType = changedEFObject as ConceptualEntityType;
-                            var association = changedEFObject as Association;
-                            var baseType = changedEFObject as EntityTypeBaseType;
-
                             foreach (var diagram in _diagrams)
                             {
-                                if (entityType != null)
+                                if (changedEFObject is ConceptualEntityType entityType)
                                 {
                                     InjectEntityTypeShapeCommand(
                                         e.CommandProcessorContext, shapeChangeInfoSet, diagram, entityType, xmlChange.Action);
                                 }
-                                else if (association != null)
+                                else if (changedEFObject is Association association)
                                 {
                                     InjectAssociationConnectorCommand(
                                         e.CommandProcessorContext, shapeChangeInfoSet, diagram, association, xmlChange.Action);
                                 }
-                                else if (baseType != null)
+                                else if (changedEFObject is EntityTypeBaseType baseType)
                                 {
                                     InjectInheritanceConnectorCommand(
                                         e.CommandProcessorContext, shapeChangeInfoSet, diagram, baseType, xmlChange.Action);
@@ -287,7 +271,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             // First check to see if there is already a change in the original transaction 
             // for the EntityTypeShape that matches the one that we're getting
-            var shapeChangeInfoToQuery = new ShapeChangeInformation
+            ShapeChangeInformation shapeChangeInfoToQuery = new ShapeChangeInformation
                 {
                     ChangeType = changeAction,
                     ModelEFObject = entityType,
@@ -313,7 +297,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
                         // look in the dictionary for an 'add' to an EntityTypeShape that points to this modelobject.
                         if (shapeChangeInfoExists == false)
                         {
-                            var cmd = new CreateEntityTypeShapeCommand(diagram, entityType);
+                            CreateEntityTypeShapeCommand cmd = new CreateEntityTypeShapeCommand(diagram, entityType);
                             CommandProcessor.InvokeSingleCommand(commandProcessorContext, cmd);
                         }
 
@@ -352,7 +336,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             // First check to see if there is already a change in the original transaction 
             // for the AssociationConnector that matches the one that we're getting
-            var shapeChangeInfoToQuery = new ShapeChangeInformation
+            ShapeChangeInformation shapeChangeInfoToQuery = new ShapeChangeInformation
                 {
                     ChangeType = changeAction,
                     ModelEFObject = association,
@@ -386,7 +370,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
                     // If it reach this point, that means that we should not add association connector in the diagram.
                     return;
                 }
-                var cmd = new CreateAssociationConnectorCommand(diagram, association);
+                CreateAssociationConnectorCommand cmd = new CreateAssociationConnectorCommand(diagram, association);
                 CommandProcessor.InvokeSingleCommand(commandProcessorContext, cmd);
             }
             else if (changeAction == XObjectChange.Remove
@@ -407,14 +391,13 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
             }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         private static void InjectInheritanceConnectorCommand(
             CommandProcessorContext commandProcessorContext, HashSet<ShapeChangeInformation> shapeChangeInfoSet,
             Diagram diagram, EntityTypeBaseType baseType, XObjectChange changeAction)
         {
             // First check to see if there is already a change in the original transaction 
             // for the InheritanceConnector that matches the one that we're getting
-            var shapeChangeInfoToQuery = new ShapeChangeInformation
+            ShapeChangeInformation shapeChangeInfoToQuery = new ShapeChangeInformation
                 {
                     ChangeType = changeAction,
                     ModelEFObject = baseType.OwnerEntityType,
@@ -426,9 +409,9 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
             if (changeAction == XObjectChange.Add
                 && shapeChangeInfoExists == false)
             {
-                var participatingEntityTypes = new List<EntityType>();
+                List<EntityType> participatingEntityTypes = new List<EntityType>();
 
-                var derivedEntityType = baseType.Parent as EntityType;
+                EntityType derivedEntityType = baseType.Parent as EntityType;
                 Debug.Assert(derivedEntityType != null, "Where is the parent EntityType of this BaseType attribute?");
 
                 if (derivedEntityType != null)
@@ -453,7 +436,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
                         // If it reach this point, that means that we should not add inheritance connector in the diagram.
                         return;
                     }
-                    var cmd = new CreateInheritanceConnectorCommand(diagram, derivedEntityType);
+                    CreateInheritanceConnectorCommand cmd = new CreateInheritanceConnectorCommand(diagram, derivedEntityType);
                     CommandProcessor.InvokeSingleCommand(commandProcessorContext, cmd);
                 }
             }
@@ -462,8 +445,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
             {
                 // this is happening before the transaction is taking place so we are free to look up anti-dependencies
                 // on this delete
-                var owningEntityType = baseType.Parent as EntityType;
-                if (owningEntityType != null)
+                if (baseType.Parent is EntityType owningEntityType)
                 {
                     foreach (
                         var inheritanceConnector in

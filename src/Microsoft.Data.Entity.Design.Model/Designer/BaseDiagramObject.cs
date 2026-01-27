@@ -1,6 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
- // Temporary workaround, this interface should be remove shortly.
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+
+// Temporary workaround, this interface should be remove shortly.
 
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
@@ -12,11 +17,6 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
 
 namespace Microsoft.Data.Tools.Model.Diagram
 {
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-
     internal abstract class BaseDiagramObject : EFElement, DiagramEFObject
     {
         protected BaseDiagramObject(EFElement parent, XElement element)
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Tools.Model.Diagram
         {
             get
             {
-                var diagram = GetParentOfType(typeof(IDiagram)) as IDiagram;
+                IDiagram diagram = GetParentOfType(typeof(IDiagram)) as IDiagram;
                 Debug.Assert(diagram != null, "Could not find diagram for the connector with display name:" + DisplayName);
                 return diagram;
             }

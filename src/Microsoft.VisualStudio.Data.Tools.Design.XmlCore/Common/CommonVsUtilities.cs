@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.InteropServices;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal static class CommonVsUtilities
     {
         // Used for InvokeRequired
@@ -30,7 +30,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             MessageBoxDefaultButton defaultButton,
             MessageBoxIcon icon);
 
-        [SuppressMessage("Microsoft.Naming", "CA1711:IdentifiersShouldNotHaveIncorrectSuffix")]
         public static DialogResult ShowMessageBoxEx(
             string title,
             string text,
@@ -38,10 +37,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             MessageBoxDefaultButton defaultButton,
             MessageBoxIcon icon)
         {
-            if (_marshalingControl == null)
-            {
-                _marshalingControl = new Control();
-            }
+            _marshalingControl ??= new Control();
 
             if (_marshalingControl.InvokeRequired)
             {
@@ -54,7 +50,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                     icon);
             }
 
-            var uiShell = Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell;
+            IVsUIShell uiShell = Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell;
 
             Debug.Assert(uiShell != null);
             var result = (int)(DialogResult.OK);
@@ -62,7 +58,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             if (uiShell != null)
             {
                 var clsid = Guid.Empty;
-                var vsButtons = (OLEMSGBUTTON)buttons;
+                OLEMSGBUTTON vsButtons = (OLEMSGBUTTON)buttons;
                 var vsIcon = OLEMSGICON.OLEMSGICON_INFO;
 
                 // need to translate from Winform icon enum to VS enum.
@@ -134,11 +130,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 
         internal static bool IsDirty(object docData)
         {
-            var persistDocData = docData as IVsPersistDocData;
-            if (persistDocData != null)
+            if (docData is IVsPersistDocData persistDocData)
             {
-                int dirty;
-                NativeMethods.ThrowOnFailure(persistDocData.IsDocDataDirty(out dirty));
+                NativeMethods.ThrowOnFailure(persistDocData.IsDocDataDirty(out int dirty));
                 return (dirty != 0);
             }
 
@@ -153,29 +147,23 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             docData = null;
             var success = false;
 
-            var rdt = Package.GetGlobalService(typeof(IVsRunningDocumentTable)) as IVsRunningDocumentTable;
+            IVsRunningDocumentTable rdt = Package.GetGlobalService(typeof(IVsRunningDocumentTable)) as IVsRunningDocumentTable;
 
             Debug.Assert(rdt != null);
             if (rdt != null)
             {
-                IVsHierarchy hierarchy;
-                uint rdtFlags;
-                uint readLocks;
-                uint editLocks;
-                string itemName;
-                uint itemId;
                 var unknownDocData = IntPtr.Zero;
 
                 try
                 {
                     var hr = rdt.GetDocumentInfo(
                         cookie,
-                        out rdtFlags,
-                        out readLocks,
-                        out editLocks,
-                        out itemName,
-                        out hierarchy,
-                        out itemId,
+                        out uint rdtFlags,
+                        out uint readLocks,
+                        out uint editLocks,
+                        out string itemName,
+                        out IVsHierarchy hierarchy,
+                        out uint itemId,
                         out unknownDocData);
 
                     if (NativeMethods.Succeeded(hr))

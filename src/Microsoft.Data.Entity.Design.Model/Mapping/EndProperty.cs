@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class EndProperty : EFElement
     {
         internal static readonly string ElementName = "EndProperty";
         internal static readonly string AttributeName = "Name";
 
-        private readonly List<ScalarProperty> _properties = new List<ScalarProperty>();
+        private readonly List<ScalarProperty> _properties = [];
         private SingleItemBinding<AssociationSetEnd> _name;
 
         internal EndProperty(EFElement parent, XElement element)
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as AssociationSetMapping;
+                AssociationSetMapping parent = Parent as AssociationSetMapping;
                 return parent;
             }
         }
@@ -40,13 +40,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_name == null)
-                {
-                    _name = new SingleItemBinding<AssociationSetEnd>(
+                _name ??= new SingleItemBinding<AssociationSetEnd>(
                         this,
                         AttributeName,
                         AssociationSetEndNameNormalizer.NameNormalizer);
-                }
                 return _name;
             }
         }
@@ -90,8 +87,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as ScalarProperty;
-            if (child1 != null)
+            if (efContainer is ScalarProperty child1)
             {
                 _properties.Remove(child1);
                 return;
@@ -161,7 +157,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == ScalarProperty.ElementName)
             {
-                var sp = new ScalarProperty(this, elem);
+                ScalarProperty sp = new ScalarProperty(this, elem);
                 _properties.Add(sp);
                 sp.Parse(unprocessedElements);
             }

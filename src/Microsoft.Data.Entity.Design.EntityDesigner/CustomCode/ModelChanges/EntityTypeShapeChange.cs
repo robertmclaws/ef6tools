@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Diagram = Microsoft.Data.Entity.Design.Model.Designer.Diagram;
+using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
+using EntityTypeShape = Microsoft.Data.Entity.Design.EntityDesigner.View.EntityTypeShape;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Diagram = Microsoft.Data.Entity.Design.Model.Designer.Diagram;
-    using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
-    using EntityTypeShape = Microsoft.Data.Entity.Design.EntityDesigner.View.EntityTypeShape;
-
     internal class EntityTypeShapeChange : EntityTypeShapeModelChange
     {
         private readonly Guid _domainPropertyId;
@@ -34,13 +34,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var modelEntityShape = viewModel.ModelXRef.GetExisting(entityTypeShape) as Model.Designer.EntityTypeShape;
+                Model.Designer.EntityTypeShape modelEntityShape = viewModel.ModelXRef.GetExisting(entityTypeShape) as Model.Designer.EntityTypeShape;
 
                 // If ModelXRef does not contain about model EntityTypeShape,try to get the information through DSL Model Element
                 if (modelEntityShape == null)
                 {
-                    var modelDiagram = viewModel.ModelXRef.GetExisting(viewModel.GetDiagram()) as Diagram;
-                    var entityType = viewModel.ModelXRef.GetExisting(entityTypeShape.ModelElement) as EntityType;
+                    Diagram modelDiagram = viewModel.ModelXRef.GetExisting(viewModel.GetDiagram()) as Diagram;
+                    EntityType entityType = viewModel.ModelXRef.GetExisting(entityTypeShape.ModelElement) as EntityType;
                     Debug.Assert(modelDiagram != null, "Why Escher Diagram is null?");
                     Debug.Assert(entityType != null, "Why there is no XRef between Escher EntityType and DSL EntityT?");
                     if (modelDiagram != null
@@ -68,7 +68,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
                 {
                     if (domainPropertyId == NodeShape.AbsoluteBoundsDomainPropertyId)
                     {
-                        var cp = new CommandProcessor(cpc);
+                        CommandProcessor cp = new CommandProcessor(cpc);
                         cp.EnqueueCommand(
                             new UpdateDefaultableValueCommand<double>(modelEntityShape.PointX, entityTypeShape.AbsoluteBounds.X));
                         cp.EnqueueCommand(
@@ -79,7 +79,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
                     }
                     else if (domainPropertyId == NodeShape.IsExpandedDomainPropertyId)
                     {
-                        var cmd = new UpdateDefaultableValueCommand<bool>(modelEntityShape.IsExpanded, entityTypeShape.IsExpanded);
+                        UpdateDefaultableValueCommand<bool> cmd = new UpdateDefaultableValueCommand<bool>(modelEntityShape.IsExpanded, entityTypeShape.IsExpanded);
                         CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     }
                 }

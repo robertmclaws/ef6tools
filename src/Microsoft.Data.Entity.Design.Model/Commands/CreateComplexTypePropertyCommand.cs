@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     This command creates a new ComplexType Property and lets you define the name, type and nullability of
     ///     the property.
@@ -89,10 +89,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             AddPreReqCommand(prereqCommand);
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ComplexType")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ParentComplexType")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit
@@ -110,8 +106,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // check for uniqueness
-            string msg;
-            if (!ModelHelper.ValidateComplexTypePropertyName(ParentComplexType, Name, true, out msg))
+            if (!ModelHelper.ValidateComplexTypePropertyName(ParentComplexType, Name, true, out string msg))
             {
                 throw new CommandValidationFailedException(msg);
             }
@@ -130,13 +125,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Property property = null;
             if (Type != null)
             {
-                var conceptualProperty = new ConceptualProperty(ParentComplexType, null);
+                ConceptualProperty conceptualProperty = new ConceptualProperty(ParentComplexType, null);
                 conceptualProperty.ChangePropertyType(Type);
                 property = conceptualProperty;
             }
             else
             {
-                var complexProperty = new ComplexConceptualProperty(ParentComplexType, null);
+                ComplexConceptualProperty complexProperty = new ComplexConceptualProperty(ParentComplexType, null);
                 complexProperty.ComplexType.SetRefName(ComplexType);
                 property = complexProperty;
             }
@@ -175,8 +170,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (ParentComplexType == null)
             {
-                var prereq = GetPreReqCommand(CreateComplexTypeCommand.PrereqId) as CreateComplexTypeCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateComplexTypeCommand.PrereqId) is CreateComplexTypeCommand prereq)
                 {
                     ParentComplexType = prereq.ComplexType;
                     CommandValidation.ValidateComplexType(ParentComplexType);
@@ -197,9 +191,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         internal static Property CreateDefaultProperty(CommandProcessorContext cpc, ComplexType parentComplexType, string type)
         {
             var name = ModelHelper.GetUniqueName(typeof(ConceptualProperty), parentComplexType, Property.DefaultPropertyName);
-            var cmd = new CreateComplexTypePropertyCommand(name, parentComplexType, type, false);
+            CreateComplexTypePropertyCommand cmd = new CreateComplexTypePropertyCommand(name, parentComplexType, type, false);
 
-            var cp = new CommandProcessor(cpc, cmd);
+            CommandProcessor cp = new CommandProcessor(cpc, cmd);
             cp.Invoke();
 
             return cmd.Property;
@@ -216,9 +210,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             var name = ModelHelper.GetUniqueName(
                 typeof(ConceptualProperty), parentComplexType, ComplexConceptualProperty.DefaultComplexPropertyName);
-            var cmd = new CreateComplexTypePropertyCommand(name, parentComplexType, type, false);
+            CreateComplexTypePropertyCommand cmd = new CreateComplexTypePropertyCommand(name, parentComplexType, type, false);
 
-            var cp = new CommandProcessor(cpc, cmd);
+            CommandProcessor cp = new CommandProcessor(cpc, cmd);
             cp.Invoke();
 
             return cmd.Property;

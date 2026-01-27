@@ -1,27 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Microsoft.VisualStudio.Modeling.Shell;
+using Microsoft.VisualStudio.PlatformUI;
+
 namespace Microsoft.Data.Entity.Design.Package
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Linq;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Microsoft.VisualStudio.PlatformUI;
-
     /// <summary>
     ///     This partial class adds the PanZoom controls to the main canvas.
     /// </summary>
     internal partial class MicrosoftDataEntityDesignDocView
     {
-        private readonly List<Action> _themeChangedActions = new List<Action>();
+        private readonly List<Action> _themeChangedActions = [];
 
         private readonly ToolTip _toolTip = new ToolTip
             {
@@ -164,11 +164,9 @@ namespace Microsoft.Data.Entity.Design.Package
         /// </summary>
         private void DiagramClientView_ZoomChanged(object sender, DiagramEventArgs e)
         {
-            var diagram = CurrentDiagram as EntityDesignerDiagram;
-            var docData = DocData as MicrosoftDataEntityDesignDocData;
             // make sure that the Model Diagram has already been created or translated before persisting ZoomLevel
-            if (diagram == null
-                || docData == null
+            if (CurrentDiagram is not EntityDesignerDiagram diagram
+                || DocData is not MicrosoftDataEntityDesignDocData docData
                 || !docData.IsModelDiagramLoaded)
             {
                 return;
@@ -188,8 +186,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// </summary>
         private void PanPanelMouseDownHandler(object sender, MouseEventArgs e)
         {
-            var diagram = CurrentDiagram as EntityDesignerDiagram;
-            if (diagram == null)
+            if (CurrentDiagram is not EntityDesignerDiagram diagram)
             {
                 return;
             }
@@ -202,7 +199,7 @@ namespace Microsoft.Data.Entity.Design.Package
             diagram.ShowGrid = false;
 
             // we pass the parent Panel control so that the thumbnail view centers on it
-            using (var thumbnailViewForm = 
+            using (ThumbnailViewForm thumbnailViewForm = 
                 new ThumbnailViewForm(((Control)sender).Parent, CurrentDesigner.DiagramClientView))
             {
                 thumbnailViewForm.ShowDialog();
@@ -217,7 +214,6 @@ namespace Microsoft.Data.Entity.Design.Package
         ///     image in the specified resource as a background
         ///     image.
         /// </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private Panel CreatePanel(
             int left,
             int top,
@@ -230,7 +226,7 @@ namespace Microsoft.Data.Entity.Design.Package
             MouseEventHandler mouseDownHandler = null)
         {
             // Create a new panel to draw the image on
-            var panel = new Panel
+            Panel panel = new Panel
                 {
                     Left = left,
                     Top = top,
@@ -240,8 +236,8 @@ namespace Microsoft.Data.Entity.Design.Package
                 };
 
             Debug.Assert(imageResourceName != null, "imageResourceName != null");
-            var bitmap = new Bitmap(GetType(), imageResourceName);
-            var pictureBox = new PictureBox
+            Bitmap bitmap = new Bitmap(GetType(), imageResourceName);
+            PictureBox pictureBox = new PictureBox
                 {
                     AccessibleName = accessibleName,
                     AccessibleDescription = accessibleDescription,

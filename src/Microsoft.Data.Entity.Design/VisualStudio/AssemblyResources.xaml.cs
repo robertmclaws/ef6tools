@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections;
 using System.Windows;
-using System.Windows.Markup;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
@@ -22,10 +19,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         {
             get
             {
-                if (_default == null)
-                {
-                    _default = new AssemblyResources();
-                }
+                _default ??= [];
                 return _default;
             }
         }

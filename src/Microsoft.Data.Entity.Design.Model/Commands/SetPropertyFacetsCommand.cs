@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     Used to create a new property in the storage model.
     /// </summary>
@@ -124,17 +124,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             if (_property == null)
             {
                 // The pre requisite command could be either createPropertyCommand or createComplexTypePropertyCommand
-                var createPropertyCommand = GetPreReqCommand(CreatePropertyCommand.PrereqId) as CreatePropertyCommand;
-                if (createPropertyCommand != null)
+                if (GetPreReqCommand(CreatePropertyCommand.PrereqId) is CreatePropertyCommand createPropertyCommand)
                 {
                     _property = createPropertyCommand.CreatedProperty;
                 }
                 else
                 {
                     // check if the prereq command is type of createcomplextypepropertycommand.
-                    var createComplexTypePropertyCommand =
-                        GetPreReqCommand(CreateComplexTypePropertyCommand.PrereqId) as CreateComplexTypePropertyCommand;
-                    if (createComplexTypePropertyCommand != null)
+                    if (GetPreReqCommand(CreateComplexTypePropertyCommand.PrereqId) is CreateComplexTypePropertyCommand createComplexTypePropertyCommand)
                     {
                         _property = createComplexTypePropertyCommand.Property;
                     }
@@ -143,7 +140,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             if (_property == null)

@@ -1,18 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [TreeGridDesignerRootBranch(typeof(ResultBindingsBranch))]
     [TreeGridDesignerColumn(typeof(ParameterColumn), Order = 1)]
     internal class MappingResultBindings : MappingFunctionMappingRoot
@@ -66,13 +66,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
         {
             if (null == _resultBindings)
             {
-                _resultBindings = new List<MappingResultBinding>();
+                _resultBindings = [];
 
                 if (Function != null
                     && MappingFunctionEntityType != null
                     && MappingFunctionEntityType.EntityType != null)
                 {
-                    var entityType = MappingFunctionEntityType.EntityType as ConceptualEntityType;
+                    ConceptualEntityType entityType = MappingFunctionEntityType.EntityType as ConceptualEntityType;
                     Debug.Assert(
                         MappingFunctionEntityType.EntityType == null || entityType != null, "EntityType is not ConceptualEntityType");
 
@@ -96,8 +96,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                                 }
 
                                 // if not, see if its already mapped by this type or its base types
-                                var bindingEntityType = binding.Name.Target.Parent as EntityType;
-                                var cet = bindingEntityType as ConceptualEntityType;
+                                EntityType bindingEntityType = binding.Name.Target.Parent as EntityType;
+                                ConceptualEntityType cet = bindingEntityType as ConceptualEntityType;
                                 Debug.Assert(bindingEntityType != null ? cet != null : true, "EntityType is not ConceptualEntityType");
 
                                 Debug.Assert(cet != null, "Parent of Property should be EntityType");
@@ -106,7 +106,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                                     cet.GetSafeSelfAndBaseTypesAsHashSet().Contains(cet))
                                 {
                                     // we are already mapping this 
-                                    var mrb = (MappingResultBinding)ModelToMappingModelXRef.GetNewOrExisting(_context, binding, this);
+                                    MappingResultBinding mrb = (MappingResultBinding)ModelToMappingModelXRef.GetNewOrExisting(_context, binding, this);
                                     _resultBindings.Add(mrb);
                                 }
                             }
@@ -137,7 +137,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 
         protected override void OnChildDeleted(MappingEFElement melem)
         {
-            var child = melem as MappingResultBinding;
+            MappingResultBinding child = melem as MappingResultBinding;
             Debug.Assert(child != null, "Unknown child being deleted");
             if (child != null)
             {

@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class ConceptualEntityModel : BaseEntityModel
     {
-        private readonly List<ComplexType> _complexTypes = new List<ComplexType>();
-        private readonly List<EnumType> _enumTypes = new List<EnumType>();
-        private readonly List<UsingElement> _usings = new List<UsingElement>();
+        private readonly List<ComplexType> _complexTypes = [];
+        private readonly List<EnumType> _enumTypes = [];
+        private readonly List<UsingElement> _usings = [];
 
         // UseStrongSpatialTypes attribute only exists on the CSDL Schema element
         private DefaultableValue<bool> _useStrongSpatialTypesAttr;
@@ -24,10 +24,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         internal ConceptualEntityModel(EntityDesignArtifact parent, XElement element)
             : base(parent, element)
         {
-            if (parent != null)
-            {
-                parent.ConceptualModel = this;
-            }
+            parent?.ConceptualModel = this;
         }
 
         #region properties
@@ -95,10 +92,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_useStrongSpatialTypesAttr == null)
-                {
-                    _useStrongSpatialTypesAttr = new UseStrongSpatialTypesDefaultableValue(this);
-                }
+                _useStrongSpatialTypesAttr ??= new UseStrongSpatialTypesDefaultableValue(this);
                 return _useStrongSpatialTypesAttr;
             }
         }
@@ -144,22 +138,19 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as ComplexType;
-            if (child1 != null)
+            if (efContainer is ComplexType child1)
             {
                 _complexTypes.Remove(child1);
                 return;
             }
 
-            var child2 = efContainer as UsingElement;
-            if (child2 != null)
+            if (efContainer is UsingElement child2)
             {
                 _usings.Remove(child2);
                 return;
             }
 
-            var child3 = efContainer as EnumType;
-            if (child3 != null)
+            if (efContainer is EnumType child3)
             {
                 _enumTypes.Remove(child3);
                 return;
@@ -208,7 +199,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             var csdlNamespaceName = SchemaManager.GetCSDLNamespaceName(Artifact.SchemaVersion);
             foreach (var element in XElement.Elements(XName.Get(EnumType.ElementName, csdlNamespaceName)))
             {
-                var enumType = new EnumType(this, element);
+                EnumType enumType = new EnumType(this, element);
                 _enumTypes.Add(enumType);
                 enumType.Parse(unprocessedElements);
             }
@@ -225,31 +216,30 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 {
                     // multiple EntityContainers detected, report an error
                     var msg = String.Format(CultureInfo.CurrentCulture, Resources.TOO_MANY_ENTITY_CONTAINER_ELEMENTS, Namespace.Value);
-                    var error = new ErrorInfo(
+                    ErrorInfo error = new ErrorInfo(
                         ErrorInfo.Severity.ERROR, msg, this, ErrorCodes.TOO_MANY_ENTITY_CONTAINER_ELEMENTS, ErrorClass.ParseError);
                     Artifact.AddParseErrorForObject(this, error);
                 }
-                var ec = new ConceptualEntityContainer(this, elem);
+                ConceptualEntityContainer ec = new ConceptualEntityContainer(this, elem);
                 _entityContainers.Add(ec);
                 ec.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == ComplexType.ElementName)
             {
-                var complexType = new ComplexType(this, elem);
+                ComplexType complexType = new ComplexType(this, elem);
                 _complexTypes.Add(complexType);
                 complexType.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == UsingElement.ElementName)
             {
-                var use = new UsingElement(this, elem);
+                UsingElement use = new UsingElement(this, elem);
                 _usings.Add(use);
                 use.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == EnumType.ElementName)
             {
                 // Check if enumType that represents the XElement <see DoParse method>
-                var enumType = ModelItemAnnotation.GetModelItem(elem) as EnumType;
-                if (enumType == null
+                if (ModelItemAnnotation.GetModelItem(elem) is not EnumType enumType
                     || enumType.IsDisposed)
                 {
                     enumType = new EnumType(this, elem);

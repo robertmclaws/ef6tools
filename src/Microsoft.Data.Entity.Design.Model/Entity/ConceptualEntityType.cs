@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Xml.Linq;
-
     internal class ConceptualEntityType : EntityType
     {
         internal static readonly string AttributeBaseType = "BaseType";
@@ -17,7 +17,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         private DefaultableValue<string> _typeAccessAttr;
         private EntityTypeBaseType _baseTypeBinding;
         private DefaultableValue<bool> _abstractAttr;
-        private readonly List<NavigationProperty> _navigationProperties = new List<NavigationProperty>();
+        private readonly List<NavigationProperty> _navigationProperties = [];
 
         internal ConceptualEntityType(ConceptualEntityModel model, XElement element)
             : base(model, element)
@@ -85,7 +85,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                     throw new InvalidOperationException();
                 }
 
-                var existingDerivedTypes = new HashSet<ConceptualEntityType>();
+                HashSet<ConceptualEntityType> existingDerivedTypes = new HashSet<ConceptualEntityType>();
                 GetSafeDescendantTypesHelper(ref existingDerivedTypes);
 
                 return existingDerivedTypes.AsEnumerable();
@@ -122,7 +122,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var safeTypesInInheritanceTree = new HashSet<ConceptualEntityType>();
+                HashSet<ConceptualEntityType> safeTypesInInheritanceTree = new HashSet<ConceptualEntityType>();
 
                 var currentType = LowestDerivedTypeOrSelf;
                 while (currentType != null)
@@ -138,7 +138,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                     {
                         // For each of the direct derived types of the base type, add all of the types in their subtrees
                         // but skip over the subtrees of nodes we've visited
-                        var directDerivedTypesQueue = new Queue<ConceptualEntityType>();
+                        Queue<ConceptualEntityType> directDerivedTypesQueue = new Queue<ConceptualEntityType>();
                         foreach (var directDerivedType in baseType.ResolvableDirectDerivedTypes.Where(dt => dt != currentType))
                         {
                             directDerivedTypesQueue.Enqueue(directDerivedType);
@@ -182,10 +182,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_typeAccessAttr == null)
-                {
-                    _typeAccessAttr = new TypeAccessDefaultableValue(this);
-                }
+                _typeAccessAttr ??= new TypeAccessDefaultableValue(this);
                 return _typeAccessAttr;
             }
         }
@@ -255,10 +252,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_abstractAttr == null)
-                {
-                    _abstractAttr = new AbstractDefaultableValue(this);
-                }
+                _abstractAttr ??= new AbstractDefaultableValue(this);
                 return _abstractAttr;
             }
         }
@@ -293,13 +287,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_baseTypeBinding == null)
-                {
-                    _baseTypeBinding = new EntityTypeBaseType(
+                _baseTypeBinding ??= new EntityTypeBaseType(
                         this,
                         AttributeBaseType,
                         EntityTypeNameNormalizer.NameNormalizer);
-                }
 
                 return _baseTypeBinding;
             }
@@ -389,7 +380,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         /// </summary>
         internal HashSet<ConceptualEntityType> GetSafeSelfAndBaseTypesAsHashSet()
         {
-            var selfAndBaseTypes = new HashSet<ConceptualEntityType>();
+            HashSet<ConceptualEntityType> selfAndBaseTypes = new HashSet<ConceptualEntityType>();
             foreach (var val in SafeSelfAndBaseTypes)
             {
                 selfAndBaseTypes.Add(val);
@@ -435,7 +426,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var baseTypes = new List<ConceptualEntityType>();
+                List<ConceptualEntityType> baseTypes = new List<ConceptualEntityType>();
 
                 foreach (ConceptualEntityType baseType in AncestorEntityTypes(false))
                 {
@@ -450,14 +441,13 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var directDerivedTypes = new List<ConceptualEntityType>();
+                List<ConceptualEntityType> directDerivedTypes = new List<ConceptualEntityType>();
 
                 foreach (var antiDep in GetAntiDependencies())
                 {
-                    var baseBinding = antiDep as EntityTypeBaseType;
-                    if (baseBinding != null)
+                    if (antiDep is EntityTypeBaseType baseBinding)
                     {
-                        var derivedType = baseBinding.Parent as ConceptualEntityType;
+                        ConceptualEntityType derivedType = baseBinding.Parent as ConceptualEntityType;
                         Debug.Assert(derivedType != null, "baseBinding.Parent should be a ConceptualEntityType");
 
                         directDerivedTypes.Add(derivedType);
@@ -478,7 +468,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 Debug.Assert(!ModelHelper.CheckForCircularInheritance(this, etbt.Target), "Circular inheritance detected");
 
                 var directDerivedTypes = ResolvableDirectDerivedTypes;
-                var allDerivedTypes = new List<ConceptualEntityType>(directDerivedTypes);
+                List<ConceptualEntityType> allDerivedTypes = new List<ConceptualEntityType>(directDerivedTypes);
 
                 foreach (var entityType in directDerivedTypes)
                 {
@@ -507,10 +497,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
                 var antiDeps = Artifact.ArtifactSet.GetAntiDependencies(this);
 
-                var derivedTypes = new List<ConceptualEntityType>();
+                List<ConceptualEntityType> derivedTypes = new List<ConceptualEntityType>();
                 foreach (var antiDep in antiDeps)
                 {
-                    var et = antiDep as ConceptualEntityType;
+                    ConceptualEntityType et = antiDep as ConceptualEntityType;
                     if (et == null
                         && antiDep.Parent != null)
                     {
@@ -565,7 +555,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var entitySets = new HashSet<EntitySet>();
+                HashSet<EntitySet> entitySets = new HashSet<EntitySet>();
 
                 foreach (var et in AncestorEntityTypes(true))
                 {
@@ -611,8 +601,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child2 = efContainer as NavigationProperty;
-            if (child2 != null)
+            if (efContainer is NavigationProperty child2)
             {
                 _navigationProperties.Remove(child2);
                 return;
@@ -630,14 +619,13 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         }
 #endif
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == Property.ElementName)
             {
                 Property prop = null;
 
-                var conceptualModel = (ConceptualEntityModel)GetParentOfType(typeof(ConceptualEntityModel));
+                ConceptualEntityModel conceptualModel = (ConceptualEntityModel)GetParentOfType(typeof(ConceptualEntityModel));
                 Debug.Assert(conceptualModel != null, "ParseSingleElement: Unable to find parent of type ConceptualEntityModel");
 
                 if (conceptualModel != null
@@ -655,7 +643,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             }
             else if (elem.Name.LocalName == NavigationProperty.ElementName)
             {
-                var prop = new NavigationProperty(this, elem);
+                NavigationProperty prop = new NavigationProperty(this, elem);
                 prop.Parse(unprocessedElements);
                 AddNavigationProperty(prop);
             }
@@ -687,7 +675,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         private IEnumerable<EntityType> AncestorEntityTypes(bool includeSelf)
         {
-            var visitedAncestors = new Dictionary<ConceptualEntityType, object>();
+            Dictionary<ConceptualEntityType, object> visitedAncestors = new Dictionary<ConceptualEntityType, object>();
 
             var topMostBaseType = this;
             visitedAncestors.Add(topMostBaseType, null);

@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Collections.Generic;
-    using System.Data.Entity.Infrastructure;
-    using System.Diagnostics;
-
     internal partial class DefaultVBContextGenerator : IContextGenerator
     {
         public string Generate(DbModel model, string codeNamespace, string contextClassName, string connectionStringName)

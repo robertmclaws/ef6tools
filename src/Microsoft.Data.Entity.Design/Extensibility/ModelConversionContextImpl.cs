@@ -1,15 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Xml.Linq;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Xml.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     internal class ModelConversionContextImpl : ModelConversionExtensionContext, IDisposable
     {
         private readonly Project _project;
@@ -19,7 +20,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
         private string _original;
         private readonly Version _targetSchemaVersion;
         private readonly bool _protectCurrent;
-        private readonly List<ExtensionError> _errors = new List<ExtensionError>();
+        private readonly List<ExtensionError> _errors = [];
         private bool _isDisposed;
 
         // <summary>
@@ -134,10 +135,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
         {
             get
             {
-                if (_beforeEvent == null)
-                {
-                    _beforeEvent = OnBeforeChange;
-                }
+                _beforeEvent ??= OnBeforeChange;
                 return _beforeEvent;
             }
         }

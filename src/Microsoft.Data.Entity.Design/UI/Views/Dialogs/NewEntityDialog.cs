@@ -1,19 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using XmlDesignerBaseResources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
 
 namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Linq;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Resources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
-
     internal partial class NewEntityDialog : Form
     {
         private readonly ConceptualEntityModel _model;
@@ -61,7 +62,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             propertyTypeComboBox.Items.AddRange(ModelHelper.AllPrimitiveTypesSorted(_model.Artifact.SchemaVersion));
             propertyTypeComboBox.SelectedItem = ModelConstants.Int32PropertyType;
 
-            baseTypeComboBox.Items.Add(Resources.NoneDisplayValueUsedForUX);
+            baseTypeComboBox.Items.Add(XmlDesignerBaseResources.NoneDisplayValueUsedForUX);
             baseTypeComboBox.Items.AddRange(model.EntityTypes().ToArray());
             if (baseTypeComboBox.Items.Count > 0)
             {
@@ -107,7 +108,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         {
             get
             {
-                var cet = baseTypeComboBox.SelectedItem as ConceptualEntityType;
+                ConceptualEntityType cet = baseTypeComboBox.SelectedItem as ConceptualEntityType;
 #if DEBUG
                 var et = baseTypeComboBox.SelectedItem as EntityType;
                 Debug.Assert(et != null ? cet != null : true, "EntityType is not ConceptualEntityType");
@@ -132,8 +133,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 }
                 else
                 {
-                    string msg;
-                    if (!ModelHelper.IsUniqueName(typeof(EntityType), _model, entityNameTextBox.Text, false, out msg))
+                    if (!ModelHelper.IsUniqueName(typeof(EntityType), _model, entityNameTextBox.Text, false, out string msg))
                     {
                         VsUtils.ShowErrorDialog(DialogsResource.NewEntityDialog_EnsureUniqueNameMsg);
                         e.Cancel = true;

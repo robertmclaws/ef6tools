@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model;
+
 namespace Microsoft.Data.Entity.Design.Base.Context
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model;
-
     /// <summary>
     ///     The EditingContext class contains contextual state about a designer.  This includes permanent
     ///     state such as list of services running in the designer.
@@ -84,7 +84,6 @@ namespace Microsoft.Data.Entity.Design.Base.Context
         ///     the design editor manager.
         /// </summary>
         /// <returns>Returns an implementation of the ContextItemCollection class.</returns>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected virtual ContextItemCollection CreateContextItemCollection()
         {
             return new DefaultContextItemCollection(this);
@@ -117,11 +116,8 @@ namespace Microsoft.Data.Entity.Design.Base.Context
                 {
                     foreach (var contextItem in _contextItems)
                     {
-                        var d = contextItem as IDisposable;
-                        if (d != null)
-                        {
-                            d.Dispose();
-                        }
+                        IDisposable d = contextItem as IDisposable;
+                        d?.Dispose();
                     }
                 }
 
@@ -166,14 +162,8 @@ namespace Microsoft.Data.Entity.Design.Base.Context
             {
                 if (disposing)
                 {
-                    if (_context != null)
-                    {
-                        _context.Dispose();
-                    }
-                    if (_currentLayer != null)
-                    {
-                        _currentLayer.Dispose();
-                    }
+                    _context?.Dispose();
+                    _currentLayer?.Dispose();
                 }
             }
 
@@ -197,10 +187,7 @@ namespace Microsoft.Data.Entity.Design.Base.Context
                 ContextItem existing, existingRawValue;
                 existing = existingRawValue = GetValueNull(value.ItemType);
 
-                if (existing == null)
-                {
-                    existing = GetValue(value.ItemType);
-                }
+                existing ??= GetValue(value.ItemType);
 
                 var success = false;
 
@@ -400,12 +387,11 @@ namespace Microsoft.Data.Entity.Design.Base.Context
             /// </summary>
             private void OnItemChanged(ContextItem item)
             {
-                SubscribeContextCallback callback;
 
                 Debug.Assert(item != null, "You cannot pass a null item here.");
 
                 if (_subscriptions != null
-                    && _subscriptions.TryGetValue(item.ItemType, out callback))
+                    && _subscriptions.TryGetValue(item.ItemType, out SubscribeContextCallback callback))
                 {
                     callback(item);
                 }
@@ -462,14 +448,10 @@ namespace Microsoft.Data.Entity.Design.Base.Context
                     */
                 }
 
-                if (_subscriptions == null)
-                {
-                    _subscriptions = new Dictionary<Type, SubscribeContextCallback>();
-                }
+                _subscriptions ??= [];
 
-                SubscribeContextCallback existing = null;
 
-                _subscriptions.TryGetValue(contextItemType, out existing);
+                _subscriptions.TryGetValue(contextItemType, out SubscribeContextCallback existing);
 
                 existing = (SubscribeContextCallback)Delegate.Combine(existing, callback);
                 _subscriptions[contextItemType] = existing;
@@ -508,8 +490,7 @@ namespace Microsoft.Data.Entity.Design.Base.Context
                 }
                 if (_subscriptions != null)
                 {
-                    SubscribeContextCallback existing;
-                    if (_subscriptions.TryGetValue(contextItemType, out existing))
+                    if (_subscriptions.TryGetValue(contextItemType, out SubscribeContextCallback existing))
                     {
                         existing = (SubscribeContextCallback)RemoveCallback(existing, callback);
                         if (existing == null)
@@ -544,10 +525,7 @@ namespace Microsoft.Data.Entity.Design.Base.Context
                 {
                     get
                     {
-                        if (_defaultItems == null)
-                        {
-                            _defaultItems = new Dictionary<Type, ContextItem>();
-                        }
+                        _defaultItems ??= [];
                         return _defaultItems;
                     }
                 }
@@ -556,10 +534,7 @@ namespace Microsoft.Data.Entity.Design.Base.Context
                 {
                     get
                     {
-                        if (_items == null)
-                        {
-                            _items = new Dictionary<Type, ContextItem>();
-                        }
+                        _items ??= [];
                         return _items;
                     }
                 }

@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Command for changing complex property type
     /// </summary>
@@ -42,7 +42,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(_property != null, "Property is null");
@@ -59,8 +58,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // check for ComplexType circular definition
-            var parent = _property.Parent as ComplexType;
-            if (parent != null)
+            if (_property.Parent is ComplexType parent)
             {
                 if (ModelHelper.ContainsCircularComplexTypeDefinition(parent, _newType))
                 {

@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Security;
+using System.Security.Permissions;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Security;
-    using System.Security.Permissions;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-
     #region IVirtualTreeInPlaceControl interface
 
     /// <summary>
@@ -142,8 +142,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
     /// <summary>
     ///     The default class to use an inplace label edit.
     /// </summary>
-    [SuppressMessage("Whitehorse.CustomRules", "WH03:WinFormControlCatchUnhandledExceptions",
-        Justification = "All but critical exceptions are caught.")]
     internal class VirtualTreeInPlaceEditControl : TextBox, IVirtualTreeInPlaceControl
     {
         #region Boilerplate InPlaceControl code
@@ -334,9 +332,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             get
             {
                 // EM_GETRECT already takes EM_GETMARGINS into account, so don't use both.
-                NativeMethods.RECT rcFormat;
                 var hwndEdit = Handle;
-                NativeMethods.SendMessage(hwndEdit, NativeMethods.EM_GETRECT, 0, out rcFormat);
+                NativeMethods.SendMessage(hwndEdit, NativeMethods.EM_GETRECT, 0, out NativeMethods.RECT rcFormat);
                 return new Rectangle(rcFormat.left, rcFormat.top, rcFormat.width, rcFormat.height);
             }
         }

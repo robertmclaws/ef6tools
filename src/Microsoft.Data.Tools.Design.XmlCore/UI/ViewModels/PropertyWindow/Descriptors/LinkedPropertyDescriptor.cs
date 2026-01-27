@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Reflection;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.Diagnostics;
-    using System.Reflection;
-
     // A decorator class to override the default behavior of CustomPropertyDescriptor class when a property value is updated.
     // CustomPropertyDescriptor will automatically close the transaction's undo-scope right when the update is done.
     // This class shift the responsibility of starting and ending the transaction's undo-scope to the LinkedDescriptorContextItem instance.
@@ -90,19 +90,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         protected override void SetEFElementValue(object value)
         {
             // _setEFElementValueMethod should not be null here, don't need to Debug.Assert here since it is already done in the constructor. 
-            if (_setEFElementValueMethod != null)
-            {
-                _setEFElementValueMethod.Invoke(_wrappedCustomPropertyDescriptor, new[] { value });
-            }
+            _setEFElementValueMethod?.Invoke(_wrappedCustomPropertyDescriptor, new[] { value });
         }
 
         protected override void ResetEFElementValue()
         {
             // _resetEFElementValueMethod should not be null here, don't need to Debug.Assert here since it is already done in the constructor. 
-            if (_resetEFElementValue != null)
-            {
-                _resetEFElementValue.Invoke(_wrappedCustomPropertyDescriptor, null);
-            }
+            _resetEFElementValue?.Invoke(_wrappedCustomPropertyDescriptor, null);
         }
 
         protected internal override string UndoString

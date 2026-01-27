@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Reflection;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.Metadata
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Reflection;
-
     internal static class EdmTypeExtensions
     {
         public static DataSpace GetDataSpace(this EdmType edmType)

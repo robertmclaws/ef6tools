@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class CreateEntityTypeMappingCommand : Command
     {
         private readonly ConceptualEntityType _entityType;
@@ -64,7 +64,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _kind = kind;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // make sure that there isn't an ETM of this kind already
@@ -79,7 +78,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // see if we can get the EntitySetMapping for our entity (if we weren't passed it)
             if (_entitySetMapping == null)
             {
-                var ces = _entityType.EntitySet as ConceptualEntitySet;
+                ConceptualEntitySet ces = _entityType.EntitySet as ConceptualEntitySet;
                 Debug.Assert(ces != null, "_entityType.EntitySet should be a ConceptualEntitySet");
 
                 // find the EntitySetMapping for this type (V1 assumption is that there is only ESM per ES)
@@ -96,7 +95,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // if we still don't have an ESM, create one
             if (_entitySetMapping == null)
             {
-                var cmd = new CreateEntitySetMappingCommand(
+                CreateEntitySetMappingCommand cmd = new CreateEntitySetMappingCommand(
                     _entityType.Artifact.MappingModel().FirstEntityContainerMapping,
                     _entityType.EntitySet as ConceptualEntitySet);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
@@ -107,7 +106,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 "_entitySetMapping should not be null - we have been unable to find or create an EntitySetMapping");
 
             // create the ETM
-            var etm = new EntityTypeMapping(_entitySetMapping, null, _kind);
+            EntityTypeMapping etm = new EntityTypeMapping(_entitySetMapping, null, _kind);
             etm.TypeName.SetRefName(_entityType);
             _entitySetMapping.AddEntityTypeMapping(etm);
 
@@ -135,16 +134,16 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             EntityTypeMapping etmToClone, EntitySetMapping existingEntitySetMapping,
             ConceptualEntityType existingEntityType, EntityTypeMappingKind kind)
         {
-            var createETM = new CreateEntityTypeMappingCommand(existingEntitySetMapping, existingEntityType, kind);
-            var cp = new CommandProcessor(cpc, createETM);
+            CreateEntityTypeMappingCommand createETM = new CreateEntityTypeMappingCommand(existingEntitySetMapping, existingEntityType, kind);
+            CommandProcessor cp = new CommandProcessor(cpc, createETM);
             cp.Invoke();
 
             var etm = createETM.EntityTypeMapping;
 
             foreach (var mappingFragment in etmToClone.MappingFragments())
             {
-                var sesToClone = mappingFragment.StoreEntitySet.Target as StorageEntitySet;
-                var ses = existingEntitySetMapping.EntityContainerMapping.Artifact.
+                StorageEntitySet sesToClone = mappingFragment.StoreEntitySet.Target as StorageEntitySet;
+                StorageEntitySet ses = existingEntitySetMapping.EntityContainerMapping.Artifact.
                               StorageModel().FirstEntityContainer.GetFirstNamedChildByLocalName(sesToClone.LocalName.Value)
                           as StorageEntitySet;
                 CreateMappingFragmentCommand.CloneMappingFragment(cpc, mappingFragment, etm, ses);

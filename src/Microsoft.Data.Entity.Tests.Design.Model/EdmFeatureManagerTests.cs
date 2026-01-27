@@ -1,54 +1,43 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
+    /// <summary>
+    ///     Tests for EdmFeatureManager.
+    ///     All features are now always enabled for EF6 (Version3 only).
+    /// </summary>
     [TestClass]
     public class EdmFeatureManagerTests
     {
         [TestMethod]
-        public void FunctionImportReturningComplexType_disabled_only_for_v1_schema_version()
+        public void FunctionImportReturningComplexType_always_enabled()
         {
-            EdmFeatureManager.GetFunctionImportReturningComplexTypeFeatureState(EntityFrameworkVersion.Version1)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
-            EdmFeatureManager.GetFunctionImportReturningComplexTypeFeatureState(EntityFrameworkVersion.Version2)
-                .Should().Be(FeatureState.VisibleAndEnabled);
-
+            // Version3 always returns enabled since we only support EF6
             EdmFeatureManager.GetFunctionImportReturningComplexTypeFeatureState(EntityFrameworkVersion.Version3)
                 .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
-        public void EnumTypes_enabled_only_for_v3_schema_version()
+        public void EnumTypes_always_enabled()
         {
-            EdmFeatureManager.GetEnumTypeFeatureState(EntityFrameworkVersion.Version1)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
-            EdmFeatureManager.GetEnumTypeFeatureState(EntityFrameworkVersion.Version2)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
+            // Version3 always returns enabled since we only support EF6
             EdmFeatureManager.GetEnumTypeFeatureState(EntityFrameworkVersion.Version3)
                 .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
-        public void EnumTypes_enabled_only_for_v3_artifacts()
+        public void EnumTypes_always_enabled_for_artifacts()
         {
-            IsFeatureEnabledForArtifact(EntityFrameworkVersion.Version1, EdmFeatureManager.GetEnumTypeFeatureState)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
-            IsFeatureEnabledForArtifact(EntityFrameworkVersion.Version2, EdmFeatureManager.GetEnumTypeFeatureState)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
+            // Version3 always returns enabled since we only support EF6
             IsFeatureEnabledForArtifact(EntityFrameworkVersion.Version3, EdmFeatureManager.GetEnumTypeFeatureState)
                 .Should().Be(FeatureState.VisibleAndEnabled);
         }
@@ -67,12 +56,12 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
 
         private static FeatureState IsFeatureEnabledForArtifact(Version schemaVersion, Func<EFArtifact, FeatureState> funcToTest)
         {
-            using (var editingContext = new EditingContext())
+            using (EditingContext editingContext = new EditingContext())
             {
                 var modelManager = new Mock<ModelManager>(null, null).Object;
                 var modelProvider = new Mock<XmlModelProvider>().Object;
 
-                var entityDesignArtifactMock =
+                Mock<EntityDesignArtifact> entityDesignArtifactMock =
                     new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
                 editingContext.SetEFArtifactService(new EFArtifactService(entityDesignArtifactMock.Object));
@@ -85,92 +74,57 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         }
 
         [TestMethod]
-        public void FunctionImportMapping_disabled_only_for_v1_schema_version()
+        public void FunctionImportMapping_always_enabled()
         {
-            EdmFeatureManager.GetFunctionImportMappingFeatureState(EntityFrameworkVersion.Version1)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
-            EdmFeatureManager.GetFunctionImportMappingFeatureState(EntityFrameworkVersion.Version2)
-                .Should().Be(FeatureState.VisibleAndEnabled);
-
+            // Version3 always returns enabled since we only support EF6
             EdmFeatureManager.GetFunctionImportMappingFeatureState(EntityFrameworkVersion.Version3)
                 .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
-        public void ForeignKeys_disabled_only_for_v1_schema_version()
+        public void ForeignKeys_always_enabled()
         {
-            EdmFeatureManager.GetForeignKeysInModelFeatureState(EntityFrameworkVersion.Version1)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
-            EdmFeatureManager.GetForeignKeysInModelFeatureState(EntityFrameworkVersion.Version2)
-                .Should().Be(FeatureState.VisibleAndEnabled);
-
+            // Version3 always returns enabled since we only support EF6
             EdmFeatureManager.GetForeignKeysInModelFeatureState(EntityFrameworkVersion.Version3)
                 .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
-        public void UpdateViews_disabled_only_for_v1_schema_version()
+        public void UpdateViews_always_enabled()
         {
-            EdmFeatureManager.GetGenerateUpdateViewsFeatureState(EntityFrameworkVersion.Version1)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
-            EdmFeatureManager.GetGenerateUpdateViewsFeatureState(EntityFrameworkVersion.Version2)
-                .Should().Be(FeatureState.VisibleAndEnabled);
-
+            // Version3 always returns enabled since we only support EF6
             EdmFeatureManager.GetGenerateUpdateViewsFeatureState(EntityFrameworkVersion.Version3)
                 .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
-        public void EntityContainerTypeAccess_disabled_only_for_v1_schema_version()
+        public void EntityContainerTypeAccess_always_enabled()
         {
-            EdmFeatureManager.GetEntityContainerTypeAccessFeatureState(EntityFrameworkVersion.Version1)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
-            EdmFeatureManager.GetEntityContainerTypeAccessFeatureState(EntityFrameworkVersion.Version2)
-                .Should().Be(FeatureState.VisibleAndEnabled);
-
+            // Version3 always returns enabled since we only support EF6
             EdmFeatureManager.GetEntityContainerTypeAccessFeatureState(EntityFrameworkVersion.Version3)
                 .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
-        public void LazyLoading_disabled_only_for_v1_schema_version()
+        public void LazyLoading_always_enabled()
         {
-            EdmFeatureManager.GetLazyLoadingFeatureState(EntityFrameworkVersion.Version1)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
-            EdmFeatureManager.GetLazyLoadingFeatureState(EntityFrameworkVersion.Version2)
-                .Should().Be(FeatureState.VisibleAndEnabled);
-
+            // Version3 always returns enabled since we only support EF6
             EdmFeatureManager.GetLazyLoadingFeatureState(EntityFrameworkVersion.Version3)
                 .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
-        public void ComposableFunctionImport_enabled_only_for_v3_schema_version()
+        public void ComposableFunctionImport_always_enabled()
         {
-            EdmFeatureManager.GetComposableFunctionImportFeatureState(EntityFrameworkVersion.Version1)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
-            EdmFeatureManager.GetComposableFunctionImportFeatureState(EntityFrameworkVersion.Version2)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
+            // Version3 always returns enabled since we only support EF6
             EdmFeatureManager.GetComposableFunctionImportFeatureState(EntityFrameworkVersion.Version3)
                 .Should().Be(FeatureState.VisibleAndEnabled);
         }
 
         [TestMethod]
-        public void SpatialTypes_enabled_only_for_v3_schema_version()
+        public void SpatialTypes_always_enabled()
         {
-            EdmFeatureManager.GetUseStrongSpatialTypesFeatureState(EntityFrameworkVersion.Version1)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
-            EdmFeatureManager.GetUseStrongSpatialTypesFeatureState(EntityFrameworkVersion.Version2)
-                .Should().Be(FeatureState.VisibleButDisabled);
-
+            // Version3 always returns enabled since we only support EF6
             EdmFeatureManager.GetUseStrongSpatialTypesFeatureState(EntityFrameworkVersion.Version3)
                 .Should().Be(FeatureState.VisibleAndEnabled);
         }

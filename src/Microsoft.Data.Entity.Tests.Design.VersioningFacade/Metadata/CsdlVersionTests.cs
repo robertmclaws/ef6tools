@@ -1,33 +1,31 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.Metadata;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
 {
-    using System;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.Metadata;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class CsdlVersionTests
     {
         [TestMethod]
-        public void GetAllVersions_returns_all_declared_versions()
+        public void GetAllVersions_returns_only_Version3_for_modern_development()
         {
-            var declaredVersions =
-                typeof(CsdlVersion)
-                    .GetFields()
-                    .Where(f => f.FieldType == typeof(Version))
-                    .Select(f => f.GetValue(null))
-                    .OrderByDescending(v => v);
-
-            declaredVersions.SequenceEqual(CsdlVersion.GetAllVersions().OrderByDescending(v => v)).Should().BeTrue();
+            // For modern development, GetAllVersions only returns Version3
+            List<Version> versions = CsdlVersion.GetAllVersions().ToList();
+            versions.Should().HaveCount(1);
+            versions.Should().Contain(CsdlVersion.Version3);
         }
 
         [TestMethod]
         public void IsValidVersion_returns_true_for_valid_versions()
         {
+            // IsValidVersion still validates all known versions for backward compatibility
             CsdlVersion.IsValidVersion(new Version(1, 0, 0, 0)).Should().BeTrue();
             CsdlVersion.IsValidVersion(new Version(1, 1, 0, 0)).Should().BeTrue();
             CsdlVersion.IsValidVersion(new Version(2, 0, 0, 0)).Should().BeTrue();
@@ -45,10 +43,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
         }
 
         [TestMethod]
-        public void CsdlVersion_was_added_if_EntityFramework_version_was_added()
+        public void GetAllVersions_and_EntityFrameworkVersions_return_same_count()
         {
-            // +1 to account for CSDL version 1.1
-            (EntityFrameworkVersion.GetAllVersions().Count() + 1).Should().Be(CsdlVersion.GetAllVersions().Count());
+            // Both should return only Version3 for new model creation
+            EntityFrameworkVersion.GetAllVersions().Count().Should().Be(CsdlVersion.GetAllVersions().Count());
         }
     }
 }

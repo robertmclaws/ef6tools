@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class EFSFunctionDescriptor : EFAnnotatableElementDescriptor<Function>
     {
         public override string GetComponentName()
@@ -72,7 +72,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         [LocDisplayName("PropertyWindow_DisplayName_CommandText")]
         public string CommandText
         {
-            get { return (null == TypedEFElement.CommandText) ? null : TypedEFElement.CommandText.Command; }
+            get { return TypedEFElement.CommandText?.Command; }
         }
 
         [LocCategory("PropertyWindow_Category_General")]

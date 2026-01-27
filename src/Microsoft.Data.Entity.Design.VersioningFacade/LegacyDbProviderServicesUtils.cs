@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade
 {
-    using System;
-    using System.Data.Common;
-    using System.Diagnostics.CodeAnalysis;
-
     internal class LegacyDbProviderServicesUtils
     {
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public static bool CanGetDbProviderServices(IServiceProvider serviceProvider)
         {
             try

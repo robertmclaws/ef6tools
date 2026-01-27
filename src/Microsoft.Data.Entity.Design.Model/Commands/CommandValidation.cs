@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     This class contains common validation methods for Commands.
     /// </summary>
@@ -16,7 +16,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         internal static void ValidateConceptualEntityContainer(ConceptualEntityContainer conceptualEntityContainer)
         {
             ValidateEFElement(conceptualEntityContainer);
-            var conceptualModel = conceptualEntityContainer.Parent as BaseEntityModel;
+            BaseEntityModel conceptualModel = conceptualEntityContainer.Parent as BaseEntityModel;
             Debug.Assert(conceptualModel != null, "The ConceptualEntityContainer sent must be in a BaseEntityModel");
             Debug.Assert(conceptualModel.IsCSDL, "The ConceptualEntityContainer sent must be passed in from the conceptual model");
         }

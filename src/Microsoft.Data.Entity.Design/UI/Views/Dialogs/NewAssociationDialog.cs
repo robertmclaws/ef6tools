@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Entity.Infrastructure.Pluralization;
+using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Data.Entity.Infrastructure.Pluralization;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Globalization;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal partial class NewAssociationDialog : Form
     {
         private bool _needsValidation;
@@ -130,7 +130,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         {
             get
             {
-                var cet = entity1ComboBox.SelectedItem as ConceptualEntityType;
+                ConceptualEntityType cet = entity1ComboBox.SelectedItem as ConceptualEntityType;
                 Debug.Assert(entity2ComboBox.SelectedItem is EntityType ? cet != null : true, "EntityType is not ConceptualEntityType");
                 return cet;
             }
@@ -140,7 +140,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         {
             get
             {
-                var cet = entity2ComboBox.SelectedItem as ConceptualEntityType;
+                ConceptualEntityType cet = entity2ComboBox.SelectedItem as ConceptualEntityType;
                 Debug.Assert(
                     entity2ComboBox.SelectedItem is EntityType ? cet != null : true,
                     typeof(NewAssociationDialog).Name + ".End2Entity: EntityType is not ConceptualEntityType");
@@ -152,8 +152,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         {
             get
             {
-                var item = multiplicity1ComboBox.SelectedItem as MultiplicityComboBoxItem;
-                if (item != null)
+                if (multiplicity1ComboBox.SelectedItem is MultiplicityComboBoxItem item)
                 {
                     return item.Value;
                 }
@@ -166,8 +165,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         {
             get
             {
-                var item = multiplicity2ComboBox.SelectedItem as MultiplicityComboBoxItem;
-                if (item != null)
+                if (multiplicity2ComboBox.SelectedItem is MultiplicityComboBoxItem item)
                 {
                     return item.Value;
                 }
@@ -180,8 +178,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         {
             get
             {
-                var item = multiplicity1ComboBox.SelectedItem as MultiplicityComboBoxItem;
-                if (item != null)
+                if (multiplicity1ComboBox.SelectedItem is MultiplicityComboBoxItem item)
                 {
                     return item.ToString();
                 }
@@ -194,8 +191,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         {
             get
             {
-                var item = multiplicity2ComboBox.SelectedItem as MultiplicityComboBoxItem;
-                if (item != null)
+                if (multiplicity2ComboBox.SelectedItem is MultiplicityComboBoxItem item)
                 {
                     return item.ToString();
                 }
@@ -359,9 +355,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 
         private void UpdateAssociationName()
         {
-            EntityType principal;
-            EntityType dependent;
-            TryGetPrincipalAndDependentEntities(out principal, out dependent);
+            TryGetPrincipalAndDependentEntities(out EntityType principal, out EntityType dependent);
 
             var principalName = (principal != null) ? principal.LocalName.Value : End1Entity.LocalName.Value;
             var dependentName = (dependent != null) ? dependent.LocalName.Value : End2Entity.LocalName.Value;
@@ -374,7 +368,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             if (End1Entity != null
                 && End2Entity != null)
             {
-                var namesToAvoid = new HashSet<string>();
+                HashSet<string> namesToAvoid = new HashSet<string>();
                 if (End1Entity.Equals(End2Entity))
                 {
                     namesToAvoid.Add(navigationProperty2TextBox.Text);
@@ -391,7 +385,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             if (End1Entity != null
                 && End2Entity != null)
             {
-                var namesToAvoid = new HashSet<string>();
+                HashSet<string> namesToAvoid = new HashSet<string>();
                 if (End1Entity.Equals(End2Entity))
                 {
                     namesToAvoid.Add(navigationProperty1TextBox.Text);
@@ -546,9 +540,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             else
             {
                 createForeignKeysCheckBox.Enabled = true;
-                EntityType principal;
-                EntityType dependent;
-                TryGetPrincipalAndDependentEntities(out principal, out dependent);
+                TryGetPrincipalAndDependentEntities(out EntityType principal, out EntityType dependent);
 
                 if (dependent != null)
                 {

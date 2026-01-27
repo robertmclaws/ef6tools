@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to change the the FunctionScalarProperty.
     /// </summary>
@@ -87,8 +87,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _version = version;
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ExitingFunctionScalarProperty")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(cpc != null, "InvokeInternal is called when ExitingFunctionScalarProperty is null.");
@@ -107,7 +105,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 // setting new version only
                 if (string.Compare(_existingFunctionScalarProperty.Version.Value, _version, StringComparison.CurrentCulture) != 0)
                 {
-                    var mfAncestor = _existingFunctionScalarProperty.GetParentOfType(typeof(ModificationFunction)) as ModificationFunction;
+                    ModificationFunction mfAncestor = _existingFunctionScalarProperty.GetParentOfType(typeof(ModificationFunction)) as ModificationFunction;
                     Debug.Assert(
                         mfAncestor != null,
                         "Bad attempt to set version on FunctionScalarProperty which does not have a ModificationFunction ancestor");
@@ -134,7 +132,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // to allow for changes in properties chain
             // where nulls have been passed in, use existing values (except for _pointingNavProp where null
             // indicates "use no NavProp for the new property")
-            var mf = _existingFunctionScalarProperty.GetParentOfType(typeof(ModificationFunction)) as ModificationFunction;
+            ModificationFunction mf = _existingFunctionScalarProperty.GetParentOfType(typeof(ModificationFunction)) as ModificationFunction;
             Debug.Assert(mf != null, "Bad attempt to change FunctionScalarProperty which does not have a ModificationFunction ancestor");
             if (mf == null)
             {
@@ -147,7 +145,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             // now construct delete command for existing FunctionScalarProperty followed by create with new properties
             var cmd1 = _existingFunctionScalarProperty.GetDeleteCommand();
-            var cmd2 =
+            CreateFunctionScalarPropertyTreeCommand cmd2 =
                 new CreateFunctionScalarPropertyTreeCommand(mf, propChain, _pointingNavProp, parameter, version);
             cmd2.PostInvokeEvent += (o, eventsArgs) =>
                 {
@@ -157,7 +155,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                         "CreateFunctionScalarPropertyTreeCommand should not result in null FunctionScalarProperty");
                 };
 
-            var cp = new CommandProcessor(cpc, cmd1, cmd2);
+            CommandProcessor cp = new CommandProcessor(cpc, cmd1, cmd2);
             try
             {
                 cp.Invoke();

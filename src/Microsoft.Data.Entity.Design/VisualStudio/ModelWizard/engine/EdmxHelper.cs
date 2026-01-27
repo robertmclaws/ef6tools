@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VersioningFacade.Serialization;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VersioningFacade.Serialization;
-
     internal class EdmxHelper
     {
         private readonly XDocument _edmx;
@@ -50,7 +50,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 !string.IsNullOrWhiteSpace(storeModelNamespace),
                 "storeModelNamespace must not be null or empty string");
 
-            var serializer = new SsdlSerializer();
+            SsdlSerializer serializer = new SsdlSerializer();
             serializer.OnError +=
                 (sender, errorEventArgs) =>
                 errors.Add(

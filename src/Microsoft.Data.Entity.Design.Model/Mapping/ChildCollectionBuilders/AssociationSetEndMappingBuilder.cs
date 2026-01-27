@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping.ChildCollectionBuilders
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     This class encapsulates the logic needed to build up the full list of potential children for an
     ///     association mapping.  The builder will determine what children this AssociationSetEnd could have and then
@@ -61,7 +61,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping.ChildCollectionBuilders
                 if (AssociationEnd != null)
                 {
                     var et = AssociationEnd.Type.Target;
-                    var cet = et as ConceptualEntityType;
+                    ConceptualEntityType cet = et as ConceptualEntityType;
                     Debug.Assert(et == null || cet != null, "EntityType is not a ConceptualEntityType");
                     return cet;
                 }
@@ -76,7 +76,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping.ChildCollectionBuilders
 
         internal void Build(CommandProcessorContext cpc)
         {
-            var associationSet = AssociationSetEnd.Parent as AssociationSet;
+            AssociationSet associationSet = AssociationSetEnd.Parent as AssociationSet;
 
             EndProperty endProperty = null;
             foreach (var val in AssociationSetEnd.EndProperties)
@@ -89,7 +89,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping.ChildCollectionBuilders
             }
 
             // put all of entity keys in a list
-            var keys = new List<Property>();
+            List<Property> keys = new List<Property>();
             foreach (var property in ConceptualEntityType.ResolvableTopMostBaseType.Properties())
             {
                 if (property.IsKeyProperty)

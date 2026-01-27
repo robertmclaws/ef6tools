@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
 
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 {
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     internal class RowsAffectedParameterColumn : BaseColumn
     {
         public RowsAffectedParameterColumn()
@@ -27,11 +28,9 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         internal override CheckBoxState GetCheckBoxValue(object component)
         {
-            var mfsp = component as MappingFunctionScalarProperty;
-
             // check we are within a ModificationFunctionMapping, that the
             // ModificationFunction can be reached and that the StoreParameter exists
-            if (null != mfsp
+            if (component is MappingFunctionScalarProperty mfsp
                 && null != mfsp.MappingModificationFunctionMapping
                 && null != mfsp.MappingModificationFunctionMapping.ModificationFunction
                 && null != mfsp.StoreParameter)
@@ -59,8 +58,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         internal override StateRefreshChanges ToggleCheckBoxValue(object component)
         {
-            var mfsp = component as MappingFunctionScalarProperty;
-            if (null != mfsp
+            if (component is MappingFunctionScalarProperty mfsp
                 && null != mfsp.MappingModificationFunctionMapping
                 && null != mfsp.StoreParameter)
             {

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     This command creates diagram shape for EFElements.
     /// </summary>
@@ -39,17 +39,15 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     // | Property                            Property's entity type shape             |
                     // --------------------------------------------------------------------------------
 
-                    var entityType = efElement as ConceptualEntityType;
-                    var association = efElement as Association;
-                    var entitySet = efElement as EntitySet;
-                    var associationSet = efElement as AssociationSet;
+                    ConceptualEntityType entityType = efElement as ConceptualEntityType;
+                    Association association = efElement as Association;
 
                     if (efElement is Property)
                     {
                         entityType = efElement.GetParentOfType(typeof(ConceptualEntityType)) as ConceptualEntityType;
                     }
 
-                    if (associationSet != null
+                    if (efElement is AssociationSet associationSet
                         && associationSet.Association.Status == BindingStatus.Known)
                     {
                         association = associationSet.Association.Target;
@@ -86,7 +84,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                             }
                         }
                     }
-                    else if (entitySet != null)
+                    else if (efElement is EntitySet entitySet)
                     {
                         foreach (var et in entitySet.GetEntityTypesInTheSet())
                         {

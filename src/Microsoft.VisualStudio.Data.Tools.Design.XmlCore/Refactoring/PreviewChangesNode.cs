@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using System;
-    using System.Collections.Generic;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     /// <summary>
     ///     UI class represents a preview change tree node.
     ///     This node change be used for a header node, a file node or a change node.
@@ -149,10 +149,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             _checkState = checkState;
 
-            if (ChangeProposal != null)
-            {
-                ChangeProposal.Included = (checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked);
-            }
+            ChangeProposal?.Included = (checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked);
 
             // Recurse to children
             if (_childList != null
@@ -186,10 +183,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         /// <param name="node"></param>
         public void AddChildNode(PreviewChangesNode node)
         {
-            if (_childList == null)
-            {
-                _childList = new List<PreviewChangesNode>();
-            }
+            _childList ??= [];
             node._parent = this;
             _childList.Add(node);
 
@@ -205,10 +199,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             if (nodes != null
                 && nodes.Count > 0)
             {
-                if (_childList == null)
-                {
-                    _childList = new List<PreviewChangesNode>();
-                }
+                _childList ??= [];
                 foreach (var node in nodes)
                 {
                     AddChildNode(node);
@@ -239,11 +230,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                 }
             }
 
-            if (ChangeProposal != null)
-            {
-                ChangeProposal.Included = (_checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked)
+            ChangeProposal?.Included = (_checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked)
                                           || (_checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_PartiallyChecked);
-            }
         }
     }
 }

@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.IO;
+using System.Linq;
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Resources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System;
-    using System.Collections;
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
-    using System.IO;
-    using System.Linq;
-    using EnvDTE;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-    using Resources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
-
     [TestClass]
     public class CodeFirstModelGeneratorTests
     {
@@ -27,7 +27,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             {
                 if (_model == null)
                 {
-                    var modelBuilder = new DbModelBuilder();
+                    DbModelBuilder modelBuilder = new DbModelBuilder();
                     modelBuilder.Entity<Entity>();
                     _model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
                 }
@@ -39,7 +39,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Generate_returns_code_when_cs()
         {
-            var generator = new CodeFirstModelGenerator(MockDTE.CreateProject());
+            CodeFirstModelGenerator generator = new CodeFirstModelGenerator(MockDTE.CreateProject());
 
             var files = generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString").ToArray();
 
@@ -50,7 +50,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Generate_returns_code_when_cs_and_empty_model()
         {
-            var generator = new CodeFirstModelGenerator(MockDTE.CreateProject());
+            CodeFirstModelGenerator generator = new CodeFirstModelGenerator(MockDTE.CreateProject());
 
             var files = generator.Generate(null, "WebApplication1.Models", "MyContext", "MyContextConnString").ToArray();
 
@@ -62,7 +62,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Generate_returns_code_when_vb()
         {
-            var generator = new CodeFirstModelGenerator(MockDTE.CreateProject(kind: MockDTE.VBProjectKind));
+            CodeFirstModelGenerator generator = new CodeFirstModelGenerator(MockDTE.CreateProject(kind: MockDTE.VBProjectKind));
 
             var files = generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString").ToArray();
 
@@ -73,7 +73,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Generate_returns_code_when_vb_and_empty_model()
         {
-            var generator = new CodeFirstModelGenerator(MockDTE.CreateProject(kind: MockDTE.VBProjectKind));
+            CodeFirstModelGenerator generator = new CodeFirstModelGenerator(MockDTE.CreateProject(kind: MockDTE.VBProjectKind));
 
             var files = generator.Generate(null, "WebApplication1.Models", "MyContext", "MyContextConnString").ToArray();
 
@@ -90,7 +90,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 
             using (AddCustomizedTemplates(project))
             {
-                var generator = new CodeFirstModelGenerator(project);
+                CodeFirstModelGenerator generator = new CodeFirstModelGenerator(project);
 
                 var files = generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString").ToArray();
 
@@ -108,7 +108,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 
             using (AddCustomizedTemplates(project))
             {
-                var generator = new CodeFirstModelGenerator(project);
+                CodeFirstModelGenerator generator = new CodeFirstModelGenerator(project);
 
                 var files = generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString").ToArray();
 
@@ -137,7 +137,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
                         .First(i => i.Name == "FullPath");
                     Mock.Get(fullPathProperty).SetupGet(p => p.Value).Returns(templatePath);
 
-                    var generator = new CodeFirstModelGenerator(project);
+                    CodeFirstModelGenerator generator = new CodeFirstModelGenerator(project);
 
                     Action act = () => generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString")
                         .ToArray();
@@ -173,7 +173,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
                         .First(i => i.Name == "FullPath");
                     Mock.Get(fullPathProperty).SetupGet(p => p.Value).Returns(templatePath);
 
-                    var generator = new CodeFirstModelGenerator(project);
+                    CodeFirstModelGenerator generator = new CodeFirstModelGenerator(project);
 
                     Action act = () => generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString")
                         .ToArray();
@@ -195,41 +195,41 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             var templatePath = Path.GetTempFileName();
             File.WriteAllText(templatePath, "Customized");
 
-            var contextCSharpItem = new Mock<ProjectItem>();
-            var contextVBItem = new Mock<ProjectItem>();
-            var entityCSharpItem = new Mock<ProjectItem>();
-            var entityVBItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> contextCSharpItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> contextVBItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> entityCSharpItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> entityVBItem = new Mock<ProjectItem>();
 
             foreach (var projectItem in new[] { contextCSharpItem, contextVBItem, entityCSharpItem, entityVBItem })
             {
-                var property = new Mock<Property>();
+                Mock<Property> property = new Mock<Property>();
                 property.SetupGet(p => p.Name).Returns("FullPath");
                 property.SetupGet(p => p.Value).Returns(templatePath);
 
                 var propertyArray = new[] { property.Object };
 
-                var properties = new Mock<Properties>();
+                Mock<Properties> properties = new Mock<Properties>();
                 properties.As<IEnumerable>().Setup(p => p.GetEnumerator()).Returns(() => propertyArray.GetEnumerator());
 
                 projectItem.SetupGet(i => i.Properties).Returns(properties.Object);
             }
 
-            var actionProjectItems = new Mock<ProjectItems>();
+            Mock<ProjectItems> actionProjectItems = new Mock<ProjectItems>();
             actionProjectItems.Setup(i => i.Item("Context.cs.t4")).Returns(contextCSharpItem.Object);
             actionProjectItems.Setup(i => i.Item("Context.vb.t4")).Returns(contextVBItem.Object);
             actionProjectItems.Setup(i => i.Item("EntityType.cs.t4")).Returns(entityCSharpItem.Object);
             actionProjectItems.Setup(i => i.Item("EntityType.vb.t4")).Returns(entityVBItem.Object);
 
-            var actionItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> actionItem = new Mock<ProjectItem>();
             actionItem.SetupGet(i => i.ProjectItems).Returns(actionProjectItems.Object);
 
-            var templatesProjectItems = new Mock<ProjectItems>();
+            Mock<ProjectItems> templatesProjectItems = new Mock<ProjectItems>();
             templatesProjectItems.Setup(i => i.Item("EFModelFromDatabase")).Returns(actionItem.Object);
 
-            var templatesItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> templatesItem = new Mock<ProjectItem>();
             templatesItem.SetupGet(i => i.ProjectItems).Returns(templatesProjectItems.Object);
 
-            var projectItems = new Mock<ProjectItems>();
+            Mock<ProjectItems> projectItems = new Mock<ProjectItems>();
             projectItems.Setup(i => i.Item("CodeTemplates")).Returns(templatesItem.Object);
 
             Mock.Get(project).SetupGet(p => p.ProjectItems).Returns(projectItems.Object);

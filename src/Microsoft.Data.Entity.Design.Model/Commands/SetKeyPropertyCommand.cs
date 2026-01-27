@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-
     /// <summary>
     ///     Use this command to change whether a property is or isn't a key in the containing entity.
     /// </summary>
@@ -67,8 +67,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (Property == null)
             {
-                var prereq = GetPreReqCommand(CreatePropertyCommand.PrereqId) as CreatePropertyCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreatePropertyCommand.PrereqId) is CreatePropertyCommand prereq)
                 {
                     Property = prereq.CreatedProperty;
                     CommandValidation.ValidateEntityProperty(Property);
@@ -78,7 +77,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit
@@ -135,11 +133,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     {
                         if (pref != null)
                         {
-                            var role = pref.Parent as ReferentialConstraintRole;
-                            if (role != null)
+                            if (pref.Parent is ReferentialConstraintRole role)
                             {
-                                var rc = role.Parent as ReferentialConstraint;
-                                if (rc != null
+                                if (role.Parent is ReferentialConstraint rc
                                     && rc.Principal == role)
                                 {
                                     // property ref on a principal end, so delete it
@@ -151,8 +147,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 }
             }
 
-            var cet = Property.EntityType as ConceptualEntityType;
-            if (cet != null)
+            if (Property.EntityType is ConceptualEntityType cet)
             {
                 PropagateViewKeysToStorageModel.AddRule(cpc, cet);
             }
@@ -173,7 +168,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 // this integrity check applied by UpdateModelFromDatabaseCommand
                 if (EfiTransactionOriginator.UpdateModelFromDatabaseId != cpc.OriginatorId)
                 {
-                    var cProp = Property as ConceptualProperty;
+                    ConceptualProperty cProp = Property as ConceptualProperty;
                     Debug.Assert(
                         cProp != null, "expected _property of type ConceptualProperty, instead got type " + Property.GetType().FullName);
                     if (cProp != null)

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class DeleteUnboundMappingsCommand : Command
     {
         protected override void InvokeInternal(CommandProcessorContext cpc)
@@ -67,14 +67,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// </summary>
         private static void RecursiveDeleteUnboundElements(CommandProcessorContext cpc, EFElement efElement)
         {
-            var mappingCondition = efElement as Condition;
-            var queryView = efElement as QueryView;
-            if (mappingCondition != null)
+            if (efElement is Condition mappingCondition)
             {
                 // A Mapping Condition is special because it will 
                 // only ever have 1 bound child out of 2
                 var children = efElement.Children.ToArray();
-                var anyOneOfChildrenIsBound = 
+                var anyOneOfChildrenIsBound =
                     children.OfType<ItemBinding>().Any(itemBinding => itemBinding.Resolved);
 
                 if (!anyOneOfChildrenIsBound)
@@ -84,7 +82,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
                 return;
             }
-            else if (queryView != null)
+            else if (efElement is QueryView queryView)
             {
                 // QueryView elements have a TypeName attribute, but it is optional and
                 // so the QueryView should not be deleted even if the TypeName attribute
@@ -95,17 +93,15 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 // cannot use IEnumerable directly as we are potentially
                 // deleting from the returned collection
-                var children = new List<EFObject>(efElement.Children);
+                List<EFObject> children = new List<EFObject>(efElement.Children);
 
                 // remove any children which are optional (and hence not being resolved does not require a delete)
-                var cp = efElement as ComplexProperty;
-                if (cp != null)
+                if (efElement is ComplexProperty cp)
                 {
                     // TypeName binding in ComplexProperty is optional and can be unresolved, so remove it from the check list
                     children.Remove(cp.TypeName);
                 }
-                var mf = efElement as ModificationFunction;
-                if (mf != null)
+                if (efElement is ModificationFunction mf)
                 {
                     children.Remove(mf.RowsAffectedParameter);
                 }
@@ -113,13 +109,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 // loop over children and recursively delete
                 foreach (var child in children)
                 {
-                    var efElementChild = child as EFElement;
-                    var itemBindingChild = child as ItemBinding;
-                    if (efElementChild != null)
+                    if (child is EFElement efElementChild)
                     {
                         RecursiveDeleteUnboundElements(cpc, efElementChild);
                     }
-                    else if (itemBindingChild != null)
+                    else if (child is ItemBinding itemBindingChild)
                     {
                         if (!itemBindingChild.Resolved)
                         {

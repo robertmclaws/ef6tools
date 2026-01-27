@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-
     internal class QueryView : EFElement
     {
         internal static readonly string ElementName = "QueryView";
@@ -25,12 +25,9 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_entityTypes == null)
-                {
-                    _entityTypes = new EntityTypeMappingTypeNameBinding(
+                _entityTypes ??= new EntityTypeMappingTypeNameBinding(
                         this,
                         EntityTypeMappingTypeNameNormalizer.NameNormalizer);
-                }
                 return _entityTypes;
             }
         }

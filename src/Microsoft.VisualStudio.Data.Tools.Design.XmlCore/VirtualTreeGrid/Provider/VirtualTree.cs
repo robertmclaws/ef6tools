@@ -1,18 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-
     /// <summary>
     ///     Standard implementation of the ITree interface
     /// </summary>
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal class VirtualTree : ITree
     {
         // UNDONE_MC: Use of COLUMN_ZERO indicates a multicolumn undone, rip when no longer in use
@@ -75,10 +73,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
                 if (newTracker != null)
                 {
-                    if (lastTracker != null)
-                    {
-                        lastTracker.myNext = newTracker;
-                    }
+                    lastTracker?.myNext = newTracker;
                     lastTracker = newTracker;
                     retVal = true;
                 }
@@ -91,12 +86,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 ntHead = null;
                 while (ntCur != null)
                 {
-                    if (ntCur.myParentNode != null)
-                    {
-                        // Note that this will detach multiple nodes. The sibling
-                        // chains don't matter as long as they aren't attached to any TREENODE.
-                        ntCur.myParentNode.FirstPositionTracker = null;
-                    }
+                    // Note that this will detach multiple nodes. The sibling
+                    // chains don't matter as long as they aren't attached to any TREENODE.
+                    ntCur.myParentNode?.FirstPositionTracker = null;
                     ntCur = ntCur.myNext;
                 }
             }
@@ -139,9 +131,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 if (tracker.StartRow != VirtualTreeConstant.NullIndex)
                 {
-                    int relativeRow;
-                    int relativeColumn;
-                    GetRelativePosition(out relativeRow, out relativeColumn);
+                    GetRelativePosition(out int relativeRow, out int relativeColumn);
                     if (relativeRow == VirtualTreeConstant.NullIndex)
                     {
                         // Can't track the node
@@ -152,8 +142,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         // Have end position, now determine where this node sits in the tree
                         // UNDONE: Should be able to optimize this by walking the sibling lists
                         // off of individual nodes.
-                        int singleColumnSubItemAdjust;
-                        var coord = FindAbsoluteIndex(myParentNode, relativeRow, out singleColumnSubItemAdjust);
+                        var coord = FindAbsoluteIndex(myParentNode, relativeRow, out int singleColumnSubItemAdjust);
                         if (coord.IsValid)
                         {
                             tracker.EndRow = coord.Row;
@@ -246,7 +235,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             public static void DetachTrackers(ref NODEPOSITIONTRACKER ntFirst, ref NODEPOSITIONTRACKER_Dynamic ntDetached)
             {
                 Debug.Assert(ntFirst != null); // Precondition, check before calling
-                var ntHead = (NODEPOSITIONTRACKER_Dynamic)ntFirst;
+                NODEPOSITIONTRACKER_Dynamic ntHead = (NODEPOSITIONTRACKER_Dynamic)ntFirst;
                 var ntNext = ntHead;
                 NODEPOSITIONTRACKER_Dynamic ntCur = null;
                 while (ntNext != null)
@@ -272,7 +261,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 TREENODE tnLastChildSecondary;
                 int level;
                 int attachIndex;
-                int expansionCount;
                 TrackingObjectAction action;
                 TREENODE tnCurParent;
                 TREENODE tnNextParent;
@@ -306,10 +294,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             {
                                 case TrackingObjectAction.ThisLevel:
                                     // Detach from the list of nodes to insert
-                                    if (nptPrev != null)
-                                    {
-                                        nptPrev.myNextSibling = nptNext;
-                                    }
+                                    nptPrev?.myNextSibling = nptNext;
                                     nptCur.myNextSibling = tnCurParent.FirstPositionTracker;
                                     tnCurParent.FirstPositionTracker = nptCur;
                                     nptCur.myParentNode = tnCurParent;
@@ -334,10 +319,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                     }
                                     else
                                     {
-                                        int subItemIncr;
                                         // UNDONE_MC: Need a column
                                         tnNextParent = tree.ExpandTreeNode(
-                                            tnCurParent, null, attachIndex, COLUMN_ZERO, false, out expansionCount, out subItemIncr);
+                                            tnCurParent, null, attachIndex, COLUMN_ZERO, false, out int expansionCount, out int subItemIncr);
                                         changeCount += tnNextParent.FullCount;
                                         subItemChangeCount += subItemIncr;
                                         tree.ChangeFullCountRecursive(tnCurParent, tnNextParent.FullCount, subItemIncr, tnStartParent);
@@ -538,7 +522,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     }
                     else
                     {
-                        myOffsets = new List<int>();
+                        myOffsets = [];
                     }
                     myOffsets.Add(myOffset);
                 }
@@ -836,7 +820,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 set { SetFlag(TreeNodeFlags.Expanded, value); }
             }
 
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
             public bool UpdateDelayed
             {
                 get { return GetFlag(TreeNodeFlags.UpdateDelayed); }
@@ -910,7 +893,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 set { SetFlag(TreeNodeFlags.ComplexSubItem, value); }
             }
 
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
             public bool AllowMultiColumnChildren
             {
                 get { return GetFlag(TreeNodeFlags.AllowMultiColumn); }
@@ -1027,7 +1009,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 TREENODE tn1;
                 TREENODE tn2;
                 var curIndex = 0;
-                var pos = new ITEMPOSITION();
+                ITEMPOSITION pos = new ITEMPOSITION();
                 pos.ParentNode = tn2 = this;
                 pos.ParentAbsolute = VirtualTreeConstant.NullIndex;
                 tn2 = NextExpanded(tn2.FirstChild);
@@ -1270,8 +1252,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             public int GetChildOffset(int relativeIndex)
             {
-                var singleColumnSubItemAdjust = 0;
-                return GetChildOffset(relativeIndex, out singleColumnSubItemAdjust);
+                return GetChildOffset(relativeIndex, out int singleColumnSubItemAdjust);
             }
 
             public int GetChildOffset(int relativeIndex, out int singleColumnSubItemAdjust)
@@ -1353,7 +1334,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 int curTotalCount;
                 int curFullSubItemGain;
                 var curIndex = 0;
-                var pos = new ITEMPOSITION();
+                ITEMPOSITION pos = new ITEMPOSITION();
                 pos.ParentNode = tn2 = this;
                 pos.ParentAbsolute = VirtualTreeConstant.NullIndex;
                 var parentAbsoluteAdjust = 0;
@@ -1460,7 +1441,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         if (0 != (pos.ParentNode.SubItemStyle(column) & SubItemCellStyles.Mixed))
                         {
                             tnChild = pos.ParentNode.GetChildNode(pos.Index);
-                            sn = (tnChild == null) ? null : tnChild.SubItemAtColumn(column);
+                            sn = tnChild?.SubItemAtColumn(column);
                             // This cell is in the range of columns for the current position
                             if (sn != null
                                 && sn.RootNode.Expanded)
@@ -1497,7 +1478,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         if (0 != (pos.ParentNode.SubItemStyle(parentColumns - 1) & SubItemCellStyles.Complex))
                         {
                             tnChild = pos.ParentNode.GetChildNode(pos.Index);
-                            sn = (tnChild == null) ? null : tnChild.SubItemAtColumn(parentColumns - 1);
+                            sn = tnChild?.SubItemAtColumn(parentColumns - 1);
                             if (sn != null
                                 && sn.RootNode.ComplexSubItem
                                 && sn.RootNode.MultiColumn)
@@ -1605,8 +1586,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             public override sealed int GetColumnCount(int row)
             {
-                var mcBranch = Branch as IMultiColumnBranch;
-                return (mcBranch == null)
+                return (Branch is not IMultiColumnBranch mcBranch)
                            ? 1
                            : JaggedColumns ? mcBranch.GetJaggedColumnCount(row) : mcBranch.ColumnCount;
             }
@@ -1686,7 +1666,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             public override int UpdateCounter { get; set; }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1501:AvoidExcessiveInheritance")]
         private class TREENODE_Multi_Tracked_Updatable : TREENODE_Multi_Tracked
         {
             public override int UpdateCounter { get; set; }
@@ -1751,10 +1730,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 {
                     Debug.Assert(value.PrevNode != null);
                     value.PrevNode.NextNode = existing.NextNode;
-                    if (value.NextNode != null)
-                    {
-                        value.NextNode.PrevNode = value.PrevNode;
-                    }
+                    value.NextNode?.PrevNode = value.PrevNode;
                 }
             }
 
@@ -1796,17 +1772,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 Debug.Assert(CurrentBranch == null);
                 var startRow = NextStartRow;
-                IBranch branch;
-                int firstRelRow;
-                int lastRelRow;
-                int relColumn;
-                int sectionLevel;
-                int treeColumn;
-                int blanks;
-                bool simpleCell;
                 myTree.EnumOrderedListItems(
-                    ref startRow, EnumerationColumn, ColumnPermutation, ReturnBlankAnchors, out branch, out treeColumn, out firstRelRow,
-                    out lastRelRow, out relColumn, out sectionLevel, out blanks, out simpleCell);
+                    ref startRow, EnumerationColumn, ColumnPermutation, ReturnBlankAnchors, out IBranch branch, out int treeColumn, out int firstRelRow,
+                    out int lastRelRow, out int relColumn, out int sectionLevel, out int blanks, out bool simpleCell);
                 NextStartRow = startRow;
                 CurrentTrailingBlanks = blanks;
                 if (branch != null)
@@ -1845,11 +1813,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 Debug.Assert(CurrentBranch == null);
                 var startRow = NextStartRow;
-                IBranch branch;
-                int firstRelRow;
-                int lastRelRow;
-                int sectionLevel;
-                myTree.EnumSingleColumnOrderedListItems(ref startRow, out branch, out firstRelRow, out lastRelRow, out sectionLevel);
+                myTree.EnumSingleColumnOrderedListItems(ref startRow, out IBranch branch, out int firstRelRow, out int lastRelRow, out int sectionLevel);
                 NextStartRow = startRow;
                 if (branch != null)
                 {
@@ -2115,7 +2079,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             // UNDONE_CACHE
             var parentRowOffset = 0;
-            var affectedSubItemColumns = new AffectedSubItems(false);
+            AffectedSubItems affectedSubItemColumns = new AffectedSubItems(false);
             var lastSubItem = false;
             var singleColumnSubItemAdjust = 0;
             return myRootNode.TrackCell(
@@ -2134,7 +2098,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             // UNDONE_CACHE
             var parentRowOffset = 0;
-            var affectedSubItemColumns = new AffectedSubItems(false);
+            AffectedSubItems affectedSubItemColumns = new AffectedSubItems(false);
             var lastSubItem = false;
             return myRootNode.TrackCell(
                 absRow, ref column, ref parentRowOffset, ref affectedSubItemColumns, ref lastSubItem, ref singleColumnSubItemAdjust);
@@ -2148,7 +2112,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             // UNDONE_CACHE
             var parentRowOffset = 0;
-            var affectedSubItemColumns = new AffectedSubItems(false);
+            AffectedSubItems affectedSubItemColumns = new AffectedSubItems(false);
             var singleColumnSubItemAdjust = 0;
             return myRootNode.TrackCell(
                 absRow, ref column, ref parentRowOffset, ref affectedSubItemColumns, ref lastSubItem, ref singleColumnSubItemAdjust);
@@ -2161,7 +2125,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 throw new ArgumentOutOfRangeException("column");
             }
             // UNDONE_CACHE
-            var affectedSubItemColumns = new AffectedSubItems(false);
+            AffectedSubItems affectedSubItemColumns = new AffectedSubItems(false);
             var lastSubItem = false;
             return myRootNode.TrackCell(
                 absRow, ref column, ref parentRowOffset, ref affectedSubItemColumns, ref lastSubItem, ref singleColumnSubItemAdjust);
@@ -2191,7 +2155,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 case BranchModificationAction.DisplayDataChanged:
                     {
-                        var displayChange = change as BranchModificationEventArgs.BranchModificationDisplayData;
+                        BranchModificationEventArgs.BranchModificationDisplayData displayChange = change as BranchModificationEventArgs.BranchModificationDisplayData;
                         tree.DisplayDataChanged(
                             new DisplayDataChangedData(
                                 displayChange.Changes, displayChange.Branch, displayChange.Index, displayChange.Column, displayChange.Count));
@@ -2211,7 +2175,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     break;
                 case BranchModificationAction.ShiftBranchLevels:
                     {
-                        var levelChange = change as BranchModificationEventArgs.BranchModificationLevelShift;
+                        BranchModificationEventArgs.BranchModificationLevelShift levelChange = change as BranchModificationEventArgs.BranchModificationLevelShift;
                         tree.ShiftBranchLevels(
                             new ShiftBranchLevelsData(
                                 change.Branch, levelChange.RemoveLevels, levelChange.InsertLevels, levelChange.Depth,
@@ -2254,7 +2218,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// </summary>
         protected IBranch Root
         {
-            get { return myRootNode == null ? null : myRootNode.Branch; }
+            get { return myRootNode?.Branch; }
             set
             {
                 if (value != null)
@@ -2264,8 +2228,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     if (tn.MultiColumn
                         && tn.ComplexColumns)
                     {
-                        int fullSubItemGain;
-                        ExpandInitialComplexSubItems(tn as TREENODE_Multi, out fullSubItemGain);
+                        ExpandInitialComplexSubItems(tn as TREENODE_Multi, out int fullSubItemGain);
                         tn.FullSubItemGain = fullSubItemGain;
                     }
                     // The state of the tree is vulnerable until we get to this point.
@@ -2359,14 +2322,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             var tn = LocateTrackedNode(branch);
             Debug.Assert(tn != null); //Expect LocateTrackedNode to throw otherwise
-            var coordinate = new VirtualTreeCoordinate();
+            VirtualTreeCoordinate coordinate = new VirtualTreeCoordinate();
             int prevAbsIndex;
             int prevAbsIndexSingleColumn;
             int reportCount;
             int reportCountSingleColumn;
             int count;
             int startRow;
-            int singleColumnSubItemAdjust;
             //UNDONE: Does firing the event after we get the next node adversely affect the
             //performance of the node tracking algorithm.
             while (tn != null)
@@ -2385,7 +2347,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
                 while (count > 0)
                 {
-                    coordinate = FindAbsoluteIndex(tn, startRow, out singleColumnSubItemAdjust);
+                    coordinate = FindAbsoluteIndex(tn, startRow, out int singleColumnSubItemAdjust);
                     if (coordinate.IsValid)
                     {
                         if (fireNormalEvent)
@@ -2457,10 +2419,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             var fireSingleColumnEvent = GetStateFlag(TreeStateFlags.FireSingleColumnItemCountChanged);
             if (fireNormalEvent || fireSingleColumnEvent)
             {
-                int singleColumnAbsIndex;
                 ClearPositionCache(); //Cached absolute information is toast.
                 var tnNext = tn; //Ignore next
-                var coord = EnumAbsoluteIndices(VirtualTreeConstant.NullIndex, ref tnNext, out singleColumnAbsIndex);
+                var coord = EnumAbsoluteIndices(VirtualTreeConstant.NullIndex, ref tnNext, out int singleColumnAbsIndex);
                 if (coord.IsValid
                     || tn == myRootNode)
                 {
@@ -2572,7 +2533,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 after < tn.ImmedCount)
             {
                 TREENODE tnChild;
-                int singleColumnAbsIndex;
                 while (tn != null)
                 {
                     tnChild = tn.FirstChild;
@@ -2596,7 +2556,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         && ((ItemCountChanged != null)
                             || (GetStateFlag(TreeStateFlags.FireSingleColumnItemCountChanged) && 0 == COLUMN_ZERO)))
                     {
-                        var coord = EnumAbsoluteIndices(after + 1, ref tn, out singleColumnAbsIndex);
+                        var coord = EnumAbsoluteIndices(after + 1, ref tn, out int singleColumnAbsIndex);
                         if (coord.IsValid)
                         {
                             if (ItemCountChanged != null)
@@ -2780,7 +2740,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="branch">The branch where the item moved</param>
         /// <param name="fromRow">The row the item used to be on</param>
         /// <param name="toRow">The row the item is on now</param>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         protected void MoveItem(IBranch branch, int fromRow, int toRow)
         {
             if (fromRow == toRow)
@@ -3078,10 +3037,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <returns>Data showing the incremental change in the number of items in the tree</returns>
         protected ToggleExpansionData ToggleExpansion(int row, int column)
         {
-            bool allowRecursion;
-            int itemExpansionCount;
-            int subItemExpansionCount;
-            ToggleExpansion(row, column, out itemExpansionCount, out subItemExpansionCount, out allowRecursion);
+            ToggleExpansion(row, column, out int itemExpansionCount, out int subItemExpansionCount, out bool allowRecursion);
             return new ToggleExpansionData(itemExpansionCount + subItemExpansionCount, allowRecursion);
         }
 
@@ -3089,14 +3045,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             int row, int column, out int itemExpansionCount, out int subItemExpansionCount, out bool allowRecursion)
         {
             allowRecursion = false;
-            int rowChange;
-            int blanksAboveChange;
-            int singleColumnSubItemAdjust;
-            SubItemColumnAdjustment[] subItemChanges;
 
             ToggleExpansion(
-                row, column, out allowRecursion, out singleColumnSubItemAdjust, out itemExpansionCount, out subItemExpansionCount,
-                out rowChange, out blanksAboveChange, out subItemChanges);
+                row, column, out allowRecursion, out int singleColumnSubItemAdjust, out itemExpansionCount, out subItemExpansionCount,
+                out int rowChange, out int blanksAboveChange, out SubItemColumnAdjustment[] subItemChanges);
             if (ItemCountChanged != null)
             {
                 DelayTurnOffRedraw();
@@ -3204,7 +3156,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     the unpermuted position.
         /// </param>
         /// <returns>The expansion for this row and column</returns>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         protected BlankExpansionData GetBlankExpansion(int row, int column, ColumnPermutation columnPermutation)
         {
             if (!MultiColumnSupport)
@@ -3320,7 +3271,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     && tnChild != null)
                 {
                     var sn = tnChild.SubItemAtColumn(localColumn);
-                    var tnSubItemRoot = (sn == null) ? null : sn.RootNode;
+                    var tnSubItemRoot = sn?.RootNode;
                     Debug.Assert(tnChild == null || !tnChild.ComplexSubItem); // A complex subitem should track to column 0
                     if (tnSubItemRoot != null
                         && tnSubItemRoot.Expanded
@@ -3404,7 +3355,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
         private VirtualTreeItemInfo GetItemInfo(ref ITEMPOSITION pos, int column, bool setFlags, bool ignoreMultiColumn, bool lastSubItem)
         {
-            var info = new VirtualTreeItemInfo(pos.ParentNode.Branch, pos.Index, column, pos.Level);
+            VirtualTreeItemInfo info = new VirtualTreeItemInfo(pos.ParentNode.Branch, pos.Index, column, pos.Level);
             var blankItem = ignoreMultiColumn ? false : pos.IsBlank(column);
             info.Blank = blankItem;
 
@@ -3632,7 +3583,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     && tn != null)
                 {
                     var sn = tn.SubItemAtColumn(column);
-                    tn = (sn == null) ? null : sn.RootNode;
+                    tn = sn?.RootNode;
                     Debug.Assert(tn == null || !tn.ComplexSubItem); // A complex subitem should track to column 0
                 }
             }
@@ -3953,8 +3904,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             singleColumnAbsIndex = VirtualTreeConstant.NullIndex;
             if (nextNode != null)
             {
-                int singleColumnSubItemAdjust;
-                var coord = FindAbsoluteIndex(nextNode, index, out singleColumnSubItemAdjust);
+                var coord = FindAbsoluteIndex(nextNode, index, out int singleColumnSubItemAdjust);
                 if (coord.Column == 0)
                 {
                     singleColumnAbsIndex = coord.Row - singleColumnSubItemAdjust;
@@ -4013,7 +3963,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     && tn != null)
                 {
                     var sn = tn.SubItemAtColumn(column);
-                    tn = (sn != null) ? sn.RootNode : null;
+                    tn = sn?.RootNode;
                 }
             }
             if ((tn != null)
@@ -4045,10 +3995,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     column permutation, not the unpermuted position.
         /// </param>
         /// <returns>The target coordinates, or VirtualTreeCoordinate.Invalid</returns>
-        [SuppressMessage("Microsoft.Usage", "CA2233:OperationsShouldNotOverflow", MessageId = "sourceRow+1",
-            Justification = "[pedrosi] overflow not possible with checks made on sourceRow")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode")]
         protected VirtualTreeCoordinate GetNavigationTarget(
             TreeNavigation direction, int sourceRow, int sourceColumn, ColumnPermutation columnPermutation)
         {
@@ -4135,7 +4081,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         && tnChild != null)
                     {
                         var sn = tnChild.SubItemAtColumn(localColumn);
-                        tnChild = (sn == null) ? null : sn.RootNode;
+                        tnChild = sn?.RootNode;
                     }
                     if (tnChild != null
                         && tnChild.Expanded
@@ -4585,7 +4531,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return new ColumnItemEnumeratorImpl(this, column, columnPermutation, returnBlankAnchors, startRow, endRow);
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void EnumOrderedListItems(
             ref int nextStartRow,
             int column,
@@ -5038,12 +4983,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             if (ListShuffleBeginning != null
                 && ListShuffleEnding != null)
             {
-                var positionManager = new PositionManagerEventArgs(this);
+                PositionManagerEventArgs positionManager = new PositionManagerEventArgs(this);
                 NODEPOSITIONTRACKER ntHead = null;
                 NODEPOSITIONTRACKER ntLast = null;
-                TREENODE tnParent;
-                int relativeRow;
-                int relativeColumn;
                 try
                 {
                     ListShuffleBeginning(this, positionManager);
@@ -5052,7 +4994,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         var upper = trackerSet.GetUpperBound(0);
                         for (var i = trackerSet.GetLowerBound(0); i <= upper; ++i)
                         {
-                            if (TrackPosition(ref trackerSet[i], out tnParent, out relativeRow, out relativeColumn))
+                            if (TrackPosition(ref trackerSet[i], out TREENODE tnParent, out int relativeRow, out int relativeColumn))
                             {
                                 if (ntHead != null)
                                 {
@@ -5210,7 +5152,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             else
             {
-                var args = new QueryItemVisibleEventArgs(absIndex);
+                QueryItemVisibleEventArgs args = new QueryItemVisibleEventArgs(absIndex);
                 OnQueryItemVisible(this, args);
                 return args.IsVisible;
             }
@@ -5226,7 +5168,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     items from a branch is not the same as removing the branch itself.
         /// </summary>
         /// <param name="branch">The branch to remove</param>
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         protected void RemoveBranch(IBranch branch)
         {
             var tnNextNode = LocateTrackedNode(branch);
@@ -5456,10 +5397,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     RemoveTrackedNode(tn.Branch, tn);
                 }
             }
-            if (tn.FirstPositionTracker != null)
-            {
-                tn.FirstPositionTracker.OnParentNodeDeleted();
-            }
+            tn.FirstPositionTracker?.OnParentNodeDeleted();
             tn = null;
         }
 
@@ -5467,10 +5405,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             get
             {
-                if (myNodeTracker == null)
-                {
-                    myNodeTracker = new TrackedTreeNodeCollection();
-                }
+                myNodeTracker ??= new TrackedTreeNodeCollection();
                 return myNodeTracker;
             }
         }
@@ -5492,7 +5427,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return myNodeTracker[branch];
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private static TREENODE CreateTreeNode(
             TREENODE startNode, IBranch branch, VirtualTree tree, bool allowMultiColumn, bool inSubItemColumn, bool multiColumnParent)
         {
@@ -5506,10 +5440,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             var isMultiColumn = false;
             if (allowMultiColumn)
             {
-                var mcTest = branch as IMultiColumnBranch;
                 // Checking the column count allows a single wrapper class to
                 // support either single or multicolumn branches
-                isMultiColumn = mcTest != null && mcTest.ColumnCount > 1;
+                isMultiColumn = branch is IMultiColumnBranch mcTest && mcTest.ColumnCount > 1;
             }
 
             if (isDynamic)
@@ -5603,7 +5536,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         private TREENODE ExpandTreeNode(
             TREENODE parentNode, TREENODE startNode, int row, int column, bool insertNewChild, out int itemIncr, out int subItemIncr)
         {
-            ExpansionOptions options;
             return ExpandTreeNode(
                 parentNode,
                 startNode,
@@ -5611,7 +5543,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 column,
                 column == 0 ? ObjectStyle.ExpandedBranch : ObjectStyle.SubItemExpansion,
                 insertNewChild,
-                out options,
+                out ExpansionOptions options,
                 out itemIncr,
                 out subItemIncr);
         }
@@ -5620,7 +5552,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             TREENODE parentNode, TREENODE startNode, int row, int column, bool insertNewChild, out int itemIncr,
             out bool requireInitialSubItemExpansion)
         {
-            ExpansionOptions options;
             return ExpandTreeNode(
                 parentNode,
                 startNode,
@@ -5628,17 +5559,15 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 column,
                 column == 0 ? ObjectStyle.ExpandedBranch : ObjectStyle.SubItemExpansion,
                 insertNewChild,
-                out options,
+                out ExpansionOptions options,
                 out itemIncr,
                 out requireInitialSubItemExpansion);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private TREENODE ExpandTreeNode(
             TREENODE parentNode, TREENODE startNode, int row, int column, ObjectStyle branchStyle, bool insertNewChild,
             out ExpansionOptions expansionOptions, out int itemIncr, out int subItemIncr)
         {
-            bool requireInitialSubItemExpansion;
             subItemIncr = 0;
             var retVal = ExpandTreeNode(
                 parentNode,
@@ -5649,7 +5578,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 insertNewChild,
                 out expansionOptions,
                 out itemIncr,
-                out requireInitialSubItemExpansion);
+                out bool requireInitialSubItemExpansion);
             if (retVal != null && requireInitialSubItemExpansion)
             {
                 try
@@ -5776,7 +5705,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             // attached to the parent.
             Debug.Assert(tn.FirstChild == null);
             Debug.Assert(tn.ComplexColumns); // Check before calling
-            var mcBranch = tn.Branch as IMultiColumnBranch;
+            IMultiColumnBranch mcBranch = tn.Branch as IMultiColumnBranch;
             var columnCount = (mcBranch == null) ? 1 : mcBranch.ColumnCount;
             totalIncrease = 0;
             if (columnCount > 1)
@@ -5798,8 +5727,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     var maxRow = tn.FullCount;
                     var maxColumn = columnCount - 1;
                     int iRow;
-                    int itemIncr;
-                    int subItemIncr;
                     TREENODE tnSubItemAnchor;
                     TREENODE tnSubItem;
                     TREENODE tnPrevHint;
@@ -5841,8 +5768,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                 ObjectStyle.SubItemRootBranch,
                                 false,
                                 out options,
-                                out itemIncr,
-                                out subItemIncr);
+                                out int itemIncr,
+                                out int subItemIncr);
                             if (tnSubItem != null)
                             {
                                 if (snPrev == null)
@@ -5909,7 +5836,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             if (!keyOffSubItemRoot)
             {
                 // Do an exception-inducing cast here. The branch must be a multi-column
-                var mcBranch = (IMultiColumnBranch)branch;
+                IMultiColumnBranch mcBranch = (IMultiColumnBranch)branch;
                 // UNDONE_MC: This is a branch-relative column value, which may not be the absolute
                 // column in the grid. Need a good way of either calculating or storing the absolute
                 // column for a given branch. The unused Index property on a SubItemRoot node is a good
@@ -5932,8 +5859,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             TREENODE tnPrevChild;
             SUBITEMNODE sn;
             SUBITEMNODE snPrev;
-            ExpansionOptions options;
-            int itemIncr;
             int subItemIncr;
             TREENODE tnNewSubItem;
             TREENODE tnParent;
@@ -5981,8 +5906,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             column,
                             ObjectStyle.SubItemRootBranch,
                             false,
-                            out options,
-                            out itemIncr,
+                            out ExpansionOptions options,
+                            out int itemIncr,
                             out subItemIncr);
                         if (tnNewSubItem == null)
                         {
@@ -6035,15 +5960,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     {
                         if (ItemCountChanged != null)
                         {
-                            int dummySingleColumnAbsRow; // This action does not affect the single column view
-                            var absRow = EnumAbsoluteIndices(row, ref tnNext, out dummySingleColumnAbsRow).Row;
+                            // This action does not affect the single column view
+                            var absRow = EnumAbsoluteIndices(row, ref tnNext, out int dummySingleColumnAbsRow).Row;
                             if (absRow != VirtualTreeConstant.NullIndex)
                             {
-                                SubItemColumnAdjustment[] subItemChanges;
                                 var parentRowOffset = 0;
-                                var affectedSubItemColumns = new AffectedSubItems(true);
+                                AffectedSubItems affectedSubItemColumns = new AffectedSubItems(true);
                                 var singleColumnSubItemAdjust = 0;
-                                int rowIncr;
                                 // We need to track all of this for expanded nodes to get the correct information for the event.
                                 var adjustColumn = absColumn;
 
@@ -6054,7 +5977,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                 Debug.Assert(adjustColumn == 0);
                                     // This should pick up the new list now in this cell, so the column will always be zero
                                 ChangeFullCountRecursive(
-                                    tnChild, 0, subItemIncr, null, ref affectedSubItemColumns, out rowIncr, out subItemChanges);
+                                    tnChild, 0, subItemIncr, null, ref affectedSubItemColumns, out int rowIncr, out SubItemColumnAdjustment[] subItemChanges);
                                 DelayTurnOffRedraw();
                                 ItemCountChanged(
                                     this,
@@ -6096,7 +6019,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             allowRecursion = true; //Default to true, too many implementations are missing this, and most are actually recursive
             var localColumn = column;
             var parentRowOffset = 0;
-            var affectedColumns = new AffectedSubItems(true);
+            AffectedSubItems affectedColumns = new AffectedSubItems(true);
             var pos = TrackCell(absRow, ref localColumn, ref parentRowOffset, ref affectedColumns, ref singleColumnSubItemAdjust);
             var tnRecurseOn = pos.ParentNode;
             var subItemExpansion = localColumn != 0;
@@ -6112,7 +6035,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 if (tnCur != null)
                 {
                     sn = tnCur.SubItemAtColumn(localColumn, out snPrev);
-                    tnCur = (sn != null) ? sn.RootNode : null;
+                    tnCur = sn?.RootNode;
                 }
             }
             else if (tnCur != null
@@ -6452,8 +6375,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         // Modify the count up to, but not including, the ceiling node
         private void ChangeFullCountRecursive(TREENODE tn, int itemIncr, int subItemIncr, TREENODE tnCeiling)
         {
-            int subItemRemainder;
-            ChangeFullCountRecursive(tn, itemIncr, subItemIncr, tnCeiling, out subItemRemainder);
+            ChangeFullCountRecursive(tn, itemIncr, subItemIncr, tnCeiling, out int subItemRemainder);
         }
 
         private void ChangeFullCountRecursive(TREENODE tn, int itemIncr, int subItemIncr, TREENODE tnCeiling, out int subItemRemainder)
@@ -6544,8 +6466,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     A VirtualTreeCoordinate structure with the correct coordinates. The IsValid property of
         ///     the returned structure will be false if the object could not be located.
         /// </returns>
-        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         protected VirtualTreeCoordinate LocateObject(IBranch startingBranch, object target, int locateStyle, int locateOptions)
         {
             // Object location is done in two steps:
@@ -6625,10 +6545,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             // we need to avoid the side effects on the current node.
                             tn.FullCount -= changeCount;
                             tn.FullSubItemGain -= subItemChangeCount;
-                            if (tnFirstUnexpanded == null)
-                            {
-                                tnFirstUnexpanded = tn;
-                            }
+                            tnFirstUnexpanded ??= tn;
                             Debug.Assert(tn.Branch != null);
                             tn.Expanded = true;
                             ChangeFullCountRecursive(tn, changeCount, subItemChangeCount, tnFirstUnexpanded, out subItemRemainder);
@@ -6668,7 +6585,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                     if (0 != (tn.SubItemStyle(column) & SubItemCellStyles.Mixed))
                                     {
                                         SUBITEMNODE snPrev = null;
-                                        var sn = (tnNext != null) ? tnNext.SubItemAtColumn(column, out snPrev) : null;
+                                        var sn = tnNext?.SubItemAtColumn(column, out snPrev);
                                         if (sn == null)
                                         {
                                             if (0 != (columnStyle & SubItemCellStyles.Expandable))
@@ -6676,7 +6593,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                                 // We only handle null for expandable cells.
                                                 // A complex cell would already have been expanded
                                                 // when the branch initially loaded.
-                                                ExpansionOptions expandOptions;
                                                 var tnSubItem = ExpandTreeNode(
                                                     tn,
                                                     null,
@@ -6684,7 +6600,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                                     column,
                                                     ObjectStyle.SubItemExpansion,
                                                     false,
-                                                    out expandOptions,
+                                                    out ExpansionOptions expandOptions,
                                                     out changeCount,
                                                     out subItemChangeCount);
                                                 if (tnSubItem != null)
@@ -6878,10 +6794,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 if (ItemCountChanged != null)
                 {
                     Debug.Assert(tnFirstUnexpanded.Parent != null); // The root node is always expanded
-                    SubItemColumnAdjustment[] subItemChanges;
                     var parentRowOffset = 0;
-                    var affectedSubItemColumns = new AffectedSubItems(true);
-                    int rowIncr;
+                    AffectedSubItems affectedSubItemColumns = new AffectedSubItems(true);
                     var adjustColumn = firstUnexpandedColumnOffset;
                     var singleColumnSubItemAdjust = 0;
                     // TrackCell is currently broken for all values after absRow, but it will work down
@@ -6891,8 +6805,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     TrackCell(
                         firstUnexpandedRow, ref adjustColumn, ref parentRowOffset, ref affectedSubItemColumns, ref singleColumnSubItemAdjust);
                     ChangeFullCountRecursive(
-                        tnFirstUnexpanded, totalChangeCount, totalSubItemChangeCount, null, ref affectedSubItemColumns, out rowIncr,
-                        out subItemChanges);
+                        tnFirstUnexpanded, totalChangeCount, totalSubItemChangeCount, null, ref affectedSubItemColumns, out int rowIncr,
+                        out SubItemColumnAdjustment[] subItemChanges);
                     DelayTurnOffRedraw();
                     // UNDONE: Verify tnFirstUnexpanded.ImmedSubItemGain passed here
                     ItemCountChanged(
@@ -7044,9 +6958,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         // start = beginning of range to consider (affects top level branch only, this and subsequent parameters ignored if -1)
         // count = number of items affected
         // newcount = use this to calculate new total and realign inside range only (-1 to keep same item count, applies to top level only)
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode")]
         private void RealignTreeNodeLevelShift(
             TREENODE tn, int removeLevels, int insertLevels, int depth, ILevelShiftAdjuster branchTester, int start, int count, int newCount,
             bool firstLevel)
@@ -7232,10 +7143,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                 {
                                     if (tnAttach == null)
                                     {
-                                        if (tnDummyHead == null)
-                                        {
-                                            tnDummyHead = new TREENODE();
-                                        }
+                                        tnDummyHead ??= new TREENODE();
                                         // Create a dummy head to attach to
                                         tnAttach = tnDummyHead;
                                     }
@@ -7364,10 +7272,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     // First reattach the branches that survived the kill zone (via ILevelShiftAdjuster.TestReattachBranch),
                     // then do a second pass to reattach the items below the kill zone. This enables the higher level nodes
                     // to reattach before we start creating replacement nodes for them.
-                    if (tnDummyHeadInKillZone == null)
-                    {
-                        tnDummyHeadInKillZone = tnDummyHead;
-                    }
+                    tnDummyHeadInKillZone ??= tnDummyHead;
                     while (tnDummyHeadInKillZone != null)
                     {
                         try
@@ -7391,7 +7296,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             // to keep track of all of these objects and deal with after the main loop has complete.
                             bool dummyRequireSubItemExpansion;
                             int expansionCount;
-                            int subItemIncr;
                             tnNext = tnPrev.NextSibling;
                             // UNDONE: Is this right? Another opinion below. If this is not done
                             // correctly, then we end up calling ExpandTreeNode below in the KeepBranch
@@ -7451,7 +7355,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                                                     try
                                                     {
                                                         tnChild = ExpandTreeNode(
-                                                            tnCurParent, null, attachIndex, 0, false, out expansionCount, out subItemIncr);
+                                                            tnCurParent, null, attachIndex, 0, false, out expansionCount, out int subItemIncr);
                                                         tnPrev.TransferPositionTrackerTo(tnChild);
                                                         changeCount += expansionCount;
                                                         subItemChange += subItemIncr;
@@ -7633,11 +7537,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 // Attempt to reattach any trackable objects back into the new tree structure
                 if (detachedTrackers != null)
                 {
-                    int reattachChangeCount;
-                    int reattachSubItemChangeCount;
                     detachedTrackers.QueryReattachObjects(
-                        this, tn, (removeLevels == 0) ? insertLevels : insertLevels - 1, out reattachChangeCount,
-                        out reattachSubItemChangeCount);
+                        this, tn, (removeLevels == 0) ? insertLevels : insertLevels - 1, out int reattachChangeCount,
+                        out int reattachSubItemChangeCount);
                     changeCount += reattachChangeCount;
                     subItemChange += reattachSubItemChangeCount;
                 }
@@ -7666,10 +7568,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     tnParent.Expanded = tnParent.Expanded && parentExpanded;
                     if (tnAttachInKillZone == null)
                     {
-                        if (tnDummyHeadInKillZone == null)
-                        {
-                            tnDummyHeadInKillZone = new TREENODE();
-                        }
+                        tnDummyHeadInKillZone ??= new TREENODE();
                         // Create a dummy head to attach to
                         tnAttachInKillZone = tnDummyHeadInKillZone;
                     }
@@ -7723,10 +7622,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 // harmless because we're about to blow the immediate parents away anyway.
                 if (tnAttach == null)
                 {
-                    if (tnDummyHead == null)
-                    {
-                        tnDummyHead = new TREENODE();
-                    }
+                    tnDummyHead ??= new TREENODE();
                     // Create a dummy head to attach to
                     tnAttach = tnDummyHead;
                 }
@@ -7749,7 +7645,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void RealignTreeNode(TREENODE tn)
         {
             TREENODE tnChild;
@@ -7782,7 +7677,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             else
             {
-                int ExpansionCount;
                 int ReloadIndex;
                 BranchLocationAction action;
                 //This is similar to above, but more complicated
@@ -7817,10 +7711,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             FreeRecursive(ref tnChild);
                             try
                             {
-                                int subItemIncr;
                                 tnChild = ExpandTreeNode(
                                     tn, null, ReloadIndex, COLUMN_ZERO /*UNDONE_MC*/, false,
-                                    out ExpansionCount, out subItemIncr);
+                                    out int ExpansionCount, out int subItemIncr);
                             }
                             catch
                             {
@@ -8014,11 +7907,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             ToggleExpansionData ITree.ToggleExpansion(int row, int column)
             {
-                bool allowRecursion;
-                int itemExpansionCount;
-                int subItemExpansionCount;
                 myParent.ToggleExpansion(
-                    myParent.TranslateSingleColumnRow(row), 0, out itemExpansionCount, out subItemExpansionCount, out allowRecursion);
+                    myParent.TranslateSingleColumnRow(row), 0, out int itemExpansionCount, out int subItemExpansionCount, out bool allowRecursion);
                 return new ToggleExpansionData(itemExpansionCount, allowRecursion);
             }
 
@@ -8254,7 +8144,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
                 else
                 {
-                    var args = new QueryItemVisibleEventArgs(absIndex);
+                    QueryItemVisibleEventArgs args = new QueryItemVisibleEventArgs(absIndex);
 
                     myOnQueryItemVisible(this, args);
                     return args.IsVisible;

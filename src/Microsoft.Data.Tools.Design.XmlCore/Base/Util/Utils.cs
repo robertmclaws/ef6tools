@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Text;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Tools.XmlDesignerBase.Base.Util
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Text;
-    using System.Xml.Linq;
-
     internal static class Utils
     {
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal static Uri FileName2Uri(string fileName)
         {
             Uri uri = null;
@@ -26,7 +25,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Base.Util
             {
                 try
                 {
-                    var fi = new FileInfo(fileName);
+                    FileInfo fi = new FileInfo(fileName);
                     Uri.TryCreate(fi.FullName, UriKind.Absolute, out uri);
                 }
                 catch (Exception e)
@@ -79,14 +78,13 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Base.Util
         ///     the Encoding preamble at the start of the steam.
         /// </summary>
         /// <returns>NOTE: Returned Stream should be disposed when done!</returns>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static Stream StringToStream(string inputContents, Encoding encoding)
         {
             // MDF Serialization requires the preamble
             var Preamble = encoding.GetPreamble();
             var Body = encoding.GetBytes(inputContents);
 
-            var stream = new MemoryStream(Preamble.Length + Body.Length);
+            MemoryStream stream = new MemoryStream(Preamble.Length + Body.Length);
 
             stream.Write(Preamble, 0, Preamble.Length);
             stream.Write(Body, 0, Body.Length);
@@ -105,7 +103,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Base.Util
             foreach (var c in xe.Elements())
             {
                 // add whitespace before this child - this will place each child's start tag on a new line with proper indenting
-                var nl = new XText(Environment.NewLine + new string(' ', (currentIndentLevel + 1) * 2));
+                XText nl = new XText(Environment.NewLine + new string(' ', (currentIndentLevel + 1) * 2));
                 c.AddBeforeSelf(nl);
 
                 // recurse on the child
@@ -116,7 +114,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Base.Util
             // add whitespace after the last child.  This places the closing tag of xe on a new line with proper indenting. 
             if (last != null)
             {
-                var nl = new XText(Environment.NewLine + new string(' ', currentIndentLevel * 2));
+                XText nl = new XText(Environment.NewLine + new string(' ', currentIndentLevel * 2));
                 last.AddAfterSelf(nl);
             }
         }

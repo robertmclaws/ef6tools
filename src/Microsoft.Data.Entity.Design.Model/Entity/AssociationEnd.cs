@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-
     internal class AssociationEnd : EFNormalizableItem
     {
         internal static readonly string ElementName = "End";
@@ -38,13 +38,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_typeBinding == null)
-                {
-                    _typeBinding = new SingleItemBinding<EntityType>(
+                _typeBinding ??= new SingleItemBinding<EntityType>(
                         this,
                         AttributeType,
                         EntityTypeNameNormalizer.NameNormalizer);
-                }
                 return _typeBinding;
             }
         }
@@ -56,10 +53,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_multiplicityAttr == null)
-                {
-                    _multiplicityAttr = new MultiplicityDefaultableValue(this);
-                }
+                _multiplicityAttr ??= new MultiplicityDefaultableValue(this);
                 return _multiplicityAttr;
             }
         }
@@ -91,7 +85,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             {
                 if (_roleAttr == null)
                 {
-                    var association = Parent as Association;
+                    Association association = Parent as Association;
                     Debug.Assert(association != null, "Parent of AssociationEnd is not an Association!");
 
                     _roleAttr = new RoleDefaultableValue(this);
@@ -111,7 +105,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             {
                 get
                 {
-                    var ae = Parent as AssociationEnd;
+                    AssociationEnd ae = Parent as AssociationEnd;
 
                     Debug.Assert(ae != null, "unexpected parent type for Role attribute");
 
@@ -232,8 +226,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void DoNormalize()
         {
-            var assoc = Parent as Association;
-            if (assoc != null)
+            if (Parent is Association assoc)
             {
                 NormalizedName = new Symbol(assoc.EntityModel.NamespaceValue, assoc.LocalName.Value, Role.Value);
                 base.DoNormalize();

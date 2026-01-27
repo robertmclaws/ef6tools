@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Threading;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Threading;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     #region VirtualTreeColumnHeader Structure
 
     /// <summary>
@@ -433,8 +433,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     Do not compare VirtualTreeColumnHeader objects
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator ==(VirtualTreeColumnHeader operand1, VirtualTreeColumnHeader operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -444,8 +442,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     Do not compare VirtualTreeColumnHeader objects
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool Compare(VirtualTreeColumnHeader operand1, VirtualTreeColumnHeader operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -455,8 +451,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     Do not compare VirtualTreeColumnHeader objects
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator !=(VirtualTreeColumnHeader operand1, VirtualTreeColumnHeader operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -839,10 +833,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     {
                         lock (InternalSyncObject)
                         {
-                            if (myComparer == null)
-                            {
-                                myComparer = new ColumnHeaderBoundComparer();
-                            }
+                            myComparer ??= new ColumnHeaderBoundComparer();
                         }
                     }
                     Array.Sort(myVariableBounds, myComparer);
@@ -994,7 +985,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     }
                     else
                     {
-                        var itemRect = new Rectangle(0, 0, 0, 0);
+                        Rectangle itemRect = new Rectangle(0, 0, 0, 0);
                         control.LimitRectToColumn(displayColumn, ref itemRect, false, -1, true);
                         BeginColumnAdjustment(displayColumn, itemRect.Left, 0);
                         requestedWidth = LimitColumnAdjustment(itemRect.Left + requestedWidth);
@@ -1080,9 +1071,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 var widthTotal = 0;
                 if (myVariableBounds != null)
                 {
-                    float floatLeft;
-                    float floatRight;
-                    GetVariableColumnBounds(controlWidth, leftColumn, rightColumn, out floatLeft, out floatRight);
+                    GetVariableColumnBounds(controlWidth, leftColumn, rightColumn, out float floatLeft, out float floatRight);
                     if (leftColumn > 0)
                     {
                         leftTotal = (int)(floatLeft + .5f);
@@ -1277,9 +1266,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 // stealing equitable amounts from all trailing variable-width columns for non-fixed size
                 if (myHeaders[myAdjustingColumn].Percentage == 0f)
                 {
-                    int itemLeft;
-                    int itemWidth;
-                    GetColumnBounds(controlWidth, myAdjustingColumn, myAdjustingColumn, out itemLeft, out itemWidth);
+                    GetColumnBounds(controlWidth, myAdjustingColumn, myAdjustingColumn, out int itemLeft, out int itemWidth);
                     var widthDelta = dropPosition - (itemLeft + itemWidth);
                     if (widthDelta == 0)
                     {
@@ -1290,9 +1277,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
                 else
                 {
-                    float itemLeft;
-                    float itemRight;
-                    GetVariableColumnBounds(controlWidth, myAdjustingColumn, myAdjustingColumn, out itemLeft, out itemRight);
+                    GetVariableColumnBounds(controlWidth, myAdjustingColumn, myAdjustingColumn, out float itemLeft, out float itemRight);
                     if (dropPosition == (int)(itemRight + .5f))
                     {
                         return false;
@@ -1588,7 +1573,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     The prior native selection column, or -1 if none.
         ///     Ignored if oldPermutation is set.
         /// </param>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void PermuteHeaders(
             ColumnPermutation oldPermutation, ColumnPermutation newPermutation, bool autoFillChange, int oldSelectionColumn)
         {
@@ -1634,7 +1618,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 // We have no permutation so the order, percentage, etc are the same. We
                 // just need to clone the headers and change the setting on the autofill column.
-                var newHeaders = (VirtualTreeColumnHeader[])myFullHeaders.Clone();
+                VirtualTreeColumnHeader[] newHeaders = (VirtualTreeColumnHeader[])myFullHeaders.Clone();
                 newHeaders[autoFillColumn].SetPercentage(1f);
                 SetStateFlag(VTCStateFlags.FixedColumnAutoFilled, true);
                 SetHeaders(newHeaders);
@@ -1720,7 +1704,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
 
                 // Step 2
-                var newHeaders = new VirtualTreeColumnHeader[visibleColumns];
+                VirtualTreeColumnHeader[] newHeaders = new VirtualTreeColumnHeader[visibleColumns];
                 var remainingPercentage = 1f - totalSkippedPercentage;
                 int permutedColumn;
                 int nativeColumn;
@@ -2101,10 +2085,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 myFullHeaders[column].SetAppearanceFields(headerText, style, imageIndex);
                 if (ReferenceEquals(myHeaderBounds.Headers, myFullHeaders))
                 {
-                    if (myHeaderContainer != null)
-                    {
-                        myHeaderContainer.HeaderControl.UpdateItemAppearance(myFullHeaders[column], column);
-                    }
+                    myHeaderContainer?.HeaderControl.UpdateItemAppearance(myFullHeaders[column], column);
                 }
                 else
                 {
@@ -2118,10 +2099,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         }
                     }
                     myHeaderBounds.Headers[displayColumn].SetAppearanceFields(headerText, style, imageIndex);
-                    if (myHeaderContainer != null)
-                    {
-                        myHeaderContainer.HeaderControl.UpdateItemAppearance(myHeaderBounds.Headers[displayColumn], displayColumn);
-                    }
+                    myHeaderContainer?.HeaderControl.UpdateItemAppearance(myHeaderBounds.Headers[displayColumn], displayColumn);
                 }
             }
         }
@@ -2186,7 +2164,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             var x = mousePosition.X;
             // This will give us the backwards shift for the y position, handle with one call
             var splitPoint = PointToClient(new Point(x, 0));
-            var itemRect = new Rectangle(0, 0, 0, 0);
+            Rectangle itemRect = new Rectangle(0, 0, 0, 0);
             LimitRectToColumn(displayColumn, ref itemRect, false, -1, true);
             var scrollShift = -myXPos;
             if (scrollShift != 0)
@@ -2239,7 +2217,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             OnColumnHeaderClick(
                 new VirtualTreeColumnHeaderClickEventArgs(
-                    (myHeaderContainer != null) ? myHeaderContainer.HeaderControl : null, clickStyle, myHeaderBounds.Headers[displayColumn],
+                    myHeaderContainer?.HeaderControl, clickStyle, myHeaderBounds.Headers[displayColumn],
                     nativeColumn, mousePosition));
         }
 
@@ -2438,7 +2416,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return 0 == (myHeaderBounds.Headers[displayColumn].Style & VirtualTreeColumnHeaderStyles.DragDisabled);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.InvalidateRect(System.IntPtr,System.IntPtr,System.Boolean)")]
         private void AfterHeaderSizeChanged()
         {
             var prevPos = myXPos;
@@ -2575,9 +2552,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="e">VirtualTreeColumnHeaderClickEventArgs</param>
         protected virtual void OnColumnHeaderClick(VirtualTreeColumnHeaderClickEventArgs e)
         {
-            var handler = Events[EVENT_COLUMNHEADERCLICKED] as VirtualTreeColumnHeaderClickEventHandler;
             var handled = false;
-            if (handler != null)
+            if (Events[EVENT_COLUMNHEADERCLICKED] is VirtualTreeColumnHeaderClickEventHandler handler)
             {
                 handler(this, e);
                 handled = e.Handled;
@@ -2607,8 +2583,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="e">VirtualTreeColumnHeaderClickEventArgs</param>
         protected internal virtual void OnDrawColumnHeaderItem(DrawItemEventArgs e)
         {
-            var handler = Events[EVENT_DRAWCOLUMNHEADERITEM] as DrawItemEventHandler;
-            if (handler != null)
+            if (Events[EVENT_DRAWCOLUMNHEADERITEM] is DrawItemEventHandler handler)
             {
                 handler(this, e);
             }

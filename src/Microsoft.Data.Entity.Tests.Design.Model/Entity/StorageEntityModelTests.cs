@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using System.Reflection;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using System.Data.Entity.Core.Common;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
 {
-    using System;
-    using System.Linq;
-    using System.Reflection;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-    using System.Data.Entity.Core.Common;
-
     [TestClass]
     public class StorageEntityModelTests
     {
@@ -22,7 +22,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
         {
             get
             {
-                var type = Type.GetType("System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer");
+                Type type = Type.GetType("System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer");
                 if (type != null)
                 {
                     var instanceProperty = type.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static);
@@ -35,11 +35,11 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
         [TestMethod, Ignore("Updated binary has updated types")]
         public void StoreTypeNameToStoreTypeMap_returns_type_map()
         {
-            var ssdl =
+            XElement ssdl =
                 XElement.Parse(
                     "<Schema Namespace=\"Model.Store\" Provider=\"System.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
 
-            using (var storageModel = new StorageEntityModel(null, ssdl))
+            using (StorageEntityModel storageModel = new StorageEntityModel(null, ssdl))
             {
                 var typeMap = storageModel.StoreTypeNameToStoreTypeMap;
 
@@ -53,13 +53,13 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
         [TestMethod]
         public void XNamespace_returns_element_namespace_if_element_not_null()
         {
-            var element = new XElement("{urn:tempuri}element");
+            XElement element = new XElement("{urn:tempuri}element");
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock = new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
+            Mock<EntityDesignArtifact> entityDesignArtifactMock = new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
             entityDesignArtifactMock.Setup(a => a.SchemaVersion).Returns(EntityFrameworkVersion.Version3);
 
-            using (var storageModel = new StorageEntityModel(entityDesignArtifactMock.Object, element))
+            using (StorageEntityModel storageModel = new StorageEntityModel(entityDesignArtifactMock.Object, element))
             {
                 storageModel.XNamespace.Should().BeSameAs(element.Name.Namespace);
             }
@@ -68,7 +68,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
         [TestMethod]
         public void XNamespace_returns_root_namespace_if_element_null()
         {
-            var tmpElement = new XElement("{http://schemas.microsoft.com/ado/2009/11/edm/ssdl}Schema");
+            XElement tmpElement = new XElement("{http://schemas.microsoft.com/ado/2009/11/edm/ssdl}Schema");
 
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
@@ -81,7 +81,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
             enityDesignArtifiact.SetXObject(
                 XDocument.Parse("<Edmx xmlns=\"http://schemas.microsoft.com/ado/2009/11/edmx\" />"));
 
-            using (var storageModel = new StorageEntityModel(enityDesignArtifiact, tmpElement))
+            using (StorageEntityModel storageModel = new StorageEntityModel(enityDesignArtifiact, tmpElement))
             {
                 storageModel.SetXObject(null);
                 storageModel.XNamespace.NamespaceName.Should().Be("http://schemas.microsoft.com/ado/2009/11/edm/ssdl");
@@ -94,11 +94,11 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
         [TestMethod]
         public void GetStoragePrimitiveType_returns_type_name_for_valid_type()
         {
-            var ssdl =
+            XElement ssdl =
                 XElement.Parse(
                     "<Schema Namespace=\"Model.Store\" Provider=\"System.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
 
-            using (var storageModel = new StorageEntityModel(null, ssdl))
+            using (StorageEntityModel storageModel = new StorageEntityModel(null, ssdl))
             {
                 storageModel.GetStoragePrimitiveType("tinyint").Name.Should().Be("tinyint");
             }
@@ -107,11 +107,11 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
         [TestMethod]
         public void GetStoragePrimitiveType_returns_null_for_unknown_type()
         {
-            var ssdl =
+            XElement ssdl =
                 XElement.Parse(
                     "<Schema Namespace=\"Model.Store\" Provider=\"System.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
 
-            using (var storageModel = new StorageEntityModel(null, ssdl))
+            using (StorageEntityModel storageModel = new StorageEntityModel(null, ssdl))
             {
                 storageModel.GetStoragePrimitiveType("foo").Should().BeNull();
             }
@@ -123,11 +123,11 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
             // This test verifies that the provider resolution works correctly for Microsoft.Data.SqlClient
             // The StoreTypeNameToStoreTypeMap property triggers DependencyResolver.GetService<DbProviderServices>(Provider.Value)
             // which should return SqlProviderServices (not LegacyDbProviderServicesWrapper)
-            var ssdl =
+            XElement ssdl =
                 XElement.Parse(
                     "<Schema Namespace=\"Model.Store\" Provider=\"Microsoft.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
 
-            using (var storageModel = new StorageEntityModel(null, ssdl))
+            using (StorageEntityModel storageModel = new StorageEntityModel(null, ssdl))
             {
                 // This should NOT throw - if Microsoft.Data.SqlClient isn't properly registered,
                 // it would try to use LegacyDbProviderServicesWrapper which would fail
@@ -147,11 +147,11 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
         [TestMethod]
         public void GetStoragePrimitiveType_works_with_MicrosoftDataSqlClient()
         {
-            var ssdl =
+            XElement ssdl =
                 XElement.Parse(
                     "<Schema Namespace=\"Model.Store\" Provider=\"Microsoft.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
 
-            using (var storageModel = new StorageEntityModel(null, ssdl))
+            using (StorageEntityModel storageModel = new StorageEntityModel(null, ssdl))
             {
                 // This exercises the full code path: Provider.Value -> DependencyResolver -> SqlProviderServices
                 storageModel.GetStoragePrimitiveType("int").Name.Should().Be("int");
@@ -162,15 +162,15 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
         [TestMethod]
         public void MicrosoftDataSqlClient_and_SystemDataSqlClient_return_same_types()
         {
-            var ssdlMds =
+            XElement ssdlMds =
                 XElement.Parse(
                     "<Schema Namespace=\"Model.Store\" Provider=\"Microsoft.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
-            var ssdlSds =
+            XElement ssdlSds =
                 XElement.Parse(
                     "<Schema Namespace=\"Model.Store\" Provider=\"System.Data.SqlClient\" ProviderManifestToken=\"2008\" Alias=\"Self\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" />");
 
-            using (var mdsModel = new StorageEntityModel(null, ssdlMds))
-            using (var sdsModel = new StorageEntityModel(null, ssdlSds))
+            using (StorageEntityModel mdsModel = new StorageEntityModel(null, ssdlMds))
+            using (StorageEntityModel sdsModel = new StorageEntityModel(null, ssdlSds))
             {
                 // Both providers should return the same store types since they both use SqlProviderServices
                 var mdsTypes = mdsModel.StoreTypeNameToStoreTypeMap;

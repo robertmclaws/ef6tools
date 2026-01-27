@@ -1,33 +1,34 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Data.Core;
+using Microsoft.VisualStudio.Data.Services;
+using Microsoft.VisualStudio.DataTools.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VSDesigner.Data;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+using Microsoft.VSDesigner.VSDesignerPackage;
+using Microsoft.WizardFramework;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 {
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Data.Core;
-    using Microsoft.VisualStudio.Data.Services;
-    using Microsoft.VisualStudio.DataTools.Interop;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VSDesigner.Data;
-    using Microsoft.VSDesigner.VSDesignerPackage;
-    using Microsoft.WizardFramework;
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Common;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Globalization;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using System.Runtime.Serialization;
-    using System.Windows.Forms;
-    using Resources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
-
     // <summary>
     //     This is the second page in the ModelGen VS wizard and is invoked if the user wants to generate the model from a database.
     //     In this page the user can:
@@ -61,21 +62,21 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             _identifierUtil =
                 new CodeIdentifierUtils(wizard.ModelBuilderSettings.VSApplicationType, VsUtils.GetLanguageForProject(wizard.Project));
 
-            Headline = Resources.DbConfigPage_Title;
-            Logo = Resources.PageIcon;
+            Headline = WizardResources.DbConfigPage_Title;
+            Logo = WizardResources.PageIcon;
             Id = "WizardPageDbConfigId";
             ShowInfoPanel = false;
 
-            sensitiveInfoTextBox.Text = Resources.SensitiveDataInfoText;
-            disallowSensitiveInfoButton.Text = Resources.DisallowSensitiveDataInfoText;
-            allowSensitiveInfoButton.Text = Resources.AllowSensitiveDataInfoText;
+            sensitiveInfoTextBox.Text = WizardResources.SensitiveDataInfoText;
+            disallowSensitiveInfoButton.Text = WizardResources.DisallowSensitiveDataInfoText;
+            allowSensitiveInfoButton.Text = WizardResources.AllowSensitiveDataInfoText;
             if (VsUtils.IsWebProject(wizard.ModelBuilderSettings.VSApplicationType))
             {
-                checkBoxSaveInAppConfig.Text = Resources.SaveConnectionLabelASP;
+                checkBoxSaveInAppConfig.Text = WizardResources.SaveConnectionLabelASP;
             }
             else
             {
-                checkBoxSaveInAppConfig.Text = Resources.SaveConnectionLabel;
+                checkBoxSaveInAppConfig.Text = WizardResources.SaveConnectionLabel;
             }
 
             // make the App/Web.Config connection name entry non-editable for 'Update Model' and 'Generate Database' scenarios
@@ -86,11 +87,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 textBoxAppConfigConnectionName.Enabled = false;
             }
 
-            newDBConnectionButton.Text = Resources.NewDatabaseConnectionBtn;
+            newDBConnectionButton.Text = WizardResources.NewDatabaseConnectionBtn;
             newDBConnectionButton.BackColor = SystemColors.Control;
             newDBConnectionButton.ForeColor = SystemColors.ControlText;
-            lblEntityConnectionString.Text = Resources.ConnectionStringLabel;
-            lblPagePrompt.Text = Resources.WhichDataConnectionLabel;
+            lblEntityConnectionString.Text = WizardResources.ConnectionStringLabel;
+            lblPagePrompt.Text = WizardResources.WhichDataConnectionLabel;
             lblPagePrompt.Font = LabelFont;
 
             sensitiveInfoTextBox.Enabled = false;
@@ -99,7 +100,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             HelpKeyword = null;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void Init()
         {
             if (_isInitialized)
@@ -119,15 +119,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 _dataExplorerConnectionManager =
                     ServiceProvider.GetService(typeof(IVsDataExplorerConnectionManager)) as IVsDataExplorerConnectionManager;
                 _dataProviderManager = ServiceProvider.GetService(typeof(IVsDataProviderManager)) as IVsDataProviderManager;
-                
-                var providerMapper = ServiceProvider.GetService(typeof(IDTAdoDotNetProviderMapper)) as IDTAdoDotNetProviderMapper;
+
+                IDTAdoDotNetProviderMapper providerMapper = ServiceProvider.GetService(typeof(IDTAdoDotNetProviderMapper)) as IDTAdoDotNetProviderMapper;
                 Debug.Assert(providerMapper != null, "providerMapper == null");
 
                 // populate the combo box with project connections first
-                var globalConnectionService = ServiceProvider.GetService(typeof(IGlobalConnectionService)) as IGlobalConnectionService;
 
-                var dataConnections = new Dictionary<string, DataConnection>();
-                if (null != globalConnectionService)
+                Dictionary<string, DataConnection> dataConnections = new Dictionary<string, DataConnection>();
+                if (ServiceProvider.GetService(typeof(IGlobalConnectionService)) is IGlobalConnectionService globalConnectionService)
                 {
                     try
                     {
@@ -264,7 +263,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             return base.OnDeactivate();
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal override bool OnWizardFinish()
         {
             using (new VsUtils.HourglassHelper())
@@ -282,7 +280,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                     || !_identifierUtil.IsValidIdentifier(id))
                 {
                     VsUtils.ShowErrorDialog(
-                        string.Format(CultureInfo.CurrentCulture, Resources.ConnectionStringNonValidIdentifier, id));
+                        string.Format(CultureInfo.CurrentCulture, WizardResources.ConnectionStringNonValidIdentifier, id));
                     textBoxAppConfigConnectionName.Focus();
                     _isFocusSet = true;
                     return false;
@@ -292,12 +290,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 // 'PerformAllFunctionality' mode
                 if (ModelBuilderWizardForm.WizardMode.PerformAllFunctionality == Wizard.Mode)
                 {
-                    string connectionString;
-                    if (ConnectionManager.GetExistingConnectionStrings(_configFileUtils).TryGetValue(id, out connectionString)
+                    if (ConnectionManager.GetExistingConnectionStrings(_configFileUtils).TryGetValue(id, out string connectionString)
                         && !string.Equals(textBoxConnectionString.Text, connectionString, StringComparison.Ordinal))
                     {
                         VsUtils.ShowErrorDialog(
-                            string.Format(CultureInfo.CurrentCulture, Resources.ConnectionStringDuplicateIdentifer, id));
+                            string.Format(CultureInfo.CurrentCulture, WizardResources.ConnectionStringDuplicateIdentifer, id));
                         textBoxAppConfigConnectionName.Focus();
                         _isFocusSet = true;
                         return false;
@@ -308,7 +305,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             // the Model Namespace and the Entity Container name must differ
             if (ModelBuilderWizardForm.ModelNamespaceAndEntityContainerNameSame(Wizard.ModelBuilderSettings))
             {
-                var s = Resources.NamespaceAndEntityContainerSame;
+                var s = WizardResources.NamespaceAndEntityContainerSame;
                 VsUtils.ShowErrorDialog(
                     String.Format(CultureInfo.CurrentCulture, s, Wizard.ModelBuilderSettings.AppConfigConnectionPropertyName));
                 textBoxAppConfigConnectionName.Focus();
@@ -333,7 +330,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
                     var result = VsUtils.ShowMessageBox(
                         PackageManager.Package,
-                        Resources.SensitiveDataInfoText,
+                        WizardResources.SensitiveDataInfoText,
                         OLEMSGBUTTON.OLEMSGBUTTON_YESNOCANCEL,
                         OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_THIRD,
                         OLEMSGICON.OLEMSGICON_QUERY);
@@ -416,7 +413,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             // ask user if they want to copy
             var result = VsUtils.ShowMessageBox(
                 Wizard.ServiceProvider,
-                Resources.LocalDataConvertConnectionText,
+                WizardResources.LocalDataConvertConnectionText,
                 OLEMSGBUTTON.OLEMSGBUTTON_YESNO,
                 OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
                 OLEMSGICON.OLEMSGICON_QUERY);
@@ -434,7 +431,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             {
                 var errMsgWithInnerExceptions = VsUtils.ConstructInnerExceptionErrorMessage(e);
                 var errMsg = string.Format(
-                    CultureInfo.CurrentCulture, Resources.LocalDataExceptionCopyingFile, e.GetType().FullName, filePath,
+                    CultureInfo.CurrentCulture, WizardResources.LocalDataExceptionCopyingFile, e.GetType().FullName, filePath,
                     errMsgWithInnerExceptions);
                 VsUtils.ShowErrorDialog(errMsg);
                 return false;
@@ -446,7 +443,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         // </summary>
         // <param name="filePath">Path to file to copy</param>
         // <returns>whether the copy is successful</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsTrackProjectDocuments3.HandsOffFiles(System.UInt32,System.Int32,System.String[])")]
         private bool CopyFileIntoProjectAndConvertConnectionString(string filePath)
         {
             try
@@ -454,9 +450,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 // File is not in the project and user wants to convert it.
                 var serviceProvider = Wizard.ServiceProvider;
                 var project = Wizard.Project;
-                var vsTrackProjectDocuments = serviceProvider.GetService(typeof(SVsTrackProjectDocuments)) as IVsTrackProjectDocuments3;
 
-                if (null == vsTrackProjectDocuments)
+                if (serviceProvider.GetService(typeof(SVsTrackProjectDocuments)) is not IVsTrackProjectDocuments3 vsTrackProjectDocuments)
                 {
                     Debug.Fail("Could not get IVsTrackProjectDocuments3 from service provider.");
                 }
@@ -472,7 +467,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
                 if (dbProjectItem == null)
                 {
-                    var errmsg = string.Format(CultureInfo.CurrentCulture, Resources.LocalDataErrorAddingFile, filePath, project.UniqueName);
+                    var errmsg = string.Format(CultureInfo.CurrentCulture, WizardResources.LocalDataErrorAddingFile, filePath, project.UniqueName);
                     throw new FileCopyException(errmsg);
                 }
 
@@ -544,12 +539,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             // dataConnection to this so that this connection is used if the user re-selects this
             // item from the drop-down
             SetDataConnection(dataConnection);
-            var currentDataSourceComboBoxItem = dataSourceComboBox.SelectedItem as DataSourceComboBoxItem;
+            DataSourceComboBoxItem currentDataSourceComboBoxItem = dataSourceComboBox.SelectedItem as DataSourceComboBoxItem;
             Debug.Assert(null != currentDataSourceComboBoxItem, "Currently selected should not be null");
-            if (null != currentDataSourceComboBoxItem)
-            {
-                currentDataSourceComboBoxItem.ResetDataConnection(dataConnection);
-            }
+            currentDataSourceComboBoxItem?.ResetDataConnection(dataConnection);
 
             // update the Design and Runtime Connection String values stored in ModelBuilderSettings
             // these connection strings & invariant names are coming from the ddex provider, so these are "design-time"
@@ -576,10 +568,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 return GenerateNewSqlMobileConnectionString(oldConnectionString, newFilePath, useDataDirectoryMacro);
             }
 
-            var dbConnectionStringBuilder = new DbConnectionStringBuilder();
+            DbConnectionStringBuilder dbConnectionStringBuilder = new DbConnectionStringBuilder();
             dbConnectionStringBuilder.ConnectionString = oldConnectionString;
-            object filePathObject;
-            dbConnectionStringBuilder.TryGetValue(filePathKey, out filePathObject);
+            dbConnectionStringBuilder.TryGetValue(filePathKey, out object filePathObject);
             var filePath = filePathObject as string;
             if (string.IsNullOrEmpty(filePath))
             {
@@ -612,8 +603,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             connPropertiesSvc.Parse(oldConnectionString);
 
             // We need to ensure a path to the device is not converted to a desktop path
-            object dataSourceObject;
-            connPropertiesSvc.TryGetValue(LocalDataUtil.CONNECTION_PROPERTY_DATA_SOURCE, out dataSourceObject);
+            connPropertiesSvc.TryGetValue(LocalDataUtil.CONNECTION_PROPERTY_DATA_SOURCE, out object dataSourceObject);
             var dataSource = dataSourceObject as string;
             if (!string.IsNullOrEmpty(dataSource)
                 && dataSource.StartsWith(LocalDataUtil.SQL_MOBILE_DEVICE, StringComparison.OrdinalIgnoreCase))
@@ -742,12 +732,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void newDBConnectionButton_Click(object sender, EventArgs e)
         {
             try
             {
-                var dialog = new EntityDataConnectionDialog(Wizard.Project);
+                EntityDataConnectionDialog dialog = new EntityDataConnectionDialog(Wizard.Project);
                 dialog.ShowDialog();
 
                 // the below values may be null if e.g. the user hit Cancel on the dialog
@@ -861,7 +850,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
         private void NewDataSourceSelected()
         {
-            var selectedItem = (DataSourceComboBoxItem)dataSourceComboBox.SelectedItem;
+            DataSourceComboBoxItem selectedItem = (DataSourceComboBoxItem)dataSourceComboBox.SelectedItem;
 
             // If the SelectedIndexChanged event is fired but there are no items in the combobox 
             // the selected index is -1 and the selected item is null. To avoid the NRE and VS crash 
@@ -896,7 +885,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void dataSourceComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
@@ -971,7 +959,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         }
     }
 
-    [SuppressMessage("Microsoft.Design", "CA1064:ExceptionsShouldBePublic")]
     [Serializable]
     internal class FileCopyException : Exception
     {

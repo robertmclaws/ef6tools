@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using ComplexType = Microsoft.Data.Entity.Design.Model.Entity.ComplexType;
+using XamlDesignerBaseResources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-    using ComplexType = Microsoft.Data.Entity.Design.Model.Entity.ComplexType;
-
     /// <summary>
     ///     Use this command to create a FunctionImport in the C-Side representing a non-composable Function in
     ///     the S-Side given an IDataSchemaProcedure representing the information gathered about the underlying
@@ -69,11 +69,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _schemaProcedure = schemaProcedure;
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "schemaProcedure")]
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             var artifact = cpc.EditingContext.GetEFArtifactService().Artifact;
@@ -97,8 +92,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 return;
             }
 
-            var cContainer = cModel.FirstEntityContainer as ConceptualEntityContainer;
-            if (null == cContainer)
+            if (cModel.FirstEntityContainer is not ConceptualEntityContainer cContainer)
             {
                 Debug.Fail("ConceptualEntityContainer not allowed");
                 return;
@@ -112,7 +106,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // determine matching Function
-            var funcObj = DatabaseObject.CreateFromSchemaProcedure(_schemaProcedure);
+            DatabaseObject funcObj = DatabaseObject.CreateFromSchemaProcedure(_schemaProcedure);
             var function = ModelHelper.FindFunction(sModel, funcObj);
             if (null == function)
             {
@@ -165,7 +159,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 if (OverrideReturnTypeValue.Equals(ModelConstants.NoneValue, StringComparison.Ordinal))
                 {
-                    returnType = Resources.NoneDisplayValueUsedForUX;
+                    returnType = XamlDesignerBaseResources.NoneDisplayValueUsedForUX;
                 }
                 else
                 {
@@ -196,20 +190,20 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             // Composable functions that do not return collections (e.g. scalar valued functions) are not supported
             // and should not be imported to the conceptual model
-            if (Resources.NoneDisplayValueUsedForUX.Equals(returnType)
+            if (XamlDesignerBaseResources.NoneDisplayValueUsedForUX.Equals(returnType)
                 && function.IsComposable.Value)
             {
                 return;
             }
 
             // list of commands to be executed
-            IList<Command> commands = new List<Command>();
+            IList<Command> commands = [];
 
             // if return type is the name of a ComplexType then create a new matching ComplexType
             CreateComplexTypeCommand createComplexTypeCommand = null;
             if (OverrideReturnTypeValue == null
                 && returnType is string
-                && false == Resources.NoneDisplayValueUsedForUX.Equals(returnType))
+                && false == XamlDesignerBaseResources.NoneDisplayValueUsedForUX.Equals(returnType))
             {
                 createComplexTypeCommand = AddCreateComplexTypeCommands(sModel, returnType as string, _schemaProcedure.RawColumns, commands);
             }
@@ -239,7 +233,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             if (null != artifact.MappingModel()
                 && null != artifact.MappingModel().FirstEntityContainerMapping)
             {
-                var cmdFuncImpMapping = new CreateFunctionImportMappingCommand(
+                CreateFunctionImportMappingCommand cmdFuncImpMapping = new CreateFunctionImportMappingCommand(
                     artifact.MappingModel().FirstEntityContainerMapping, function, cmdFuncImp.Id);
                 cmdFuncImpMapping.AddPreReqCommand(cmdFuncImp);
                 commands.Add(cmdFuncImpMapping);
@@ -277,7 +271,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // now invoke the list of commands
             if (null != commands)
             {
-                var cp = new CommandProcessor(cpc, commands);
+                CommandProcessor cp = new CommandProcessor(cpc, commands);
                 cp.Invoke();
 
                 // assign the generated FunctionImport so this command can be used as input for others
@@ -303,7 +297,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 if (0 == colCount)
                 {
                     // zero columns is equivalent to no return type
-                    return Resources.NoneDisplayValueUsedForUX;
+                    return XamlDesignerBaseResources.NoneDisplayValueUsedForUX;
                 }
                 else if (1 == colCount)
                 {
@@ -419,7 +413,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                         // - Max Size.
                         // - Precision.
                         // - Scale.
-                        var cmdSetPropertyFacets = new SetPropertyFacetsCommand(
+                        SetPropertyFacetsCommand cmdSetPropertyFacets = new SetPropertyFacetsCommand(
                             cmdNewComplexTypeProperty
                             , null // Default value
                             , ModelHelper.GetMaxLengthFacetValue(column.Size)
@@ -448,7 +442,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// <param name="complexTypePropertiesMap">The complex type properties map.</param>
         /// <param name="columns">The DataSchema columns that are used as the source for the update.</param>
         /// <param name="commands">The list of commands to which these commands will be added</param>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal static void AddChangeComplexTypePropertiesCommands(
             ComplexType complexType, IDictionary<string, Property> complexTypePropertiesMap, IList<IRawDataSchemaColumn> columns,
             IList<Command> commands)
@@ -456,9 +449,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Debug.Assert(complexTypePropertiesMap != null, "Parameter complexTypePropertiesMap is null");
             if (complexTypePropertiesMap != null)
             {
-                var columnsDictionary = columns.ToDictionary(c => c.Name);
+                Dictionary<string, IRawDataSchemaColumn> columnsDictionary = columns.ToDictionary(c => c.Name);
 
-                var createdProperties = new HashSet<string>();
+                HashSet<string> createdProperties = new HashSet<string>();
                 var storageModel = complexType.Artifact.StorageModel();
 
                 // Iterate current properties decide whether to delete, create, update or skip.

@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
 {
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio.PlatformUI;
-
     internal static class MappingDetailsImages
     {
         public static readonly short ICONS_TABLE = 0;
@@ -34,28 +35,25 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
         public static ImageList GetToolbarImageList()
         {
             return _imageListToolbar
-                   ?? (_imageListToolbar
-                       = ThemeUtils.GetThemedImageList(
+                       ??= ThemeUtils.GetThemedImageList(
                            Resources.MappingDetailsCommandStrip,
-                           EnvironmentColors.CommandBarOptionsBackgroundColorKey));
+                           EnvironmentColors.CommandBarOptionsBackgroundColorKey);
         }
 
         public static ImageList GetIconsImageList()
         {
             return _imageListIcons
-                   ?? (_imageListIcons
-                       = ThemeUtils.GetThemedImageList(
+                       ??= ThemeUtils.GetThemedImageList(
                            Resources.MappingDetailsIconsImageList,
-                           TreeViewColors.BackgroundColorKey));
+                           TreeViewColors.BackgroundColorKey);
         }
 
         public static ImageList GetArrowsImageList()
         {
             return _imageListArrows
-                   ?? (_imageListArrows
-                       = ThemeUtils.GetThemedImageList(
+                       ??= ThemeUtils.GetThemedImageList(
                            Resources.MappingDetailsArrowsImageList,
-                           TreeViewColors.BackgroundColorKey));
+                           TreeViewColors.BackgroundColorKey);
         }
 
         public static void InvalidateCache()

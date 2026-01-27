@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics;
-
     /// <summary>
     ///     The refName for these ends cannot be already normalized.  The Role attribute points to
     ///     an End of the Assocation from the AssociationSet, so it already has its scope set in stone.
@@ -24,11 +24,11 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             NormalizedName normalizedName = null;
 
             // cast the parameter to what this really is
-            var end = parent as AssociationSetEnd;
+            AssociationSetEnd end = parent as AssociationSetEnd;
             Debug.Assert(end != null, "parent should be an AssociationSetEnd");
 
             // get the assoc set
-            var set = end.Parent as AssociationSet;
+            AssociationSet set = end.Parent as AssociationSet;
             Debug.Assert(set != null, "end.Parent should be an AssociationSet");
 
             // the "Role" attribute points to a "Role" attribute in an Association End.  The trick
@@ -40,13 +40,13 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             {
                 var assocNameRef = AssociationNameNormalizer.NameNormalizer(set.Association.Target, set.Association.RefName);
                 var assocSymbol = assocNameRef.Symbol;
-                var assocSetEndRoleSymbol = new Symbol(assocSymbol, refName);
+                Symbol assocSetEndRoleSymbol = new Symbol(assocSymbol, refName);
                 normalizedName = new NormalizedName(assocSetEndRoleSymbol, null, null, refName);
             }
 
             if (normalizedName == null)
             {
-                var symbol = new Symbol(refName);
+                Symbol symbol = new Symbol(refName);
                 normalizedName = new NormalizedName(symbol, null, null, refName);
             }
 

@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows.Forms;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+using Microsoft.VisualStudio.Modeling;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows.Forms;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-    using Microsoft.VisualStudio.Modeling;
-
     /// <summary>
     ///     Represents a tri-state checkbox
     /// </summary>
@@ -85,8 +85,6 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         ///     can be created via TreeGridDesignerTreeControl.CreateTypeEditorHost, otherwise, returns a
         ///     text box as the default edit control.
         /// </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Design", "CA1045:DoNotPassTypesByReference")]
         internal virtual object GetInPlaceEdit(object component, ref string alternateText)
         {
             // perhaps we can get a custom editor via a UITypeEditor or TypeConverter

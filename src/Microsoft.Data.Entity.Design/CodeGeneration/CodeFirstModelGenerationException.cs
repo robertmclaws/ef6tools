@@ -1,11 +1,10 @@
-﻿namespace Microsoft.Data.Entity.Design.CodeGeneration
-{
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.Serialization;
+﻿using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
 
-    [SuppressMessage("Microsoft.Design", "CA1064:ExceptionsShouldBePublic")]
+namespace Microsoft.Data.Entity.Design.CodeGeneration
+{
     [Serializable]
     internal class CodeFirstModelGenerationException : Exception
     {

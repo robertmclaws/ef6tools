@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Collections.Generic;
-    using System.Data.Entity;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
     [TestClass]
     public class VBCodeHelperTests
     {
@@ -23,7 +23,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             {
                 if (_model == null)
                 {
-                    var modelBuilder = new DbModelBuilder();
+                    DbModelBuilder modelBuilder = new DbModelBuilder();
                     modelBuilder.Entity<Entity>();
 
                     _model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
@@ -36,9 +36,9 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
         public void Type_escapes_container_name()
         {
-            var container = new Mock<EntityContainer>();
+            Mock<EntityContainer> container = new Mock<EntityContainer>();
             container.SetupGet(c => c.Name).Returns("Nothing");
-            var code = new VBCodeHelper();
+            VBCodeHelper code = new VBCodeHelper();
 
             code.Type(container.Object).Should().Be("_Nothing");
         }
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var property = Model.ConceptualModel.EntityTypes.First().Properties.First(
                 p => p.Name == "Name");
-            var code = new VBCodeHelper();
+            VBCodeHelper code = new VBCodeHelper();
 
             code.Type(property).Should().Be("String");
         }
@@ -58,7 +58,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         {
             var property = Model.ConceptualModel.EntityTypes.First().NavigationProperties.First(
                 p => p.Name == "Children");
-            var code = new VBCodeHelper();
+            VBCodeHelper code = new VBCodeHelper();
 
             code.Type(property).Should().Be("ICollection(Of Entity)");
         }
@@ -66,8 +66,8 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Attribute_surrounds_body()
         {
-            var code = new VBCodeHelper();
-            var configuration = new Mock<IAttributeConfiguration>();
+            VBCodeHelper code = new VBCodeHelper();
+            Mock<IAttributeConfiguration> configuration = new Mock<IAttributeConfiguration>();
             configuration.Setup(c => c.GetAttributeBody(code)).Returns("Required");
 
             code.Attribute(configuration.Object).Should().Be("<Required>");
@@ -76,7 +76,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Literal_returns_string_array_when_more_than_one()
         {
-            var code = new VBCodeHelper();
+            VBCodeHelper code = new VBCodeHelper();
 
             code.Literal(new[] { "One", "Two" }).Should().Be("{\"One\", \"Two\"}");
         }
@@ -84,7 +84,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Literal_returns_bool()
         {
-            var code = new VBCodeHelper();
+            VBCodeHelper code = new VBCodeHelper();
 
             code.Literal(true).Should().Be("True");
             code.Literal(false).Should().Be("False");
@@ -93,7 +93,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void BeginLambda_returns_lambda_beginning()
         {
-            var code = new VBCodeHelper();
+            VBCodeHelper code = new VBCodeHelper();
 
             code.BeginLambda("x").Should().Be("Function(x) ");
         }
@@ -101,7 +101,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Lambda_returns_property_accessor_when_one()
         {
-            var code = new VBCodeHelper();
+            VBCodeHelper code = new VBCodeHelper();
             var member = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Id");
 
             code.Lambda(member).Should().Be("Function(e) e.Id");
@@ -110,7 +110,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Lambda_returns_anonymous_type_when_one()
         {
-            var code = new VBCodeHelper();
+            VBCodeHelper code = new VBCodeHelper();
             var id = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Id");
             var name = Model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Name");
 
@@ -120,7 +120,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void TypeArgument_surrounds_value()
         {
-            var code = new VBCodeHelper();
+            VBCodeHelper code = new VBCodeHelper();
 
             code.TypeArgument("Entity").Should().Be("(Of Entity)");
         }

@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-
     internal class DesignerInfoPropertySet : EFElement
     {
         internal static readonly string ElementName = "DesignerInfoPropertySet";
-        protected Dictionary<string, DesignerProperty> _designerProperties = new Dictionary<string, DesignerProperty>();
+        protected Dictionary<string, DesignerProperty> _designerProperties = [];
 
         internal DesignerInfoPropertySet(DesignerInfo parent, XElement element)
             : base(parent, element)
@@ -56,8 +56,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child2 = efContainer as DesignerProperty;
-            if (child2 != null)
+            if (efContainer is DesignerProperty child2)
             {
                 var propEnum = _designerProperties.GetEnumerator();
                 while (propEnum.MoveNext())
@@ -110,7 +109,6 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             // we leave the parsing of properties to the subclasses of BaseDesignerModel
@@ -122,7 +120,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
                 // it which casues VS to crash)
                 if (false == _designerProperties.ContainsKey(propertyName))
                 {
-                    var prop = new DesignerProperty(this, elem);
+                    DesignerProperty prop = new DesignerProperty(this, elem);
                     prop.Parse(unprocessedElements);
                     AddDesignerProperty(propertyName, prop);
                 }

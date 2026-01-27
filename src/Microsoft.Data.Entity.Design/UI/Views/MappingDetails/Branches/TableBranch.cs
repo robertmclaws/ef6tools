@@ -1,15 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 {
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     // <summary>
     //     This branch shows a line for every table mapped for this entity type.  It also displays a
     //     creator node so that users can add new tables.
@@ -17,7 +18,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
     internal class TableBranch : TreeGridDesignerBranch
     {
         private MappingConceptualEntityType _mappingConceptualTypeMapping;
-        private readonly List<IBranch> _expandedBranches = new List<IBranch>();
+        private readonly List<IBranch> _expandedBranches = [];
         //private bool _registeredEventHandlers = false;
 
         internal TableBranch(MappingConceptualEntityType mappingConceptualTypeMapping, TreeGridDesignerColumnDescriptor[] columns)
@@ -37,8 +38,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                 return false;
             }
 
-            var mappingConceptualTypeMapping = component as MappingConceptualEntityType;
-            if (mappingConceptualTypeMapping != null)
+            if (component is MappingConceptualEntityType mappingConceptualTypeMapping)
             {
                 _mappingConceptualTypeMapping = mappingConceptualTypeMapping;
             }
@@ -63,10 +63,9 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
             return _mappingConceptualTypeMapping.Children[index];
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override object GetCreatorElement()
         {
-            var mset = new MappingStorageEntityType(null, null, _mappingConceptualTypeMapping);
+            MappingStorageEntityType mset = new MappingStorageEntityType(null, null, _mappingConceptualTypeMapping);
             return mset;
         }
 
@@ -107,13 +106,14 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
         {
             if (index < ElementCount)
             {
-                var mset = GetElement(index) as MappingStorageEntityType;
-                if (mset != null)
+                if (GetElement(index) is MappingStorageEntityType mset)
                 {
-                    var branchList = new ArrayList(2);
-                    branchList.Add(new ConditionBranch(mset, GetColumns()));
-                    branchList.Add(new ColumnMappingsBranch(mset, GetColumns()));
-                    var aggBranch = new AggregateBranch(branchList, 0);
+                    ArrayList branchList = new ArrayList(2)
+                    {
+                        new ConditionBranch(mset, GetColumns()),
+                        new ColumnMappingsBranch(mset, GetColumns())
+                    };
+                    AggregateBranch aggBranch = new AggregateBranch(branchList, 0);
                     if (_expandedBranches.Count <= index)
                     {
                         Debug.Assert

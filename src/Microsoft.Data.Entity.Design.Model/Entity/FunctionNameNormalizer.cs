@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal static class FunctionNameNormalizer
     {
         internal static NormalizedName NameNormalizer(EFElement parent, string refName)
@@ -18,8 +18,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 return null;
             }
 
-            var modfunc = parent as ModificationFunction;
-            if (modfunc != null)
+            if (parent is ModificationFunction modfunc)
             {
                 normalizedName = EFNormalizableItemDefaults.DefaultNameNormalizerForMSL(modfunc, refName);
             }
@@ -31,7 +30,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
             if (normalizedName == null)
             {
-                var symbol = new Symbol(refName);
+                Symbol symbol = new Symbol(refName);
                 normalizedName = new NormalizedName(symbol, null, null, refName);
             }
 

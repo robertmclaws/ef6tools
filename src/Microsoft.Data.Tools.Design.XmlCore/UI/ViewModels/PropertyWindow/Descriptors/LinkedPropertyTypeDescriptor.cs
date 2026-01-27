@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-
     // This class is used to change the property-descriptors that are passed in to Visual Studio. 
     internal class LinkedPropertyTypeDescriptor : ObjectDescriptor, ICustomTypeDescriptor
     {
@@ -114,12 +114,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 foreach (PropertyDescriptor propertyDescriptor in collection)
                 {
                     // Check if the property descriptor is ours.
-                    var customPropertyDescriptor = propertyDescriptor as CustomPropertyDescriptor;
-                    if (customPropertyDescriptor != null)
+                    if (propertyDescriptor is CustomPropertyDescriptor customPropertyDescriptor)
                     {
                         // Since we are changing the property descriptor type, we need to build propertyDescriptorToOwner map,
                         // so that the right value is returned when Visual-Studio calls GetPropertyOwner.
-                        var linkedPropertyDescriptor = new LinkedPropertyDescriptor(customPropertyDescriptor, _contextItem);
+                        LinkedPropertyDescriptor linkedPropertyDescriptor = new LinkedPropertyDescriptor(customPropertyDescriptor, _contextItem);
                         var propertyOwner = _wrappedCustomTypeDescriptor.GetPropertyOwner(propertyDescriptor);
                         Debug.Assert(propertyOwner != null, "Could not find property owner for " + propertyDescriptor.Name);
                         if (propertyOwner != null)
@@ -147,8 +146,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             if (pd != null)
             {
-                Object val;
-                if (_propertyDescriptorToOwner.TryGetValue(pd, out val))
+                if (_propertyDescriptorToOwner.TryGetValue(pd, out object val))
                 {
                     return val;
                 }

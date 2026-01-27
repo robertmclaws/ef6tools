@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Windows.Forms;
+using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.UI
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Runtime.Serialization;
-    using System.Text;
-    using System.Windows.Forms;
-    using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
-
     /// <summary>
     ///     This dialog shows a description, a progress bar, and a labelled status area. Through a BackgroundWorker
     ///     it runs the ProgressDialogWork delegate passed in.
@@ -96,8 +96,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.UI
         private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             // Get the BackgroundWorker that raised this event.
-            var worker = sender as BackgroundWorker;
-            if (null != worker)
+            if (sender is BackgroundWorker worker)
             {
                 e.Result = _progressDialogWork(worker, e);
             }
@@ -127,7 +126,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.UI
             {
                 // some error happened while executing DoWork
                 DialogResult = DialogResult.Abort; // set result to Abort so that caller knows what happened
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 sb.AppendLine(
                     string.Format(
                         CultureInfo.CurrentCulture, Resources.ProgressDialogBackgroundJobErrorMessage, _currentUserState.CurrentIteration,
@@ -210,7 +209,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.UI
         internal bool IsError;
     }
 
-    [SuppressMessage("Microsoft.Design", "CA1064:ExceptionsShouldBePublic")]
     [Serializable]
     internal class ProgressDialogException : Exception
     {

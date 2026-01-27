@@ -1,19 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using EFVisitor = Microsoft.Data.Entity.Design.Model.Visitor.Visitor;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Visitor;
+using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
 
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
-    using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-
     internal abstract class EFObject : IVisitable, IDisposable
     {
         private string _identity;
@@ -33,7 +32,6 @@ namespace Microsoft.Data.Entity.Design.Model
         private static byte IS_DELETING_STATE = 0x02;
         private static byte IS_CONSTRUCTION_COMPLETED = 0x04;
 
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         protected EFObject(EFContainer parent, XObject xobject)
         {
             // note that it is OK if parent is null here; derived classes should assert
@@ -62,7 +60,6 @@ namespace Microsoft.Data.Entity.Design.Model
         {
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1821:RemoveEmptyFinalizers")]
         ~EFObject()
         {
             Debug.Assert(
@@ -72,7 +69,7 @@ namespace Microsoft.Data.Entity.Design.Model
                     GetType().FullName,
                     ToPrettyString(),
                     Parent != null && Parent.Artifact != null ? Parent.Artifact.Uri : null,
-                    Parent != null ? Parent.SemanticName : null));
+                    Parent?.SemanticName));
         }
 
         public void Delete()
@@ -134,11 +131,10 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns></returns>
         internal ICollection<ItemBinding> GetDependentBindings()
         {
-            var bindings = new List<ItemBinding>();
+            List<ItemBinding> bindings = new List<ItemBinding>();
             foreach (var efObject in GetAntiDependencies())
             {
-                var binding = efObject as ItemBinding;
-                if (binding != null)
+                if (efObject is ItemBinding binding)
                 {
                     bindings.Add(binding);
                 }
@@ -176,12 +172,12 @@ namespace Microsoft.Data.Entity.Design.Model
             {
                 return artifactSet.GetAntiDependencies(this);
             }
-            return new List<EFObject>(0);
+            return [];
         }
 
         internal ICollection<T> GetAntiDependenciesOfType<T>() where T : EFObject
         {
-            var list = new HashSet<T>();
+            HashSet<T> list = new HashSet<T>();
 
             foreach (var antiDep in GetAntiDependencies())
             {
@@ -244,12 +240,9 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             get
             {
-                if (_identity == null)
-                {
-                    _identity = Artifact.Uri + ":" +
+                _identity ??= Artifact.Uri + ":" +
                                 EFTypeName + ":" +
                                 ModelAnnotation.GetNextIdentity(Artifact.XObject);
-                }
                 return _identity;
             }
         }
@@ -317,7 +310,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             if (Parent == null)
             {
-                var root = this as EFContainer;
+                EFContainer root = this as EFContainer;
                 Debug.Assert(root != null, "Unexpected! root is not an instance of EFContainer.  Something is wrong.");
                 return root;
             }
@@ -336,7 +329,7 @@ namespace Microsoft.Data.Entity.Design.Model
             get
             {
                 var root = GetRoot();
-                var a = root as EFArtifact;
+                EFArtifact a = root as EFArtifact;
                 Debug.Assert(a != null, "Unexpected null artifact for item");
                 return a;
             }
@@ -402,7 +395,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 var numParents = 0;
                 // use this.Parent.XObject instead of this.XObject.Parent in case this is called before 
                 // the xobject for this node has been created.
-                var parent = Parent.XObject as XElement;
+                XElement parent = Parent.XObject as XElement;
                 while (parent != null)
                 {
                     numParents += 1;

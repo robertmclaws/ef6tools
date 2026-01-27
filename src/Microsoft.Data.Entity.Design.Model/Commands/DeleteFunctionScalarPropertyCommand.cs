@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to delete a ScalarProperty inside a function mapping.
     /// </summary>
@@ -24,7 +24,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             get
             {
-                var elem = EFElement as FunctionScalarProperty;
+                FunctionScalarProperty elem = EFElement as FunctionScalarProperty;
                 Debug.Assert(elem != null, "underlying element does not exist or is not a FunctionScalarProperty");
                 if (elem == null)
                 {

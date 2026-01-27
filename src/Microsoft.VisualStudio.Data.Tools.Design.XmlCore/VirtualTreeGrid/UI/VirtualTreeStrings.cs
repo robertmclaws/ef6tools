@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Globalization;
+using System.Reflection;
+using System.Resources;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System.Globalization;
-    using System.Reflection;
-    using System.Resources;
-
     internal class VirtualTreeStrings
     {
         private VirtualTreeStrings()
@@ -18,11 +18,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             get
             {
-                if (resourceManager == null)
-                {
-                    resourceManager = new ResourceManager(
+                resourceManager ??= new ResourceManager(
                         "Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid.VirtualTreeControl", Assembly.GetExecutingAssembly());
-                }
 
                 return resourceManager;
             }

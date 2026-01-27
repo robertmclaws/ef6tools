@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to create a Condition that lives in a MappingFragment.  This is different
     ///     than those conditions that can be created as children of an AssociationSetMapping.
@@ -94,10 +94,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Mode = ModeValues.MappingFragment;
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "conceptualEntityType")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "tableColumn")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "mappingFragment")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(
@@ -165,19 +161,15 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static Condition CreateConditionUsingEntity(
             CommandProcessorContext cpc, EntityType conceptualEntityType, Property tableColumn, bool? isNull, string conditionValue)
         {
             // first see if we have a Default ETM
             var mappingFragment = ModelHelper.FindMappingFragment(
                 cpc, conceptualEntityType, tableColumn.EntityType, EntityTypeMappingKind.Default, false);
-            if (mappingFragment == null)
-            {
-                // if we don't have a default, then find or create an IsTypeOf ETM to put this in
-                mappingFragment = ModelHelper.FindMappingFragment(
-                    cpc, conceptualEntityType, tableColumn.EntityType, EntityTypeMappingKind.IsTypeOf, true);
-            }
+            // if we don't have a default, then find or create an IsTypeOf ETM to put this in
+            mappingFragment ??= ModelHelper.FindMappingFragment(
+                cpc, conceptualEntityType, tableColumn.EntityType, EntityTypeMappingKind.IsTypeOf, true);
             Debug.Assert(mappingFragment != null, "Failed to create the MappingFragment to house this Condition");
             if (mappingFragment == null)
             {
@@ -193,7 +185,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             return cond;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static Condition CreateConditionUsingFragment(
             MappingFragment mappingFragment, Property tableColumn, bool? isNull, string conditionValue)
         {

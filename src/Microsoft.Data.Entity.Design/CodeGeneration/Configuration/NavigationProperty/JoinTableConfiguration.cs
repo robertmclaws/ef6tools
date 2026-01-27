@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
-
     /// <summary>
     /// Represents a model configuration to set the join table and column names of a many-to-many association.
     /// </summary>
     public class JoinTableConfiguration : IFluentConfiguration
     {
-        private readonly ICollection<string> _leftKeys = new List<string>();
-        private readonly ICollection<string> _rightKeys = new List<string>();
+        private readonly ICollection<string> _leftKeys = [];
+        private readonly ICollection<string> _rightKeys = [];
 
         /// <summary>
         /// Gets or sets the name of the table.
@@ -49,7 +49,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
                 Table != null || _leftKeys.Any() || _rightKeys.Any(),
                 "Table is null and _leftKeys and _rightKeys are empty.");
 
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             builder.Append(".Map(");
             builder.Append(code.BeginLambda("m"));
             builder.Append("m");

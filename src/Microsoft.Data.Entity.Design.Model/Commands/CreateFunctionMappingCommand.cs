@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Creates one of three modification function mapping elements inside a ModificationFunctionMapping.
     ///     The type of element to create is determined by the ModificationFunctionType argument.
@@ -21,7 +21,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
     ///     &lt;/DeleteFunction&gt;
     ///     &lt;/ModificationFunctionMapping&gt;
     /// </summary>
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class CreateFunctionMappingCommand : Command
     {
         private readonly EntityType _conceptualEntityType;
@@ -51,8 +50,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _rowsAffectedParameter = rowsAffectedParameter;
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "conceptualEntityType")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit
@@ -117,7 +114,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _modificationFunction.FunctionName.SetRefName(_function);
 
             // set the RowsAffectedParameter
-            var cmd = new SetRowsAffectedParameterCommand(_modificationFunction, _rowsAffectedParameter);
+            SetRowsAffectedParameterCommand cmd = new SetRowsAffectedParameterCommand(_modificationFunction, _rowsAffectedParameter);
             CommandProcessor.InvokeSingleCommand(cpc, cmd);
 
             XmlModelHelper.NormalizeAndResolve(_modificationFunction);

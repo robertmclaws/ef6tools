@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.VisualStudio.OLE.Interop;
+
 namespace Microsoft.Data.Entity.Design.Refactoring
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.VisualStudio.OLE.Interop;
-
     internal class RefactorEFObject
     {
         internal static void RefactorRenameElement(EFObject objectToRefactor, string newName = null, bool showPreview = true)
@@ -16,13 +16,12 @@ namespace Microsoft.Data.Entity.Design.Refactoring
             if (objectToRefactor != null
                 && objectToRefactor.Artifact != null)
             {
-                var namedObject = objectToRefactor as EFNormalizableItem;
-                if (namedObject != null)
+                if (objectToRefactor is EFNormalizableItem namedObject)
                 {
                     // If the API call did not supply a new name for the object, bring up the dialog for the user to input a name
                     if (newName == null)
                     {
-                        var dialog = new RefactorRenameDialog(namedObject);
+                        RefactorRenameDialog dialog = new RefactorRenameDialog(namedObject);
                         if (dialog.ShowModal() == true)
                         {
                             newName = dialog.NewName;
@@ -47,8 +46,8 @@ namespace Microsoft.Data.Entity.Design.Refactoring
             Debug.Assert(namedObject != null, "namedObject != null");
             Debug.Assert(newName != null, "namedObject != newName");
 
-            var input = new EFRenameContributorInput(namedObject, newName, namedObject.Name.Value);
-            var refactoringOperation = new EFRefactoringOperation(
+            EFRenameContributorInput input = new EFRenameContributorInput(namedObject, newName, namedObject.Name.Value);
+            EFRefactoringOperation refactoringOperation = new EFRefactoringOperation(
                 namedObject,
                 newName,
                 input,

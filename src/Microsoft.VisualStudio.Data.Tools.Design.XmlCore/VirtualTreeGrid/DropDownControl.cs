@@ -1,26 +1,26 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Drawing.Design;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Permissions;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.Win32;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Drawing.Design;
-    using System.Drawing.Drawing2D;
-    using System.Drawing.Imaging;
-    using System.Globalization;
-    using System.Runtime.InteropServices;
-    using System.Security;
-    using System.Security.Permissions;
-    using System.Windows.Forms;
-    using System.Windows.Forms.Design;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.VisualStudio.PlatformUI;
-    using Microsoft.Win32;
-
     /// <summary>
     ///     Values passed to TypeEditorHost.Create to indicate the style of the edit
     ///     box to show in the text area.
@@ -54,8 +54,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
     ///     Class used to drop down an arbitrary Control, or display a modal dialog editor
     ///     akin to what's being done by the property browser
     /// </summary>
-    [SuppressMessage("Whitehorse.CustomRules", "WH03:WinFormControlCatchUnhandledExceptions",
-        Justification = "All but critical exceptions are caught.")]
     internal class TypeEditorHost : Control, IWindowsFormsEditorService, ITypeDescriptorContext, IVirtualTreeInPlaceControl
     {
         private TypeEditorHostTextBox _edit;
@@ -162,8 +160,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             if (propertyDescriptor != null)
             {
-                var uiTypeEditor = propertyDescriptor.GetEditor(typeof(UITypeEditor)) as UITypeEditor;
-                if (uiTypeEditor != null) // UITypeEditor case
+                if (propertyDescriptor.GetEditor(typeof(UITypeEditor)) is UITypeEditor uiTypeEditor) // UITypeEditor case
                 {
                     dropDown = new TypeEditorHost(uiTypeEditor, propertyDescriptor, instance);
                 }
@@ -198,8 +195,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             if (propertyDescriptor != null)
             {
-                var uiTypeEditor = propertyDescriptor.GetEditor(typeof(UITypeEditor)) as UITypeEditor;
-                if (uiTypeEditor != null) // UITypeEditor case
+                if (propertyDescriptor.GetEditor(typeof(UITypeEditor)) is UITypeEditor uiTypeEditor) // UITypeEditor case
                 {
                     dropDown = new TypeEditorHost(uiTypeEditor, propertyDescriptor, instance, editControlStyle);
                 }
@@ -328,10 +324,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     Create the instruction label control.  Derived classes may override this to customize the instruction label.
         /// </summary>
         /// <returns>A new instruction label</returns>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected virtual Label CreateInstructionLabel()
         {
-            var label = new Label();
+            Label label = new Label();
             label.UseMnemonic = false;
             return label;
         }
@@ -348,16 +343,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 {
                     _editControlStyle = value;
                     // Whatever control is currently visible has to go.
-                    if (_edit != null)
-                    {
-                        _edit.Dispose();
-                        _edit = null;
-                    }
-                    if (_instructionLabel != null)
-                    {
-                        _instructionLabel.Dispose();
-                        _instructionLabel = null;
-                    }
+                    _edit?.Dispose();
+                    _edit = null;
+                    _instructionLabel?.Dispose();
+                    _instructionLabel = null;
                     switch (value)
                     {
                         case TypeEditorHostEditControlStyle.Editable:
@@ -460,7 +449,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         [SecuritySafeCritical]
         [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         [SecurityPermission(SecurityAction.InheritanceDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.ValidateRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+Rectangle@)")]
         protected override void WndProc(ref Message m)
         {
             try
@@ -474,7 +462,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                             if (_instructionLabel == null
                                 && m.WParam == IntPtr.Zero)
                             {
-                                var rect = new NativeMethods.Rectangle(ClientRectangle);
+                                NativeMethods.Rectangle rect = new NativeMethods.Rectangle(ClientRectangle);
 
                                 if (_button != null)
                                 {
@@ -582,30 +570,15 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             if (disposing)
             {
-                if (_edit != null)
-                {
-                    _edit.Dispose();
-                }
+                _edit?.Dispose();
 
-                if (_instructionLabel != null)
-                {
-                    _instructionLabel.Dispose();
-                }
+                _instructionLabel?.Dispose();
 
-                if (_button != null)
-                {
-                    _button.Dispose();
-                }
+                _button?.Dispose();
 
-                if (_dropDown != null)
-                {
-                    _dropDown.Dispose();
-                }
+                _dropDown?.Dispose();
 
-                if (_dropDownHolder != null)
-                {
-                    _dropDownHolder.Dispose();
-                }
+                _dropDownHolder?.Dispose();
             }
 
             base.Dispose(disposing);
@@ -681,11 +654,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         protected override void OnLayout(LayoutEventArgs e)
         {
             // size button
-            if (_button != null)
-            {
-                _button.Height = Height;
-                // Part of Bug 17449 (Currituck). Button width setting removed here to match VS guidelines, use SystemInformation.VerticalScrollBarArrowHeight instead.
-            }
+            _button?.Height = Height;
 
             base.OnLayout(e);
 
@@ -703,10 +672,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         protected override void OnFontChanged(EventArgs e)
         {
             // update the font of the drop down container
-            if (_dropDownHolder != null)
-            {
-                _dropDownHolder.Font = Font;
-            }
+            _dropDownHolder?.Font = Font;
 
             base.OnFontChanged(e);
         }
@@ -846,11 +812,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             var dropWidth = IgnoreDropDownWidth ? Width : DropDownWidth + 2 * DropDownHolder.DropDownHolderBorder;
 
             // position drop-down under the arrow
-            var location = new Point(Width - dropWidth, Height);
+            Point location = new Point(Width - dropWidth, Height);
             location = PointToScreen(location);
 
-            var bounds = new Rectangle(location, new Size(dropWidth, dropHeight));
-            var currentScreen = Screen.FromControl(this);
+            Rectangle bounds = new Rectangle(location, new Size(dropWidth, dropHeight));
+            Screen currentScreen = Screen.FromControl(this);
             if (currentScreen != null
                 && bounds.Bottom > currentScreen.WorkingArea.Bottom)
             {
@@ -895,7 +861,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static Bitmap CreateArrowBitmap()
         {
             Bitmap bitmap = null;
@@ -903,7 +868,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             try
             {
                 icon = new Icon(typeof(TypeEditorHost), "arrow.ico");
-                using (var original = icon.ToBitmap())
+                using (Bitmap original = icon.ToBitmap())
                 {
                     bitmap = BitmapFromImageReplaceColor(original);
                 }
@@ -915,15 +880,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             finally
             {
-                if (icon != null)
-                {
-                    icon.Dispose();
-                }
+                icon?.Dispose();
             }
             return bitmap;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static Bitmap CreateDotDotDotBitmap()
         {
             Bitmap bitmap = null;
@@ -931,7 +892,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             try
             {
                 icon = new Icon(typeof(TypeEditorHost), "dotdotdot.ico");
-                using (var original = icon.ToBitmap())
+                using (Bitmap original = icon.ToBitmap())
                 {
                     bitmap = BitmapFromImageReplaceColor(original);
                 }
@@ -943,24 +904,20 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
             finally
             {
-                if (icon != null)
-                {
-                    icon.Dispose();
-                }
+                icon?.Dispose();
             }
             return bitmap;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static Bitmap BitmapFromImageReplaceColor(Image original)
         {
-            var newBitmap = new Bitmap(original.Width, original.Height, original.PixelFormat);
+            Bitmap newBitmap = new Bitmap(original.Width, original.Height, original.PixelFormat);
 
-            using (var g = Graphics.FromImage(newBitmap))
+            using (Graphics g = Graphics.FromImage(newBitmap))
             {
-                using (var attrs = new ImageAttributes())
+                using (ImageAttributes attrs = new ImageAttributes())
                 {
-                    var cm = new ColorMap();
+                    ColorMap cm = new ColorMap();
 
                     cm.OldColor = Color.Black;
                     // Bug 17449 (Currituck). Use the system prescribed one, property grid uses this approach in 
@@ -984,7 +941,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     Open the dropdown
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public void OpenDropDown()
         {
             if (_dropDown == null
@@ -1186,8 +1142,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
         private string ConvertToString(object value)
         {
-            var stringValue = value as string;
-            if (stringValue != null)
+            if (value is string stringValue)
             {
                 return stringValue;
             }
@@ -1498,7 +1453,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 }
             }
 
-            var service = (IUIService)((IServiceProvider)this).GetService(typeof(IUIService));
+            IUIService service = (IUIService)((IServiceProvider)this).GetService(typeof(IUIService));
             try
             {
                 _inShowDialog = true;
@@ -1568,10 +1523,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     CreateHandle();
                 }
 
-                if (Edit != null)
-                {
-                    Edit.SelectionStart = value;
-                }
+                Edit?.SelectionStart = value;
             }
         }
 
@@ -1589,10 +1541,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     CreateHandle();
                 }
 
-                if (Edit != null)
-                {
-                    Edit.MaxLength = value;
-                }
+                Edit?.MaxLength = value;
             }
         }
 
@@ -1752,8 +1701,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     Derived class so we can customize the accessibility keyboard shortcut
         /// </summary>
-        [SuppressMessage("Whitehorse.CustomRules", "WH03:WinFormControlCatchUnhandledExceptions",
-            Justification = "All but critical exceptions are caught.")]
         private class DropDownButton : Button
         {
             protected override AccessibleObject CreateAccessibilityInstance()
@@ -1821,7 +1768,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
         internal int ThisProcessId = 0;
         private GCHandle _mouseHookRoot;
-        [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources")]
         private IntPtr _mouseHookHandle = IntPtr.Zero;
 
         private const bool HookDisable = false;
@@ -1877,7 +1823,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     Sets up the needed windows hooks to catch messages.
         /// </devdoc>
         /// <internalonly />
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.GetWindowThreadProcessId(System.Runtime.InteropServices.HandleRef,System.Int32@)")]
         private void HookMouse()
         {
             lock (this)
@@ -1912,7 +1857,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             if (nCode == NativeMethods.HC_ACTION)
             {
-                var mhs = (NativeMethods.MouseHookStruct)Marshal.PtrToStructure(lparam, typeof(NativeMethods.MouseHookStruct));
+                NativeMethods.MouseHookStruct mhs = (NativeMethods.MouseHookStruct)Marshal.PtrToStructure(lparam, typeof(NativeMethods.MouseHookStruct));
                 if (mhs != null)
                 {
                     switch ((int)wparam)
@@ -1999,7 +1944,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             var hWndAtPoint = hWnd;
             var handle = _control.Handle;
-            var ctrlAtPoint = Control.FromHandle(hWndAtPoint);
+            Control ctrlAtPoint = Control.FromHandle(hWndAtPoint);
 
             // if it's us or one of our children, just process as normal
             //
@@ -2010,8 +1955,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 Debug.Assert(ThisProcessId != 0, "Didn't get our process id!");
 
                 // make sure the window is in our process
-                int pid;
-                var hr = NativeMethods.GetWindowThreadProcessId(new HandleRef(null, hWndAtPoint), out pid);
+                var hr = NativeMethods.GetWindowThreadProcessId(new HandleRef(null, hWndAtPoint), out int pid);
 
                 // if this isn't our process, unhook the mouse.
                 if (!NativeMethods.Succeeded(hr) || pid != ThisProcessId)
@@ -2088,7 +2032,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 var ret = IntPtr.Zero;
                 // try 
                 // {
-                var control = (MouseHooker)reference.Target;
+                MouseHooker control = (MouseHooker)reference.Target;
                 if (control != null)
                 {
                     ret = control.MouseHookProc(nCode, wparam, lparam);
@@ -2107,8 +2051,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
     ///     Borrowed from the property browser.  Control to contain a child control which can be used
     ///     to do editing
     /// </summary>
-    [SuppressMessage("Whitehorse.CustomRules", "WH03:WinFormControlCatchUnhandledExceptions",
-        Justification = "All but critical exceptions are caught.")]
     internal class DropDownHolder : Form, IMouseHookClient
     {
         internal Control CurrentControl = null;
@@ -2259,11 +2201,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             // create our drawing surface based on the current graphics context.
             //
             _sizeGripGlyph = new Bitmap(scrollBarWidth, scrollBarHeight, g);
-            using (var glyphGraphics = Graphics.FromImage(_sizeGripGlyph))
+            using (Graphics glyphGraphics = Graphics.FromImage(_sizeGripGlyph))
             {
                 // mirror the image around the x-axis to get a gripper handle that works
                 // for the lower left.
-                using (var m = new Matrix())
+                using (Matrix m = new Matrix())
                 {
 
                     // basically, mirroring is just scaling by -1 on the X-axis.  So any point that's like (10, 10) goes to (-10, 10). 
@@ -2311,7 +2253,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 && !CurrentControl.Disposing)
             {
                 var oldWidth = Width;
-                var newSize = new Size(2 * DropDownHolderBorder + CurrentControl.Width, 2 * DropDownHolderBorder + CurrentControl.Height);
+                Size newSize = new Size(2 * DropDownHolderBorder + CurrentControl.Width, 2 * DropDownHolderBorder + CurrentControl.Height);
 
                 if (_resizable)
                 {
@@ -2353,8 +2295,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             var scrollBarWidth = SystemInformation.VerticalScrollBarWidth;
             var scrollBarHeight = SystemInformation.HorizontalScrollBarHeight;
-            var bRect = new Rectangle(0, Height - scrollBarHeight, scrollBarWidth, scrollBarHeight);
-            var tRect = new Rectangle(0, 0, scrollBarWidth, scrollBarHeight);
+            Rectangle bRect = new Rectangle(0, Height - scrollBarHeight, scrollBarWidth, scrollBarHeight);
+            Rectangle tRect = new Rectangle(0, 0, scrollBarWidth, scrollBarHeight);
 
             if (!ResizeUp
                 && bRect.Contains(x, y))
@@ -2530,7 +2472,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 var scrollBarWidth = SystemInformation.VerticalScrollBarWidth;
                 var scrollBarHeight = SystemInformation.HorizontalScrollBarHeight;
-                var lRect = new Rectangle(0, ResizeUp ? 0 : Height - scrollBarHeight, scrollBarWidth, scrollBarHeight);
+                Rectangle lRect = new Rectangle(0, ResizeUp ? 0 : Height - scrollBarHeight, scrollBarWidth, scrollBarHeight);
 
                 pe.Graphics.DrawImage(GetSizeGripGlyph(pe.Graphics), lRect);
             }
@@ -2591,7 +2533,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             //
             if (ctl != null)
             {
-                var sz = new Size(2 * DropDownHolderBorder + ctl.Width, 2 * DropDownHolderBorder + ctl.Height);
+                Size sz = new Size(2 * DropDownHolderBorder + ctl.Width, 2 * DropDownHolderBorder + ctl.Height);
 
                 // set the size stuff.
                 //
@@ -2688,8 +2630,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
     ///     Edit control displayed in the TypeEditorHost.  Just a TextBox with some addtional
     ///     key message processing for opening the drop down.
     /// </summary>
-    [SuppressMessage("Whitehorse.CustomRules", "WH03:WinFormControlCatchUnhandledExceptions",
-        Justification = "All but critical exceptions are caught.")]
     internal class TypeEditorHostTextBox : TextBox
     {
         private readonly TypeEditorHost _dropDownParent;
@@ -2709,10 +2649,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     Key processing.
         /// </summary>
-        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase",
-            Justification =
-                "[rakeshna] Because the rest of our Whitehorse code is only run in a full-trusted environment in Whidbey, we do not gain any security benefit from applying the LinkDemand attribute."
-            )]
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             switch (keyData & Keys.KeyCode)
@@ -2850,7 +2786,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="propertyDescriptor">Property descriptor used to get/set values in the drop-down.</param>
         /// <param name="instance">Instance object used to get/set values in the drop-down.</param>
         /// <param name="editControlStyle">Edit control style.</param>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected internal TypeEditorHostListBox(
             TypeConverter typeConverter, PropertyDescriptor propertyDescriptor, object instance,
             TypeEditorHostEditControlStyle editControlStyle)
@@ -3017,10 +2952,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     {
                         _listBox.SelectedIndex = index;
                         Text = _listBox.Text;
-                        if (Edit != null)
-                        {
-                            Edit.SelectionStart = currentString.Length;
-                        }
+                        Edit?.SelectionStart = currentString.Length;
                         e.Handled = true;
                     }
                 }

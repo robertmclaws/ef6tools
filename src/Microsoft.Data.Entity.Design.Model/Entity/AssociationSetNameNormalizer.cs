@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class AssociationSetNameNormalizer
     {
         internal static NormalizedName NameNormalizer(EFElement parent, string refName)
@@ -18,15 +18,13 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
             var entityContainerName = string.Empty;
 
-            var parentAssociationSet = parent as AssociationSet;
-            var parentAssociationSetMapping = parent as AssociationSetMapping;
-            var parentFunctionAssociationEnd = parent as FunctionAssociationEnd;
+            AssociationSetMapping parentAssociationSetMapping = parent as AssociationSetMapping;
+            FunctionAssociationEnd parentFunctionAssociationEnd = parent as FunctionAssociationEnd;
 
-            if (parentAssociationSet != null)
+            if (parent is AssociationSet parentAssociationSet)
             {
                 // are we trying to normalize the name of actual association set in the EC?
-                var ec = parentAssociationSet.Parent as BaseEntityContainer;
-                if (ec != null)
+                if (parentAssociationSet.Parent is BaseEntityContainer ec)
                 {
                     entityContainerName = ec.LocalName.Value;
                 }
@@ -35,8 +33,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                      || parentFunctionAssociationEnd != null)
             {
                 // we need to resolve a reference from the MSL to the AssociationSet
-                var ecm = parent.GetParentOfType(typeof(EntityContainerMapping)) as EntityContainerMapping;
-                if (ecm != null)
+                if (parent.GetParentOfType(typeof(EntityContainerMapping)) is EntityContainerMapping ecm)
                 {
                     entityContainerName = ecm.CdmEntityContainer.RefName;
                 }
@@ -48,12 +45,9 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 symbol = new Symbol(entityContainerName, refName);
             }
 
-            if (symbol == null)
-            {
-                symbol = new Symbol(refName);
-            }
+            symbol ??= new Symbol(refName);
 
-            var normalizedName = new NormalizedName(symbol, null, null, refName);
+            NormalizedName normalizedName = new NormalizedName(symbol, null, null, refName);
             return normalizedName;
         }
     }

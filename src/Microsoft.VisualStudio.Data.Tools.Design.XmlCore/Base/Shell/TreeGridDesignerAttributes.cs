@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-
     /// <summary>
     ///     Base class for TreeGrid designer attributes.  Implements IComparable functionality
     /// </summary>
@@ -27,7 +27,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// </summary>
         public override bool Equals(object obj)
         {
-            var attr = obj as TreeGridDesignerBaseAttribute;
+            TreeGridDesignerBaseAttribute attr = obj as TreeGridDesignerBaseAttribute;
             if (attr == null)
             {
                 return false;

@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class EntityTypeMapping : EFElement
     {
         internal static readonly string ElementName = "EntityTypeMapping";
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         internal static readonly string IsTypeOf = "IsTypeOf(";
         internal static readonly string IsTypeOfTerminal = ")";
 
-        private readonly List<MappingFragment> _fragments = new List<MappingFragment>();
+        private readonly List<MappingFragment> _fragments = [];
         private ModificationFunctionMapping _modificationFunctionMapping;
         private EntityTypeMappingTypeNameBinding _entityTypes;
         private EntityTypeMappingKind _kind;
@@ -77,7 +77,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as EntitySetMapping;
+                EntitySetMapping parent = Parent as EntitySetMapping;
                 Debug.Assert(parent != null, "this.Parent should be a EntitySetMapping");
                 return parent;
             }
@@ -90,12 +90,9 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_entityTypes == null)
-                {
-                    _entityTypes = new EntityTypeMappingTypeNameBinding(
+                _entityTypes ??= new EntityTypeMappingTypeNameBinding(
                         this,
                         EntityTypeMappingTypeNameNormalizer.NameNormalizer);
-                }
                 return _entityTypes;
             }
         }
@@ -180,8 +177,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as MappingFragment;
-            if (child1 != null)
+            if (efContainer is MappingFragment child1)
             {
                 _fragments.Remove(child1);
                 return;
@@ -270,7 +266,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                 if (_fragments.Count == 0)
                 {
                     // create a "ghost-node"
-                    var frag = new MappingFragment(this, XElement);
+                    MappingFragment frag = new MappingFragment(this, XElement);
                     _fragments.Add(frag);
                     frag.Parse(unprocessedElements);
 
@@ -296,7 +292,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == MappingFragment.ElementName)
             {
-                var frag = new MappingFragment(this, elem);
+                MappingFragment frag = new MappingFragment(this, elem);
                 _fragments.Add(frag);
                 frag.Parse(unprocessedElements);
             }
@@ -367,21 +363,20 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             return cmd;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal EntityTypeMapping Clone(EntitySetMapping newEntitySetMapping)
         {
             // here we clone the entity type mapping, instead of re-parenting it
             // this works around an XML editor bug where re-parenting an element causes asserts
 
             // first create the new XElement
-            var tempDoc = XDocument.Parse(XElement.ToString(SaveOptions.None), LoadOptions.None);
+            XDocument tempDoc = XDocument.Parse(XElement.ToString(SaveOptions.None), LoadOptions.None);
             var newetmXElement = tempDoc.Root;
             newetmXElement.Remove();
             // format the XML we just parsed
             Utils.FormatXML(newetmXElement, newEntitySetMapping.GetIndentLevel() + 1);
 
             // create the EntityTypeMapping & hook in it's xml. 
-            var newetm = new EntityTypeMapping(newEntitySetMapping, newetmXElement);
+            EntityTypeMapping newetm = new EntityTypeMapping(newEntitySetMapping, newetmXElement);
             newetm.AddXElementToParent(newetmXElement);
 
             // parse & Resolve the new EntityTypeMapping

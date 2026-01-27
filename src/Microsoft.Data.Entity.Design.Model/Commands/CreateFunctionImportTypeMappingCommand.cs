@@ -1,15 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class CreateFunctionImportTypeMappingCommand : Command
     {
         internal static readonly string PrereqId = "CreateFunctionImportTypeMappingCommand";
@@ -114,26 +113,20 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         protected override void ProcessPreReqCommands()
         {
-            var preregCommand1 = GetPreReqCommand(CreateFunctionImportMappingCommand.PrereqId) as CreateFunctionImportMappingCommand;
-            if (preregCommand1 != null)
+            if (GetPreReqCommand(CreateFunctionImportMappingCommand.PrereqId) is CreateFunctionImportMappingCommand preregCommand1)
             {
                 _functionImportMapping = preregCommand1.FunctionImportMapping;
                 Debug.Assert(
                     _functionImportMapping != null, "CreateFunctionImportMappingCommand command return null value of _functionImportMapping");
             }
 
-            var preregCommand2 = GetPreReqCommand(CreateComplexTypeCommand.PrereqId) as CreateComplexTypeCommand;
-            if (preregCommand2 != null)
+            if (GetPreReqCommand(CreateComplexTypeCommand.PrereqId) is CreateComplexTypeCommand preregCommand2)
             {
                 _complexType = preregCommand2.ComplexType;
                 Debug.Assert(_complexType != null, "CreateComplexTypeCommand command return null value of ComplexType");
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "complexType")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "functionImportMapping")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "entityType")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit

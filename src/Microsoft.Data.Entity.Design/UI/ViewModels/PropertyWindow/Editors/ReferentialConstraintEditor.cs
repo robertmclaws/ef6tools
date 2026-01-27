@@ -1,17 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.ComponentModel;
+using System.ComponentModel.Design;
+using System.Drawing.Design;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Editors
 {
-    using System;
-    using System.ComponentModel;
-    using System.ComponentModel.Design;
-    using System.Drawing.Design;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-    using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
-
     internal class ReferentialConstraintEditor : ObjectSelectorEditor
     {
         public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context)
@@ -27,19 +28,16 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Editors
                 return value;
             }
 
-            var desc = context.Instance as EFAssociationDescriptor;
-            if (desc != null)
+            if (context.Instance is EFAssociationDescriptor desc)
             {
-                var assoc = desc.WrappedItem as Association;
-
-                if (assoc != null)
+                if (desc.WrappedItem is Association assoc)
                 {
                     var commands = ReferentialConstraintDialog.LaunchReferentialConstraintDialog(assoc);
-                    var cpc = new CommandProcessorContext(
+                    CommandProcessorContext cpc = new CommandProcessorContext(
                         desc.EditingContext,
                         EfiTransactionOriginator.PropertyWindowOriginatorId,
                         Resources.Tx_ReferentialContraint);
-                    var cp = new CommandProcessor(cpc);
+                    CommandProcessor cp = new CommandProcessor(cpc);
                     foreach (var c in commands)
                     {
                         cp.EnqueueCommand(c);

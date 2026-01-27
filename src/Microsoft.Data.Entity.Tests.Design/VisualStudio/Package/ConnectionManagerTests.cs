@@ -1,24 +1,24 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Xml;
+using EnvDTE;
+using Microsoft.VisualStudio.Data.Core;
+using Microsoft.VisualStudio.DataTools.Interop;
+using Microsoft.VSDesigner.Data.Local;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using VSLangProj;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
 {
-    using System.Xml;
-    using EnvDTE;
-    using Microsoft.VisualStudio.Data.Core;
-    using Microsoft.VisualStudio.DataTools.Interop;
-    using Microsoft.VSDesigner.Data.Local;
-    using Moq;
-    using System;
-    using System.Collections.Generic;
-    using System.Reflection;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using Microsoft.Data.Entity.Design;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using VSLangProj;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class ConnectionManagerTests
     {
@@ -68,14 +68,14 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         [TestMethod]
         public void GetMetadataFileNamesFromArtifactFileName_creates_metadata_file_names_for_non_null_edmx_ProjectItem()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
             mockDte.SetProjectProperties(new Dictionary<string, object> { { "FullPath", @"D:\Projects\Project\Folder" } });
-            var mockParentProjectItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> mockParentProjectItem = new Mock<ProjectItem>();
             mockParentProjectItem.Setup(p => p.Collection).Returns(Mock.Of<ProjectItems>());
             mockParentProjectItem.Setup(p => p.Name).Returns("Folder");
 
-            var mockModelProjectItem = new Mock<ProjectItem>();
-            var mockCollection = new Mock<ProjectItems>();
+            Mock<ProjectItem> mockModelProjectItem = new Mock<ProjectItem>();
+            Mock<ProjectItems> mockCollection = new Mock<ProjectItems>();
             mockCollection.Setup(p => p.Parent).Returns(mockParentProjectItem.Object);
             mockModelProjectItem.Setup(p => p.Collection).Returns(mockCollection.Object);
 
@@ -91,7 +91,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         [TestMethod]
         public void GetMetadataFileNamesFromArtifactFileName_creates_metadata_file_names_for_null_edmx_ProjectItem()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
             mockDte.SetProjectProperties(new Dictionary<string, object> { { "FullPath", @"C:\Projects\Project\Folder" } });
 
             var metadataFileNames =
@@ -134,12 +134,12 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         {
             const string runtimeConnString = "runtimeConnString";
 
-            var mockConverter = new Mock<IConnectionStringConverterService>();
+            Mock<IConnectionStringConverterService> mockConverter = new Mock<IConnectionStringConverterService>();
             mockConverter
                 .Setup(c => c.ToRunTime(It.IsAny<Project>(), It.IsAny<string>(), "My.Db"))
                 .Returns(runtimeConnString);
 
-            var mockServiceProvider = new Mock<IServiceProvider>();
+            Mock<IServiceProvider> mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider
                 .Setup(p => p.GetService(typeof(IConnectionStringConverterService)))
                 .Returns(mockConverter.Object);
@@ -154,12 +154,12 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         {
             const string designTimeConnString = "designTimeConnString";
 
-            var mockConverter = new Mock<IConnectionStringConverterService>();
+            Mock<IConnectionStringConverterService> mockConverter = new Mock<IConnectionStringConverterService>();
             mockConverter
                 .Setup(c => c.ToDesignTime(It.IsAny<Project>(), It.IsAny<string>(), "My.Db"))
                 .Returns(designTimeConnString);
 
-            var mockServiceProvider = new Mock<IServiceProvider>();
+            Mock<IServiceProvider> mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider
                 .Setup(p => p.GetService(typeof(IConnectionStringConverterService)))
                 .Returns(mockConverter.Object);
@@ -172,13 +172,13 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         [TestMethod]
         public void TranslateConnectionString_handles_ConnectionStringConverterServiceException_from_translation()
         {
-            var converterException =
+            ConnectionStringConverterServiceException converterException =
                 (ConnectionStringConverterServiceException)
                 typeof(ConnectionStringConverterServiceException).GetConstructor(
                     BindingFlags.CreateInstance | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)
                     .Invoke(new object[0]);
 
-            var mockConverter = new Mock<IConnectionStringConverterService>();
+            Mock<IConnectionStringConverterService> mockConverter = new Mock<IConnectionStringConverterService>();
             mockConverter
                 .Setup(c => c.ToDesignTime(It.IsAny<Project>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Throws(converterException);
@@ -186,17 +186,17 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
                 .Setup(c => c.ToRunTime(It.IsAny<Project>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Throws(converterException);
 
-            var mockDataProvider = new Mock<IVsDataProvider>();
+            Mock<IVsDataProvider> mockDataProvider = new Mock<IVsDataProvider>();
             mockDataProvider
                 .Setup(p => p.GetProperty("InvariantName"))
                 .Returns("My.Db");
 
-            var mockProviderManager = new Mock<IVsDataProviderManager>();
+            Mock<IVsDataProviderManager> mockProviderManager = new Mock<IVsDataProviderManager>();
             mockProviderManager
                 .Setup(m => m.Providers)
                 .Returns(new Dictionary<Guid, IVsDataProvider> { { Guid.Empty, mockDataProvider.Object } });
 
-            var mockServiceProvider = new Mock<IServiceProvider>();
+            Mock<IServiceProvider> mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider
                 .Setup(p => p.GetService(typeof(IConnectionStringConverterService)))
                 .Returns(mockConverter.Object);
@@ -218,13 +218,13 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         [TestMethod]
         public void TranslateConnectionString_handles_checks_if_DDEX_provider_installed_when_handling_ConnectionStringConverterServiceException()
         {
-            var converterException =
+            ConnectionStringConverterServiceException converterException =
                 (ConnectionStringConverterServiceException)
                 typeof(ConnectionStringConverterServiceException).GetConstructor(
                     BindingFlags.CreateInstance | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)
                     .Invoke(new object[0]);
 
-            var mockConverter = new Mock<IConnectionStringConverterService>();
+            Mock<IConnectionStringConverterService> mockConverter = new Mock<IConnectionStringConverterService>();
             mockConverter
                 .Setup(c => c.ToDesignTime(It.IsAny<Project>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Throws(converterException);
@@ -232,19 +232,19 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
                 .Setup(c => c.ToRunTime(It.IsAny<Project>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Throws(converterException);
 
-            var mockProviderManager = new Mock<IVsDataProviderManager>();
+            Mock<IVsDataProviderManager> mockProviderManager = new Mock<IVsDataProviderManager>();
             mockProviderManager
                 .Setup(m => m.Providers)
                 .Returns(new Dictionary<Guid, IVsDataProvider>());
 
             // this is to ensure that even if the translation of the provider invariant name succeeded
             // we will use the runtime provider invariant name in the message
-            var mockProviderMapper = new Mock<IDTAdoDotNetProviderMapper2>();
+            Mock<IDTAdoDotNetProviderMapper2> mockProviderMapper = new Mock<IDTAdoDotNetProviderMapper2>();
             mockProviderMapper
                 .Setup(m => m.MapRuntimeInvariantToInvariantName("My.Db", It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns("My.Db.DesignTime");
 
-            var mockServiceProvider = new Mock<IServiceProvider>();
+            Mock<IServiceProvider> mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider
                 .Setup(p => p.GetService(typeof(IConnectionStringConverterService)))
                 .Returns(mockConverter.Object);
@@ -284,7 +284,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         [TestMethod]
         public void GetUniqueConnectionStringName_uniquifies_proposed_connection_string_name()
         {
-            var configXml = new XmlDocument();
+            XmlDocument configXml = new XmlDocument();
             configXml.LoadXml(@"<configuration>
   <connectionStrings>
     <add name=""myModel"" connectionString=""Data Source=(localdb)\v11.0;"" providerName=""System.Data.SqlClient"" />
@@ -293,7 +293,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
   </connectionStrings>
 </configuration>");
 
-            var mockConfig =
+            Mock<ConfigFileUtils> mockConfig =
                 new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, Mock.Of<IVsUtils>(), null);
             mockConfig
                 .Setup(c => c.LoadConfig())
@@ -313,7 +313,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         [TestMethod]
         public void AddConnectionStringElement_appends_connection_string()
         {
-            var configXml = new XmlDocument();
+            XmlDocument configXml = new XmlDocument();
             configXml.LoadXml(@"<configuration>
   <connectionStrings>
     <add name=""myModel"" connectionString=""Data Source=(localdb)\v11.0;"" providerName=""System.Data.SqlClient"" />
@@ -322,7 +322,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
 
             ConnectionManager.AddConnectionStringElement(configXml, "MyDb", "db=mydb", "fancyDb");
 
-            var addElement = configXml.SelectSingleNode("/configuration/connectionStrings/add[@name='MyDb']") as XmlElement;
+            XmlElement addElement = configXml.SelectSingleNode("/configuration/connectionStrings/add[@name='MyDb']") as XmlElement;
             addElement.Should().NotBeNull();
             addElement.GetAttribute("connectionString").Should().Be("db=mydb");
             addElement.GetAttribute("providerName").Should().Be("fancyDb");
@@ -340,7 +340,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
 
             foreach (var config in configContents)
             {
-                var configXml = new XmlDocument();
+                XmlDocument configXml = new XmlDocument();
                 configXml.LoadXml(config);
 
                 Action act = () => ConnectionManager.AddConnectionStringElement(configXml, "MyDb", "db=mydb", "fancyDb");
@@ -351,7 +351,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         [TestMethod]
         public void UpdateEntityConnectionStringsInConfig_updates_config_correctly()
         {
-            var configXml = new XmlDocument();
+            XmlDocument configXml = new XmlDocument();
             configXml.LoadXml(@"<configuration>
   <connectionStrings>
     <add name=""toBeRemoved"" connectionString=""Data Source=(localdb)\v11.0;"" providerName=""System.Data.EntityClient"" />
@@ -359,7 +359,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
   </connectionStrings>
 </configuration>");
 
-            var entityConnectionStrings = new Dictionary<string, ConnectionManager.ConnectionString>
+            Dictionary<string, ConnectionManager.ConnectionString> entityConnectionStrings = new Dictionary<string, ConnectionManager.ConnectionString>
             {
                 {
                     "newEntityConnStr",

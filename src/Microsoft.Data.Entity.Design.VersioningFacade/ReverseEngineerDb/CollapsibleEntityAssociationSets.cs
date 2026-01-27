@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-
     /// <summary>
     ///     Represents an entity set and the association sets incident to it,
     ///     which can be collapsed if the requirements are satisfied.
@@ -85,7 +85,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             out IEnumerable<AssociationSet> associationSetsFromNonCollapsibleItems)
         {
             var collapsibleItems = CreateCollapsingCandidates(storeSets);
-            var associationSets = new HashSet<AssociationSet>();
+            HashSet<AssociationSet> associationSets = new HashSet<AssociationSet>();
 
             foreach (var item in collapsibleItems.Values.ToList())
             {
@@ -102,14 +102,13 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 {
                     Debug.Assert(set.AssociationSetEnds.Count == 2);
 
-                    CollapsibleEntityAssociationSets item0, item1;
                     var entitySet0 = set.AssociationSetEnds[0].EntitySet;
                     var entitySet1 = set.AssociationSetEnds[1].EntitySet;
 
                     // Eliminate the ends of the association if both are candidates,
                     // because we don't know which entity to collapse.
-                    if (collapsibleItems.TryGetValue(entitySet0, out item0)
-                        && collapsibleItems.TryGetValue(entitySet1, out item1))
+                    if (collapsibleItems.TryGetValue(entitySet0, out CollapsibleEntityAssociationSets item0)
+                        && collapsibleItems.TryGetValue(entitySet1, out CollapsibleEntityAssociationSets item1))
                     {
                         collapsibleItems.Remove(item0.EntitySet);
                         collapsibleItems.Remove(item1.EntitySet);
@@ -212,7 +211,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             ReferentialConstraint constraint0,
             ReferentialConstraint constraint1)
         {
-            var names = new HashSet<string>(constraint0.ToProperties.Select(p => p.Name));
+            HashSet<string> names = new HashSet<string>(constraint0.ToProperties.Select(p => p.Name));
             names.UnionWith(constraint1.ToProperties.Select(p => p.Name));
             return names.Count == storeEntitySet.ElementType.Properties.Count;
         }
@@ -227,8 +226,8 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         private static IDictionary<EntitySet, CollapsibleEntityAssociationSets> CreateCollapsingCandidates(
             IEnumerable<EntitySetBase> storeSets)
         {
-            var candidates = new Dictionary<EntitySet, CollapsibleEntityAssociationSets>();
-            var associationSets = new List<AssociationSet>();
+            Dictionary<EntitySet, CollapsibleEntityAssociationSets> candidates = new Dictionary<EntitySet, CollapsibleEntityAssociationSets>();
+            List<AssociationSet> associationSets = new List<AssociationSet>();
 
             foreach (var set in storeSets)
             {
@@ -239,7 +238,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                         break;
 
                     case BuiltInTypeKind.EntitySet:
-                        var entitySet = (EntitySet)set;
+                        EntitySet entitySet = (EntitySet)set;
                         candidates.Add(entitySet, new CollapsibleEntityAssociationSets(entitySet));
                         break;
 
@@ -257,8 +256,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             {
                 foreach (var setEnd in set.AssociationSetEnds)
                 {
-                    CollapsibleEntityAssociationSets item;
-                    if (candidates.TryGetValue(setEnd.EntitySet, out item))
+                    if (candidates.TryGetValue(setEnd.EntitySet, out CollapsibleEntityAssociationSets item))
                     {
                         item.AssociationSets.Add(set);
                     }

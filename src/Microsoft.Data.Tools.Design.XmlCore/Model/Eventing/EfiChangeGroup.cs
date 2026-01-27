@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Model.Eventing
 {
-    using System.Collections.Generic;
-
     /// <summary>
     ///     This represents the argument that will be sent to subscribers for the
     ///     SchemaChanged event handler in our service below.  Generally, it
@@ -14,9 +14,9 @@ namespace Microsoft.Data.Entity.Design.Model.Eventing
     internal class EfiChangeGroup
     {
         private readonly EfiTransaction _tx;
-        private readonly List<EfiChange> _creates = new List<EfiChange>();
-        private readonly List<EfiChange> _deletes = new List<EfiChange>();
-        private readonly Dictionary<EFObject, EfiChange> _updates = new Dictionary<EFObject, EfiChange>();
+        private readonly List<EfiChange> _creates = [];
+        private readonly List<EfiChange> _deletes = [];
+        private readonly Dictionary<EFObject, EfiChange> _updates = [];
 
         internal EfiChangeGroup(EfiTransaction tx)
         {
@@ -56,7 +56,7 @@ namespace Microsoft.Data.Entity.Design.Model.Eventing
         /// </summary>
         internal ICollection<EfiChange> SortChangesForProcessing(EfiChangeComparer changeComparer)
         {
-            var changes = new List<EfiChangeStableSortItem>(Count);
+            List<EfiChangeStableSortItem> changes = new List<EfiChangeStableSortItem>(Count);
             var i = 0;
             foreach (var change in Changes)
             {
@@ -65,7 +65,7 @@ namespace Microsoft.Data.Entity.Design.Model.Eventing
             }
             changes.Sort(changeComparer);
 
-            var result = new List<EfiChange>(changes.Count);
+            List<EfiChange> result = new List<EfiChange>(changes.Count);
             foreach (var entry in changes)
             {
                 result.Add(entry.EfiChange);

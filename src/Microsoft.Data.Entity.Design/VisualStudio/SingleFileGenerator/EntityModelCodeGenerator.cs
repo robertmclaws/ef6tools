@@ -1,28 +1,28 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
+using EnvDTE;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using System.Text;
-    using EnvDTE;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     /// <summary>
     ///     Our SFG-based code generator works by:
     ///     1. Reading the CodeGenerationStrategy option in the EDMX file
@@ -38,14 +38,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
         /// </summary>
         public const string CodeGenToolName = "EntityModelCodeGenerator";
         private const string ExcludeExtension = ".exclude";
-        private static readonly Dictionary<uint, string> _oldInputNames = new Dictionary<uint, string>();
+        private static readonly Dictionary<uint, string> _oldInputNames = [];
 
         /// <summary>
         ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
         /// </summary>
         /// <param name="itemId"> This API supports the Entity Framework infrastructure and is not intended to be used directly from your code. </param>
         /// <param name="oldInputName"> This API supports the Entity Framework infrastructure and is not intended to be used directly from your code. </param>
-        [SuppressMessage("Microsoft.Interoperability", "CA1407:AvoidStaticMembersInComVisibleTypes")]
         public static void AddNameOfItemToBeRenamed(uint itemId, string oldInputName)
         {
             _oldInputNames.Add(itemId, oldInputName);
@@ -85,22 +84,17 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
         /// <param name="inputFileContent">The contents of the CSDL file - this should always be used so that we can gen off of in memory documents</param>
         /// <param name="defaultNamespace">The default namespace.</param>
         /// <returns>null implies error, else the contents of the file</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsErrorList.BringToFront")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         protected override byte[] GenerateCode(string inputFileName, string inputFileContent, string defaultNamespace)
         {
             byte[] generatedBytes = null;
             var generatedCode = string.Empty;
 
-            var projectItem = SiteServiceProvider.GetService(typeof(ProjectItem)) as ProjectItem;
 
             // Check if this is a rename operation here. The SFG gets called during a rename on website projects
             // and attempts to rollback the code-behind file if the SFG fails, but before the rename of the
             // code-behind file. We don't want to hose the existing code-behind file so we return back the bytes
             // of the previous code-behind file.
-            if (projectItem != null
+            if (SiteServiceProvider.GetService(typeof(ProjectItem)) is ProjectItem projectItem
                 && IsAfterARename(projectItem))
             {
                 var generatedCodeFile = GetCodeGenFilePathFromInputFile(inputFileName);
@@ -206,7 +200,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
                         {
                             IList<EdmSchemaError> generatorErrors;
 
-                            using (var output = new StringWriter(CultureInfo.InvariantCulture))
+                            using (StringWriter output = new StringWriter(CultureInfo.InvariantCulture))
                             {
                                 // set up namespace to use for code-gen. defaultNamespace is computed by VS to account for
                                 // folder path in the project, custom tool namespace, and differences between C#, VB, and web-site projects.
@@ -250,11 +244,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
                 }
                 finally
                 {
-                    if (tempModelManager != null)
-                    {
-                        tempModelManager.Dispose();
-                        tempModelManager = null;
-                    }
+                    tempModelManager?.Dispose();
+                    tempModelManager = null;
                 }
             }
             return generatedBytes;
@@ -305,10 +296,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
             // since we will inevitably add *all* errors from the artifact set into the error list, we can easily
             // clear the entire error list here even though we just validate the CSDL.
             var errorList = ErrorListHelper.GetSingleDocErrorList(projectItemUri);
-            if (errorList != null)
-            {
-                errorList.Clear();
-            }
+            errorList?.Clear();
 
             if (artifact == null)
             {
@@ -329,7 +317,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
                     // number where the conceptual model begins.
                     var edmxErrorLine = error.Line + artifact.ConceptualModel().GetLineNumber();
                     var efobject = artifact.FindEFObjectForLineAndColumn(edmxErrorLine, error.Column);
-                    var errorInfo = new ErrorInfo(
+                    ErrorInfo errorInfo = new ErrorInfo(
                         GetErrorInfoSeverity(error), error.Message, efobject, error.ErrorCode, ErrorClass.Runtime_CSDL);
                     artifact.ArtifactSet.AddError(errorInfo);
                 }
@@ -413,9 +401,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
                 // if there is already an excluded model file, then the new excluded model input file 
                 // will be something like: Model.edmx.2.exclude. We need to strip off this extension as well.
                 var testNumericExtension = Path.GetExtension(inputFilePathWithoutExclude);
-                int numericExtension;
                 if (!String.IsNullOrEmpty(testNumericExtension)
-                    && int.TryParse(testNumericExtension.Substring(1), NumberStyles.Any, CultureInfo.CurrentCulture, out numericExtension))
+                    && int.TryParse(testNumericExtension.Substring(1), NumberStyles.Any, CultureInfo.CurrentCulture, out int numericExtension))
                 {
                     inputFilePathWithoutExclude = inputFileName.Substring(
                         0, inputFilePathWithoutExclude.LastIndexOf(testNumericExtension, StringComparison.CurrentCultureIgnoreCase));
@@ -442,7 +429,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
             return codeGenPathWithoutExclude;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static byte[] GetBytesOfExistingCodeGenFile(string generatedCodeFile)
         {
             var resultAsBytes = new byte[] { };
@@ -466,13 +452,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
 
         private bool IsAfterARename(ProjectItem projectItem)
         {
-            var hier = SiteServiceProvider.GetService(typeof(IVsHierarchy)) as IVsHierarchy;
-            if (hier != null)
+            if (SiteServiceProvider.GetService(typeof(IVsHierarchy)) is IVsHierarchy hier)
             {
                 // check if there is an item in our oldInputNames cache corresponding to the itemID.
-                string oldInputName;
                 var itemId = VsUtils.GetProjectItemId(hier, projectItem);
-                if (_oldInputNames.TryGetValue(itemId, out oldInputName))
+                if (_oldInputNames.TryGetValue(itemId, out string oldInputName))
                 {
                     // double-check that the new filename is not equal to the old filename. If it's not,
                     // then this is a rename

@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Tools.Model.Diagram;
+
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Tools.Model.Diagram;
-
     internal class EntityTypeShape : BaseDiagramObject
     {
         internal static readonly string ElementName = "EntityTypeShape";
@@ -57,13 +57,10 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_entityTypeBinding == null)
-                {
-                    _entityTypeBinding = new SingleItemBinding<EntityType>(
+                _entityTypeBinding ??= new SingleItemBinding<EntityType>(
                         this,
                         AttributeEntityType,
                         EFNormalizableItemDefaults.DefaultNameNormalizerForDesigner);
-                }
 
                 return _entityTypeBinding;
             }
@@ -73,10 +70,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_pointXAttr == null)
-                {
-                    _pointXAttr = new ConnectorPoint.PointXDefaultableValue(this);
-                }
+                _pointXAttr ??= new ConnectorPoint.PointXDefaultableValue(this);
                 return _pointXAttr;
             }
         }
@@ -85,10 +79,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_pointYAttr == null)
-                {
-                    _pointYAttr = new ConnectorPoint.PointYDefaultableValue(this);
-                }
+                _pointYAttr ??= new ConnectorPoint.PointYDefaultableValue(this);
                 return _pointYAttr;
             }
         }
@@ -97,10 +88,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_fillColorAttr == null)
-                {
-                    _fillColorAttr = new FillColorDefaultableValue(this);
-                }
+                _fillColorAttr ??= new FillColorDefaultableValue(this);
                 return _fillColorAttr;
             }
         }
@@ -150,10 +138,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_widthAttr == null)
-                {
-                    _widthAttr = new WidthDefaultableValue(this);
-                }
+                _widthAttr ??= new WidthDefaultableValue(this);
                 return _widthAttr;
             }
         }
@@ -162,10 +147,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_isExpandedAttr == null)
-                {
-                    _isExpandedAttr = new IsExpandedDefaultableValue(this);
-                }
+                _isExpandedAttr ??= new IsExpandedDefaultableValue(this);
                 return _isExpandedAttr;
             }
         }

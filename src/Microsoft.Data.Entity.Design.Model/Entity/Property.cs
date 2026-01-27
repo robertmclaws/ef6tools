@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     [DebuggerDisplay("{Parent.ToString(),nq}.{LocalName.Value,nq}")]
     internal abstract class Property : PropertyBase
     {
@@ -121,10 +121,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_nullableAttr == null)
-                {
-                    _nullableAttr = new NullableDefaultableValue(this);
-                }
+                _nullableAttr ??= new NullableDefaultableValue(this);
                 return _nullableAttr;
             }
         }
@@ -149,10 +146,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_defaultAttr == null)
-                {
-                    _defaultAttr = new DefaultValueDefaultableValue(this);
-                }
+                _defaultAttr ??= new DefaultValueDefaultableValue(this);
                 return _defaultAttr;
             }
         }
@@ -177,10 +171,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_concurrencyModeAttr == null)
-                {
-                    _concurrencyModeAttr = new ConcurrencyModeDefaultableValue(this);
-                }
+                _concurrencyModeAttr ??= new ConcurrencyModeDefaultableValue(this);
                 return _concurrencyModeAttr;
             }
         }
@@ -210,10 +201,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_maxLengthAttr == null)
-                {
-                    _maxLengthAttr = new DefaultableValueMaxLength(this, AttributeMaxLength);
-                }
+                _maxLengthAttr ??= new DefaultableValueMaxLength(this, AttributeMaxLength);
                 return _maxLengthAttr;
             }
         }
@@ -235,10 +223,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_fixedLengthAttr == null)
-                {
-                    _fixedLengthAttr = new FixedLengthDefaultableValue(this);
-                }
+                _fixedLengthAttr ??= new FixedLengthDefaultableValue(this);
                 return _fixedLengthAttr;
             }
         }
@@ -273,10 +258,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_precisionAttr == null)
-                {
-                    _precisionAttr = new PrecisionDefaultableValue(this);
-                }
+                _precisionAttr ??= new PrecisionDefaultableValue(this);
                 return _precisionAttr;
             }
         }
@@ -315,10 +297,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_scaleAttr == null)
-                {
-                    _scaleAttr = new ScaleDefaultableValue(this);
-                }
+                _scaleAttr ??= new ScaleDefaultableValue(this);
                 return _scaleAttr;
             }
         }
@@ -357,10 +336,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_unicodeAttr == null)
-                {
-                    _unicodeAttr = new UnicodeDefaultableValue(this);
-                }
+                _unicodeAttr ??= new UnicodeDefaultableValue(this);
                 return _unicodeAttr;
             }
         }
@@ -395,10 +371,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_collationAttr == null)
-                {
-                    _collationAttr = new CollationDefaultableValue(this);
-                }
+                _collationAttr ??= new CollationDefaultableValue(this);
                 return _collationAttr;
             }
         }
@@ -433,10 +406,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_storeGeneratedPatternAttr == null)
-                {
-                    _storeGeneratedPatternAttr = GetStoreGeneratedPatternDefaultableValue();
-                }
+                _storeGeneratedPatternAttr ??= GetStoreGeneratedPatternDefaultableValue();
                 return _storeGeneratedPatternAttr;
             }
         }
@@ -489,7 +459,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var model = Parent.Parent as BaseEntityModel;
+                BaseEntityModel model = Parent.Parent as BaseEntityModel;
                 Debug.Assert(model != null, "this.Parent.Parent should be a BaseEntityModel");
                 return model;
             }

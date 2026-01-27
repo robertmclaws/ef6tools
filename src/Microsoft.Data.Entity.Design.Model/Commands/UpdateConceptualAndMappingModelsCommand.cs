@@ -1,23 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.UpdateFromDatabase;
+using Microsoft.Data.Entity.Design.Model.Validation;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.UpdateFromDatabase;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal class UpdateConceptualAndMappingModelsCommand : Command
     {
         private readonly ExistingModelSummary _preExistingModel;
@@ -48,27 +47,23 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             // Find the list of C-side EntityTypes (in the temp model) which 
             // are new compared to those in the existing model
-            HashSet<EntityType> entityTypesToBeAdded;
-            HashSet<EntityType> entityTypesToBeUpdated;
             FindNewAndExistingEntityTypes(
-                out entityTypesToBeAdded, out entityTypesToBeUpdated);
+                out HashSet<EntityType> entityTypesToBeAdded, out HashSet<EntityType> entityTypesToBeUpdated);
 
             // For each C-side EntityType in the temp model determine 
             // if it maps to a table/view which existed before the
             // update and only add new ones (with their EntitySets and mappings)
-            Dictionary<EntityType, EntityType> tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact;
             AddNewConceptualEntityTypesFromArtifact(
                 cpc, entityTypesToBeAdded,
-                out tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact);
+                out Dictionary<EntityType, EntityType> tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact);
 
             // Next update the properties on the entityTypesToBeUpdated
             UpdateConceptualPropertiesFromArtifact(cpc, entityTypesToBeUpdated);
 
             // find a list of all new Associations (compared to the existing model)
-            HashSet<Association> associationsToBeAdded;
             FindNewAssociations(
                 tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact,
-                out associationsToBeAdded);
+                out HashSet<Association> associationsToBeAdded);
 
             // Next add appropriate C-side Associations from the temp model
             // to the existing model (with their AssociationSets and mappings)
@@ -85,14 +80,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             CommandProcessorContext cpc, HashSet<EntityType> entityTypesFromTempArtifactToBeAdded,
             out Dictionary<EntityType, EntityType> tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact)
         {
-            tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact = new Dictionary<EntityType, EntityType>();
+            tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact = [];
 
             // add in all new C-side Entity Types (creating clones because the
             // EntityType objects in entityTypesToBeAdded are from the temporary DB artifact)
             foreach (var etFromTempArtifact in entityTypesFromTempArtifactToBeAdded)
             {
-                var etcf = new EntityTypeClipboardFormat(etFromTempArtifact);
-                var cmd = new CopyEntityCommand(etcf, ModelSpace.Conceptual);
+                EntityTypeClipboardFormat etcf = new EntityTypeClipboardFormat(etFromTempArtifact);
+                CopyEntityCommand cmd = new CopyEntityCommand(etcf, ModelSpace.Conceptual);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 var newEntityTypeInExistingArtifact = cmd.EntityType;
 
@@ -105,12 +100,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                         etFromTempArtifact, newEntityTypeInExistingArtifact);
 
                     var esmInTempArtifact = ModelHelper.FindEntitySetMappingForEntityType(etFromTempArtifact);
-                    var newEntitySet = newEntityTypeInExistingArtifact.EntitySet as ConceptualEntitySet;
                     if (null == esmInTempArtifact)
                     {
                         Debug.Fail("null esmInTempArtifact");
                     }
-                    else if (null == newEntitySet)
+                    else if (newEntityTypeInExistingArtifact.EntitySet is not ConceptualEntitySet newEntitySet)
                     {
                         Debug.Fail("null newEntitySet");
                     }
@@ -150,7 +144,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             HashSet<EntityType> cSideEntityTypesToBeUpdatedFromTempArtifact)
         {
             // construct list of all tables/views underlying the entityTypesToBeUpdated
-            var entityTypesToBeUpdatedDatabaseObjects =
+            HashSet<DatabaseObject> entityTypesToBeUpdatedDatabaseObjects =
                 new HashSet<DatabaseObject>();
             foreach (var tempArtifactEntityType in cSideEntityTypesToBeUpdatedFromTempArtifact)
             {
@@ -164,8 +158,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             foreach (var dbObj in entityTypesToBeUpdatedDatabaseObjects)
             {
                 // find list of new S-side properties for this DatabaseObject
-                HashSet<Property> newStoragePropertiesForDbObj;
-                FindNewProperties(dbObj, out newStoragePropertiesForDbObj);
+                FindNewProperties(dbObj, out HashSet<Property> newStoragePropertiesForDbObj);
 
                 // if no new properties then just move on to next DatabaseObject
                 if (newStoragePropertiesForDbObj.Count > 0)
@@ -183,7 +176,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                         continue;
                     }
 
-                    var rootExistingEntityTypesForDbObj = new HashSet<ConceptualEntityType>();
+                    HashSet<ConceptualEntityType> rootExistingEntityTypesForDbObj = new HashSet<ConceptualEntityType>();
                     foreach (var et in existingEntityTypesForDbObj)
                     {
                         if (!_preExistingModel.HasAncestorTypeThatMapsToDbObject(et, dbObj))
@@ -243,7 +236,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Debug.Assert(existingEntityType != null, "Null existing EntityType");
             Debug.Assert(existingEntityType.EntityModel.IsCSDL, "Existing EntityType must be C-side");
 
-            var pcf = new PropertyClipboardFormat(cSidePropInTempArtifact);
+            PropertyClipboardFormat pcf = new PropertyClipboardFormat(cSidePropInTempArtifact);
             Debug.Assert(
                 pcf != null, "Could not construct PropertyClipboardFormat for C-side Property " + cSidePropInTempArtifact.ToPrettyString());
 
@@ -262,7 +255,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     "Cannot find S-side Property matching the one in the temp artifact " + sSidePropInTempArtifact.ToPrettyString());
 
                 // create the C-side Property in the existing artifact
-                var cmd = new CopyPropertyCommand(pcf, existingEntityType);
+                CopyPropertyCommand cmd = new CopyPropertyCommand(pcf, existingEntityType);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 var cSidePropInExistingArtifact = cmd.Property;
 
@@ -270,7 +263,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 if (null != cSidePropInExistingArtifact
                     && null != sSidePropInExistingArtifact)
                 {
-                    var cmd2 =
+                    CreateFragmentScalarPropertyCommand cmd2 =
                         new CreateFragmentScalarPropertyCommand(
                             existingEntityType,
                             cSidePropInExistingArtifact, sSidePropInExistingArtifact);
@@ -303,8 +296,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
                 // find the EntityType targets of the AssociationEnds in the temp artifact
                 var end1InTempArtifact = assocInTempArtifact.AssociationEnds()[0];
-                var end1EntityTypeInTempArtifact = end1InTempArtifact.Type.Target as ConceptualEntityType;
-                if (null == end1EntityTypeInTempArtifact)
+                if (end1InTempArtifact.Type.Target is not ConceptualEntityType end1EntityTypeInTempArtifact)
                 {
                     throw new UpdateModelFromDatabaseException(
                         string.Format(
@@ -314,8 +306,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 }
 
                 var end2InTempArtifact = assocInTempArtifact.AssociationEnds()[1];
-                var end2EntityTypeInTempArtifact = end2InTempArtifact.Type.Target as ConceptualEntityType;
-                if (null == end2EntityTypeInTempArtifact)
+                if (end2InTempArtifact.Type.Target is not ConceptualEntityType end2EntityTypeInTempArtifact)
                 {
                     throw new UpdateModelFromDatabaseException(
                         string.Format(
@@ -386,8 +377,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         private void FindNewAndExistingEntityTypes(
             out HashSet<EntityType> newEntityTypes, out HashSet<EntityType> existingEntityTypes)
         {
-            newEntityTypes = new HashSet<EntityType>();
-            existingEntityTypes = new HashSet<EntityType>();
+            newEntityTypes = [];
+            existingEntityTypes = [];
 
             if (null == _modelRepresentingDatabase
                 || null == _modelRepresentingDatabase.Artifact
@@ -445,7 +436,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// </summary>
         private void FindNewProperties(DatabaseObject dbObj, out HashSet<Property> newProperties)
         {
-            newProperties = new HashSet<Property>();
+            newProperties = [];
 
             var existingColumnNamesForDbObj =
                 _preExistingModel.GetColumnsForDatabaseObject(dbObj);
@@ -478,7 +469,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Dictionary<EntityType, EntityType> tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact,
             out HashSet<Association> associationsToBeAdded)
         {
-            associationsToBeAdded = new HashSet<Association>();
+            associationsToBeAdded = [];
 
             if (null == _modelRepresentingDatabase
                 || null == _modelRepresentingDatabase.Artifact
@@ -531,7 +522,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         ///     3) there is a single EntityType which is mapped to both tables
         ///     4) the referential constraint’s principal and dependent elements reference the full primary keys of both tables
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private bool HasBeenReplacedByInheritanceOrSplitEntity(
             Association assoc, AssociationIdentity assocId,
             Dictionary<EntityType, EntityType> tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact)
@@ -558,16 +548,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 return false;
             }
-
-            // get C-side EntityTypes for each AssociationEnd
-            var et1 = assocEnd1.Type.Target as ConceptualEntityType;
-            var et2 = assocEnd2.Type.Target as ConceptualEntityType;
-            if (null == et1)
+            if (assocEnd1.Type.Target is not ConceptualEntityType et1)
             {
                 Debug.Fail("EntityType et1 is not a ConceptualEntityType");
                 return false;
             }
-            else if (null == et2)
+
+            if (assocEnd2.Type.Target is not ConceptualEntityType et2)
             {
                 Debug.Fail("EntityType et2 is not a ConceptualEntityType");
                 return false;
@@ -705,20 +692,20 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             // find list of properties representing PK of EntityType
             var et = refConstraintRole.Role.Target.Type.Target;
-            var cet = et as ConceptualEntityType;
+            ConceptualEntityType cet = et as ConceptualEntityType;
 
             Debug.Assert(
                 cet != null,
                 "expected EntityType of type ConceptualEntityType, instead type is " + (et == null ? "null" : et.GetType().FullName));
 
-            var etKeyProps = new HashSet<Property>();
+            HashSet<Property> etKeyProps = new HashSet<Property>();
             foreach (var p in cet.ResolvableTopMostBaseType.ResolvableKeys)
             {
                 etKeyProps.Add(p);
             }
 
             // find list of properties referenced in the ReferentialConstraintRole
-            var refConstraintProps = new HashSet<Property>();
+            HashSet<Property> refConstraintProps = new HashSet<Property>();
             foreach (var propRef in refConstraintRole.PropertyRefs)
             {
                 if (null != propRef.Name.Target)
@@ -775,7 +762,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 cSideProp.EntityModel.IsCSDL,
                 "cSideProp with name " + cSideProp.NormalizedNameExternal + " is from SSDL, it must be from CSDL");
 
-            ICollection<Property> sSideProps = new List<Property>();
+            ICollection<Property> sSideProps = [];
             // return all the S-side Properties we find that map to
             // the cSideProp argument
             var scalarProps = cSideProp.GetAntiDependenciesOfType<ScalarProperty>();
@@ -814,7 +801,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             var sSidePropSymbolInTempArtifactSet = sSidePropInTempArtifact.NormalizedName;
-            var sSidePropInExistingArtifact = existingArtifactSet.LookupSymbol(sSidePropSymbolInTempArtifactSet) as Property;
+            Property sSidePropInExistingArtifact = existingArtifactSet.LookupSymbol(sSidePropSymbolInTempArtifactSet) as Property;
             if (null == sSidePropInTempArtifact)
             {
                 Debug.Fail(
@@ -840,7 +827,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Debug.Assert(entityTypeFromTempArtifact.EntityModel is BaseEntityModel, "EntityModel should be a BaseEntityModel");
             Debug.Assert(!entityTypeFromTempArtifact.EntityModel.IsCSDL, "StorageEntityType is from CSDL?  This is wrong!");
             var et = ModelHelper.FindEntityType(entityTypeFromTempArtifact.EntityModel, entityTypeFromTempArtifact.LocalName.Value);
-            var set = et as StorageEntityType;
+            StorageEntityType set = et as StorageEntityType;
             Debug.Assert(null != set, "Matching EntityType from temp artifact is not a StorageEntityType");
             return set;
         }
@@ -862,11 +849,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // that one
             if (null != tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact)
             {
-                EntityType etInExistingArtifact;
-                tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact.TryGetValue(entityTypeFromTempArtifact, out etInExistingArtifact);
+                tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact.TryGetValue(entityTypeFromTempArtifact, out EntityType etInExistingArtifact);
                 if (null != etInExistingArtifact)
                 {
-                    var cet = etInExistingArtifact as ConceptualEntityType;
+                    ConceptualEntityType cet = etInExistingArtifact as ConceptualEntityType;
                     Debug.Assert(cet != null, "Matching EntityType in existing artifact is not a ConceptualEntityType");
                     return cet;
                 }
@@ -894,7 +880,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                         var rootExistingType = _preExistingModel.FindRootAncestorTypeThatMapsToDbObject(existingEntityType, dbObj);
                         if (null != rootExistingType)
                         {
-                            var cet = rootExistingType as ConceptualEntityType;
+                            ConceptualEntityType cet = rootExistingType as ConceptualEntityType;
                             Debug.Assert(cet != null, "discovered rootExistingType is not a ConceptualEntityType");
                             return cet;
                         }
@@ -948,21 +934,19 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
             else
             {
-                sSidePropsInTempArtifact = new List<Property>();
-                sSidePropsInTempArtifact.Add(propInTempArtifact);
+                sSidePropsInTempArtifact = [propInTempArtifact];
             }
 
             // loop over them comparing each one (for runtime generated files there
             // will be only 1 Property in list)
-            var cet = entityTypeInExistingArtifact as ConceptualEntityType;
             foreach (var sSidePropInTempArtifact in sSidePropsInTempArtifact)
             {
-                var propertyIdFromTempArtifact =
+                DatabaseColumn propertyIdFromTempArtifact =
                     DatabaseColumn.CreateFromProperty(sSidePropInTempArtifact);
 
                 IEnumerable<Property> props;
 
-                if (cet != null)
+                if (entityTypeInExistingArtifact is ConceptualEntityType cet)
                 {
                     props = cet.SafeInheritedAndDeclaredProperties;
                 }
@@ -983,8 +967,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     }
                     else
                     {
-                        sSidePropsInExistingArtifact = new List<Property>();
-                        sSidePropsInExistingArtifact.Add(prop);
+                        sSidePropsInExistingArtifact = [prop];
                     }
 
                     // now loop over all mapped S-side props to see if we have a match
@@ -994,7 +977,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     // and we need to compare to all of the mappings to get the right identity)
                     foreach (var sSidePropInExistingArtifact in sSidePropsInExistingArtifact)
                     {
-                        var propertyIdFromExistingArtifact =
+                        DatabaseColumn propertyIdFromExistingArtifact =
                             DatabaseColumn.CreateFromProperty(sSidePropInExistingArtifact);
                         if (propertyIdFromExistingArtifact.Equals(propertyIdFromTempArtifact))
                         {
@@ -1018,7 +1001,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             EntityContainerMapping existingEntityContainerMapping, ConceptualEntitySet existingEntitySet,
             Dictionary<EntityType, EntityType> tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact)
         {
-            var createESM = new CreateEntitySetMappingCommand(existingEntityContainerMapping, existingEntitySet);
+            CreateEntitySetMappingCommand createESM = new CreateEntitySetMappingCommand(existingEntityContainerMapping, existingEntitySet);
             CommandProcessor.InvokeSingleCommand(cpc, createESM);
             var esm = createESM.EntitySetMapping;
 
@@ -1034,7 +1017,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 else
                 {
                     var b = bindings.First();
-                    var etToBeCloned = b.Target as ConceptualEntityType;
+                    ConceptualEntityType etToBeCloned = b.Target as ConceptualEntityType;
                     Debug.Assert(etToBeCloned != null, "EntityType target of binding is not ConceptualEntityType");
                     var etInExistingArtifact =
                         FindMatchingConceptualEntityTypeInExistingArtifact(
@@ -1099,7 +1082,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 // if there is no ReferentialConstraint to clone then just try to 
                 // create the Association and AssociationSet
-                var cmd = new CreateConceptualAssociationCommand(
+                CreateConceptualAssociationCommand cmd = new CreateConceptualAssociationCommand(
                     assocInTempArtifact.LocalName.Value,
                     end1EntityTypeInExistingArtifact, end1InTempArtifact.Multiplicity.Value, navProp1InTempArtifact.LocalName.Value,
                     end2EntityTypeInExistingArtifact, end2InTempArtifact.Multiplicity.Value, navProp2InTempArtifact.LocalName.Value,
@@ -1125,19 +1108,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 // AssociationSet. If it returns false we use the second set of information to construct the
                 // warning message.
                 var refConstraintInTempArtifact = assocInTempArtifact.ReferentialConstraint;
-                bool end1IsPrincipalEnd;
-                List<Property> principalPropertiesInExistingArtifact;
-                List<Property> dependentPropertiesInExistingArtifact;
-                List<string> unfoundPrincipalProperties;
-                List<string> unfoundDependentProperties;
                 if (ShouldCreateAssociationGivenReferentialConstraint(
                     refConstraintInTempArtifact, end1InTempArtifact,
-                    end2InTempArtifact, end1EntityTypeInExistingArtifact, end2EntityTypeInExistingArtifact, out end1IsPrincipalEnd,
-                    out principalPropertiesInExistingArtifact, out dependentPropertiesInExistingArtifact,
-                    out unfoundPrincipalProperties, out unfoundDependentProperties))
+                    end2InTempArtifact, end1EntityTypeInExistingArtifact, end2EntityTypeInExistingArtifact, out bool end1IsPrincipalEnd,
+                    out List<Property> principalPropertiesInExistingArtifact, out List<Property> dependentPropertiesInExistingArtifact,
+                    out List<string> unfoundPrincipalProperties, out List<string> unfoundDependentProperties))
                 {
                     // create the new Association and AssociationSet
-                    var cmd = new CreateConceptualAssociationCommand(
+                    CreateConceptualAssociationCommand cmd = new CreateConceptualAssociationCommand(
                         assocInTempArtifact.LocalName.Value,
                         end1EntityTypeInExistingArtifact, end1InTempArtifact.Multiplicity.Value, navProp1InTempArtifact.LocalName.Value,
                         end2EntityTypeInExistingArtifact, end2InTempArtifact.Multiplicity.Value, navProp2InTempArtifact.LocalName.Value,
@@ -1221,14 +1199,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 if (null == newAssocEnd.OnDeleteAction)
                 {
                     // existing artifact has no OnDeleteAction - so create a new one and assign the value from the temp artifact
-                    var cmd = new CreateOnDeleteActionCommand(newAssocEnd, tempArtifactOnDeleteAction);
+                    CreateOnDeleteActionCommand cmd = new CreateOnDeleteActionCommand(newAssocEnd, tempArtifactOnDeleteAction);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }
                     // use ordinal comparison as possible values for this attribute are fixed regardless of locale
                 else if (false == newAssocEnd.OnDeleteAction.Action.Value.Equals(tempArtifactOnDeleteAction, StringComparison.Ordinal))
                 {
                     // existing artifact has an OnDeleteAction but the value does not match - so assign the value from the temp artifact
-                    var cmd =
+                    UpdateDefaultableValueCommand<string> cmd =
                         new UpdateDefaultableValueCommand<string>(newAssocEnd.OnDeleteAction.Action, tempArtifactOnDeleteAction);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }
@@ -1320,7 +1298,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Association existingAssociation, StorageEntitySet existingStorageEntitySet,
             Dictionary<EntityType, EntityType> tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact)
         {
-            var createASM = new CreateAssociationSetMappingCommand(
+            CreateAssociationSetMappingCommand createASM = new CreateAssociationSetMappingCommand(
                 existingEntityContainerMapping, existingAssociationSet, existingAssociation, existingStorageEntitySet);
             CommandProcessor.InvokeSingleCommand(cpc, createASM);
             var asmInExistingArtifact = createASM.AssociationSetMapping;
@@ -1384,10 +1362,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             out List<string> unfoundDependentProperties)
         {
             end1IsPrincipalEnd = true;
-            principalPropertiesInExistingArtifact = new List<Property>();
-            unfoundPrincipalProperties = new List<string>();
-            dependentPropertiesInExistingArtifact = new List<Property>();
-            unfoundDependentProperties = new List<string>();
+            principalPropertiesInExistingArtifact = [];
+            unfoundPrincipalProperties = [];
+            dependentPropertiesInExistingArtifact = [];
+            unfoundDependentProperties = [];
             ConceptualEntityType principalEndEntityType = null;
             ConceptualEntityType dependentEndEntityType = null;
 
@@ -1488,7 +1466,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             var dependentEndInExistingArtifact = end1IsPrincipalEnd ? cmd.End2 : cmd.End1;
 
             // now create the referential constraint
-            var rcCmd = new CreateReferentialConstraintCommand(
+            CreateReferentialConstraintCommand rcCmd = new CreateReferentialConstraintCommand(
                 principalEndInExistingArtifact, dependentEndInExistingArtifact,
                 principalPropertiesInExistingArtifact, dependentPropertiesInExistingArtifact);
             CommandProcessor.InvokeSingleCommand(cpc, rcCmd);
@@ -1510,7 +1488,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 || unfoundPrincipalProperties.Count > 0)
             {
                 // log a warning to the VS error list.
-                var propertyList = new StringBuilder();
+                StringBuilder propertyList = new StringBuilder();
                 var isFirst = true;
                 foreach (var p in unfoundPrincipalProperties)
                 {
@@ -1537,7 +1515,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     CultureInfo.CurrentCulture, Resources.UpdateFromDatabaseUnableToBringRefConstraint, associationName,
                     prinicpalEntityTypeName, dependentEntityTypeName, propertyList);
                 var errorMessageTarget = unfoundPrincipalProperties.Count > 0 ? principalEntityType : dependentEntityType;
-                var errorInfo = new ErrorInfo(
+                ErrorInfo errorInfo = new ErrorInfo(
                     ErrorInfo.Severity.WARNING, s, errorMessageTarget, ErrorCodes.UPDATE_MODEL_FROM_DB_CANT_INCLUDE_REF_CONSTRAINT,
                     ErrorClass.Escher_UpdateModelFromDB);
                 HostContext.Instance.LogUpdateModelWizardError(errorInfo, errorMessageTarget.Uri.LocalPath);
@@ -1550,13 +1528,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         ///     All the other parameters are presumed to already exist in the same artifact
         ///     as the AssociationSetMapping.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         private EndProperty CloneEndProperty(
             CommandProcessorContext cpc,
             EndProperty endToClone, AssociationSetMapping asmInExistingArtifact, AssociationSetEnd aseInExistingArtifact,
             Dictionary<EntityType, EntityType> tempArtifactCEntityTypeToNewCEntityTypeInExistingArtifact)
         {
-            var createEnd = new CreateEndPropertyCommand(asmInExistingArtifact, aseInExistingArtifact);
+            CreateEndPropertyCommand createEnd = new CreateEndPropertyCommand(asmInExistingArtifact, aseInExistingArtifact);
             CommandProcessor.InvokeSingleCommand(cpc, createEnd);
             var endInExistingArtifact = createEnd.EndProperty;
 
@@ -1591,8 +1568,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                             sp.ToPrettyString()));
                 }
 
-                var spCSideEntityTypeinTempArtifact = sp.Name.Target.EntityType as ConceptualEntityType;
-                if (null == spCSideEntityTypeinTempArtifact)
+                if (sp.Name.Target.EntityType is not ConceptualEntityType spCSideEntityTypeinTempArtifact)
                 {
                     throw new UpdateModelFromDatabaseException(
                         string.Format(
@@ -1601,8 +1577,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                             sp.Name.Target.ToPrettyString()));
                 }
 
-                var spSSideEntityTypeinTempArtifact = sp.ColumnName.Target.EntityType as StorageEntityType;
-                if (null == spSSideEntityTypeinTempArtifact)
+                if (sp.ColumnName.Target.EntityType is not StorageEntityType spSSideEntityTypeinTempArtifact)
                 {
                     throw new UpdateModelFromDatabaseException(
                         string.Format(
@@ -1730,7 +1705,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                             ssdlEntityTypeInExistingArtifact.ToPrettyString()));
                 }
 
-                var createScalar = new CreateEndScalarPropertyCommand(endInExistingArtifact, entityProperty, tableColumn);
+                CreateEndScalarPropertyCommand createScalar = new CreateEndScalarPropertyCommand(endInExistingArtifact, entityProperty, tableColumn);
                 CommandProcessor.InvokeSingleCommand(cpc, createScalar);
                 var existingScalarProp = createScalar.ScalarProperty;
                 if (null == existingScalarProp)

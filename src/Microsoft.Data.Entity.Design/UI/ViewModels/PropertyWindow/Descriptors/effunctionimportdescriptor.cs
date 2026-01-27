@@ -1,17 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing.Design;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.TypeEditors;
+using XmlDesignerBaseResources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Drawing.Design;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.TypeEditors;
-    using Resources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
-
     internal class EFFunctionImportDescriptor : EFAnnotatableElementDescriptor<FunctionImport>
     {
         [MergableProperty(false)]
@@ -33,11 +34,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 {
                     return;
                 }
-                var cModel = TypedEFElement.RuntimeModelRoot() as ConceptualEntityModel;
+                ConceptualEntityModel cModel = TypedEFElement.RuntimeModelRoot() as ConceptualEntityModel;
                 Debug.Assert(cModel != null, "Why isn't there a conceptual entity model for this function import?");
                 if (cModel != null)
                 {
-                    var cmdFuncImpSproc = new ChangeFunctionImportCommand(
+                    ChangeFunctionImportCommand cmdFuncImpSproc = new ChangeFunctionImportCommand(
                         cModel.FirstEntityContainer as ConceptualEntityContainer,
                         TypedEFElement,
                         value,
@@ -78,7 +79,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             set
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                var cmd = new UpdateDefaultableValueCommand<string>(TypedEFElement.MethodAccess, value);
+                UpdateDefaultableValueCommand<string> cmd = new UpdateDefaultableValueCommand<string>(TypedEFElement.MethodAccess, value);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
         }
@@ -106,7 +107,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             if (propertyDescriptorMethodName.Equals("ReturnType"))
             {
-                return Resources.NoneDisplayValueUsedForUX;
+                return XmlDesignerBaseResources.NoneDisplayValueUsedForUX;
             }
             else if (propertyDescriptorMethodName.Equals("MethodAccess"))
             {

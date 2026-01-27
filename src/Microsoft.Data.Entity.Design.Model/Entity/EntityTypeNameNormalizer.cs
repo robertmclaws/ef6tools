@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal static class EntityTypeNameNormalizer
     {
         internal static NormalizedName NameNormalizer(EFElement parent, string refName)
@@ -18,8 +18,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 return null;
             }
 
-            var parentEndProperty = parent as EndProperty;
-            if (parentEndProperty != null)
+            if (parent is EndProperty parentEndProperty)
             {
                 normalizedName = EFNormalizableItemDefaults.DefaultNameNormalizerForMSL(parentEndProperty, refName);
             }
@@ -29,10 +28,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 normalizedName = EFNormalizableItemDefaults.DefaultNameNormalizerForEDM(parentItem, refName);
             }
 
-            if (normalizedName == null)
-            {
-                normalizedName = new NormalizedName(new Symbol(refName), null, null, refName);
-            }
+            normalizedName ??= new NormalizedName(new Symbol(refName), null, null, refName);
 
             return normalizedName;
         }

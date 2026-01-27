@@ -1,14 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class ExplorerDiagram : EntityDesignExplorerEFElement
     {
         private readonly TypedChildList<ExplorerEntityTypeShape> _explorerEntityTypeShapes = new TypedChildList<ExplorerEntityTypeShape>();
@@ -23,15 +23,14 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             get
             {
-                var diagram = ModelItem as Diagram;
+                Diagram diagram = ModelItem as Diagram;
                 return diagram.Id.Value;
             }
         }
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var entityTypeShape = efElementToInsert as EntityTypeShape;
-            if (entityTypeShape != null)
+            if (efElementToInsert is EntityTypeShape entityTypeShape)
             {
                 var explorerEntityTypeShape = AddEntityTypeShape(entityTypeShape);
                 var index = _explorerEntityTypeShapes.IndexOf(explorerEntityTypeShape);
@@ -41,7 +40,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void LoadChildrenFromModel()
         {
-            var diagram = ModelItem as Diagram;
+            Diagram diagram = ModelItem as Diagram;
 
             Debug.Assert(diagram != null, "Underlying diagram is null calculating EntityTypeShape for ExplorerDiagram with name " + Name);
             if (diagram != null)
@@ -61,8 +60,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerEntityTypeShape = efElementToRemove as ExplorerEntityTypeShape;
-            if (explorerEntityTypeShape == null)
+            if (efElementToRemove is not ExplorerEntityTypeShape explorerEntityTypeShape)
             {
                 Debug.Fail(
                     string.Format(
@@ -98,7 +96,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         private ExplorerEntityTypeShape AddEntityTypeShape(EntityTypeShape entityTypeShape)
         {
-            var explorerEntityTypeShape =
+            ExplorerEntityTypeShape explorerEntityTypeShape =
                 ModelToExplorerModelXRef.GetNew(_context, entityTypeShape, this, typeof(ExplorerEntityTypeShape)) as ExplorerEntityTypeShape;
             _explorerEntityTypeShapes.Insert(explorerEntityTypeShape);
             return explorerEntityTypeShape;

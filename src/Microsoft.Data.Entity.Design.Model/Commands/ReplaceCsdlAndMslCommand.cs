@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class ReplaceCsdlAndMslCommand : Command
     {
         private StringReader _newCsdlStringReader;
@@ -46,7 +45,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 // check that we have an existing artifact
                 var service = cpc.EditingContext.GetEFArtifactService();
-                var existingArtifact = service.Artifact as EntityDesignArtifact;
+                EntityDesignArtifact existingArtifact = service.Artifact as EntityDesignArtifact;
                 Debug.Assert(existingArtifact != null, "Null Artifact in ReplaceCsdlAndMslCommand.InvokeInternal()");
                 if (null == existingArtifact)
                 {
@@ -75,26 +74,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         private void Cleanup()
         {
-            if (_newMslReader != null)
-            {
-                _newMslReader.Close();
-                _newMslReader = null;
-            }
-            if (_newCsdlReader != null)
-            {
-                _newCsdlReader.Close();
-                _newCsdlReader = null;
-            }
-            if (_newMslStringReader != null)
-            {
-                _newMslStringReader.Close();
-                _newMslStringReader = null;
-            }
-            if (_newCsdlStringReader != null)
-            {
-                _newCsdlStringReader.Close();
-                _newCsdlStringReader = null;
-            }
+            _newMslReader?.Close();
+            _newMslReader = null;
+            _newCsdlReader?.Close();
+            _newCsdlReader = null;
+            _newMslStringReader?.Close();
+            _newMslStringReader = null;
+            _newCsdlStringReader?.Close();
+            _newCsdlStringReader = null;
         }
 
         private static void ReplaceCsdl(CommandProcessorContext cpc, EntityDesignArtifact existingArtifact, XmlReader newCsdl)
@@ -140,10 +127,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             CommandProcessorContext cpc, EFRuntimeModelRoot existingModelRoot, XmlReader newSchemaReader,
             CreateModelRootCallback createModelRootCallback)
         {
-            var newModelRootNode = XElement.Load(newSchemaReader);
+            XElement newModelRootNode = XElement.Load(newSchemaReader);
 
             // find the XObject representing the existing EFRuntimeModelRoot EFObject
-            var existingModelRootNode = existingModelRoot.XObject as XElement;
+            XElement existingModelRootNode = existingModelRoot.XObject as XElement;
             Debug.Assert(existingModelRootNode != null, "existingRootXElement is null in ReplaceModelRoot()");
 
             // find the parent of the existing XObject tied to the EFRuntimeModelRoot
@@ -152,7 +139,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // delete the old EFRuntimeModelRoot EFObject but do not delete its anti-dependencies
             if (null != existingModelRoot)
             {
-                var deleteConceptualModelCommand = new DeleteEFElementCommand(existingModelRoot, true, false);
+                DeleteEFElementCommand deleteConceptualModelCommand = new DeleteEFElementCommand(existingModelRoot, true, false);
                 DeleteEFElementCommand.DeleteInTransaction(cpc, deleteConceptualModelCommand);
             }
 

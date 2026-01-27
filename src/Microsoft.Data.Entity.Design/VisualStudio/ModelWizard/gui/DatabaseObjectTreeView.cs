@@ -1,27 +1,24 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-
-#if VS12ORNEWER
 using Microsoft.VisualStudio.PlatformUI;
-#endif
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.VisualStudio.Shell;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Utilities;
-
     internal partial class DatabaseObjectTreeView : UserControl
     {
         public TreeView TreeViewControl
@@ -44,7 +41,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             DbDatabaseSchemaImage = 10,
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public DatabaseObjectTreeView()
         {
             InitializeComponent();
@@ -52,24 +48,24 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             components = new Container();
 
             // Load new ImageList with glyphs from resources
-            var imageList = new ImageList(components)
+            ImageList imageList = new ImageList(components)
                 {
                     ColorDepth = ColorDepth.Depth32Bit,
                     ImageSize = new Size(16, 16),
                     TransparentColor = Color.Magenta
                 };
 
-            imageList.Images.Add("DbTables.bmp", Resources.DbTables);
-            imageList.Images.Add("Table.bmp", Resources.Table);
-            imageList.Images.Add("DbViews.bmp", Resources.DbViews);
-            imageList.Images.Add("View.bmp", Resources.View);
-            imageList.Images.Add("DBStoredProcs.bmp", Resources.DBStoredProcs);
-            imageList.Images.Add("StoredProc.bmp", Resources.StoredProc);
-            imageList.Images.Add("DbDeletedItems.bmp", Resources.DbDeletedItems);
-            imageList.Images.Add("DeletedItem.bmp", Resources.DeletedItem);
-            imageList.Images.Add("DbAddedItems.bmp", Resources.DbAddedItems);
-            imageList.Images.Add("DbUpdatedItems.bmp", Resources.DbUpdatedItems);
-            imageList.Images.Add("database_schema.bmp", Resources.database_schema);
+            imageList.Images.Add("DbTables.bmp", WizardResources.DbTables);
+            imageList.Images.Add("Table.bmp", WizardResources.Table);
+            imageList.Images.Add("DbViews.bmp", WizardResources.DbViews);
+            imageList.Images.Add("View.bmp", WizardResources.View);
+            imageList.Images.Add("DBStoredProcs.bmp", WizardResources.DBStoredProcs);
+            imageList.Images.Add("StoredProc.bmp", WizardResources.StoredProc);
+            imageList.Images.Add("DbDeletedItems.bmp", WizardResources.DbDeletedItems);
+            imageList.Images.Add("DeletedItem.bmp", WizardResources.DeletedItem);
+            imageList.Images.Add("DbAddedItems.bmp", WizardResources.DbAddedItems);
+            imageList.Images.Add("DbUpdatedItems.bmp", WizardResources.DbUpdatedItems);
+            imageList.Images.Add("database_schema.bmp", WizardResources.database_schema);
 
 #pragma warning disable 0618 // DpiHelper is obsolete, need to move to DpiAwareness (and ImageManifest)
             // scale images as appropriate for screen resolution
@@ -89,7 +85,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         // <summary>
         //     Helper to show a status message Label control on top of the client area of the TreeView control
         // </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public void ShowStatus(string message)
         {
             HideStatus();
@@ -165,7 +160,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             Debug.Assert(rootNode != null, "rootNode must be non-null");
             Debug.Assert(entry != null, "entry must be non-null");
 
-            var dbObj = DatabaseObject.CreateFromEntityStoreSchemaFilterEntry(entry, null);
+            DatabaseObject dbObj = DatabaseObject.CreateFromEntityStoreSchemaFilterEntry(entry, null);
             EnsureSchemaAndLeafNode(rootNode, dbObj, leafNodeImage, entry);
         }
 
@@ -181,7 +176,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 return;
             }
             // find or create schema node
-            var schemaName = (dbObj.Schema ?? Resources.SelectTablesPage_NullSchemaDisplayName);
+            var schemaName = (dbObj.Schema ?? WizardResources.SelectTablesPage_NullSchemaDisplayName);
             var schemaNode = FindOrCreateTreeSchemaNode(rootNode, schemaName, TreeViewImage.DbDatabaseSchemaImage);
 
             Debug.Assert(schemaNode != null, "null schemaNode for rootNode with label " + rootNode.Name + ", schemaName " + schemaName);
@@ -374,7 +369,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             if (e.Node.Level == 0
                 && e.Node.Nodes.Count == 0)
             {
-                var tvi = new TVITEM
+                TVITEM tvi = new TVITEM
                     {
                         hItem = e.Node.Handle,
                         mask = TVIF_STATE,

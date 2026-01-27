@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.CodeDom.Compiler;
+using System.Text.RegularExpressions;
+using Microsoft.CSharp;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.VisualBasic;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System.CodeDom.Compiler;
-    using System.Text.RegularExpressions;
-    using Microsoft.CSharp;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.VisualBasic;
-    using System.Diagnostics.CodeAnalysis;
-
     internal class CodeIdentifierUtils
     {
         private readonly VisualStudioProjectSystem _applicationType;
@@ -77,7 +77,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "Disposed by upstream callers")]
         private static CodeDomProvider CreateCodeDomProvider(LangEnum langEnum)
         {
             return langEnum == LangEnum.VisualBasic

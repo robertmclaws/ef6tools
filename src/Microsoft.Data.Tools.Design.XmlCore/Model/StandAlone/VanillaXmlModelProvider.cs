@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Threading;
+using System.Xml;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Threading;
-    using System.Xml;
-    using System.Xml.Linq;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -56,7 +56,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         /// </summary>
         public VanillaXmlModelProvider()
         {
-            _models = new Dictionary<Uri, SimpleXmlModel>();
+            _models = [];
             _txmanager = new SimpleTransactionManager();
             _factory = new CommandFactory();
         }
@@ -68,11 +68,9 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         /// </summary>
         /// <param name="source">This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</param>
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public override XmlModel GetXmlModel(Uri source)
         {
-            SimpleXmlModel model;
-            if (!_models.TryGetValue(source, out model))
+            if (!_models.TryGetValue(source, out SimpleXmlModel model))
             {
                 var doc = Build(source);
                 model = _models[source] = new SimpleXmlModel(source, doc);
@@ -87,8 +85,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         /// <param name="source">This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</param>
         public override void CloseXmlModel(Uri source)
         {
-            SimpleXmlModel model = null;
-            if (_models.TryGetValue(source, out model))
+            if (_models.TryGetValue(source, out SimpleXmlModel model))
             {
                 _models.Remove(source);
                 model.Dispose();
@@ -104,8 +101,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
         public override bool RenameXmlModel(Uri oldName, Uri newName)
         {
-            SimpleXmlModel model = null;
-            if (_models.TryGetValue(oldName, out model))
+            if (_models.TryGetValue(oldName, out SimpleXmlModel model))
             {
                 model.SetName(newName);
                 _models.Remove(oldName);
@@ -223,11 +219,9 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
         public override TextSpan GetTextSpan(XObject xobject)
         {
-            var el = xobject as XElement;
+            TextSpan ts = new TextSpan();
 
-            var ts = new TextSpan();
-
-            if (el != null)
+            if (xobject is XElement el)
             {
                 var etr = el.GetTextRange();
                 if (etr != null)
@@ -292,7 +286,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             manager = mgr;
             DesignerTransaction = true;
 
-            resources = new Dictionary<XDocument, SimpleTransactionLogger>();
+            resources = [];
             status = XmlTransactionStatus.Active;
             _userState = userState;
         }
@@ -382,9 +376,8 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
         public override IEnumerable<IXmlChange> Changes(XmlModel model)
         {
-            var m = model as SimpleXmlModel;
-            SimpleTransactionLogger logger;
-            if (resources.TryGetValue(m.Document, out logger))
+            SimpleXmlModel m = model as SimpleXmlModel;
+            if (resources.TryGetValue(m.Document, out SimpleTransactionLogger logger))
             {
                 foreach (var cmd in logger.TxCommands)
                 {
@@ -406,11 +399,8 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 
             try
             {
-                if (parent != null)
-                {
-                    // This is a Child Tx
-                    parent.AppendCommands(this);
-                }
+                // This is a Child Tx
+                parent?.AppendCommands(this);
 
                 status = XmlTransactionStatus.Committed;
             }
@@ -426,7 +416,6 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         /// <summary>
         ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public override void Rollback()
         {
             if (status == XmlTransactionStatus.Committed
@@ -578,12 +567,11 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         {
             model = m;
             tx = t;
-            undoCommands = new List<XmlModelCommand>();
-            txCommands = new List<XmlModelCommand>();
+            undoCommands = [];
+            txCommands = [];
 
-            nodesAdded = new Dictionary<XObject, object>();
-            var provider = tx.Provider as VanillaXmlModelProvider;
-            if ((provider == null || provider.CommandFactory == null))
+            nodesAdded = [];
+            if ((tx.Provider is not VanillaXmlModelProvider provider || provider.CommandFactory == null))
             {
                 cmdFactory = new CommandFactory();
             }
@@ -686,10 +674,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         {
             get
             {
-                if (beforeEvent == null)
-                {
-                    beforeEvent = OnBeforeChange;
-                }
+                beforeEvent ??= OnBeforeChange;
                 return beforeEvent;
             }
         }
@@ -698,10 +683,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         {
             get
             {
-                if (afterEvent == null)
-                {
-                    afterEvent = OnAfterChange;
-                }
+                afterEvent ??= OnAfterChange;
                 return afterEvent;
             }
         }
@@ -733,10 +715,9 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             model.Changed -= AfterEventHandler;
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         private void OnBeforeChange(object sender, XObjectChangeEventArgs e)
         {
-            var node = sender as XObject;
+            XObject node = sender as XObject;
 
             // We do not allow editing DTDs through XmlModel
             if (node is XDocumentType)
@@ -748,25 +729,19 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             currentChange = null;
 
             XElement element = null;
-            XAttribute attribute = null;
-            XText text = null;
             XProcessingInstruction pi = null;
-            XComment comment = null;
 
             switch (action)
             {
                 case XObjectChange.Add:
-                    var addChange = new AddNodeChangeInternal(node, action);
+                    AddNodeChangeInternal addChange = new AddNodeChangeInternal(node, action);
                     currentChange = addChange;
                     break;
                 case XObjectChange.Remove:
-                    var removeChange = new RemoveNodeChange(node, action);
+                    RemoveNodeChange removeChange = new RemoveNodeChange(node, action);
                     removeChange.Parent = node.Parent;
-                    if (removeChange.Parent == null)
-                    {
-                        removeChange.Parent = node.Document;
-                    }
-                    var attrib = (node as XAttribute);
+                    removeChange.Parent ??= node.Document;
+                    XAttribute attrib = (node as XAttribute);
                     if (attrib != null)
                     {
                         removeChange.NextNode = attrib.NextAttribute;
@@ -778,7 +753,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                     currentChange = removeChange;
                     break;
                 case XObjectChange.Name:
-                    var nameChange = new NodeNameChange(node, action);
+                    NodeNameChange nameChange = new NodeNameChange(node, action);
                     if ((element = node as XElement) != null)
                     {
                         nameChange.OldName = element.Name;
@@ -795,16 +770,16 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                     currentChange = nameChange;
                     break;
                 case XObjectChange.Value:
-                    var valueChange = new NodeValueChange(node, action);
+                    NodeValueChange valueChange = new NodeValueChange(node, action);
                     if ((element = node as XElement) != null)
                     {
                         valueChange.OldValue = element.Value;
                     }
-                    else if ((attribute = node as XAttribute) != null)
+                    else if (node is XAttribute attribute)
                     {
                         valueChange.OldValue = attribute.Value;
                     }
-                    else if ((text = node as XText) != null)
+                    else if (node is XText text)
                     {
                         valueChange.OldValue = text.Value;
                         if (text.Parent != null)
@@ -816,7 +791,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                             valueChange.Parent = text.Document;
                         }
                     }
-                    else if ((comment = node as XComment) != null)
+                    else if (node is XComment comment)
                     {
                         valueChange.OldValue = comment.Value;
                     }
@@ -834,29 +809,22 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         private void OnAfterChange(object sender, XObjectChangeEventArgs e)
         {
-            var node = sender as XObject;
+            XObject node = sender as XObject;
             var action = e.ObjectChange;
             XmlModelCommand commandToAdd = null;
 
             XElement element = null;
-            XAttribute attribute = null;
-            XText text = null;
             XProcessingInstruction pi = null;
-            XComment comment = null;
 
             switch (action)
             {
                 case XObjectChange.Add:
-                    var addChange = currentChange as AddNodeChangeInternal;
+                    AddNodeChangeInternal addChange = currentChange as AddNodeChangeInternal;
                     addChange.Parent = node.Parent;
-                    if (addChange.Parent == null)
-                    {
-                        addChange.Parent = node.Document;
-                    }
-                    var attrib = (node as XAttribute);
+                    addChange.Parent ??= node.Document;
+                    XAttribute attrib = (node as XAttribute);
                     if (attrib != null)
                     {
                         addChange.NextNode = attrib.NextAttribute;
@@ -876,11 +844,11 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                     commandToAdd = cmdFactory.CreateAddNodeCommand((VanillaXmlModelProvider)tx.Provider, addChange);
                     break;
                 case XObjectChange.Remove:
-                    var removeChange = currentChange as RemoveNodeChange;
+                    RemoveNodeChange removeChange = currentChange as RemoveNodeChange;
                     commandToAdd = cmdFactory.CreateRemoveNodeCommand((VanillaXmlModelProvider)tx.Provider, removeChange);
                     break;
                 case XObjectChange.Name:
-                    var nameChange = currentChange as NodeNameChange;
+                    NodeNameChange nameChange = currentChange as NodeNameChange;
                     if ((element = node as XElement) != null)
                     {
                         nameChange.NewName = element.Name;
@@ -892,20 +860,20 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                     commandToAdd = cmdFactory.CreateSetNameCommand((VanillaXmlModelProvider)tx.Provider, nameChange);
                     break;
                 case XObjectChange.Value:
-                    var valueChange = currentChange as NodeValueChange;
+                    NodeValueChange valueChange = currentChange as NodeValueChange;
                     if ((element = node as XElement) != null)
                     {
                         valueChange.NewValue = element.Value;
                     }
-                    else if ((attribute = node as XAttribute) != null)
+                    else if (node is XAttribute attribute)
                     {
                         valueChange.NewValue = attribute.Value;
                     }
-                    else if ((text = node as XText) != null)
+                    else if (node is XText text)
                     {
                         valueChange.NewValue = text.Value;
                     }
-                    else if ((comment = node as XComment) != null)
+                    else if (node is XComment comment)
                     {
                         valueChange.NewValue = comment.Value;
                     }
@@ -932,10 +900,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                 if (newCommand != cmd
                     && newCommand.Merge(cmd))
                 {
-                    if (toRemove == null)
-                    {
-                        toRemove = new List<XmlModelCommand>();
-                    }
+                    toRemove ??= [];
                     toRemove.Add(cmd);
                 }
             }
@@ -986,10 +951,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                     {
                         rc = RemoveStatus.FoundSelfAdd; // we are removing an add of the same node!
                     }
-                    if (toRemove == null)
-                    {
-                        toRemove = new List<XmlModelCommand>();
-                    }
+                    toRemove ??= [];
                     toRemove.Add(cmd);
                 }
             }
@@ -1018,10 +980,9 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                     return true;
                 }
             }
-            var pe = parent as XElement;
-            if (pe != null)
+            if (parent is XElement pe)
             {
-                for (var e = existingChange.Parent as XElement; e != null; e = e.Parent)
+                for (XElement e = existingChange.Parent as XElement; e != null; e = e.Parent)
                 {
                     if (e == pe)
                     {
@@ -1040,7 +1001,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 
         internal SimpleTransactionManager()
         {
-            _currentTransaction = new Dictionary<VanillaXmlModelProvider, SimpleTransaction>();
+            _currentTransaction = [];
             _lockManager = new SimpleLockManager();
         }
 
@@ -1059,10 +1020,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         {
             if (disposing)
             {
-                if (_lockManager != null)
-                {
-                    _lockManager.Dispose();
-                }
+                _lockManager?.Dispose();
             }
         }
 
@@ -1072,11 +1030,10 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         }
 
         // Methods
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal SimpleTransaction BeginTransaction(
             VanillaXmlModelProvider provider, string name, SimpleTransaction parent, object userState)
         {
-            var tx = new SimpleTransaction(provider, name, parent, this, userState);
+            SimpleTransaction tx = new SimpleTransaction(provider, name, parent, this, userState);
 
             if (parent != null)
             {
@@ -1114,10 +1071,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             var parent = tx.parent;
 
             // Unlock all resources held by this transaction
-            if (parent != null)
-            {
-                parent.MakeActive();
-            }
+            parent?.MakeActive();
             _currentTransaction[tx.provider] = parent;
 
             // Fire Events and unlock Store only when  Top-most Tx commits
@@ -1134,10 +1088,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             var parent = tx.parent;
 
             // Unlock all resources held by this transaction
-            if (parent != null)
-            {
-                parent.MakeActive();
-            }
+            parent?.MakeActive();
             _currentTransaction[tx.provider] = parent;
 
             // Unlock Store only when Top-most Tx Completes
@@ -1195,7 +1146,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                 new bool[(int)LockMode._Length] { true, false, false }
             };
 
-        private readonly Dictionary<Object, ResourceEntry> _resourceTable = new Dictionary<Object, ResourceEntry>();
+        private readonly Dictionary<Object, ResourceEntry> _resourceTable = [];
 
         ~SimpleLockManager()
         {
@@ -1227,7 +1178,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 
             public ResourceEntry()
             {
-                _transactions = new Dictionary<LockMode, Dictionary<SimpleTransaction, SimpleTransaction>>();
+                _transactions = [];
                 _lockMode = LockMode.Null;
             }
 
@@ -1246,10 +1197,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             {
                 if (disposing)
                 {
-                    if (_autoResetEvent != null)
-                    {
-                        _autoResetEvent.Dispose();
-                    }
+                    _autoResetEvent?.Dispose();
                 }
             }
 
@@ -1274,7 +1222,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                 var transactionList = GetTransactionList(request);
                 if (transactionList == null)
                 {
-                    transactionList = new Dictionary<SimpleTransaction, SimpleTransaction>();
+                    transactionList = [];
                     _transactions[request] = transactionList;
                 }
 
@@ -1287,10 +1235,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                     _lockMode = request;
                 }
 
-                if (_autoResetEvent != null)
-                {
-                    _autoResetEvent.Reset();
-                }
+                _autoResetEvent?.Reset();
             }
 
             /// <summary>
@@ -1331,10 +1276,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                 if (request > _lockMode)
                 {
                     // if anyone was waiting for this lock, they should recheck
-                    if (_autoResetEvent != null)
-                    {
-                        _autoResetEvent.Set();
-                    }
+                    _autoResetEvent?.Set();
                 }
             }
 
@@ -1347,10 +1289,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                        two different AutoResetEvent objects for one resource */
                     lock (this)
                     {
-                        if (_autoResetEvent == null)
-                        {
-                            _autoResetEvent = new AutoResetEvent(false);
-                        }
+                        _autoResetEvent ??= new AutoResetEvent(false);
                     }
                     return _autoResetEvent;
                 }
@@ -1382,7 +1321,6 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             return rEntry;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public void Lock(SimpleTransaction txId, object resource, LockMode mode)
         {
             ResourceEntry lockTarget = null;
@@ -1653,30 +1591,27 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 
         public override void Undo()
         {
-            var c = (AddNodeChange)Change;
+            AddNodeChange c = (AddNodeChange)Change;
             Debug.Assert(c.Parent != null);
             var node = Change.Node;
-            var xn = node as XNode;
-            if (xn != null)
+            if (node is XNode xn)
             {
                 xn.Remove();
             }
             else
             {
-                var a = (XAttribute)node;
+                XAttribute a = (XAttribute)node;
                 a.Remove();
             }
         }
 
         public override void Redo()
         {
-            var c = (AddNodeChange)Change;
+            AddNodeChange c = (AddNodeChange)Change;
             var node = Change.Node;
-            var xn = node as XNode;
-            if (xn != null)
+            if (node is XNode xn)
             {
-                var nextSibling = c.NextNode as XNode;
-                if (nextSibling != null)
+                if (c.NextNode is XNode nextSibling)
                 {
                     nextSibling.AddBeforeSelf(xn);
                 }
@@ -1688,7 +1623,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             else
             {
                 // Attributes cannot remember their relative position in XLinq!
-                var a = (XAttribute)node;
+                XAttribute a = (XAttribute)node;
                 c.Parent.Add(a);
             }
         }
@@ -1707,7 +1642,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         public RemoveNodeCommand(RemoveNodeChange change)
             : base(change)
         {
-            var ac = new AddNodeChange(change.Node, change.Action) { NextNode = change.NextNode, Parent = change.Parent };
+            AddNodeChange ac = new AddNodeChange(change.Node, change.Action) { NextNode = change.NextNode, Parent = change.Parent };
             _add = new AddNodeCommand(ac);
         }
 
@@ -1736,13 +1671,13 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 
         public override void Undo()
         {
-            var nameChange = Change as NodeNameChange;
+            NodeNameChange nameChange = Change as NodeNameChange;
             SetName(nameChange.Node, nameChange.OldName);
         }
 
         public override void Redo()
         {
-            var nameChange = Change as NodeNameChange;
+            NodeNameChange nameChange = Change as NodeNameChange;
             SetName(nameChange.Node, nameChange.NewName);
         }
 
@@ -1766,8 +1701,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 
         public override bool Merge(ModelCommand other)
         {
-            var s = other as NodeNameCommand;
-            if (s != null
+            if (other is NodeNameCommand s
                 && s != this
                 && s.Change.Node == Change.Node)
             {
@@ -1787,13 +1721,13 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 
         public override void Undo()
         {
-            var valueChange = Change as NodeValueChange;
+            NodeValueChange valueChange = Change as NodeValueChange;
             SetValue(valueChange.Node, valueChange.OldValue);
         }
 
         public override void Redo()
         {
-            var valueChange = Change as NodeValueChange;
+            NodeValueChange valueChange = Change as NodeValueChange;
             SetValue(valueChange.Node, valueChange.NewValue);
         }
 
@@ -1824,8 +1758,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 
         public override bool Merge(ModelCommand other)
         {
-            var s = other as NodeValueCommmand;
-            if (s != null
+            if (other is NodeValueCommmand s
                 && s != this
                 && s.Change.Node == Change.Node)
             {
@@ -1854,8 +1787,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         public int CompareTo(object otherObj)
         {
             var value = -1;
-            var other = otherObj as AddNodeChangeInternal;
-            if (other != null
+            if (otherObj is AddNodeChangeInternal other
                 && other.GetType() == GetType())
             {
                 if (CompareToObject == null)

@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     Class that represents a scalar property.  This class has to be creatable without a ModelItem existing
     //     since we want to be able to display every column in the mapped table, even if the column isn't mapped
@@ -81,7 +81,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                         //
                         EntityType table = MappingStorageEntityType.StorageEntityType;
 
-                        var tableColumn = table.GetFirstNamedChildByLocalName(_columnName) as Property;
+                        Property tableColumn = table.GetFirstNamedChildByLocalName(_columnName) as Property;
                         Debug.Assert(tableColumn != null, "Failed looking up table column for ScalarProperty.");
 
                         if (tableColumn != null)
@@ -104,7 +104,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                     }
                 }
 
-                var sp = ModelItem as ScalarProperty;
+                ScalarProperty sp = ModelItem as ScalarProperty;
                 if (sp != null)
                 {
                     Debug.Assert(sp.ColumnName.Status == BindingStatus.Known, "Why are we mapping an unresolved scalar?");
@@ -253,7 +253,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             {
                 if (ScalarProperty != null)
                 {
-                    var sb = new StringBuilder();
+                    StringBuilder sb = new StringBuilder();
                     foreach (var cp in ScalarProperty.GetParentComplexProperties())
                     {
                         if (cp.Name.Status == BindingStatus.Known)
@@ -311,10 +311,10 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                     if (ScalarProperty.ColumnName.Status == BindingStatus.Known)
                     {
                         // delete old and create new ScalarProperty in one transaction
-                        var cpc = new CommandProcessorContext(
+                        CommandProcessorContext cpc = new CommandProcessorContext(
                             context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeScalarProperty);
                         var cmd1 = ScalarProperty.GetDeleteCommand();
-                        var cmd2 = new CreateFragmentScalarPropertyTreeCommand(
+                        CreateFragmentScalarPropertyTreeCommand cmd2 = new CreateFragmentScalarPropertyTreeCommand(
                             MappingConceptualEntityType.ConceptualEntityType, newPropertiesChain, ScalarProperty.ColumnName.Target);
                         cmd2.PostInvokeEvent += (o, eventsArgs) =>
                             {
@@ -323,7 +323,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                                 ModelItem = sp;
                             };
 
-                        var cp = new CommandProcessor(cpc, cmd1, cmd2);
+                        CommandProcessor cp = new CommandProcessor(cpc, cmd1, cmd2);
                         try
                         {
                             cp.Invoke();
@@ -362,12 +362,12 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 
         internal override Dictionary<MappingLovEFElement, string> GetListOfValues(ListOfValuesCollection type)
         {
-            var lov = new Dictionary<MappingLovEFElement, string>();
+            Dictionary<MappingLovEFElement, string> lov = new Dictionary<MappingLovEFElement, string>();
 
             if (type == ListOfValuesCollection.ThirdColumn)
             {
                 var entityType = MappingConceptualEntityType.ConceptualEntityType;
-                var properties = new List<Property>();
+                List<Property> properties = new List<Property>();
 
                 // for TPT, show keys for the top-most base type
                 if (entityType.HasResolvableBaseType)
@@ -429,10 +429,12 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 
         internal override void CreateModelItem(CommandProcessorContext cpc, EditingContext context, EFElement underlyingModelItem)
         {
-            var entityProperty = underlyingModelItem as Property;
+            Property entityProperty = underlyingModelItem as Property;
             Debug.Assert(entityProperty != null, "entityProperty argument cannot be null");
-            var properties = new List<Property>(1);
-            properties.Add(entityProperty);
+            List<Property> properties = new List<Property>(1)
+            {
+                entityProperty
+            };
             CreateModelItem(cpc, context, properties);
         }
 
@@ -458,7 +460,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             EntityType table = MappingStorageEntityType.StorageEntityType;
 
             // find the s-side property based on the value stored in this.ColumnName
-            var tableColumn = table.GetFirstNamedChildByLocalName(ColumnName) as Property;
+            Property tableColumn = table.GetFirstNamedChildByLocalName(ColumnName) as Property;
             Debug.Assert(tableColumn != null, "Failed looking up table column for ScalarProperty.");
             if (tableColumn == null)
             {
@@ -468,12 +470,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             try
             {
                 // now make the change
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_CreateScalarProperty);
-                }
-                var cmd = new CreateFragmentScalarPropertyTreeCommand(entityType, propertiesChain, tableColumn);
+                CreateFragmentScalarPropertyTreeCommand cmd = new CreateFragmentScalarPropertyTreeCommand(entityType, propertiesChain, tableColumn);
                 cmd.PostInvokeEvent += (o, eventsArgs) =>
                     {
                         var sp = cmd.ScalarProperty;
@@ -484,7 +483,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                         ModelItem = sp;
                     };
 
-                var cp = new CommandProcessor(cpc, cmd);
+                CommandProcessor cp = new CommandProcessor(cpc, cmd);
                 cp.Invoke();
             }
             catch
@@ -512,11 +511,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                 var columnType = ColumnType;
 
                 // create a context if we weren't passed one
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_DeleteScalarProperty);
-                }
 
                 // use the item's delete command
                 var deleteCommand = ScalarProperty.GetDeleteCommand();

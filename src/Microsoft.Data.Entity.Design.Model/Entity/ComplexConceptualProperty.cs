@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Xml.Linq;
-
     internal class ComplexConceptualProperty : Property
     {
         // is used when creating default names for Complex Properties - always the same is every language so not localized 
@@ -54,13 +54,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_complexTypeAttr == null)
-                {
-                    _complexTypeAttr = new SingleItemBinding<ComplexType>(
+                _complexTypeAttr ??= new SingleItemBinding<ComplexType>(
                         this,
                         AttributeType,
                         EFNormalizableItemDefaults.DefaultNameNormalizerForEDM);
-                }
 
                 return _complexTypeAttr;
             }
@@ -118,8 +115,8 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         /// <returns></returns>
         internal IEnumerable<ReadOnlyCollection<Property>> GetAllNestedScalarProperties()
         {
-            var listOfAncestorLists = new List<ReadOnlyCollection<Property>>();
-            var initialStack = new Stack<Property>();
+            List<ReadOnlyCollection<Property>> listOfAncestorLists = new List<ReadOnlyCollection<Property>>();
+            Stack<Property> initialStack = new Stack<Property>();
             initialStack.Push(this);
             GetAllNestedScalarPropertiesRecurse(listOfAncestorLists, initialStack);
             return listOfAncestorLists;
@@ -132,8 +129,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             foreach (var property in complexType.Properties())
             {
                 ancestorStack.Push(property);
-                var complexProperty = property as ComplexConceptualProperty;
-                if (complexProperty != null)
+                if (property is ComplexConceptualProperty complexProperty)
                 {
                     complexProperty.GetAllNestedScalarPropertiesRecurse(listOfAncestorLists, ancestorStack);
                 }

@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using System;
-    using System.ComponentModel;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal class BoolOrNoneTypeConverter : StringConverter
     {
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
@@ -17,8 +17,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
                 // do not use BoolOrNone.Converter.StringConverter - that has to return the lower-case
                 // values for insertion into XML, whereas this needs to return the capitalized versions
                 // for display in drop-down
-                var v = value as BoolOrNone;
-                if (v != null)
+                if (value is BoolOrNone v)
                 {
                     if (BoolOrNone.TrueValue.Equals(v))
                     {
@@ -39,8 +38,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
-            var stringValue = value as string;
-            if (stringValue != null)
+            if (value is string stringValue)
             {
                 return BoolOrNoneConverter.ValueConverter(stringValue);
             }

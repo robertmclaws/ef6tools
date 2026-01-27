@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class StorageEntityModel : BaseEntityModel
     {
         // Function elements can exists only in SSDL file
-        private readonly List<Function> _functions = new List<Function>();
+        private readonly List<Function> _functions = [];
 
         private const string DefaultProvider = "System.Data.SqlClient";
         private const string DefaultProviderManifestToken = "2008";
@@ -27,10 +27,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         internal StorageEntityModel(EntityDesignArtifact parent, XElement element)
             : base(parent, element)
         {
-            if (parent != null)
-            {
-                parent.StorageModel = this;
-            }
+            parent?.StorageModel = this;
         }
 
         internal IDictionary<string, PrimitiveType> StoreTypeNameToStoreTypeMap
@@ -104,11 +101,8 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_providerAttr == null)
-                {
-                    // we can safely create these here since we are the top node and don't need to be parsed first
-                    _providerAttr = new ProviderDefaultableValue(this);
-                }
+                // we can safely create these here since we are the top node and don't need to be parsed first
+                _providerAttr ??= new ProviderDefaultableValue(this);
                 return _providerAttr;
             }
         }
@@ -140,11 +134,8 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_providerManifestTokenAttr == null)
-                {
-                    // we can safely create these here since we are the top node and don't need to be parsed first
-                    _providerManifestTokenAttr = new ProviderManifestTokenDefaultableValue(this);
-                }
+                // we can safely create these here since we are the top node and don't need to be parsed first
+                _providerManifestTokenAttr ??= new ProviderManifestTokenDefaultableValue(this);
                 return _providerManifestTokenAttr;
             }
         }
@@ -199,8 +190,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child = efContainer as Function;
-            if (child != null)
+            if (efContainer is Function child)
             {
                 _functions.Remove(child);
                 return;
@@ -239,14 +229,14 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             // Storage EntityModel needs to create Storage EntityContainer objects
             if (elem.Name.LocalName == BaseEntityContainer.ElementName)
             {
-                var sec = new StorageEntityContainer(this, elem);
+                StorageEntityContainer sec = new StorageEntityContainer(this, elem);
                 _entityContainers.Add(sec);
                 sec.Parse(unprocessedElements);
             }
                 // Function element can exists only in SSDL file
             else if (elem.Name.LocalName == Function.ElementName)
             {
-                var fun = new Function(this, elem);
+                Function fun = new Function(this, elem);
                 _functions.Add(fun);
                 fun.Parse(unprocessedElements);
             }
@@ -272,8 +262,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         internal PrimitiveType GetStoragePrimitiveType(string typeName)
         {
-            PrimitiveType primType;
-            StoreTypeNameToStoreTypeMap.TryGetValue(typeName, out primType);
+            StoreTypeNameToStoreTypeMap.TryGetValue(typeName, out PrimitiveType primType);
             return primType;
         }
     }

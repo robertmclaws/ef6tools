@@ -1,23 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.VisualStudio.Modeling;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.VisualStudio.Modeling;
-
     internal class ViewModelChangeContext
     {
-        private readonly List<CommonViewModelChange> _modelChanges = new List<CommonViewModelChange>();
+        private readonly List<CommonViewModelChange> _modelChanges = [];
         private static readonly Guid Guid = new Guid("1FC81C5A-159D-40c1-A9BF-E10E22031F7F");
 
         internal static ViewModelChangeContext GetNewOrExistingContext(Transaction tx)
         {
             Debug.Assert(tx != null);
-            object o = null;
             ViewModelChangeContext context = null;
-            tx.Context.ContextInfo.TryGetValue(Guid, out o);
+            tx.Context.ContextInfo.TryGetValue(Guid, out object o);
             if (o == null)
             {
                 context = new ViewModelChangeContext();
@@ -34,9 +33,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling
         internal static ViewModelChangeContext GetExistingContext(Transaction tx)
         {
             Debug.Assert(tx != null);
-            object o = null;
             ViewModelChangeContext context = null;
-            tx.Context.ContextInfo.TryGetValue(Guid, out o);
+            tx.Context.ContextInfo.TryGetValue(Guid, out object o);
             if (o != null)
             {
                 context = o as ViewModelChangeContext;

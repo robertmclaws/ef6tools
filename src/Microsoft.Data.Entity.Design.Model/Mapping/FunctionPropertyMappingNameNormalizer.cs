@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Diagnostics;
-
     internal static class FunctionPropertyMappingNameNormalizer
     {
         internal static NormalizedName NameNormalizer(EFElement parent, string refName)
@@ -15,7 +15,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                 return null;
             }
 
-            var parentItem = parent.Parent as EFElement;
+            EFElement parentItem = parent.Parent as EFElement;
             Debug.Assert(parentItem != null, "parent.Parent should be an EFElement");
 
             // shouldn't use this normalizer for a ComplexProperty
@@ -41,7 +41,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             //
             // try to normalize for a FunctionComplexProperty
             //
-            var fcp = parentItem.GetParentOfType(typeof(FunctionComplexProperty)) as FunctionComplexProperty;
+            FunctionComplexProperty fcp = parentItem.GetParentOfType(typeof(FunctionComplexProperty)) as FunctionComplexProperty;
             normalizedName = NormalizeNameRelativeToFunctionComplexProperty(fcp, refName);
             if (normalizedName != null)
             {
@@ -51,9 +51,8 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             //
             // try to normalize for an EntityTyepMapping with no FunctionAssociationEnd 
             //
-            var etm = parentItem.GetParentOfType(typeof(EntityTypeMapping)) as EntityTypeMapping;
-            var fae = parentItem.GetParentOfType(typeof(FunctionAssociationEnd)) as FunctionAssociationEnd;
-            if (fae == null)
+            EntityTypeMapping etm = parentItem.GetParentOfType(typeof(EntityTypeMapping)) as EntityTypeMapping;
+            if (parentItem.GetParentOfType(typeof(FunctionAssociationEnd)) is not FunctionAssociationEnd fae)
             {
                 normalizedName = ProperyMappingNameNormalizer.NormalizePropertyNameRelativeToEntityTypeMapping(etm, parent, refName);
                 if (normalizedName != null)
@@ -96,7 +95,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                     var complexType = fcp.Name.Target.ComplexType.Target;
                     if (complexType != null)
                     {
-                        var symbol = new Symbol(complexType.NormalizedName, refName);
+                        Symbol symbol = new Symbol(complexType.NormalizedName, refName);
                         nn = new NormalizedName(symbol, null, null, refName);
                     }
                 }

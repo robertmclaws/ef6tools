@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to create a FunctionImportMapping in the MSL from a Function (stored procedure) in
     ///     the S-Side and a FunctionImport on the C-Side
@@ -27,7 +27,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
     ///     &lt;FunctionImportMapping FunctionImportName=&quot;GetOrderDetails&quot;
     ///     FunctionName=&quot;AdventureWorksModel.Store.GetOrderDetails&quot;/&gt;
     /// </summary>
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class CreateFunctionImportMappingCommand : Command
     {
         internal static readonly string PrereqId = "CreateFunctionImportMappingCommand";
@@ -62,8 +61,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (_createFuncImpCmdId != null)
             {
-                var createFuncImpCmd = GetPreReqCommand(_createFuncImpCmdId) as CreateFunctionImportCommand;
-                if (createFuncImpCmd != null)
+                if (GetPreReqCommand(_createFuncImpCmdId) is CreateFunctionImportCommand createFuncImpCmd)
                 {
                     FunctionImport = createFuncImpCmd.FunctionImport;
                 }
@@ -75,9 +73,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             get { return _fim; }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ContainerMapping")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "FunctionImport")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit

@@ -1,17 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VisualStudio;
 
 namespace Microsoft.Data.Entity.Design.UI.Views
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal static class ViewUtils
     {
         internal static bool SetBaseEntityType(
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views
                 return false;
             }
 
-            var cp = new CommandProcessor(cpc);
+            CommandProcessor cp = new CommandProcessor(cpc);
 
             if (derivedEntity.BaseType.Target != null)
             {

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     Used to ensure that an EntityType's EntitySet GetterAccess attribute is updated consistently
     ///     when the EntityType's TypeAccess attribute is updated. Specifically if the EntityType's TypeAccess
@@ -25,18 +25,17 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
-            var cmd = new UpdateDefaultableValueCommand<string>(_typeAccess, _newValue);
+            UpdateDefaultableValueCommand<string> cmd = new UpdateDefaultableValueCommand<string>(_typeAccess, _newValue);
             CommandProcessor.InvokeSingleCommand(cpc, cmd);
 
             if (ModelConstants.CodeGenerationAccessInternal.Equals(_newValue, StringComparison.Ordinal))
             {
-                var cet = _typeAccess.GetParentOfType(typeof(ConceptualEntityType)) as ConceptualEntityType;
+                ConceptualEntityType cet = _typeAccess.GetParentOfType(typeof(ConceptualEntityType)) as ConceptualEntityType;
                 Debug.Assert(null != cet, "parent of _typeAccess should be of type " + typeof(ConceptualEntityType).FullName);
                 if (null != cet)
                 {
                     // Note: it is valid for the EntitySet to be null
-                    var ces = cet.EntitySet as ConceptualEntitySet;
-                    if (null != ces)
+                    if (cet.EntitySet is ConceptualEntitySet ces)
                     {
                         var entitySetGetterAccess = ces.GetterAccess.Value;
                         if (ModelConstants.CodeGenerationAccessPublic.Equals(entitySetGetterAccess)
@@ -45,7 +44,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                             // new value is Internal and EntitySet's existing value is Public or Protected
                             // so need to also update the GetterAccess attribute on the EntitySet
                             // (otherwise will get runtime error 6036)
-                            var cmd2 = new UpdateDefaultableValueCommand<string>(ces.GetterAccess, _newValue);
+                            UpdateDefaultableValueCommand<string> cmd2 = new UpdateDefaultableValueCommand<string>(ces.GetterAccess, _newValue);
                             CommandProcessor.InvokeSingleCommand(cpc, cmd2);
                         }
                     }

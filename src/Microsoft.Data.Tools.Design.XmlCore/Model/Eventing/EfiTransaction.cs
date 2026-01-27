@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+
 namespace Microsoft.Data.Entity.Design.Model.Eventing
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-
     /// <summary>
     ///     Represents a transaction that encapsulates a set of changes.
     /// </summary>
@@ -209,8 +209,7 @@ namespace Microsoft.Data.Entity.Design.Model.Eventing
         /// </summary>
         public T GetContextValue<T>(string key) where T : ITransactionContextItem
         {
-            T returnValue;
-            if (_efiTransactionContext.TryGetValue(key, out returnValue))
+            if (_efiTransactionContext.TryGetValue(key, out T returnValue))
             {
                 return returnValue;
             }

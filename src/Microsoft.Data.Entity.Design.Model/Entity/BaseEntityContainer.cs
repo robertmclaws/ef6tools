@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal abstract class BaseEntityContainer : NameableAnnotatableElement
     {
         internal static readonly string ElementName = "EntityContainer";
-        private readonly List<EntitySet> _entitySets = new List<EntitySet>();
-        private readonly List<AssociationSet> _associationSets = new List<AssociationSet>();
+        private readonly List<EntitySet> _entitySets = [];
+        private readonly List<AssociationSet> _associationSets = [];
 
         protected BaseEntityContainer(EFElement parent, XElement element)
             : base(parent, element)
@@ -102,15 +102,13 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as EntitySet;
-            if (child1 != null)
+            if (efContainer is EntitySet child1)
             {
                 _entitySets.Remove(child1);
                 return;
             }
 
-            var child2 = efContainer as AssociationSet;
-            if (child2 != null)
+            if (efContainer is AssociationSet child2)
             {
                 _associationSets.Remove(child2);
                 return;
@@ -142,7 +140,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             if (elem.Name.LocalName == AssociationSet.ElementName)
             {
-                var assoc = new AssociationSet(this, elem);
+                AssociationSet assoc = new AssociationSet(this, elem);
                 _associationSets.Add(assoc);
                 assoc.Parse(unprocessedElements);
             }

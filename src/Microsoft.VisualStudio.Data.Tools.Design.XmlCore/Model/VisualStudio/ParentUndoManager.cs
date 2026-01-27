@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.VisualStudio.OLE.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 {
-    using System.Diagnostics;
-    using Microsoft.VisualStudio.OLE.Interop;
-
     internal class ParentUndoManager : IOleUndoManager
     {
         private readonly IOleUndoManager _wrappedUndoManager;
@@ -48,10 +48,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
         {
             // TODO AppDbproj If we initiate an XML Model transaction without a changescope, the
             // _parentUndoUnit will be null. This will go away once we introduce incremental changes
-            if (_parentUndoUnit != null)
-            {
-                _parentUndoUnit.Add(pUU);
-            }
+            _parentUndoUnit?.Add(pUU);
         }
 
         public int Close(IOleParentUndoUnit pPUU, int fCommit)

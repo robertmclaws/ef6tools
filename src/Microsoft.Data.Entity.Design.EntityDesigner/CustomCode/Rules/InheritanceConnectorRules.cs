@@ -1,21 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     [RuleOn(typeof(InheritanceConnector), FireTime = TimeToFire.TopLevelCommit)]
     internal sealed class InheritanceConnector_AddRule : AddRule
     {
         public override void ElementAdded(ElementAddedEventArgs e)
         {
-            var inheritanceConnector = e.ModelElement as InheritanceConnector;
+            InheritanceConnector inheritanceConnector = e.ModelElement as InheritanceConnector;
             Debug.Assert(inheritanceConnector != null);
 
             var tx = ModelUtils.GetCurrentTx(inheritanceConnector.Store);
@@ -33,7 +33,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
     {
         public override void ElementPropertyChanged(ElementPropertyChangedEventArgs e)
         {
-            var inheritanceConnector = e.ModelElement as InheritanceConnector;
+            InheritanceConnector inheritanceConnector = e.ModelElement as InheritanceConnector;
             Debug.Assert(inheritanceConnector != null);
 
             if (inheritanceConnector != null)
@@ -67,8 +67,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
         {
             base.ElementDeleted(e);
 
-            var inheritanceConnector = e.ModelElement as InheritanceConnector;
-            if (inheritanceConnector != null)
+            if (e.ModelElement is InheritanceConnector inheritanceConnector)
             {
                 var tx = ModelUtils.GetCurrentTx(inheritanceConnector.Store);
                 Debug.Assert(tx != null);

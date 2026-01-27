@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VersioningFacade.Serialization;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Text;
+using System.Xml;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VersioningFacade.Serialization;
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.IO;
-    using System.Text;
-    using System.Xml;
-
     internal class CodeFirstModelBuilderEngine : ModelBuilderEngine
     {
         protected override void ProcessModel(DbModel model, string storeModelNamespace, ModelBuilderSettings settings, 
@@ -22,10 +21,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
         private static void ValidateModel(DbModel model, List<EdmSchemaError> errors)
         {
-            var settings = new XmlWriterSettings { ConformanceLevel = ConformanceLevel.Fragment };
-            using (var writer = XmlWriter.Create(new StringBuilder(), settings))
+            XmlWriterSettings settings = new XmlWriterSettings { ConformanceLevel = ConformanceLevel.Fragment };
+            using (XmlWriter writer = XmlWriter.Create(new StringBuilder(), settings))
             {
-                var ssdlSerializer = new SsdlSerializer();
+                SsdlSerializer ssdlSerializer = new SsdlSerializer();
                 ssdlSerializer.OnError +=
                     CreateOnErrorEventHandler(errors, ErrorCodes.GenerateModelFromDbReverseEngineerStoreModelFailed);
 
@@ -35,7 +34,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                     model.ProviderInfo.ProviderManifestToken,
                     writer);
 
-                var csdlSerializer = new CsdlSerializer();
+                CsdlSerializer csdlSerializer = new CsdlSerializer();
                 csdlSerializer.OnError +=
                     CreateOnErrorEventHandler(errors, ErrorCodes.GenerateModelFromDbInvalidConceptualModel);
 

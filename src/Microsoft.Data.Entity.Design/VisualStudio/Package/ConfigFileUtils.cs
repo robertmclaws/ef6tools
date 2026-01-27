@@ -1,18 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Common;
+using System.IO;
+using Microsoft.VisualStudio.TextManager.Interop;
+using System.Globalization;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml;
-    using EnvDTE;
-    using EnvDTE80;
-    using Microsoft.Data.Entity.Design.Common;
-    using System.IO;
-    using Microsoft.VisualStudio.TextManager.Interop;
-    using System.Globalization;
-
     internal class ConfigFileUtils
     {
         private const string AppConfigItemTemplateCs = "AppConfigInternal.zip";
@@ -78,7 +79,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         private ProjectItem AddFromFile()
         {
             var projectDirectoryInfo = _vsUtils.GetProjectRoot(_project, _serviceProvider);
-            var configFileInfo = new FileInfo(Path.Combine(projectDirectoryInfo.FullName, _configFileName));
+            FileInfo configFileInfo = new FileInfo(Path.Combine(projectDirectoryInfo.FullName, _configFileName));
             if (configFileInfo.Exists)
             {
                 _project.ProjectItems.AddFromFile(configFileInfo.FullName);
@@ -97,8 +98,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 // attempt to construct the config xml from the doc data if it is available
                 try
                 {
-                    var textLines = _vsHelpers.GetDocData(_serviceProvider, configFilePath) as IVsTextLines;
-                    return textLines != null
+                    return _vsHelpers.GetDocData(_serviceProvider, configFilePath) is IVsTextLines textLines
                         ? EdmUtils.SafeLoadXmlFromString(
                             VSHelpers.GetTextFromVsTextLines(textLines), preserveWhitespace: true)
                         : EdmUtils.SafeLoadXmlFromPath(configFilePath);
@@ -161,7 +161,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         public string GetConfigPath()
         {
             var configProjectItem = GetConfigProjectItem();
-            return configProjectItem != null ? configProjectItem.FileNames[1] : null;
+            return configProjectItem?.FileNames[1];
         }
 
         private string GetConfigItempTemplatePath()
@@ -175,7 +175,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                         ? AppConfigItemTemplateVb 
                         : AppConfigItemTemplateCs;
 
-            var solution2 = (Solution2)_project.DTE.Solution;
+            Solution2 solution2 = (Solution2)_project.DTE.Solution;
 
             if(_applicationType == VisualStudioProjectSystem.WebApplication)
             {

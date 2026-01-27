@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-
     /// <summary>
     /// Represents a model configuration to set the key of an entity.
     /// </summary>
     public class KeyConfiguration : IFluentConfiguration
     {
-        private readonly ICollection<EdmProperty> _keyProperties = new List<EdmProperty>();
+        private readonly ICollection<EdmProperty> _keyProperties = [];
 
         /// <summary>
         /// Gets the properties used for the key of the entity.

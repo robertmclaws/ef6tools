@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using DslModeling = Microsoft.VisualStudio.Modeling;
+using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-
     internal abstract class EntityDesignerDiagramModelChange : ViewModelChange
     {
         private readonly EntityDesignerDiagram _diagram;

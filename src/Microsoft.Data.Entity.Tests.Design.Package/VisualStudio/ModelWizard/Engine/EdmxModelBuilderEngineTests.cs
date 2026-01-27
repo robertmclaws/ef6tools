@@ -1,23 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Moq;
+using System.IO;
+using System.Xml.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
 {
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Moq;
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.IO;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
-
     [TestClass]
     public class EdmxModelBuilderEngineTests
     {
@@ -129,7 +120,7 @@ using FluentAssertions;
 
             private static Mock<ModelBuilderSettings> CreateMockModelBuilderSettings()
             {
-                var mockModelBuilderSettings = new Mock<ModelBuilderSettings>();
+                Mock<ModelBuilderSettings> mockModelBuilderSettings = new Mock<ModelBuilderSettings>();
                 mockModelBuilderSettings.Object.GenerationOption = ModelGenerationOption.GenerateFromDatabase;
                 mockModelBuilderSettings.Object.ModelPath = Path.Combine(Directory.GetCurrentDirectory(), "temp.edmx");
                 mockModelBuilderSettings
@@ -158,7 +149,7 @@ using FluentAssertions;
             [TestMethod]
             public void UpdateDesignerInfo_updates_properties_in_designer_section()
             {
-                var mockEdmxHelper = new Mock<EdmxHelper>(new XDocument());
+                Mock<EdmxHelper> mockEdmxHelper = new Mock<EdmxHelper>(new XDocument());
                 new EdmxModelBuilderEngineFake().UpdateDesignerInfoInvoker(mockEdmxHelper.Object, new ModelBuilderSettings());
 
                 mockEdmxHelper

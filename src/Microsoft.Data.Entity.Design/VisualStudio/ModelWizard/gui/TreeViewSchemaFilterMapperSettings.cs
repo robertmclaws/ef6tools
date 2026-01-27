@@ -8,7 +8,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
         internal static TreeViewSchemaFilterMapperSettings GetDefaultSettings()
         {
-            var settings = new TreeViewSchemaFilterMapperSettings();
+            TreeViewSchemaFilterMapperSettings settings = new TreeViewSchemaFilterMapperSettings();
             settings.UseOnlyCheckedNodes = true;
             return settings;
         }

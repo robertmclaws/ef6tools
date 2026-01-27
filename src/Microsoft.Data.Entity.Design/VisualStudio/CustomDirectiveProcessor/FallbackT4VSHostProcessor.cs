@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using Microsoft.VisualStudio.TextTemplating;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Directives
 {
-    using System;
-    using System.Collections.Generic;
-    using Microsoft.VisualStudio.TextTemplating;
-
     // <summary>
     //     This is an empty directive processor only meant to support old versions of the T4
     //     processor that did not include the T4VSHost custom directive processor that

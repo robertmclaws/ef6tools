@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 {
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-
     internal class ColumnUtils
     {
         internal static string BuildPropertyDisplay(string name, string type)
@@ -38,14 +38,10 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
         internal static void AddPropertyToListOfValues(
             Dictionary<MappingLovEFElement, string> lov, Property property, List<Property> ancestorComplexProperties)
         {
-            if (ancestorComplexProperties == null)
-            {
-                ancestorComplexProperties = new List<Property>();
-            }
+            ancestorComplexProperties ??= [];
 
             ancestorComplexProperties.Add(property); // at this point it has actually become "ancestors and self"
-            var complexProperty = property as ComplexConceptualProperty;
-            if (complexProperty != null)
+            if (property is ComplexConceptualProperty complexProperty)
             {
                 if (complexProperty.ComplexType.Status == BindingStatus.Known)
                 {
@@ -57,7 +53,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
             }
             else
             {
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 foreach (var prop in ancestorComplexProperties)
                 {
                     sb.Append(prop.LocalName.Value);

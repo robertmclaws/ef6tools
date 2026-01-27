@@ -1,17 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using EDMModelHelper = Microsoft.Data.Entity.Design.Model.ModelHelper;
+using System.Diagnostics;
+using System.IO;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
+using Microsoft.VisualStudio.Modeling;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Utils
 {
-    using System.Diagnostics;
-    using System.IO;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
-    using Microsoft.VisualStudio.Modeling;
-
     internal static class ModelUtils
     {
         /// <summary>
@@ -96,7 +95,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Utils
                 }
             }
 
-            var dlg = new ExportDiagramDialog(modelName, diagram.DisplayNameAndType);
+            ExportDiagramDialog dlg = new ExportDiagramDialog(modelName, diagram.DisplayNameAndType);
             if (dlg.ShowModal() != true)
             {
                 return;
@@ -104,7 +103,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Utils
 
             // Create export options and use ExportManager to handle the export
             var options = dlg.CreateExportOptions();
-            var exportManager = new ExportManager();
+            ExportManager exportManager = new ExportManager();
             exportManager.Export(diagram, options);
         }
 
@@ -116,12 +115,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Utils
                 return false;
             }
 
-            var xref = ModelToDesignerModelXRef.GetModelToDesignerModelXRef(context);
+            ModelToDesignerModelXRef xref = ModelToDesignerModelXRef.GetModelToDesignerModelXRef(context);
             var modelItem = xref.GetExisting(elementToCheck);
             if (modelItem != null)
             {
-                string msg;
-                return EDMModelHelper.IsUniqueNameForExistingItem(modelItem, proposedName, true, out msg);
+                return EDMModelHelper.IsUniqueNameForExistingItem(modelItem, proposedName, true, out string msg);
             }
 
             return true;

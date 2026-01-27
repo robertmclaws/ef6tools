@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Collections.Generic;
-    using System.Data.Entity;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class MultiplicityDiscovererTests
     {
         [TestMethod]
         public void Discover_returns_configuration_when_many_to_many()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasMany(e => e.Entity2s).WithMany(e => e.Entity1s);
             modelBuilder.Entity<Entity1>().Ignore(e => e.Entity2);
             modelBuilder.Entity<Entity2>().Ignore(e => e.Entity1);
@@ -25,8 +25,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             var entityType = model.ConceptualModel.EntityTypes.First(e => e.Name == "Entity1");
             var navigationProperty = entityType.NavigationProperties.First(p => p.Name == "Entity2s");
 
-            bool isDefault;
-            var configuration = MultiplicityDiscoverer.Discover(navigationProperty, out isDefault);
+            var configuration = MultiplicityDiscoverer.Discover(navigationProperty, out bool isDefault);
 
             isDefault.Should().BeTrue();
             configuration.Should().NotBeNull();
@@ -41,15 +40,14 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_many_to_many_and_more_than_one_association()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasMany(e => e.Entity2s).WithMany(e => e.Entity1s);
             modelBuilder.Entity<Entity2>().Ignore(e => e.Entity1);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First(e => e.Name == "Entity1");
             var navigationProperty = entityType.NavigationProperties.First(p => p.Name == "Entity2s");
 
-            bool isDefault;
-            var configuration = MultiplicityDiscoverer.Discover(navigationProperty, out isDefault);
+            var configuration = MultiplicityDiscoverer.Discover(navigationProperty, out bool isDefault);
 
             isDefault.Should().BeFalse();
             configuration.Should().NotBeNull();
@@ -64,7 +62,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_required_to_optional()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasRequired(e => e.Entity2).WithOptional(e => e.Entity1);
             modelBuilder.Entity<Entity1>().Ignore(e => e.Entity2s);
             modelBuilder.Entity<Entity2>().Ignore(e => e.Entity1s);
@@ -72,8 +70,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             var entityType = model.ConceptualModel.EntityTypes.First(e => e.Name == "Entity1");
             var navigationProperty = entityType.NavigationProperties.First(p => p.Name == "Entity2");
 
-            bool isDefault;
-            var configuration = MultiplicityDiscoverer.Discover(navigationProperty, out isDefault);
+            var configuration = MultiplicityDiscoverer.Discover(navigationProperty, out bool isDefault);
 
             isDefault.Should().BeFalse();
             configuration.Should().NotBeNull();

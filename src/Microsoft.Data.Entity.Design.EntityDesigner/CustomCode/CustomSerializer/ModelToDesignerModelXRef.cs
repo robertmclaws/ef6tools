@@ -1,30 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.VisualStudio.Modeling;
+using Association = Microsoft.Data.Entity.Design.Model.Entity.Association;
+using EntityType = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.EntityType;
+using NavigationProperty = Microsoft.Data.Entity.Design.Model.Entity.NavigationProperty;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.VisualStudio.Modeling;
-    using Association = Microsoft.Data.Entity.Design.Model.Entity.Association;
-    using EntityType = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.EntityType;
-    using NavigationProperty = Microsoft.Data.Entity.Design.Model.Entity.NavigationProperty;
-
     internal class ModelToDesignerModelXRef : ContextItem
     {
         private readonly Dictionary<Partition, ModelToDesignerModelXRefItem> _globalMapModelAndViewModel =
-            new Dictionary<Partition, ModelToDesignerModelXRefItem>();
+            [];
 
         #region static methods
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static ModelElement CreateModelElementForEFObjectType(EFObject obj, Partition partition)
         {
             ModelElement modelElement = null;
@@ -65,8 +62,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
         {
             ModelElement modelElement = null;
             var t = obj.GetType();
-            var et1 = end1 as EntityType;
-            var et2 = end2 as EntityType;
+            EntityType et1 = end1 as EntityType;
+            EntityType et2 = end2 as EntityType;
             if (t == typeof(Association))
             {
                 Debug.Assert(et1 != null && et2 != null, "Unexpected end type for Association model element");
@@ -93,7 +90,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             return xref;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static ModelToDesignerModelXRefItem GetModelToDesignerModelXRefItem(EditingContext context, Partition partition)
         {
             var xref = GetModelToDesignerModelXRef(context);
@@ -171,7 +167,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             get { return typeof(ModelToDesignerModelXRef); }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal void Add(EFObject obj, ModelElement viewElement, EditingContext context)
         {
             if (_globalMapModelAndViewModel.ContainsKey(viewElement.Partition) == false)
@@ -193,7 +188,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 
         internal IList<ModelElement> GetExisting(EFObject obj)
         {
-            IList<ModelElement> list = new List<ModelElement>();
+            IList<ModelElement> list = [];
             foreach (var map in _globalMapModelAndViewModel.Values)
             {
                 var result = map.GetExisting(obj);
@@ -244,7 +239,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
         {
             get
             {
-                var objects = new List<ModelElement>();
+                List<ModelElement> objects = new List<ModelElement>();
                 foreach (var xrefItem in _globalMapModelAndViewModel.Values)
                 {
                     objects.AddRange(xrefItem.ReferencedViewElements);

@@ -1,37 +1,36 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Data.Core;
+using Microsoft.VisualStudio.DataTools.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VSDesigner.Data.Local;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Data.Entity.Core.EntityClient;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Xml;
+using Constants = EnvDTE.Constants;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Data.Core;
-    using Microsoft.VisualStudio.DataTools.Interop;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VSDesigner.Data.Local;
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Common;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using System.Text;
-    using System.Xml;
-    using Constants = EnvDTE.Constants;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     The Connection Manager allows interaction with App.Config and Web.Config. It stores a "project dictionary" where each bucket corresponds
     //     to a dictionary that associates entity container names with their corresponding connection strings, stored as
     //     ConnectionString objects. The dictionaries should mirror App.Config exactly.
     // </summary>
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal class ConnectionManager : IDisposable
     {
         #region Fields
@@ -86,7 +85,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
             internal string Text
             {
-                get { return _builder != null ? _builder.ConnectionString : null; }
+                get { return _builder?.ConnectionString; }
                 set { _builder.ConnectionString = value; }
             }
 
@@ -113,8 +112,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
             public override bool Equals(object obj)
             {
-                var connString = obj as ConnectionString;
-                if (connString == null)
+                if (obj is not ConnectionString connString)
                 {
                     return false;
                 }
@@ -148,7 +146,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal ConnectionManager()
         {
             lock (_hashSyncRoot)
@@ -191,7 +188,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     try
                     {
                         // since we started listening only after the package loaded, parse the first project's config.
-                        _connStringsByProjectHash = new Dictionary<Project, Dictionary<string, ConnectionString>>();
+                        _connStringsByProjectHash = [];
 
                         // we might have opened up a solution with multiple projects, so iterate through them, building
                         // our dictionary
@@ -262,7 +259,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 return;
             }
 
-            var configFileUtils = new ConfigFileUtils(project, PackageManager.Package);
+            ConfigFileUtils configFileUtils = new ConfigFileUtils(project, PackageManager.Package);
             if (createConfig)
             {
                 configFileUtils.GetOrCreateConfigFile();
@@ -273,10 +270,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             {
                 var xmlNodeList = configXmlDoc.SelectNodes(XpathConnectionStringsAddEntity);
 
-                var stringHash = new Dictionary<string, ConnectionString>();
+                Dictionary<string, ConnectionString> stringHash = new Dictionary<string, ConnectionString>();
                 foreach (XmlNode node in xmlNodeList)
                 {
-                    var connStringObj = new ConnectionString(node.Attributes.GetNamedItem(XmlAttrNameConnectionString).Value);
+                    ConnectionString connStringObj = new ConnectionString(node.Attributes.GetNamedItem(XmlAttrNameConnectionString).Value);
                     stringHash.Add(node.Attributes.GetNamedItem(XmlAttrNameName).Value, connStringObj);
                 }
 
@@ -300,9 +297,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             var suffix = 1;
 
             InitializeConnectionStringsHash();
-            Dictionary<string, ConnectionString> connStringsInProject;
             if (null != ConnStringsByProjectHash
-                && ConnStringsByProjectHash.TryGetValue(project, out connStringsInProject))
+                && ConnStringsByProjectHash.TryGetValue(project, out Dictionary<string, ConnectionString> connStringsInProject))
             {
                 // keep incrementing the suffix until the existing connection string names 
                 // does not contain the result
@@ -335,12 +331,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             InitializeConnectionStringsHash();
 
 
-            var configFileUtils = new ConfigFileUtils(project, PackageManager.Package);
+            ConfigFileUtils configFileUtils = new ConfigFileUtils(project, PackageManager.Package);
             configFileUtils.GetOrCreateConfigFile();
             var configXmlDoc = configFileUtils.LoadConfig();
 
-            Dictionary<string, ConnectionString> hash;
-            if (!ConnStringsByProjectHash.TryGetValue(project, out hash))
+            if (!ConnStringsByProjectHash.TryGetValue(project, out Dictionary<string, ConnectionString> hash))
             {
                 var s = String.Format(CultureInfo.CurrentCulture, Resources.ConnectionManager_GetConfigError);
                 VsUtils.LogOutputWindowPaneMessage(project, s);
@@ -422,7 +417,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 return null;
             }
 
-            var connStringsElement = (XmlElement)configXml.DocumentElement.SelectSingleNode("connectionStrings");
+            XmlElement connStringsElement = (XmlElement)configXml.DocumentElement.SelectSingleNode("connectionStrings");
             if (connStringsElement == null)
             {
                 connStringsElement = configXml.CreateElement("connectionStrings");
@@ -472,8 +467,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             var xmlNodeList = configXmlDoc.SelectNodes(XpathConnectionStringsAdd);
             foreach (XmlNode node in xmlNodeList)
             {
-                var e = node as XmlElement;
-                if (e != null)
+                if (node is XmlElement e)
                 {
                     var connectionString = e.GetAttribute(XmlAttrNameConnectionString);
                     if (null != connectionString)
@@ -571,10 +565,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             DesignerProperty mapProperty = null;
             if (designerRoot != null)
             {
-                DesignerInfo designerInfo;
-                if (designerRoot.TryGetDesignerInfo(ConnectionDesignerInfo.ElementName, out designerInfo))
+                if (designerRoot.TryGetDesignerInfo(ConnectionDesignerInfo.ElementName, out DesignerInfo designerInfo))
                 {
-                    var connectionDesignerInfo = designerInfo as ConnectionDesignerInfo;
+                    ConnectionDesignerInfo connectionDesignerInfo = designerInfo as ConnectionDesignerInfo;
                     Debug.Assert(
                         connectionDesignerInfo != null,
                         "We should have associated the ConnectionDesignerInfo with " + ConnectionDesignerInfo.ElementName);
@@ -599,7 +592,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             Func<string, IServiceProvider, ProjectItem> getProjectItemForDocument)
         {
             var unescapedArtifactPath = Uri.UnescapeDataString(filename);
-            var edmxFileInfo = new FileInfo(unescapedArtifactPath);
+            FileInfo edmxFileInfo = new FileInfo(unescapedArtifactPath);
             var modelName = Path.GetFileNameWithoutExtension(edmxFileInfo.FullName);
             var projectRootDirInfo = VsUtils.GetProjectRoot(project, serviceProvider);
             string relativeFolderPath;
@@ -618,7 +611,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 //       |__Model.edmx
                 // code below will produce "Folder2" path in the first step and "Folder1\Folder2" path in the second (and last) step
                 relativeFolderPath = "";
-                var parentItem = projectItem.Collection.Parent as ProjectItem;
+                ProjectItem parentItem = projectItem.Collection.Parent as ProjectItem;
                 while (parentItem != null)
                 {
                     relativeFolderPath = Path.Combine(parentItem.Name, relativeFolderPath);
@@ -674,7 +667,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
             else
             {
-                var md = new StringBuilder();
+                StringBuilder md = new StringBuilder();
                 var i = 0;
                 var metadataFileCount = metadataFiles.Count();
                 foreach (var f in metadataFiles)
@@ -687,33 +680,19 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     }
                     else if (applicationType == VisualStudioProjectSystem.Website)
                     {
-                        //
-                        // The 3.5 runtime's Build Provider will include the web site's virtual root in the resource name.  This can change when
-                        // a web app is deployed, so we must use res:\\* for the connection string when targeting netfx 3.5.
-                        // Note: For modern .NET projects, TargetNetFrameworkVersion returns null, so this check will not match.
-                        //
-                        var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(project, PackageManager.Package);
-                        if (targetNetFrameworkVersion != null &&
-                            targetNetFrameworkVersion == NetFrameworkVersioningHelper.NetFrameworkVersion3_5)
+                        md.Append(EmbedAsResourcePrefix);
+                        md.Append("/");
+
+                        if (f[0] == '.'
+                            && f[1] == Path.DirectorySeparatorChar)
                         {
-                            return EmbedAsResourcePrefix;
+                            var folderAndFile = f.Substring(2);
+                            md.Append(folderAndFile.Replace(Path.DirectorySeparatorChar, '.'));
                         }
                         else
                         {
-                            md.Append(EmbedAsResourcePrefix);
-                            md.Append("/");
-
-                            if (f[0] == '.'
-                                && f[1] == Path.DirectorySeparatorChar)
-                            {
-                                var folderAndFile = f.Substring(2);
-                                md.Append(folderAndFile.Replace(Path.DirectorySeparatorChar, '.'));
-                            }
-                            else
-                            {
-                                Debug.Fail("Unexpected start characters in metadata file");
-                                return EmbedAsResourcePrefix;
-                            }
+                            Debug.Fail("Unexpected start characters in metadata file");
+                            return EmbedAsResourcePrefix;
                         }
                     }
                     else
@@ -766,7 +745,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
 
             // Wrap the given sql connection string in a map connection string
-            var builder = new EntityConnectionStringBuilder
+            EntityConnectionStringBuilder builder = new EntityConnectionStringBuilder
             {
                 Provider = providerInvariantName,
                 ProviderConnectionString = sqlConnectionString,
@@ -814,7 +793,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
             else
             {
-                var connectionStringObj = new ConnectionString(entityConnectionString);
+                ConnectionString connectionStringObj = new ConnectionString(entityConnectionString);
                 AddConnectionString(project, entityContainerName, connectionStringObj);
             }
         }
@@ -851,7 +830,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             if (connectionStringAttr != null
                 && connectionNameAttr != null)
             {
-                var connStringObj = new ConnectionString(connectionStringAttr.Value);
+                ConnectionString connStringObj = new ConnectionString(connectionStringAttr.Value);
                 return (ConnStringsByProjectHash[project].ContainsKey(connectionNameAttr.Value)
                         && ConnStringsByProjectHash[project][connectionNameAttr.Value].Equals(connStringObj));
             }
@@ -873,7 +852,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 ExtractConnStringsIntoHash(project, true);
                 if (!ConnStringsByProjectHash.ContainsKey(project))
                 {
-                    ConnStringsByProjectHash[project] = new Dictionary<string, ConnectionString>();
+                    ConnStringsByProjectHash[project] = [];
                 }
 
                 // bug 556587: we need to delete the connection string from the hash if it is stale
@@ -962,7 +941,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         {
             var configXml = configFileUtils.LoadConfig();
 
-            var existingConnectionStrings = new Dictionary<string, string>();
+            Dictionary<string, string> existingConnectionStrings = new Dictionary<string, string>();
             if (configXml == null)
             {
                 // can be null if config does not exist in which case there are no connection strings
@@ -999,8 +978,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         //     without pinging the connection to see if the database supports SQL 90 or newer. This
         //     does not require a design-time connection.
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static string InjectEFAttributesIntoConnectionString(string sourceConnectionString, string providerInvariantName)
         {
             // if the provider connection string's provider property is "System.Data.SqlClient" or
@@ -1012,7 +989,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 return sourceConnectionString;
             }
 
-            var configFileConnectionBuilder = new DbConnectionStringBuilder();
+            DbConnectionStringBuilder configFileConnectionBuilder = new DbConnectionStringBuilder();
 
             try
             {
@@ -1024,8 +1001,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
 
             // add MARS property if it does not already exist
-            object marsValue;
-            if (!configFileConnectionBuilder.TryGetValue(XmlAttrNameMultipleActiveResultSets, out marsValue))
+            if (!configFileConnectionBuilder.TryGetValue(XmlAttrNameMultipleActiveResultSets, out object marsValue))
             {
                 configFileConnectionBuilder[XmlAttrNameMultipleActiveResultSets] = true.ToString();
             }
@@ -1048,7 +1024,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         // <param name="project">DTE Project that owns the .config file</param>
         // <param name="entityContainerName"></param>
         // <param name="newMetadata"></param>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         internal void UpdateMetadataName(Project project, string entityContainerName, string newMetadata)
         {
             if (project == null)
@@ -1095,7 +1070,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         // <param name="project">DTE Project that owns the .config file</param>
         // <param name="oldName"></param>
         // <param name="newName"></param>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         internal void UpdateEntityContainerName(Project project, string oldName, string newName)
         {
             if (null == project)
@@ -1121,11 +1095,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             lock (_hashSyncRoot)
             {
                 ExtractConnStringsIntoHash(project, true);
-                ConnectionString tempString = null;
 
                 // there definitely has to be a connection string keyed by the old entity container name.
                 if (ConnStringsByProjectHash.ContainsKey(project)
-                    && ConnStringsByProjectHash[project].TryGetValue(oldName, out tempString))
+                    && ConnStringsByProjectHash[project].TryGetValue(oldName, out ConnectionString tempString))
                 {
                     ConnStringsByProjectHash[project].Remove(oldName);
                     // if the user opens up a .config with connection strings that aren't being used, one of them
@@ -1156,13 +1129,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             lock (_hashSyncRoot)
             {
                 ExtractConnStringsIntoHash(project, true);
-                ConnectionString existingConnectionString = null;
 
                 // there definitely has to be a connection string keyed by the old entity container name.
                 if (ConnStringsByProjectHash.ContainsKey(project)
-                    && ConnStringsByProjectHash[project].TryGetValue(entityContainerName, out existingConnectionString))
+                    && ConnStringsByProjectHash[project].TryGetValue(entityContainerName, out ConnectionString existingConnectionString))
                 {
-                    var ecsb = new EntityConnectionStringBuilder();
+                    EntityConnectionStringBuilder ecsb = new EntityConnectionStringBuilder();
                     try
                     {
                         ecsb = new EntityConnectionStringBuilder(newConnectionString);
@@ -1184,7 +1156,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         // <summary>
         //     After removing a *.config file, the connection manager should clear the internal connection string hash table
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private int OnAfterRemoveFile(object sender, ModelChangeEventArgs args)
         {
             if (args.ProjectObj == null)
@@ -1282,7 +1253,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         //     After opening a project, we want to see if there is a .config file, parse it, and
         //     add the connection strings to our hash.
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private int OnAfterOpenProject(object sender, ModelChangeEventArgs args)
         {
             if (args.ProjectObj == null)
@@ -1321,9 +1291,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         //     any further changes will be validated against it (if the user edited the entity container name we
         //     wouldn't be able to find it until the user changes it back in the .config file)
         // </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsUIShell.RefreshPropertyBrowser(System.Int32)")]
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         private int OnAfterSaveFile(object sender, ModelChangeEventArgs args)
         {
             if (args.ProjectObj == null)
@@ -1341,15 +1308,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
             // we're only given a cookie into the RDT so we have to query it to get the filename
             var docTable = Services.IVsRunningDocumentTable;
-            uint rdtFlags, readLocks, editLocks, itemId;
             string fileName;
-            IVsHierarchy hierarchy;
             var docData = IntPtr.Zero;
 
             try
             {
                 hr = docTable.GetDocumentInfo(
-                    args.DocCookie, out rdtFlags, out readLocks, out editLocks, out fileName, out hierarchy, out itemId, out docData);
+                    args.DocCookie, out uint rdtFlags, out uint readLocks, out uint editLocks, out fileName, out IVsHierarchy hierarchy, out uint itemId, out docData);
             }
             finally
             {
@@ -1435,11 +1400,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     // does not have focus on it. This way, the read-only connection string in the property browser will be updated immediately.
                     if (connStringsUpdated)
                     {
-                        var uiShell = Services.ServiceProvider.GetService(typeof(IVsUIShell)) as IVsUIShell;
-                        if (uiShell != null)
-                        {
-                            uiShell.RefreshPropertyBrowser(0);
-                        }
+                        IVsUIShell uiShell = Services.ServiceProvider.GetService(typeof(IVsUIShell)) as IVsUIShell;
+                        uiShell?.RefreshPropertyBrowser(0);
                     }
                 }
             }
@@ -1454,10 +1416,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         // </summary>
         private int OnAfterEntityContainerNameChange(object sender, ModelChangeEventArgs args)
         {
-            if (_staleEntityContainerName == null)
-            {
-                _staleEntityContainerName = args.OldEntityContainerName;
-            }
+            _staleEntityContainerName ??= args.OldEntityContainerName;
             return VSConstants.S_OK;
         }
 
@@ -1508,10 +1467,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
             var translatedInvariantName = invariantName;
 
-            var providerMapper = serviceProvider.GetService(typeof(IDTAdoDotNetProviderMapper)) as IDTAdoDotNetProviderMapper;
-            var providerMapper2 = providerMapper as IDTAdoDotNetProviderMapper2;
+            IDTAdoDotNetProviderMapper providerMapper = serviceProvider.GetService(typeof(IDTAdoDotNetProviderMapper)) as IDTAdoDotNetProviderMapper;
 
-            if (providerMapper2 != null)
+            if (providerMapper is IDTAdoDotNetProviderMapper2 providerMapper2)
             {
                 if (fromDesignTime)
                 {
@@ -1560,7 +1518,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 return connectionString;
             }
 
-            var converter = (IConnectionStringConverterService)serviceProvider.GetService(typeof(IConnectionStringConverterService));
+            IConnectionStringConverterService converter = (IConnectionStringConverterService)serviceProvider.GetService(typeof(IConnectionStringConverterService));
             if (converter == null)
             {
                 return connectionString;
@@ -1616,7 +1574,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             Debug.Assert(serviceProvider != null, "serviceProvider must not be null");
             Debug.Assert(!string.IsNullOrWhiteSpace(invariantName), "Invalid invariant name");
 
-            var dataProviderManager = (IVsDataProviderManager)serviceProvider.GetService(typeof(IVsDataProviderManager));
+            IVsDataProviderManager dataProviderManager = (IVsDataProviderManager)serviceProvider.GetService(typeof(IVsDataProviderManager));
             Debug.Assert(dataProviderManager != null, "Could not find IVsDataProviderManager");
 
             return
@@ -1642,8 +1600,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
 
             var providerGuid = Guid.Empty;
-            var providerMapper = PackageManager.Package.GetService(typeof(IDTAdoDotNetProviderMapper)) as IDTAdoDotNetProviderMapper;
-            if (providerMapper != null)
+            if (PackageManager.Package.GetService(typeof(IDTAdoDotNetProviderMapper)) is IDTAdoDotNetProviderMapper providerMapper)
             {
                 providerGuid = providerMapper.MapInvariantNameToGuid(invariantName, connectionString, false /*fEncryptedString*/);
             }

@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Xml.Linq;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Command = Microsoft.Data.Entity.Design.Model.Commands.Command;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
-    using System.Xml.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Command = Microsoft.Data.Entity.Design.Model.Commands.Command;
-
     // <summary>
     //     Migrate diagrams node from EDMX file to a separate file.
     // </summary>
@@ -42,7 +42,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model.Commands
                 // - Remove all nodes under root node.
                 // - Create and add Designer node under root node.
                 // - Re-Add Diagrams node under Designer node.
-                var document = XDocument.Parse(_artifact.XDocument.ToString(), LoadOptions.PreserveWhitespace);
+                XDocument document = XDocument.Parse(_artifact.XDocument.ToString(), LoadOptions.PreserveWhitespace);
                 var rootDiagramsNode =
                     document.Descendants(XName.Get("Diagrams", SchemaManager.GetEDMXNamespaceName(_artifact.SchemaVersion)))
                         .FirstOrDefault();
@@ -53,7 +53,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model.Commands
                     // Remove any nodes under root.
                     document.Root.RemoveNodes();
                     // Create an empty Designer node.
-                    var element2 = new XElement(XName.Get("Designer", SchemaManager.GetEDMXNamespaceName(_artifact.SchemaVersion)));
+                    XElement element2 = new XElement(XName.Get("Designer", SchemaManager.GetEDMXNamespaceName(_artifact.SchemaVersion)));
                     element2.Add(rootDiagramsNode);
                     document.Root.Add(element2);
                     // Save the diagram file to disk.
@@ -76,7 +76,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model.Commands
 
         internal static void DoMigrate(CommandProcessorContext cpc, EntityDesignArtifact artifact)
         {
-            var xmlModelProvider = artifact.XmlModelProvider as VSXmlModelProvider;
+            VSXmlModelProvider xmlModelProvider = artifact.XmlModelProvider as VSXmlModelProvider;
             Debug.Assert(xmlModelProvider != null, "Artifact's model provider is not type of VSXmlModelProvider.");
             if ((xmlModelProvider != null)
                 && (xmlModelProvider.UndoManager != null))
@@ -85,13 +85,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model.Commands
                 try
                 {
                     // We need to temporarily disable the Undo Manager because this operation is not undoable.
-                    if (undoManager != null)
-                    {
-                        undoManager.Enable(0);
-                    }
+                    undoManager?.Enable(0);
 
-                    var command = new MigrateDiagramInformationCommand(artifact);
-                    var processor = new CommandProcessor(cpc, shouldNotifyObservers: false);
+                    MigrateDiagramInformationCommand command = new MigrateDiagramInformationCommand(artifact);
+                    CommandProcessor processor = new CommandProcessor(cpc, shouldNotifyObservers: false);
                     processor.EnqueueCommand(command);
                     processor.Invoke();
 
@@ -99,7 +96,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model.Commands
                     if (artifact.DiagramArtifact != null)
                     {
                         // Ensure that diagram file is added to the project.
-                        var service = PackageManager.Package.GetService(typeof(DTE)) as DTE;
+                        DTE service = PackageManager.Package.GetService(typeof(DTE)) as DTE;
                         service.ItemOperations.AddExistingItem(artifact.DiagramArtifact.Uri.LocalPath);
 
                         // Reload the artifacts.
@@ -109,18 +106,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model.Commands
                         // The code below ensures mapping window and model-browser window are refreshed.
                         Debug.Assert(
                             PackageManager.Package.DocumentFrameMgr != null, "Could not find the DocumentFrameMgr for this package");
-                        if (PackageManager.Package.DocumentFrameMgr != null)
-                        {
-                            PackageManager.Package.DocumentFrameMgr.SetCurrentContext(cpc.EditingContext);
-                        }
+                        PackageManager.Package.DocumentFrameMgr?.SetCurrentContext(cpc.EditingContext);
                     }
                 }
                 finally
                 {
-                    if (undoManager != null)
-                    {
-                        undoManager.Enable(1);
-                    }
+                    undoManager?.Enable(1);
                 }
             }
         }

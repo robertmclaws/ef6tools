@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.EntityClient;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class EntityStoreSchemaGeneratorDatabaseSchemaLoaderTests
     {
@@ -33,15 +33,14 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
                         "baseQuery",
                         "orderbyClause",
                         EntityStoreSchemaFilterObjectTypes.Table,
-                        new List<EntityStoreSchemaFilterEntry>
-                            {
+                        [
                                 new EntityStoreSchemaFilterEntry(
                                     "catalog",
                                     "schema",
                                     "name",
                                     EntityStoreSchemaFilterObjectTypes.Table,
                                     EntityStoreSchemaFilterEffect.Allow)
-                            },
+                            ],
                         new[] { "alias" }
                     );
 
@@ -54,7 +53,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         }
 
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
-        public void CreateFunctionDetailsCommand_sets_correct_query_for_target_schema_version()
+        public void CreateFunctionDetailsCommand_sets_correct_query_for_Version3()
         {
             var filters = Enumerable.Empty<EntityStoreSchemaFilterEntry>();
 
@@ -64,8 +63,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
                                                        .CreateFunctionDetailsCommand(Enumerable.Empty<EntityStoreSchemaFilterEntry>())
                                                        .CommandText;
 
-            getCommandText(EntityFrameworkVersion.Version1).Should().NotContain("sp.IsTvf");
-            getCommandText(EntityFrameworkVersion.Version2).Should().NotContain("sp.IsTvf");
+            // Version3 supports TVFs, so the query should contain IsTvf
             getCommandText(EntityFrameworkVersion.Version3).Should().Contain("sp.IsTvf");
         }
 
@@ -120,7 +118,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
         public void LoadRelationships_returns_sorted_relationships_details()
         {
-            var input =
+            List<object[]> input =
                 new List<object[]>
                     {
                         new object[] { "c1", "s1", "t1", "Id", "c2", "s2", "t2", "Id", 4, "relationship1", "4", false },
@@ -129,7 +127,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
                         new object[] { "c1", "s1", "t1", "Id", "c2", "s2", "t2", "Id", 1, "a-relationship", "2", false }
                     };
 
-            var loader =
+            EntityStoreSchemaGeneratorDatabaseSchemaLoaderFake loader =
                 new EntityStoreSchemaGeneratorDatabaseSchemaLoaderFake(
                     mockDataReaderFactory.CreateMockEntityCommand(input).Object);
 
@@ -159,7 +157,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod, Ignore("Type lacks parameterless constructor in locally built")]
         public void LoadFunctionDetails_returns_function_details()
         {
-            var input =
+            List<object[]> input =
                 new List<object[]>
                     {
                         new object[]
@@ -172,7 +170,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
                             }
                     };
 
-            var loader =
+            EntityStoreSchemaGeneratorDatabaseSchemaLoaderFake loader =
                 new EntityStoreSchemaGeneratorDatabaseSchemaLoaderFake(
                     mockDataReaderFactory.CreateMockEntityCommand(input).Object);
 
@@ -198,61 +196,56 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         {
             var tableCommand =
                 mockDataReaderFactory.CreateMockEntityCommand(
-                    new List<object[]>
-                        {
+                    [
                             new object[]
                                 {
                                     "catalog", "dbo", "table", "Id", 1, false, "int", 4, 0, 0, 0, true, true,
                                     true
                                 }
-                        });
+                        ]);
 
             var viewCommand =
                 mockDataReaderFactory.CreateMockEntityCommand(
-                    new List<object[]>
-                        {
+                    [
                             new object[]
                                 {
                                     "catalog", "dbo", "view", "Id", 1, false, "int", 4, 0, 0, 0, true, true,
                                     true
                                 }
-                        });
+                        ]);
 
             var relationshipCommand =
                 mockDataReaderFactory.CreateMockEntityCommand(
-                    new List<object[]>
-                        {
+                    [
                             new object[]
                                 {
                                     "catalog", "dbo", "source", "Id", "catalog", "schema", "target", "Id", 0, "relationship",
                                     "RelationshipId", false
                                 }
-                        });
+                        ]);
 
             var functionCommand =
                 mockDataReaderFactory.CreateMockEntityCommand(
-                    new List<object[]>
-                        {
+                    [
                             new object[]
                                 {
                                     DBNull.Value, "dbo", "f2", "int", 0, 1, 1, 1, 1, "Param", "nchar", "IN"
                                 }
-                        });
+                        ]);
 
             var tvfReturnTypeCommand =
                 mockDataReaderFactory.CreateMockEntityCommand(
-                    new List<object[]>
-                        {
+                    [
                             new object[]
                                 {
                                     "catalog", "dbo", "function", "Id", 1, false, "int", 4, 0, 0, 0, true, true, true
                                 }
-                        });
+                        ]);
 
             var commands = new[] { tableCommand, viewCommand, relationshipCommand, functionCommand, tvfReturnTypeCommand };
             var storeSchemaDetails =
                 new EntityStoreSchemaGeneratorDatabaseSchemaLoaderFake(commands.Select(c => c.Object).ToArray())
-                    .LoadStoreSchemaDetails(new List<EntityStoreSchemaFilterEntry>());
+                    .LoadStoreSchemaDetails([]);
 
             storeSchemaDetails.Should().NotBeNull();
             storeSchemaDetails.TableDetails.Single().TableName.Should().Be("table");
@@ -265,11 +258,11 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void LoadFunctionReturnTableDetails_not_invoked_for_pre_V3_target_schema()
         {
-            var mockEntityConnection = new Mock<EntityConnection>();
+            Mock<EntityConnection> mockEntityConnection = new Mock<EntityConnection>();
 
             foreach (var version in EntityFrameworkVersion.GetAllVersions())
             {
-                var mockLoader =
+                Mock<EntityStoreSchemaGeneratorDatabaseSchemaLoader> mockLoader =
                     new Mock<EntityStoreSchemaGeneratorDatabaseSchemaLoader>(
                         mockEntityConnection.Object, version, /*get app setting func*/null)
                     {
@@ -292,7 +285,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
                     l => l.LoadFunctionReturnTableDetails(It.IsAny<IEnumerable<EntityStoreSchemaFilterEntry>>()))
                     .Returns(Enumerable.Empty<TableDetailsRow>());
 
-                mockLoader.Object.LoadStoreSchemaDetails(new List<EntityStoreSchemaFilterEntry>());
+                mockLoader.Object.LoadStoreSchemaDetails([]);
 
                 mockLoader.Verify(
                     l => l.LoadTableDetails(It.IsAny<IEnumerable<EntityStoreSchemaFilterEntry>>()), Times.Once());
@@ -314,7 +307,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
 
         private void TableBasedLoadDetailsTestRunner(Func<EntityStoreSchemaGeneratorDatabaseSchemaLoader, IEnumerable<DataRow>> loadDetails)
         {
-            var input =
+            List<object[]> input =
                 new List<object[]>
                     {
                         new object[]
@@ -354,23 +347,23 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         private Mock<EntityConnection> GetMockEntityConnection(
             bool supportsParameterOptimizationInSchemaQueries)
         {
-            var mockProviderManifest = new Mock<DbProviderManifest>();
+            Mock<DbProviderManifest> mockProviderManifest = new Mock<DbProviderManifest>();
             mockProviderManifest
                 .Setup<bool>(pm => pm.SupportsParameterOptimizationInSchemaQueries())
                 .Returns(supportsParameterOptimizationInSchemaQueries);
 
-            var mockEntityContainer = new Mock<EntityContainer>("edm", DataSpace.CSpace);
-            var mockEdmModel = new Mock<EdmModel>(mockEntityContainer.Object, 3.0);
+            Mock<EntityContainer> mockEntityContainer = new Mock<EntityContainer>("edm", DataSpace.CSpace);
+            Mock<EdmModel> mockEdmModel = new Mock<EdmModel>(mockEntityContainer.Object, 3.0);
 
-            var mockStoreItemCollection = new Mock<StoreItemCollection>(mockEdmModel.Object);
+            Mock<StoreItemCollection> mockStoreItemCollection = new Mock<StoreItemCollection>(mockEdmModel.Object);
             mockStoreItemCollection
                 .SetupGet<DbProviderManifest>(p => p.ProviderManifest)
                 .Returns(mockProviderManifest.Object);
-            var mockMetadataWorkspace = new Mock<MetadataWorkspace>();
+            Mock<MetadataWorkspace> mockMetadataWorkspace = new Mock<MetadataWorkspace>();
             mockMetadataWorkspace
                 .Setup<ItemCollection>(mw => mw.GetItemCollection(DataSpace.SSpace))
                 .Returns(mockStoreItemCollection.Object);
-            var mockEntityConnection = new Mock<EntityConnection>();
+            Mock<EntityConnection> mockEntityConnection = new Mock<EntityConnection>();
             mockEntityConnection
                 .Setup<MetadataWorkspace>(ec => ec.GetMetadataWorkspace())
                 .Returns(mockMetadataWorkspace.Object);

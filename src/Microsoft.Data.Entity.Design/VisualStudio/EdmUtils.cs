@@ -1,32 +1,30 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using EntityModel = Microsoft.Data.Entity.Design.Model.Entity;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Xml;
+using System.Xml.Linq;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.Win32;
+using Command = Microsoft.Data.Entity.Design.Model.Commands.Command;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Activities.Validation;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Text;
-    using System.Xml;
-    using System.Xml.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.Win32;
-    using Command = Microsoft.Data.Entity.Design.Model.Commands.Command;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal static class EdmUtils
     {
         private static readonly string EdmxTemplate =
@@ -152,7 +150,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             var uniqueInteger = 1;
 
             // NumberFormatInfo below required for localization
-            var nfi = new NumberFormatInfo();
+            NumberFormatInfo nfi = new NumberFormatInfo();
             nfi.NumberGroupSeparator = string.Empty;
             while (existingNamespaces.Contains(uniqueNamespace))
             {
@@ -168,11 +166,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         {
             var projectRootFileInfo = VsUtils.GetProjectRoot(project, serviceProvider);
 
-            var relativePathsList = new List<string>(extensionsWithDots.Length);
+            List<string> relativePathsList = new List<string>(extensionsWithDots.Length);
             foreach (var extensionWithDot in extensionsWithDots)
             {
                 var fileName = modelRootName + extensionWithDot;
-                var folderPathDirectory = new DirectoryInfo(folderPath);
+                DirectoryInfo folderPathDirectory = new DirectoryInfo(folderPath);
                 var relativePath = GetRelativePath(folderPathDirectory, projectRootFileInfo);
                 relativePathsList.Add(relativePath + fileName);
             }
@@ -194,8 +192,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 throw new ArgumentException(Resources.ModelObjectItemWizard_CantBeRelative);
             }
 
-            var filePathParts = new LinkedList<DirectoryInfo>();
-            var directoryPathParts = new LinkedList<DirectoryInfo>();
+            LinkedList<DirectoryInfo> filePathParts = new LinkedList<DirectoryInfo>();
+            LinkedList<DirectoryInfo> directoryPathParts = new LinkedList<DirectoryInfo>();
 
             while (d != null
                    && !d.Equals(d.Root))
@@ -229,7 +227,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 }
             }
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.Append(".\\");
 
             // add in a "..\" for each directory part left in the "from" list
@@ -254,7 +252,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 return false;
             }
 
-            var fileInfo = new FileInfo(fileName);
+            FileInfo fileInfo = new FileInfo(fileName);
             if (!fileInfo.Exists)
             {
                 return false;
@@ -323,18 +321,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             // Get Project Design Time Assembly Resolution.
             // Don't call GetVsHierarchy(project) because it causes dependencies with EDM Package service provider.
             var hierarchy = VSHelpers.GetVsHierarchy(project, serviceProvider);
-            var dtar = hierarchy as IVsDesignTimeAssemblyResolution;
 
-            if (dtar != null)
+            if (hierarchy is IVsDesignTimeAssemblyResolution dtar)
             {
                 // There is a bug where the first time you call ResolveAssemblyPathInTargetFx, resolvedAssemblyPathCount is 0.
                 // So we are going to try 1 more time if the first call not successful.
                 for (var i = 0; i < 2; i++)
                 {
-                    var resolvedAssemblyPath = new VsResolvedAssemblyPath[1];
-                    uint resolvedAssemblyPathCount;
+                    VsResolvedAssemblyPath[] resolvedAssemblyPath = new VsResolvedAssemblyPath[1];
                     if (dtar.ResolveAssemblyPathInTargetFx(
-                        new string[1] { "System.Data.Entity" }, 1, resolvedAssemblyPath, out resolvedAssemblyPathCount) == VSConstants.S_OK)
+                        new string[1] { "System.Data.Entity" }, 1, resolvedAssemblyPath, out uint resolvedAssemblyPathCount) == VSConstants.S_OK)
                     {
                         if (resolvedAssemblyPathCount == 1)
                         {
@@ -347,11 +343,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             {
                 // Project Design Time Assembly Resolution is not found, try Global Design Time Assembly Resolution.
                 var targetFrameworkMoniker = VsUtils.GetTargetFrameworkMonikerForProject(project, serviceProvider);
-                var multiTargetingService =
+                IVsFrameworkMultiTargeting multiTargetingService =
                     Services.ServiceProvider.GetService(typeof(SVsFrameworkMultiTargeting)) as IVsFrameworkMultiTargeting;
 
-                string assemblyPath;
-                if (multiTargetingService.ResolveAssemblyPath("System.Data.Entity", targetFrameworkMoniker, out assemblyPath)
+                if (multiTargetingService.ResolveAssemblyPath("System.Data.Entity", targetFrameworkMoniker, out string assemblyPath)
                     == VSConstants.S_OK)
                 {
                     return Path.GetDirectoryName(assemblyPath);
@@ -458,8 +453,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         //     1. Check the project type, return immediately if project is misc project.
         //     2. Update the config file if needed
         // </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "databaseFile")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "newConnectionString")]
         internal static void SqlDatabaseFileUpgradeService_OnUpgradeProject(
             IVsHierarchy hierarchy, string databaseFile, string newConnectionString, IVsUpgradeLogger logger)
         {
@@ -475,15 +468,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     && !IsUsingIIS(project))
                 {
                     // update the config file as needed
-                    var configFileUtils = new ConfigFileUtils(project, PackageManager.Package);
+                    ConfigFileUtils configFileUtils = new ConfigFileUtils(project, PackageManager.Package);
                     UpdateConfigForSqlDbFileUpgrade(configFileUtils, project, logger);
                 }
             }
         }
 
         // internal for testing
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsUpgradeLogger.LogMessage(System.UInt32,System.String,System.String,System.String)")]
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal static void UpdateConfigForSqlDbFileUpgrade(ConfigFileUtils configFileUtils, Project project, IVsUpgradeLogger logger)
         {
             try
@@ -545,10 +536,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         internal static void ToggleEdmxItemCustomToolProperty(ProjectItem projectItem, bool isEnabled)
         {
             var prop = projectItem.Properties.Item("CustomTool");
-            if (prop != null)
-            {
-                prop.Value = isEnabled ? EntityModelCodeGenerator.CodeGenToolName : String.Empty;
-            }
+            prop?.Value = isEnabled ? EntityModelCodeGenerator.CodeGenToolName : String.Empty;
         }
 
         // <summary>
@@ -628,20 +616,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     if (vsRegistryRootKey != null)
                     {
                         var escherSettingsRegistryKey = vsRegistryRootKey.OpenSubKey(EscherSettingsRegistryPath, true);
-                        if (escherSettingsRegistryKey == null)
-                        {
-                            escherSettingsRegistryKey = vsRegistryRootKey.CreateSubKey(EscherSettingsRegistryPath);
-                        }
+                        escherSettingsRegistryKey ??= vsRegistryRootKey.CreateSubKey(EscherSettingsRegistryPath);
                         try
                         {
                             escherSettingsRegistryKey.SetValue(key, value);
                         }
                         finally
                         {
-                            if (escherSettingsRegistryKey != null)
-                            {
-                                escherSettingsRegistryKey.Dispose();
-                            }
+                            escherSettingsRegistryKey?.Dispose();
                         }
                     }
                 }
@@ -672,8 +654,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             return property.LocalName.Value;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "System.Boolean.TryParse(System.String,System.Boolean@)")]
         internal static bool ShouldShowByRefDebugHelpers()
         {
             var showByRefDebugHelpers = false;
@@ -691,8 +671,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         internal static XmlDocument SafeLoadXmlFromPath(string filePath, bool preserveWhitespace = false)
         {
-            var xmlDocument = new XmlDocument { PreserveWhitespace = preserveWhitespace };
-            using (var reader = XmlReader.Create(filePath))
+            XmlDocument xmlDocument = new XmlDocument { PreserveWhitespace = preserveWhitespace };
+            using (XmlReader reader = XmlReader.Create(filePath))
             {
                 xmlDocument.Load(reader);
             }
@@ -700,11 +680,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             return xmlDocument;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static XmlDocument SafeLoadXmlFromString(string xml, bool preserveWhitespace = false)
         {
-            var xmlDocument = new XmlDocument { PreserveWhitespace = preserveWhitespace };
-            using (var reader = XmlReader.Create(new StringReader(xml)))
+            XmlDocument xmlDocument = new XmlDocument { PreserveWhitespace = preserveWhitespace };
+            using (XmlReader reader = XmlReader.Create(new StringReader(xml)))
             {
                 xmlDocument.Load(reader);
             }

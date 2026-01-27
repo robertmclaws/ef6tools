@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-
     // <summary>
     //     This class represents the root node of the view model when we are mapping entities to functions,
     //     it points to a c-side entity and has a list of the functions that the entity is mapped to.
@@ -115,7 +115,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 
         protected override void OnChildDeleted(MappingEFElement melem)
         {
-            var child = melem as MappingModificationFunctionMapping;
+            MappingModificationFunctionMapping child = melem as MappingModificationFunctionMapping;
             Debug.Assert(child != null, "Unknown child being deleted");
             if (child != null)
             {

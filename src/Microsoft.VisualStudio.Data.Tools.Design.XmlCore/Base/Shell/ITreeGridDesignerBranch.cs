@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.ComponentModel.Design;
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System.ComponentModel.Design;
-    using System.Windows.Forms;
-
     /// <summary>
     ///     Interface that contains extra public APIs used by the
     ///     operation designer extensions to the VirtualTree control.

@@ -1,19 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Reflection;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Shell.Design;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Reflection;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell.Design;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal static class ConfigFileHelper
     {
         // <summary>
@@ -41,16 +42,15 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 var containingProject = settings.Project;
 
                 RegisterBuildProvidersInWebConfig(containingProject);
-            
+
                 // Ensure that System.Data.Entity.Design reference assemblies are added in the web.config.
                 // Get the correct assembly name based on target framework
-                var targetInfo = PackageManager.Package.GetService(typeof(SVsFrameworkMultiTargeting)) as IVsFrameworkMultiTargeting;
-                var openScope = PackageManager.Package.GetService(typeof(SVsSmartOpenScope)) as IVsSmartOpenScope;
+                IVsFrameworkMultiTargeting targetInfo = PackageManager.Package.GetService(typeof(SVsFrameworkMultiTargeting)) as IVsFrameworkMultiTargeting;
                 Debug.Assert(targetInfo != null, "Unable to get IVsFrameworkMultiTargeting from service provider");
-                if (targetInfo != null && openScope != null)
+                if (targetInfo != null && PackageManager.Package.GetService(typeof(SVsSmartOpenScope)) is IVsSmartOpenScope openScope)
                 {
                     var targetFrameworkMoniker = VsUtils.GetTargetFrameworkMonikerForProject(containingProject, PackageManager.Package);
-                    var provider = new VsTargetFrameworkProvider(targetInfo, targetFrameworkMoniker, openScope);
+                    VsTargetFrameworkProvider provider = new VsTargetFrameworkProvider(targetInfo, targetFrameworkMoniker, openScope);
                     var dataEntityDesignAssembly = provider.GetReflectionAssembly(new AssemblyName("System.Data.Entity.Design"));
                     if (dataEntityDesignAssembly != null)
                     {
@@ -60,13 +60,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static void UpdateConfig(ICollection<string> metadataFiles, ModelBuilderSettings settings)
         {
             var statusMessage =
                 VsUtils.IsWebProject(settings.VSApplicationType)
-                    ? String.Format(CultureInfo.CurrentCulture, Resources.Engine_WebConfigSuccess, VsUtils.WebConfigFileName)
-                    : String.Format(CultureInfo.CurrentCulture, Resources.Engine_AppConfigSuccess, VsUtils.AppConfigFileName);
+                    ? String.Format(CultureInfo.CurrentCulture, WizardResources.Engine_WebConfigSuccess, VsUtils.WebConfigFileName)
+                    : String.Format(CultureInfo.CurrentCulture, WizardResources.Engine_AppConfigSuccess, VsUtils.AppConfigFileName);
 
                 try
                 {
@@ -85,21 +84,20 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                         String.Format(
                             CultureInfo.CurrentCulture,
                             VsUtils.IsWebProject(settings.VSApplicationType)
-                                ? Resources.Engine_WebConfigException
-                                : Resources.Engine_AppConfigException,
+                                ? WizardResources.Engine_WebConfigException
+                                : WizardResources.Engine_AppConfigException,
                             e.Message);
                 }
                 VsUtils.LogOutputWindowPaneMessage(settings.Project, statusMessage);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static void RegisterBuildProvidersInWebConfig(Project project)
         {
             Debug.Assert(project != null, "project is null");
 
             var statusMessage = String.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.Engine_WebConfigBPSuccess,
+                    WizardResources.Engine_WebConfigBPSuccess,
                     VsUtils.WebConfigFileName);
 
             try
@@ -110,14 +108,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             {
                 statusMessage = String.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.Engine_WebConfigBPException,
+                    WizardResources.Engine_WebConfigBPException,
                     e.Message);
             }
 
             VsUtils.LogOutputWindowPaneMessage(project, statusMessage);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static void RegisterAssemblyInWebConfig(Project project, string assemblyFullName)
         {
             Debug.Assert(project != null, "project is null");
@@ -125,7 +122,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
             var statusMessage = String.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.Engine_WebConfigAssemblySuccess,
+                    WizardResources.Engine_WebConfigAssemblySuccess,
                     assemblyFullName);
 
             try
@@ -136,7 +133,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             {
                 statusMessage = String.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.Engine_WebConfigAssemblyException,
+                    WizardResources.Engine_WebConfigAssemblyException,
                     assemblyFullName, e.Message);
             }
 

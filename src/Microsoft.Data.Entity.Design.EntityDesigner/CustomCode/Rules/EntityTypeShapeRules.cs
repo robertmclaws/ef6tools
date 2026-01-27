@@ -1,21 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     [RuleOn(typeof(EntityTypeShape), FireTime = TimeToFire.TopLevelCommit)]
     internal sealed class EntityTypeShape_AddRule : AddRule
     {
         public override void ElementAdded(ElementAddedEventArgs e)
         {
-            var entityShape = e.ModelElement as EntityTypeShape;
+            EntityTypeShape entityShape = e.ModelElement as EntityTypeShape;
             Debug.Assert(entityShape != null);
 
             var tx = ModelUtils.GetCurrentTx(entityShape.Store);
@@ -34,7 +34,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
     {
         public override void ElementPropertyChanged(ElementPropertyChangedEventArgs e)
         {
-            var entityShape = e.ModelElement as EntityTypeShape;
+            EntityTypeShape entityShape = e.ModelElement as EntityTypeShape;
             Debug.Assert(entityShape != null);
 
             var tx = ModelUtils.GetCurrentTx(entityShape.Store);
@@ -44,8 +44,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
             {
                 if (e.DomainProperty.Id == NodeShape.AbsoluteBoundsDomainPropertyId)
                 {
-                    var oldAbsoluteBounds = (RectangleD)e.OldValue;
-                    var newAbsoluteBounds = (RectangleD)e.NewValue;
+                    RectangleD oldAbsoluteBounds = (RectangleD)e.OldValue;
+                    RectangleD newAbsoluteBounds = (RectangleD)e.NewValue;
 
                     // If only the height changed then we don't need to change anything in the model.
                     // Also check an edge case where the first entity shape added to the diagram is added at a location that is within the NestedShapeMargin
@@ -93,7 +93,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
         {
             base.ElementDeleted(e);
 
-            var entityShape = e.ModelElement as EntityTypeShape;
+            EntityTypeShape entityShape = e.ModelElement as EntityTypeShape;
             Debug.Assert(entityShape != null);
 
             var tx = ModelUtils.GetCurrentTx(entityShape.Store);

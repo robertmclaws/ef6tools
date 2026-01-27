@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-
     /// <summary>
     ///     Used as base class for the OnDelete, OnCopy etc actions
     /// </summary>
@@ -26,10 +26,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_actionAttr == null)
-                {
-                    _actionAttr = new ActionDefaultableValue(this);
-                }
+                _actionAttr ??= new ActionDefaultableValue(this);
                 return _actionAttr;
             }
         }

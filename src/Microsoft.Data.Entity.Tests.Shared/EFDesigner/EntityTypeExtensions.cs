@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Tests.Shared.EFDesigner
 {
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal static class EntityTypeExtensions
     {
         public static Property GetProperty(this EntityType entityType, string propertyName)

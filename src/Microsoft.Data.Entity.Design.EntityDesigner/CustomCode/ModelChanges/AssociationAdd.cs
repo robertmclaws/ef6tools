@@ -1,18 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Association = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.Association;
+using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Association = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.Association;
-    using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
-
     internal class AssociationAdd : ViewModelChange
     {
         private readonly Association _association;
@@ -22,7 +20,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
             _association = association;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override void Invoke(CommandProcessorContext cpc)
         {
             var viewModel = _association.GetRootViewModel();
@@ -30,11 +27,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var s = viewModel.ModelXRef.GetExisting(_association.SourceEntityType) as EntityType;
-                var t = viewModel.ModelXRef.GetExisting(_association.TargetEntityType) as EntityType;
+                EntityType s = viewModel.ModelXRef.GetExisting(_association.SourceEntityType) as EntityType;
+                EntityType t = viewModel.ModelXRef.GetExisting(_association.TargetEntityType) as EntityType;
 
-                var source = s as ConceptualEntityType;
-                var target = t as ConceptualEntityType;
+                ConceptualEntityType source = s as ConceptualEntityType;
+                ConceptualEntityType target = t as ConceptualEntityType;
 
                 Debug.Assert(s != null ? source != null : true, "EntityType is not ConceptualEntityType");
                 Debug.Assert(t != null ? target != null : true, "EntityType is not ConceptualEntityType");

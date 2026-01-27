@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System.Windows.Forms;
-
     /// <summary>
     ///     Interface that must be implemented to provide items for the tree. The IBranch
     ///     implementation owns all details of the items within its branch (test, glyphs, drag-drop and label edit

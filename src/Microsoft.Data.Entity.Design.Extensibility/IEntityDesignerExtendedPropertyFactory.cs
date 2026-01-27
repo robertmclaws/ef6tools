@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-
     /// <summary>Exposes methods for adding properties to objects that are visible to a user in the Entity Data Model Designer or the Model Browser.</summary>
     public interface IEntityDesignerExtendedProperty
     {
@@ -25,7 +25,6 @@ namespace Microsoft.Data.Entity.Design.Extensibility
         ///     user in a standard dialog box.
         ///     Extensions are responsible for localizing exception messages.
         /// </remarks>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "This is a desirable name")]
         object CreateProperty(XElement xElement, PropertyExtensionContext context);
     }
 }

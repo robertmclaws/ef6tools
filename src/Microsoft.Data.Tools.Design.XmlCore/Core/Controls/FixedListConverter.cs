@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.Core.Controls
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-
     /// <summary>
     ///     type converter for a fixed list of values (such as an Enum type)
     /// </summary>
@@ -61,8 +61,8 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
         {
             if (!_mappingDone)
             {
-                _valueToDisplayMapping = new SortedDictionary<T, string>();
-                _displayToValueMapping = new Dictionary<string, T>();
+                _valueToDisplayMapping = [];
+                _displayToValueMapping = [];
 
                 PopulateMapping();
                 _mappingDone = true;
@@ -105,8 +105,7 @@ namespace Microsoft.Data.Entity.Design.Core.Controls
 
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
-            var stringValue = value as string;
-            if (stringValue != null
+            if (value is string stringValue
                 && DisplayToValueMapping.ContainsKey(stringValue))
             {
                 return DisplayToValueMapping[stringValue];

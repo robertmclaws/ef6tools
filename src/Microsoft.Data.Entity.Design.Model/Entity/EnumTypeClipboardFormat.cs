@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-
     // Represents EnumType info stored in Clipboard
     [Serializable]
     internal class EnumTypeClipboardFormat : AnnotatableElementClipboardFormat

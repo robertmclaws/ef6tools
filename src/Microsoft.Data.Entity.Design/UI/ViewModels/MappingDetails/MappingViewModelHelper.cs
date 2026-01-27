@@ -1,45 +1,39 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Text;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class MappingViewModelHelper
     {
-        [SuppressMessage("Microsoft.Usage", "CA2208:InstantiateArgumentExceptionsCorrectly")]
         internal static MappingViewModel CreateViewModel(EditingContext ctx, EFObject selection)
         {
             // clear out the xref so its clean for this new view model
-            var xref = ModelToMappingModelXRef.GetModelToMappingModelXRef(ctx);
+            ModelToMappingModelXRef xref = ModelToMappingModelXRef.GetModelToMappingModelXRef(ctx);
             xref.Clear();
-
-            // we might be creating a view model for an entity or an association or a FunctionImport
-            var entityType = selection as EntityType;
-            var association = selection as Association;
-            var fim = selection as FunctionImportMapping;
 
             // create the view model root
             MappingEFElement root = null;
-            if (entityType != null)
+            if (selection is EntityType entityType)
             {
                 root = ModelToMappingModelXRef.GetNewOrExisting(ctx, entityType, null);
             }
-            else if (association != null)
+            else if (selection is Association association)
             {
                 root = ModelToMappingModelXRef.GetNewOrExisting(ctx, association, null);
             }
-            else if (fim != null)
+            else if (selection is FunctionImportMapping fim)
             {
                 root = ModelToMappingModelXRef.GetNewOrExisting(ctx, fim, null);
             }
@@ -51,7 +45,6 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
             return new MappingViewModel(ctx, root);
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         internal static bool CanEditMappingsForEntityType(ConceptualEntityType entityType, ref string errorMessage)
         {
             // make sure that the MSL is not using Ghost Nodes
@@ -95,7 +88,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
 
             // load a collection of this entity's keys
             var baseMostType = entityType.ResolvableTopMostBaseType;
-            var keys = new List<Property>();
+            List<Property> keys = new List<Property>();
             if (baseMostType.Key != null)
             {
                 foreach (var keyRef in baseMostType.Key.PropertyRefs)
@@ -203,8 +196,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
                 }
             }
 
-            string duplicatePropertyName;
-            if (!CheckDuplicateEntityProperty(entityType, out duplicatePropertyName))
+            if (!CheckDuplicateEntityProperty(entityType, out string duplicatePropertyName))
             {
                 errorMessage = string.Format(
                     CultureInfo.CurrentCulture, Resources.MappingDetails_ErrDupePropertyNames, entityType.LocalName.Value,
@@ -338,9 +330,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
 
             foreach (var associationEnd in association.AssociationEnds())
             {
-                string duplicatePropertyName;
                 var entityType = associationEnd.Type.Target;
-                if (!CheckDuplicateEntityProperty(entityType, out duplicatePropertyName))
+                if (!CheckDuplicateEntityProperty(entityType, out string duplicatePropertyName))
                 {
                     var errorMessage = String.Format(
                         CultureInfo.CurrentCulture, Resources.MappingDetails_ErrDuplicatePropertyNameForAssociationEndEntity,
@@ -365,7 +356,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
                 Resources.MappingDetails_ReferentialConstraintOnAssociation_PKToPK_ASM_Delete, StringComparison.Ordinal);
             var idx2 = errorMessage.IndexOf(
                 Resources.MappingDetails_ReferentialConstraintOnAssociation_PKToPK_ASM_Display, StringComparison.Ordinal);
-            var watermarkInfo = new TreeGridDesignerWatermarkInfo(
+            TreeGridDesignerWatermarkInfo watermarkInfo = new TreeGridDesignerWatermarkInfo(
                 errorMessage,
                 new TreeGridDesignerWatermarkInfo.LinkData(
                     idx1,
@@ -385,7 +376,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
                 Resources.MappingDetails_ReferentialConstraintOnAssociation_PKToPK_NoASM_Display);
             var idx1 = errorMessage.IndexOf(
                 Resources.MappingDetails_ReferentialConstraintOnAssociation_PKToPK_NoASM_Display, StringComparison.Ordinal);
-            var watermarkInfo = new TreeGridDesignerWatermarkInfo(
+            TreeGridDesignerWatermarkInfo watermarkInfo = new TreeGridDesignerWatermarkInfo(
                 errorMessage,
                 new TreeGridDesignerWatermarkInfo.LinkData(
                     idx1,
@@ -405,7 +396,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
                 Resources.MappingDetails_ReferentialConstraintOnAssociation_PKToFK_ASM_Delete, StringComparison.Ordinal);
             var idx2 = errorMessage.IndexOf(
                 Resources.MappingDetails_ReferentialConstraintOnAssociation_PKToFK_ASM_Display, StringComparison.Ordinal);
-            var watermarkInfo = new TreeGridDesignerWatermarkInfo(
+            TreeGridDesignerWatermarkInfo watermarkInfo = new TreeGridDesignerWatermarkInfo(
                 errorMessage,
                 new TreeGridDesignerWatermarkInfo.LinkData(
                     idx1,
@@ -419,7 +410,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
 
         private static TreeGridDesignerWatermarkInfo CreateWatermarkInfoPKToFKRC_NoASM()
         {
-            var watermarkInfo = new TreeGridDesignerWatermarkInfo(
+            TreeGridDesignerWatermarkInfo watermarkInfo = new TreeGridDesignerWatermarkInfo(
                 Resources.MappingDetails_ReferentialConstraintOnAssociation_PKToFK_NoASM);
             return watermarkInfo;
         }
@@ -466,7 +457,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
             }
 
             // 7. ensure that ETMs only have one MappingFragment for a given table
-            var mappedStorageEntitySets = new HashSet<EntitySet>();
+            HashSet<EntitySet> mappedStorageEntitySets = new HashSet<EntitySet>();
             foreach (var fragment in etm.MappingFragments())
             {
                 if (fragment.StoreEntitySet.Target != null)
@@ -517,14 +508,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
             // but we may not have run validation yet and it will also confuse the
             // drop-downs for the MappingDetail window when it doesn't know which of the
             // repeated properties to put in the drop-down
-            var propertyNames = new HashSet<string>();
-            var dupePropertyNamesForErrorMsg = new SortedList<string, int>(); // used for error msg only, int is ignored
+            HashSet<string> propertyNames = new HashSet<string>();
+            SortedList<string, int> dupePropertyNamesForErrorMsg = new SortedList<string, int>(); // used for error msg only, int is ignored
             var type = entityType;
             duplicatePropertyName = String.Empty;
 
             IEnumerable<Property> allProps;
-            var cet = type as ConceptualEntityType;
-            if (cet != null)
+            if (type is ConceptualEntityType cet)
             {
                 allProps = cet.SafeInheritedAndDeclaredProperties;
             }
@@ -552,7 +542,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
 
             if (dupePropertyNamesForErrorMsg.Count > 0)
             {
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 var first = true;
                 foreach (var propName in dupePropertyNamesForErrorMsg.Keys)
                 {

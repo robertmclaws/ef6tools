@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class DeletePropertyCommand : DeleteEFElementCommand
     {
         internal string DeletedPropertyOwningEntityName { get; private set; }
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             get
             {
-                var elem = EFElement as Property;
+                Property elem = EFElement as Property;
                 Debug.Assert(elem != null, "underlying element does not exist or is not a Property");
                 if (elem == null)
                 {
@@ -50,7 +50,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         private void SaveDeletedInformation()
         {
-            DeletedPropertyOwningEntityName = (Property.EntityType == null ? null : Property.EntityType.Name.Value);
+            DeletedPropertyOwningEntityName = (Property.EntityType?.Name.Value);
             DeletedPropertyName = Property.Name.Value;
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 // Remove PropertyRef in Key for this property
                 // Only invoke that for Entity property
-                var setKey = new SetKeyPropertyCommand(Property, false, true);
+                SetKeyPropertyCommand setKey = new SetKeyPropertyCommand(Property, false, true);
                 CommandProcessor.InvokeSingleCommand(cpc, setKey);
             }
             base.PreInvoke(cpc);
@@ -86,14 +86,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             foreach (var antiDep in Property.GetAntiDependenciesOfType<EFElement>())
             {
                 // if this is a property in a dependent end of a ref constraint, we don't delete it
-                var pref = antiDep as PropertyRef;
-                if (pref != null)
+                if (antiDep is PropertyRef pref)
                 {
-                    var role = pref.Parent as ReferentialConstraintRole;
-                    if (role != null)
+                    if (pref.Parent is ReferentialConstraintRole role)
                     {
-                        var rc = role.Parent as ReferentialConstraint;
-                        if (rc != null
+                        if (role.Parent is ReferentialConstraint rc
                             && rc.Dependent == role)
                         {
                             // property ref on a dependent end, don't delete it

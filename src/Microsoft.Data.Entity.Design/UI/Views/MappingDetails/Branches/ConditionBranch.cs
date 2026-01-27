@@ -1,14 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     // <summary>
     //     This branch displays all of the conditions in for a table/entity mapping.  It also displays a
     //     creator node so that users can add new conditions.
@@ -35,8 +36,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                 return false;
             }
 
-            var mappingStorageEntityType = component as MappingStorageEntityType;
-            if (mappingStorageEntityType != null)
+            if (component is MappingStorageEntityType mappingStorageEntityType)
             {
                 _mappingStorageEntityType = mappingStorageEntityType;
             }
@@ -49,10 +49,9 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
             return _mappingStorageEntityType.Children[index];
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override object GetCreatorElement()
         {
-            var mc = new MappingCondition(null, null, _mappingStorageEntityType);
+            MappingCondition mc = new MappingCondition(null, null, _mappingStorageEntityType);
             return mc;
         }
 
@@ -86,7 +85,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 
         // Note: index is the index number of which Condition we are creating
         // i.e. if this is the n-th Condition, index will be n-1
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override LabelEditResult OnCreatorNodeEditCommitted(int index, object value, int insertIndex)
         {
             var columnName = value as string;
@@ -103,7 +101,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                     Debug.Assert(treeGridColumn != null, "First TreeGridColumn is null");
                     if (treeGridColumn != null)
                     {
-                        var mc = new MappingCondition(_mappingStorageEntityType.Context, null, _mappingStorageEntityType);
+                        MappingCondition mc = new MappingCondition(_mappingStorageEntityType.Context, null, _mappingStorageEntityType);
                         var lovElement = mc.FindMappingLovElement(columnName, ListOfValuesCollection.FirstColumn);
 
                         // if lovElement is LovEmptyPlaceHolder then user is clicking off the 'Empty'
@@ -133,8 +131,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
             if (column == 2)
             {
                 // if the value of condition is empty string we want to show gray text "<Emtpy String>" instead
-                var mc = GetElement(row) as MappingCondition;
-                if (mc != null
+                if (GetElement(row) is MappingCondition mc
                     && mc.IsValueEmptyString)
                 {
                     data.GrayText = true;

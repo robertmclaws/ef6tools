@@ -1,18 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.TemplateWizard;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using EnvDTE;
-    using EnvDTE80;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.TemplateWizard;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -87,7 +88,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
         {
             Project project = null;
 
-            var dte = automationObject as DTE2;
+            DTE2 dte = automationObject as DTE2;
 
             if (EdmxUri == null)
             {
@@ -114,7 +115,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 
                     if (editingContextMgr.DoesContextExist(EdmxUri))
                     {
-                        var cpc = new CommandProcessorContext(
+                        CommandProcessorContext cpc = new CommandProcessorContext(
                             editingContextMgr.GetNewOrExistingContext(EdmxUri), EfiTransactionOriginator.AddNewArtifactGenerationItemId,
                             Resources.Tx_SetCodeGenerationStrategy);
                         var cmd = EdmUtils.SetCodeGenStrategyToNoneCommand(cpc.Artifact);
@@ -142,7 +143,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                     //    '- FooFolder
                     //          '- Model.edmx (linked outside the project)
                     //          '- Model.tt <-- we want the .tt file here and the path in the template is relative to this location.
-                    var parentItem = artifactProjectItem.Collection.Parent as ProjectItem;
+                    ProjectItem parentItem = artifactProjectItem.Collection.Parent as ProjectItem;
                     var relativeProjectItemParentDir = String.Empty;
                     while (parentItem != null)
                     {
@@ -157,8 +158,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 
                         // Now we determine the relative path between the folder in the project that contains the ProjectItem and the actual path
                         // of the artifact. 
-                        var artifactParentDirInfo = new DirectoryInfo(Path.GetDirectoryName(EdmxUri.LocalPath));
-                        var absoluteProjectItemParentDirInfo = new DirectoryInfo(absoluteProjectItemParentDir);
+                        DirectoryInfo artifactParentDirInfo = new DirectoryInfo(Path.GetDirectoryName(EdmxUri.LocalPath));
+                        DirectoryInfo absoluteProjectItemParentDirInfo = new DirectoryInfo(absoluteProjectItemParentDir);
                         var relativeDirPath = EdmUtils.GetRelativePath(artifactParentDirInfo, absoluteProjectItemParentDirInfo);
                         var fileName = Path.GetFileName(EdmxUri.LocalPath);
                         edmxFilePathInTemplate = Path.Combine(relativeDirPath, fileName);
@@ -166,7 +167,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                 }
                 else
                 {
-                    var fi = new FileInfo(EdmxUri.LocalPath);
+                    FileInfo fi = new FileInfo(EdmxUri.LocalPath);
                     edmxFilePathInTemplate = fi.Name;
                 }
 

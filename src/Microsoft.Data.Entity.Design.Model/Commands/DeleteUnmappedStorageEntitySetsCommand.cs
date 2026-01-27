@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Deletes any Storage EntitySets which are not mapped to
     ///     anything in the MSL. Then deletes any Storage EntityTypes
@@ -35,15 +35,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // Note: have to convert to array first to prevent exceptions due to
             // editing the collection while iterating over it
             var entitySets = _entitySets.ToArray();
-            var entityTypesList = new List<StorageEntityType>();
+            List<StorageEntityType> entityTypesList = new List<StorageEntityType>();
             foreach (var entitySet in entitySets)
             {
                 // find any EntityType which is referenced by this EntitySet
                 if (null != entitySet.EntityType
                     && null != entitySet.EntityType.Target)
                 {
-                    var et = entitySet.EntityType.Target as StorageEntityType;
-                    if (null != et)
+                    if (entitySet.EntityType.Target is StorageEntityType et)
                     {
                         entityTypesList.Add(et);
                     }
@@ -72,15 +71,15 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// </returns>
         internal static ICollection<StorageEntitySet> UnmappedStorageEntitySetsIfDelete(ICollection<EFElement> elementsToBeDeleted)
         {
-            var unmappedStorageEntitySets = new HashSet<StorageEntitySet>();
+            HashSet<StorageEntitySet> unmappedStorageEntitySets = new HashSet<StorageEntitySet>();
             if (null == elementsToBeDeleted)
             {
                 Debug.Fail("elementsToBeDeleted should not be null");
                 return unmappedStorageEntitySets;
             }
 
-            var allCSideObjectsThatWouldBeDeleted = new HashSet<EFObject>();
-            var storageEntitySetsAtRiskOfDeletion = new HashSet<StorageEntitySet>();
+            HashSet<EFObject> allCSideObjectsThatWouldBeDeleted = new HashSet<EFObject>();
+            HashSet<StorageEntitySet> storageEntitySetsAtRiskOfDeletion = new HashSet<StorageEntitySet>();
             foreach (var elementToBeDeleted in elementsToBeDeleted)
             {
                 // construct the list of objects on the C-side that would be deleted if cetToBeDeleted was deleted
@@ -128,13 +127,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         // elementToBeDeleted were to be deleted (C-side EntityTypes and Associations only)
         private static IEnumerable<EFObject> ConceptualObjectsToBeDeleted(EFElement elementToBeDeleted)
         {
-            var cSideObjectsThatWouldBeDeleted = new HashSet<EFObject>();
-
-            var cetToBeDeleted = elementToBeDeleted as ConceptualEntityType;
-            var assocToBeDeleted = elementToBeDeleted as Association;
+            HashSet<EFObject> cSideObjectsThatWouldBeDeleted = new HashSet<EFObject>();
 
             // 
-            if (null != cetToBeDeleted)
+            if (elementToBeDeleted is ConceptualEntityType cetToBeDeleted)
             {
                 // add the C-side EntityType itself
                 cSideObjectsThatWouldBeDeleted.Add(cetToBeDeleted);
@@ -153,7 +149,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 }
             }
 
-            if (null != assocToBeDeleted
+            if (elementToBeDeleted is Association assocToBeDeleted
                 && assocToBeDeleted.EntityModel.IsCSDL)
             {
                 // add the C-side Association itself
@@ -171,7 +167,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         private static HashSet<StorageEntitySet> FindMappedStorageEntitySets(
             IEnumerable<EFObject> cSideObjectsThatWouldBeDeleted)
         {
-            var storageEntitySetsAtRiskOfDeletion = new HashSet<StorageEntitySet>();
+            HashSet<StorageEntitySet> storageEntitySetsAtRiskOfDeletion = new HashSet<StorageEntitySet>();
             if (null == cSideObjectsThatWouldBeDeleted)
             {
                 Debug.Fail("cSideObjectsThatWouldBeDeleted must not be null");
@@ -179,25 +175,22 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // find the mappings for the C-side EntityType & Associations & AssociationSets
-            var mappingFragments = new HashSet<MappingFragment>();
-            var assocSetMappings = new HashSet<AssociationSetMapping>();
+            HashSet<MappingFragment> mappingFragments = new HashSet<MappingFragment>();
+            HashSet<AssociationSetMapping> assocSetMappings = new HashSet<AssociationSetMapping>();
             foreach (var cSideObject in cSideObjectsThatWouldBeDeleted)
             {
-                var cet = cSideObject as ConceptualEntityType;
-                var assoc = cSideObject as Association;
-                var assocSet = cSideObject as AssociationSet;
-                if (null != cet)
+                if (cSideObject is ConceptualEntityType cet)
                 {
                     foreach (var entityTypeMapping in cet.GetAntiDependenciesOfType<EntityTypeMapping>())
                     {
                         mappingFragments.UnionWith(entityTypeMapping.MappingFragments());
                     }
                 }
-                else if (null != assoc)
+                else if (cSideObject is Association assoc)
                 {
                     assocSetMappings.UnionWith(assoc.GetAntiDependenciesOfType<AssociationSetMapping>());
                 }
-                else if (null != assocSet)
+                else if (cSideObject is AssociationSet assocSet)
                 {
                     assocSetMappings.UnionWith(assocSet.GetAntiDependenciesOfType<AssociationSetMapping>());
                 }
@@ -210,8 +203,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 if (null != mf.StoreEntitySet
                     && null != mf.StoreEntitySet.Target)
                 {
-                    var ses = mf.StoreEntitySet.Target as StorageEntitySet;
-                    if (null != ses)
+                    if (mf.StoreEntitySet.Target is StorageEntitySet ses)
                     {
                         storageEntitySetsAtRiskOfDeletion.Add(ses);
                     }
@@ -222,8 +214,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 if (null != asm.StoreEntitySet
                     && null != asm.StoreEntitySet.Target)
                 {
-                    var ses = asm.StoreEntitySet.Target as StorageEntitySet;
-                    if (null != ses)
+                    if (asm.StoreEntitySet.Target is StorageEntitySet ses)
                     {
                         storageEntitySetsAtRiskOfDeletion.Add(ses);
                     }
@@ -237,7 +228,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         // to the passed in StorageEntitySet
         private static HashSet<EFObject> FindMappedConceptualObjects(StorageEntitySet storageEntitySet)
         {
-            var mappedConceptualObjects = new HashSet<EFObject>();
+            HashSet<EFObject> mappedConceptualObjects = new HashSet<EFObject>();
             if (null == storageEntitySet)
             {
                 Debug.Fail("storageEntitySet must not be null");
@@ -256,8 +247,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 {
                     foreach (var binding in etm.TypeName.Bindings)
                     {
-                        var et = binding.Target as ConceptualEntityType;
-                        if (null != et)
+                        if (binding.Target is ConceptualEntityType et)
                         {
                             mappedConceptualObjects.Add(et);
                             foreach (var es in et.GetAntiDependenciesOfType<ConceptualEntitySet>())

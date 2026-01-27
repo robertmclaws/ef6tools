@@ -1,14 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Globalization;
+using System.Xml;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System.Globalization;
-    using System.Xml;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
+    /// <summary>
+    ///     Tests for UseStrongSpatialTypesHandler.
+    ///     Note: Only Version3 (EF6) is now supported as a target. V1/V2 downgrade tests have been removed.
+    /// </summary>
     [TestClass]
     public class UseStrongSpatialTypesHandlerTests
     {
@@ -40,37 +44,6 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
   </edmx:Runtime>
 </edmx:Edmx>";
 
-        private const string UseStrongSpatialTypesFragment =
-            @"annotation:UseStrongSpatialTypes=""false"" xmlns:annotation=""http://schemas.microsoft.com/ado/2009/02/edm/annotation""";
-
-        private readonly string V1EdmxWithUseStrongSpatialTypes =
-            string.Format(
-                CultureInfo.InvariantCulture,
-                EdmxTemplate,
-                new[]
-                    {
-                        "1.0",
-                        SchemaManager.GetEDMXNamespaceName(EntityFrameworkVersion.Version1),
-                        SchemaManager.GetSSDLNamespaceName(EntityFrameworkVersion.Version1),
-                        SchemaManager.GetCSDLNamespaceName(EntityFrameworkVersion.Version1),
-                        UseStrongSpatialTypesFragment,
-                        SchemaManager.GetMSLNamespaceName(EntityFrameworkVersion.Version1)
-                    });
-
-        private readonly string V2EdmxWithUseStrongSpatialTypes =
-            string.Format(
-                CultureInfo.InvariantCulture,
-                EdmxTemplate,
-                new[]
-                    {
-                        "2.0",
-                        SchemaManager.GetEDMXNamespaceName(EntityFrameworkVersion.Version2),
-                        SchemaManager.GetSSDLNamespaceName(EntityFrameworkVersion.Version2),
-                        SchemaManager.GetCSDLNamespaceName(EntityFrameworkVersion.Version2),
-                        UseStrongSpatialTypesFragment,
-                        SchemaManager.GetMSLNamespaceName(EntityFrameworkVersion.Version2)
-                    });
-
         private readonly string V3EdmxWithoutUseStrongSpatialTypes =
             string.Format(
                 CultureInfo.InvariantCulture,
@@ -86,47 +59,17 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
                     });
 
         [TestMethod]
-        public void HandleConversion_Targeting_EntityFramework_V1_Removes_UseStrongSpatialTypes_Attribute()
-        {
-            var inputDoc = LoadEdmx(V1EdmxWithUseStrongSpatialTypes);
-            var handler = new UseStrongSpatialTypesHandler(EntityFrameworkVersion.Version1);
-            var resultDoc = handler.HandleConversion(inputDoc);
-            var nsmgr = SchemaManager.GetEdmxNamespaceManager(resultDoc.NameTable, EntityFrameworkVersion.Version1);
-            nsmgr.AddNamespace("annotation", SchemaManager.GetAnnotationNamespaceName());
-            var useStrongSpatialTypeAttr =
-                (XmlAttribute)
-                resultDoc.SelectSingleNode(
-                    "/edmx:Edmx/edmx:Runtime/edmx:ConceptualModels/csdl:Schema/@annotation:UseStrongSpatialTypes", nsmgr);
-            useStrongSpatialTypeAttr.Should().BeNull();
-        }
-
-        [TestMethod]
-        public void HandleConversion_Targeting_EntityFramework_V2_Removes_UseStrongSpatialTypes_Attribute()
-        {
-            var inputDoc = LoadEdmx(V2EdmxWithUseStrongSpatialTypes);
-            var handler = new UseStrongSpatialTypesHandler(EntityFrameworkVersion.Version2);
-            var resultDoc = handler.HandleConversion(inputDoc);
-            var nsmgr = SchemaManager.GetEdmxNamespaceManager(resultDoc.NameTable, EntityFrameworkVersion.Version2);
-            nsmgr.AddNamespace("annotation", SchemaManager.GetAnnotationNamespaceName());
-            var useStrongSpatialTypeAttr =
-                (XmlAttribute)
-                resultDoc.SelectSingleNode(
-                    "/edmx:Edmx/edmx:Runtime/edmx:ConceptualModels/csdl:Schema/@annotation:UseStrongSpatialTypes", nsmgr);
-            useStrongSpatialTypeAttr.Should().BeNull();
-        }
-
-        [TestMethod]
         public void HandleConversion_Targeting_EntityFramework_V3_Inserts_UseStrongSpatialTypes_Attribute()
         {
             var inputDoc = LoadEdmx(V3EdmxWithoutUseStrongSpatialTypes);
-            var handler = new UseStrongSpatialTypesHandler(EntityFrameworkVersion.Version3);
+            UseStrongSpatialTypesHandler handler = new UseStrongSpatialTypesHandler(EntityFrameworkVersion.Version3);
             var resultDoc = handler.HandleConversion(inputDoc);
             var nsmgr = SchemaManager.GetEdmxNamespaceManager(resultDoc.NameTable, EntityFrameworkVersion.Version3);
             nsmgr.AddNamespace("annotation", SchemaManager.GetAnnotationNamespaceName());
 
-            var schemaElement = (XmlElement)resultDoc.SelectSingleNode("/edmx:Edmx/edmx:Runtime/edmx:ConceptualModels/csdl:Schema", nsmgr);
+            XmlElement schemaElement = (XmlElement)resultDoc.SelectSingleNode("/edmx:Edmx/edmx:Runtime/edmx:ConceptualModels/csdl:Schema", nsmgr);
             schemaElement.Attributes["annotation", "http://www.w3.org/2000/xmlns/"].Should().NotBeNull();
-            var useStrongSpatialTypeAttr =
+            XmlAttribute useStrongSpatialTypeAttr =
                 (XmlAttribute)
                 resultDoc.SelectSingleNode(
                     "/edmx:Edmx/edmx:Runtime/edmx:ConceptualModels/csdl:Schema/@annotation:UseStrongSpatialTypes", nsmgr);
@@ -135,7 +78,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
 
         private static XmlDocument LoadEdmx(string edmx)
         {
-            var doc = new XmlDocument();
+            XmlDocument doc = new XmlDocument();
             doc.LoadXml(edmx);
             return doc;
         }

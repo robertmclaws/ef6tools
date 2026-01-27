@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Linq;
+using System.Text;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade.Metadata;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Linq;
-    using System.Text;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade.Metadata;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class StoreItemCollectionExtensionsTests
     {
@@ -82,7 +82,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
         public void EntityType_used_to_infere_schema_name()
         {
             var storeItemCollection = Utils.CreateStoreItemCollection(Ssdl);
-            var serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection));
+            XDocument serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection));
 
             ((string)serializedSsdl.Root.Attribute("Namespace")).Should().Be("NorthwindEF5Model.Store");
         }
@@ -91,7 +91,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
         public void Custom_schema_name_written_if_provided_and_no_entity_types_in_item_collection()
         {
             var storeItemCollection = Utils.CreateStoreItemCollection(string.Format(SsdlTemplate, SchemaVersions.Last()));
-            var serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection, "MyOwnSchema"));
+            XDocument serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection, "MyOwnSchema"));
 
             ((string)serializedSsdl.Root.Attribute("Namespace")).Should().Be("MyOwnSchema");
         }
@@ -100,7 +100,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
         public void Schema_name_infered_from_EntityType_win_with_custom_schema_name()
         {
             var storeItemCollection = Utils.CreateStoreItemCollection(Ssdl);
-            var serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection, "MyOwnSchema"));
+            XDocument serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection, "MyOwnSchema"));
 
             ((string)serializedSsdl.Root.Attribute("Namespace")).Should().Be("NorthwindEF5Model.Store");
         }
@@ -109,7 +109,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
         public void Container_name_used_to_create_schema_name_when_no_entity_types_present_and_schema_name_not_provided()
         {
             var storeItemCollection = Utils.CreateStoreItemCollection(string.Format(SsdlTemplate, SchemaVersions.Last()));
-            var serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection));
+            XDocument serializedSsdl = XDocument.Parse(StoreItemCollectionToString(storeItemCollection));
 
             ((string)serializedSsdl.Root.Attribute("Namespace")).Should().Be("Model.Store");
         }
@@ -128,9 +128,9 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.Metadata
 
         private static string StoreItemCollectionToString(StoreItemCollection storeItemCollection, string schemaNamespace = null)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
-            using (var writer = XmlWriter.Create(sb))
+            using (XmlWriter writer = XmlWriter.Create(sb))
             {
                 storeItemCollection.WriteSsdl(writer, schemaNamespace);
             }

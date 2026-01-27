@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using EnvDTE;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System.Collections.Generic;
-    using EnvDTE;
-
     internal class AggregateProjectTypeGuidCache
     {
         private readonly Dictionary<Project, string> _cache;
 
         internal AggregateProjectTypeGuidCache()
         {
-            _cache = new Dictionary<Project, string>();
+            _cache = [];
         }
 
         internal void Add(Project project, string guids)

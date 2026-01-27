@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using System.Xml;
+using EnvDTE;
+using Microsoft.VSDesigner.Data;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+using Microsoft.VisualStudio.Data.Core;
+using Microsoft.VisualStudio.Data.Services;
+using Microsoft.VisualStudio.Shell;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Globalization;
-    using System.Xml;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
-    using Microsoft.VSDesigner.Data;
-    using Microsoft.VisualStudio.Data.Core;
-    using Microsoft.VisualStudio.Data.Services;
-    using Microsoft.VisualStudio.Shell;
-
     // <summary>
     //     A wrapper around IVsDataConnectionDialog to share functionality for
     //     filtering against ADO.NET providers, etc.
@@ -37,23 +37,23 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             _appProject = appProject;
 
-            _dialogFactory = Package.GetGlobalService(typeof(IVsDataConnectionDialogFactory)) as IVsDataConnectionDialogFactory;
+            _dialogFactory = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(IVsDataConnectionDialogFactory)) as IVsDataConnectionDialogFactory;
             if (_dialogFactory == null)
             {
-                throw new InvalidOperationException(Resources.EntityDataConnectionDialog_NoDataConnectionDialogFactory);
+                throw new InvalidOperationException(WizardResources.EntityDataConnectionDialog_NoDataConnectionDialogFactory);
             }
 
-            _dataProviderManager = Package.GetGlobalService(typeof(IVsDataProviderManager)) as IVsDataProviderManager;
+            _dataProviderManager = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(IVsDataProviderManager)) as IVsDataProviderManager;
             if (_dataProviderManager == null)
             {
-                throw new InvalidOperationException(Resources.EntityDataConnectionDialog_NoDataProviderManager);
+                throw new InvalidOperationException(WizardResources.EntityDataConnectionDialog_NoDataProviderManager);
             }
 
             _dataExplorerConnectionManager =
-                Package.GetGlobalService(typeof(IVsDataExplorerConnectionManager)) as IVsDataExplorerConnectionManager;
+                Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(IVsDataExplorerConnectionManager)) as IVsDataExplorerConnectionManager;
             if (_dataExplorerConnectionManager == null)
             {
-                throw new InvalidOperationException(Resources.EntityDataConnectionDialog_NoDataExplorerConnectionManager);
+                throw new InvalidOperationException(WizardResources.EntityDataConnectionDialog_NoDataExplorerConnectionManager);
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             var dialog = _dialogFactory.CreateConnectionDialog();
             if (dialog == null)
             {
-                throw new InvalidOperationException(Resources.EntityDataConnectionDialog_NoDataConnectionDialog);
+                throw new InvalidOperationException(WizardResources.EntityDataConnectionDialog_NoDataConnectionDialog);
             }
 
             RaiseBeforeAddSourcesEvent();
@@ -95,7 +95,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                     // AddConnection() call above can throw an XmlException if the connection cannot be made
                     throw new InvalidOperationException(
                         String.Format(
-                            CultureInfo.CurrentCulture, Resources.EntityDataConnectionDialog_DataConnectionInvalid, xmlException.Message),
+                            CultureInfo.CurrentCulture, WizardResources.EntityDataConnectionDialog_DataConnectionInvalid, xmlException.Message),
                         xmlException);
                 }
             }

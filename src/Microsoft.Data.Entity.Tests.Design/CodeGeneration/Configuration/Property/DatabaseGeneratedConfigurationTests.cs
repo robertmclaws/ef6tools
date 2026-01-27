@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class DatabaseGeneratedConfigurationTests
     {
         [TestMethod]
         public void GetAttributeBody_returns_body()
         {
-            var configuration = new DatabaseGeneratedConfiguration
+            DatabaseGeneratedConfiguration configuration = new DatabaseGeneratedConfiguration
                 {
                     StoreGeneratedPattern = StoreGeneratedPattern.Computed
                 };
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetAttributeBody(code).Should().Be("DatabaseGenerated(DatabaseGeneratedOption.Computed)");
         }
@@ -25,11 +25,11 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void GetMethodChain_returns_chain()
         {
-            var configuration = new DatabaseGeneratedConfiguration
+            DatabaseGeneratedConfiguration configuration = new DatabaseGeneratedConfiguration
                 {
                     StoreGeneratedPattern = StoreGeneratedPattern.Computed
                 };
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetMethodChain(code).Should().Be(".HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed)");
         }

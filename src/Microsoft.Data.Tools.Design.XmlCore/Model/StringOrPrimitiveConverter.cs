@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Globalization;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System.Collections.Generic;
-    using System.Globalization;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     This class will perform the conversions between strings to StringOrPrimitive, or from a StringOrPrimitive to a string.
     /// </summary>
@@ -20,7 +20,7 @@ namespace Microsoft.Data.Entity.Design.Model
         internal StringOrPrimitiveConverter(TryParse tryParse, params string[] validStrings)
         {
             _tryParse = tryParse;
-            _validStrings = new HashSet<string>();
+            _validStrings = [];
             if (validStrings != null)
             {
                 foreach (var s in validStrings)
@@ -45,9 +45,8 @@ namespace Microsoft.Data.Entity.Design.Model
             }
             else
             {
-                T value;
 
-                if (_tryParse(stringVal, out value))
+                if (_tryParse(stringVal, out T value))
                 {
                     stringOrPrimitive = new StringOrPrimitive<T>(value);
                 }

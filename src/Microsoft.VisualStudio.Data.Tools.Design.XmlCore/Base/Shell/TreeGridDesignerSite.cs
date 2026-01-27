@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.ComponentModel;
-
     /// <summary>
     ///     Used to site the tree control in the window.  Provides access to shell services.
     /// </summary>

@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     [SuppressMessage("Microsoft.Naming", "CA1716:IdentifiersShouldNotMatchKeywords")]
     internal partial class Property
     {

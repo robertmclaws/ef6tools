@@ -1,22 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using VSErrorHandler = Microsoft.VisualStudio.ErrorHandler;
+using System;
+using System.Collections.Generic;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.OLE.Interop;
-
     /// <summary>
     ///     This class is a single undo unit that can hold multiple child undo units.  When an instance is
     ///     undone or redone, all child units will be undone or redone.
     /// </summary>
     internal class ParentUndoUnit : IOleParentUndoUnit
     {
-        private List<IOleUndoUnit> _children = new List<IOleUndoUnit>();
+        private List<IOleUndoUnit> _children = [];
         private IOleParentUndoUnit _openParent;
         private readonly string _name;
 
@@ -35,14 +34,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
         public void Do(IOleUndoManager pUndoManager)
         {
             // docs say this can be null.
-            if (pUndoManager != null)
-            {
-                // use this as the undo unit also.
-                pUndoManager.Open(this);
-            }
+            // use this as the undo unit also.
+            pUndoManager?.Open(this);
 
             var units = _children;
-            _children = new List<IOleUndoUnit>();
+            _children = [];
 
             // Invoke child units in reverse order.
             for (var i = units.Count - 1; i >= 0; i--)

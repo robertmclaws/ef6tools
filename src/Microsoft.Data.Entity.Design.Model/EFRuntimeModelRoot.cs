@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System.Xml.Linq;
-
     internal abstract class EFRuntimeModelRoot : EFNormalizableItem
     {
         protected EFRuntimeModelRoot(EFArtifact parent, XElement element)

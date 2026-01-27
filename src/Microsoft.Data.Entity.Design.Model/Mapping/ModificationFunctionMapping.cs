@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-
     internal class ModificationFunctionMapping : EFElement
     {
         internal static readonly string ElementName = "ModificationFunctionMapping";
@@ -24,7 +24,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as EntityTypeMapping;
+                EntityTypeMapping parent = Parent as EntityTypeMapping;
                 Debug.Assert(parent != null, "this.Parent should be a EntityTypeMapping");
                 return parent;
             }

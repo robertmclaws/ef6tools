@@ -2,8 +2,6 @@
 
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-
     internal class UpdateModelFromDatabaseModelBuilderEngine : EdmxModelBuilderEngine
     {
         internal UpdateModelFromDatabaseModelBuilderEngine()

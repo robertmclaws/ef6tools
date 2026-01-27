@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal class ExplorerHierarchyComparer : IComparer<ExplorerEFElement>
     {
         private static ExplorerHierarchyComparer _instance;
@@ -72,7 +72,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         protected class TypedChildList<T> : ISortableCollection
             where T : ExplorerEFElement
         {
-            private readonly List<T> _typedList = new List<T>();
+            private readonly List<T> _typedList = [];
             private readonly IComparer<T> _comparer;
 
             internal TypedChildList()
@@ -443,9 +443,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             // will be picked up next time Children is called
             if (_hasLoadedFromModel)
             {
-                var xref = ModelToExplorerModelXRef.GetModelToBrowserModelXRef(_context);
+                ModelToExplorerModelXRef xref = ModelToExplorerModelXRef.GetModelToBrowserModelXRef(_context);
                 var explorerElement = xref.GetExisting(efChildElementToRemove);
-                var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(_context);
+                ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(_context);
 
                 if (explorerElement != null)
                 {
@@ -623,7 +623,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
                     // This can be removed when entire reload is replaced with reattach mechanism like Table Designer.
                     IsInEditMode = false;
 
-                    var cpc = new CommandProcessorContext(
+                    CommandProcessorContext cpc = new CommandProcessorContext(
                         _context,
                         EfiTransactionOriginator.ExplorerWindowOriginatorId, RenameTransactionName, ModelItem.Artifact);
 
@@ -649,8 +649,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         protected virtual bool RenameModelElement(CommandProcessorContext cpc, string newName)
         {
             // call RenameCommand
-            var efNameableItem = ModelItem as EFNameableItem;
-            if (null != efNameableItem
+            if (ModelItem is EFNameableItem efNameableItem
                 &&
                 null != efNameableItem.Artifact
                 &&
@@ -687,10 +686,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
                 {
                     _isInSearchResults = value;
                     OnPropertyChanged("IsInSearchResults");
-                    if (Parent != null)
-                    {
-                        Parent.UpdateIsAncestorOfSearchResultItem(_isInSearchResults ? +1 : -1);
-                    }
+                    Parent?.UpdateIsAncestorOfSearchResultItem(_isInSearchResults ? +1 : -1);
                 }
             }
         }
@@ -712,7 +708,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         protected static string DisplayIndent(int indent)
         {
             // could do this more efficiently but this is fine for simple tests
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             if (indent > 0)
             {
                 sb.Append("+");
@@ -788,19 +784,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
                 // our "name" or "key-ness" changed, so we need to re-sort the 
                 // collection we are contained in
                 var containingCollection = ContainingCollection;
-                if (containingCollection != null)
-                {
-                    containingCollection.Sort();
-                }
+                containingCollection?.Sort();
 
                 // we need to reload the _children collection so that it reflects the correct sort-order
-                if (Parent != null)
-                {
-                    Parent.LoadWpfChildrenCollection();
-                }
+                Parent?.LoadWpfChildrenCollection();
 
                 // update the Search Results - a rename may cause the elements to change or be re-ordered
-                var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(_context);
+                ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(_context);
                 explorerSearchResults.OnRenameElement(this);
 
                 OnPropertyChanged(modelPropName);
@@ -832,7 +822,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         //  to this node)
         public void ExpandTreeViewToMe()
         {
-            var ancestorStack = new Stack<ExplorerEFElement>();
+            Stack<ExplorerEFElement> ancestorStack = new Stack<ExplorerEFElement>();
             foreach (var brItem in Ancestors())
             {
                 ancestorStack.Push(brItem);
@@ -851,8 +841,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             if (_children != null)
             {
-                var xref = ModelToExplorerModelXRef.GetModelToBrowserModelXRef(_context);
-                var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(_context);
+                ModelToExplorerModelXRef xref = ModelToExplorerModelXRef.GetModelToBrowserModelXRef(_context);
+                ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(_context);
 
                 // remove children from xref recursively
                 foreach (var child in _children)
@@ -914,10 +904,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             if (parentIncrement != 0)
             {
                 OnPropertyChanged("IsAncestorOfSearchResultItem");
-                if (Parent != null)
-                {
-                    Parent.UpdateIsAncestorOfSearchResultItem(parentIncrement);
-                }
+                Parent?.UpdateIsAncestorOfSearchResultItem(parentIncrement);
             }
         }
 

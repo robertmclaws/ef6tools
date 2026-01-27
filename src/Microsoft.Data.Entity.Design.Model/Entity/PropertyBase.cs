@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     /// <summary>
     ///     Helper class that store the information where a property should be inserted.
     /// </summary>
@@ -36,7 +36,6 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         private DefaultableValue<string> _getterAttr;
         private DefaultableValue<string> _setterAttr;
 
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         protected PropertyBase(EFElement parent, XElement element, InsertPropertyPosition insertPosition)
             : base(parent, element)
         {
@@ -58,10 +57,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_getterAttr == null)
-                {
-                    _getterAttr = new GetterDefaultableValue(this);
-                }
+                _getterAttr ??= new GetterDefaultableValue(this);
                 return _getterAttr;
             }
         }
@@ -74,7 +70,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var entityType = Parent as EntityType;
+                EntityType entityType = Parent as EntityType;
                 return entityType;
             }
         }
@@ -86,10 +82,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_setterAttr == null)
-                {
-                    _setterAttr = new SetterDefaultableValue(this);
-                }
+                _setterAttr ??= new SetterDefaultableValue(this);
                 return _setterAttr;
             }
         }
@@ -191,7 +184,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 var element = XElement.ElementsAfterSelf().FirstOrDefault(xe => xe.Name.LocalName == EFTypeName);
                 if (element != null)
                 {
-                    var property = ModelItemAnnotation.GetModelItem(element) as PropertyBase;
+                    PropertyBase property = ModelItemAnnotation.GetModelItem(element) as PropertyBase;
                     Debug.Assert(property != null, "Could not find EFElement for XElement: " + element);
                     return property;
                 }
@@ -211,7 +204,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 var element = XElement.ElementsBeforeSelf().LastOrDefault(xe => xe.Name.LocalName == EFTypeName);
                 if (element != null)
                 {
-                    var property = ModelItemAnnotation.GetModelItem(element) as PropertyBase;
+                    PropertyBase property = ModelItemAnnotation.GetModelItem(element) as PropertyBase;
                     Debug.Assert(property != null, "Could not find EFElement for XElement: " + element);
                     return property;
                 }
@@ -239,7 +232,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                     // This is a workaround for an XML editor bug where re-parenting an element causes asserts.
 
                     // First create the new XElement.
-                    var tempDoc = XDocument.Parse(XElement.ToString(SaveOptions.None), LoadOptions.None);
+                    XDocument tempDoc = XDocument.Parse(XElement.ToString(SaveOptions.None), LoadOptions.None);
                     var newPropertyXElement = tempDoc.Root;
                     newPropertyXElement.Remove();
 
@@ -279,7 +272,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                     // Delete both old XElement and the preceding whitespace.
                     // Preceding whitespace is preferred over trailing whitespace because we don't want to remove the last property's trailing white-space since
                     // it has different indent level than the rest (see EFElement's EnsureFirstNodeWhitespaceSeparation method).
-                    var preceedingNewLine = toBeDeleteElement.PreviousNode as XText;
+                    XText preceedingNewLine = toBeDeleteElement.PreviousNode as XText;
                     while (preceedingNewLine != null
                            && String.IsNullOrWhiteSpace(preceedingNewLine.Value))
                     {

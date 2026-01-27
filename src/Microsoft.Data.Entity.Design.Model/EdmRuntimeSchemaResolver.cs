@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Xml;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
-    using System.Xml;
-
     /// <summary>
     ///     Class to use to resolve references to EDM runtime schemas when building the EdmxSchemaSet.
     /// </summary>
@@ -24,7 +24,6 @@ namespace Microsoft.Data.Entity.Design.Model
         // Currently, runtime shipped with all xsd versions; so we don't have to worry about loading the correct assembly
         private static readonly Assembly EntityFrameworkAssembly = typeof(EdmItemCollection).Assembly;
 
-        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static EdmRuntimeSchemaResolver()
         {
             AddUri("System.Data.Resources.CSDLSchema_1.xsd");
@@ -46,7 +45,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             Debug.Assert(!ResourceNameToUri.ContainsKey(name), "Duplicate schema found. Name: " + name);
 
-            var uri = new Uri("res://" + name, UriKind.Absolute);
+            Uri uri = new Uri("res://" + name, UriKind.Absolute);
             Debug.Assert(!UriToResourceName.ContainsKey(uri), "uri can't be in more than one map!");
             ResourceNameToUri.Add(name, uri);
             UriToResourceName.Add(uri, name);
@@ -55,9 +54,8 @@ namespace Microsoft.Data.Entity.Design.Model
         // returns a stream opened up for the requested schema identified by "res://<relativeUri>"
         public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
         {
-            string resourceName;
 
-            if (UriToResourceName.TryGetValue(absoluteUri, out resourceName))
+            if (UriToResourceName.TryGetValue(absoluteUri, out string resourceName))
             {
                 return EntityFrameworkAssembly.GetManifestResourceStream(resourceName);
             }

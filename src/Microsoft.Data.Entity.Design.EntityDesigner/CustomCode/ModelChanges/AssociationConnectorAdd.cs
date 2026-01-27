@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Association = Microsoft.Data.Entity.Design.Model.Entity.Association;
+using AssociationConnector = Microsoft.Data.Entity.Design.EntityDesigner.View.AssociationConnector;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Association = Microsoft.Data.Entity.Design.Model.Entity.Association;
-    using AssociationConnector = Microsoft.Data.Entity.Design.EntityDesigner.View.AssociationConnector;
-
     internal class AssociationConnectorAdd : AssociationConnectorModelChange
     {
         internal AssociationConnectorAdd(AssociationConnector associationConnector)
@@ -29,14 +29,14 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var modelAssociation = viewModel.ModelXRef.GetExisting(associationConnector.ModelElement) as Association;
-                var modelDiagram = viewModel.ModelXRef.GetExisting(associationConnector.Diagram) as Diagram;
+                Association modelAssociation = viewModel.ModelXRef.GetExisting(associationConnector.ModelElement) as Association;
+                Diagram modelDiagram = viewModel.ModelXRef.GetExisting(associationConnector.Diagram) as Diagram;
 
                 Debug.Assert(modelAssociation != null && modelDiagram != null);
                 if (modelAssociation != null
                     && modelDiagram != null)
                 {
-                    var cmd = new CreateAssociationConnectorCommand(modelDiagram, modelAssociation);
+                    CreateAssociationConnectorCommand cmd = new CreateAssociationConnectorCommand(modelDiagram, modelAssociation);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     var modelAssociationConnector = cmd.AssociationConnector;
                     Debug.Assert(modelAssociationConnector != null);

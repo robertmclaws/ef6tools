@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-
     internal class CommandProcessorContext
     {
         private readonly EditingContext _editingContext;
@@ -17,9 +17,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         private readonly EFArtifact _artifact;
         private readonly Queue<IIntegrityCheck> _integrityChecks = new Queue<IIntegrityCheck>();
         private EfiTransaction _transaction;
-        private readonly HashSet<ItemBinding> _itemsToRebind = new HashSet<ItemBinding>();
+        private readonly HashSet<ItemBinding> _itemsToRebind = [];
         private readonly EfiTransactionContext _transactionContext;
-        private readonly List<Command> _enqueuedCommands = new List<Command>();
+        private readonly List<Command> _enqueuedCommands = [];
 
         internal List<Command> EnqueuedCommands
         {
@@ -69,7 +69,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1821:RemoveEmptyFinalizers")]
         ~CommandProcessorContext()
         {
             Debug.Assert(_integrityChecks.Count == 0, "There are still checks to invoke");
@@ -85,7 +84,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             return _transaction = new EfiTransaction(Artifact, _originatorId, _transactionName, _transactionContext);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal void DisposeTransaction()
         {
             if (_transaction != null)

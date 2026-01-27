@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Text.RegularExpressions;
-
     /// <summary>
     /// Manages SVG icon loading from embedded resources and converts them to reusable symbols.
     /// Icons are defined once as &lt;symbol&gt; elements in &lt;defs&gt; and referenced via &lt;use&gt;.
@@ -53,7 +53,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                             continue;
                         }
 
-                        using (var reader = new StreamReader(stream))
+                        using (StreamReader reader = new StreamReader(stream))
                         {
                             var svgContent = reader.ReadToEnd();
                             var iconName = ExtractIconName(resourceName);
@@ -106,7 +106,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                     return null;
                 }
 
-                var paths = new StringBuilder();
+                StringBuilder paths = new StringBuilder();
                 foreach (Match match in pathMatches)
                 {
                     var pathElement = match.Value;
@@ -144,10 +144,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
         /// </summary>
         private string ProcessSymbolContent(string content)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             // Find all path and g elements
-            var elementRegex = new Regex(@"<(path|g|polygon|circle|rect|line)[^>]*(?:/>|>.*?</\1>)",
+            Regex elementRegex = new Regex(@"<(path|g|polygon|circle|rect|line)[^>]*(?:/>|>.*?</\1>)",
                 RegexOptions.Singleline);
 
             foreach (Match match in elementRegex.Matches(content))
@@ -174,7 +174,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
         private string NormalizePathElement(string element)
         {
             // Map original class names to our consolidated class names
-            var classMap = new Dictionary<string, string>
+            Dictionary<string, string> classMap = new Dictionary<string, string>
             {
                 { "light-defaultgrey-10", "icon-shadow" },
                 { "light-defaultgrey", "icon-fill" },
@@ -206,7 +206,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                 return string.Empty;
             }
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             foreach (var iconName in _usedIcons.OrderBy(n => n))
             {
                 if (_iconSymbols.TryGetValue(iconName, out var symbol))
@@ -223,7 +223,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
         /// </summary>
         public string GetAllSymbolDefinitions()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             foreach (var kvp in _iconSymbols.OrderBy(k => k.Key))
             {
                 sb.AppendLine(kvp.Value);

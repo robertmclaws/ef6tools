@@ -1,23 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.Common.CommandTrees;
+using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
+using System.Data.Entity.Core.Mapping;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Xml;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Common.CommandTrees;
-    using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
-    using System.Data.Entity.Core.Mapping;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Xml;
-
     internal static class EntitySetDefiningQueryConverter
     {
         private const string StoreContainerName = "StoreModelContainer";
@@ -74,7 +74,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(sourceEntitySet != null, "sourceEntitySet != null");
             Debug.Assert(!string.IsNullOrWhiteSpace(definingQuery), "invalid definingQuery");
 
-            var metadataProperties =
+            List<MetadataProperty> metadataProperties =
                 sourceEntitySet.MetadataProperties.Where(p => p.PropertyKind != PropertyKind.System).ToList();
 
             // these properties make it possible for the designer to track 
@@ -114,24 +114,23 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             var inputBinding = entitySet.Scan().BindAs(entitySet.Name);
 
-            var projectList = new List<KeyValuePair<string, DbExpression>>(entitySet.ElementType.Members.Count);
+            List<KeyValuePair<string, DbExpression>> projectList = new List<KeyValuePair<string, DbExpression>>(entitySet.ElementType.Members.Count);
             foreach (var member in entitySet.ElementType.Members)
             {
                 Debug.Assert(member.BuiltInTypeKind == BuiltInTypeKind.EdmProperty, "Every member must be a edmproperty");
-                var propertyInfo = (EdmProperty)member;
+                EdmProperty propertyInfo = (EdmProperty)member;
                 projectList.Add(
                     new KeyValuePair<string, DbExpression>(
                         member.Name,
                         inputBinding.Variable.Property(propertyInfo)));
             }
             var query = inputBinding.Project(DbExpressionBuilder.NewRow(projectList));
-            var dbCommandTree = new DbQueryCommandTree(workspace, DataSpace.SSpace, query);
+            DbQueryCommandTree dbCommandTree = new DbQueryCommandTree(workspace, DataSpace.SSpace, query);
 
             return providerServices.CreateCommandDefinition(dbCommandTree).CreateCommand().CommandText;
         }
 
         // internal for testing
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         internal static MetadataWorkspace CreateTransientMetadataWorkspace(
             IList<EntitySet> sourceEntitySets,
             Version targetEntityFrameworkVersion,
@@ -147,7 +146,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             var targetDoubleEntityFrameworkVersion = EntityFrameworkVersion.VersionToDouble(targetEntityFrameworkVersion);
 
-            var storeModel =
+            EdmModel storeModel =
                 EdmModel.CreateStoreModel(
                     EntityContainer.Create(
                         StoreContainerName,
@@ -164,9 +163,9 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 storeModel.AddItem(entityType);
             }
 
-            var storeItemCollection = new StoreItemCollection(storeModel);
+            StoreItemCollection storeItemCollection = new StoreItemCollection(storeModel);
 
-            var edmItemCollection =
+            EdmItemCollection edmItemCollection =
                 new EdmItemCollection(
                     EdmModel.CreateConceptualModel(
                         EntityContainer.Create(
@@ -185,9 +184,9 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             StorageMappingItemCollection mappingItemCollection;
 
-            using (var stringReader = new StringReader(msl))
+            using (StringReader stringReader = new StringReader(msl))
             {
-                using (var reader = XmlReader.Create(stringReader))
+                using (XmlReader reader = XmlReader.Create(stringReader))
                 {
                     mappingItemCollection = new StorageMappingItemCollection(edmItemCollection, storeItemCollection, new[] { reader });
                 }

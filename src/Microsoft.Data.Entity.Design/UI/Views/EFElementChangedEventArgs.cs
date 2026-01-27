@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.UI.Views
 {
-    using System;
-
     internal class EFElementChangedEventArgs : EventArgs
     {
         private readonly Uri _itemUri;

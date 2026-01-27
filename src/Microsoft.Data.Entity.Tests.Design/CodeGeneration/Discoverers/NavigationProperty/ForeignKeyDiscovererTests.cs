@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Collections.Generic;
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class ForeignKeyDiscovererTests
     {
         [TestMethod]
         public void Discover_returns_null_when_non_fk()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>();
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First(t => t.Name == "Entity1");
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_null_when_required_to_optional()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasRequired(e => e.Two).WithOptional();
             modelBuilder.Entity<Entity1>().Ignore(e => e.Entity2s);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
@@ -41,7 +41,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_null_when_fk_equals_property_plus_pk()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasRequired(e => e.Two).WithMany().HasForeignKey(e => e.TwoEntity2Id);
             modelBuilder.Entity<Entity1>().Ignore(e => e.Entity2s);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
@@ -54,7 +54,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_null_when_fk_equals_property_plus_pk_and_more_than_one_association()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasRequired(e => e.Two).WithMany().HasForeignKey(e => e.TwoEntity2Id);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First(t => t.Name == "Entity1");
@@ -66,7 +66,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_null_when_fk_equals_entity_plus_pk()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasRequired(e => e.Two).WithMany().HasForeignKey(e => e.Entity2Entity2Id);
             modelBuilder.Entity<Entity1>().Ignore(e => e.Entity2s);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
@@ -79,7 +79,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_null_when_fk_equals_pk()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasRequired(e => e.Two).WithMany().HasForeignKey(e => e.Entity2Id);
             modelBuilder.Entity<Entity1>().Ignore(e => e.Entity2s);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
@@ -92,13 +92,13 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_fk_equals_entity_plus_pk_but_more_than_one_association()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasRequired(e => e.Two).WithMany().HasForeignKey(e => e.Entity2Entity2Id);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First(t => t.Name == "Entity1");
             var navigationProperty = entityType.NavigationProperties.First(p => p.Name == "Two");
 
-            var configuration = new ForeignKeyDiscoverer()
+            ForeignKeyConfiguration configuration = new ForeignKeyDiscoverer()
                 .Discover(navigationProperty, model) as ForeignKeyConfiguration;
 
             configuration.Should().NotBeNull();
@@ -108,13 +108,13 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_fk_equals_pk_but_more_than_one_association()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasRequired(e => e.Two).WithMany().HasForeignKey(e => e.Entity2Id);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First(t => t.Name == "Entity1");
             var navigationProperty = entityType.NavigationProperties.First(p => p.Name == "Two");
 
-            var configuration = new ForeignKeyDiscoverer()
+            ForeignKeyConfiguration configuration = new ForeignKeyDiscoverer()
                 .Discover(navigationProperty, model) as ForeignKeyConfiguration;
 
             configuration.Should().NotBeNull();
@@ -124,7 +124,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_composite_key()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity2>().HasKey(e => new { e.Entity2Id, e.Name });
             modelBuilder.Entity<Entity1>().HasRequired(e => e.Two).WithMany().HasForeignKey(
                 e => new { e.Entity2Id, e.Name });
@@ -133,7 +133,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             var entityType = model.ConceptualModel.EntityTypes.First(t => t.Name == "Entity1");
             var navigationProperty = entityType.NavigationProperties.First(p => p.Name == "Two");
 
-            var configuration = new ForeignKeyDiscoverer()
+            ForeignKeyConfiguration configuration = new ForeignKeyDiscoverer()
                 .Discover(navigationProperty, model) as ForeignKeyConfiguration;
 
             configuration.Should().NotBeNull();

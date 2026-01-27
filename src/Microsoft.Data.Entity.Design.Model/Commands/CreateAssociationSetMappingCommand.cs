@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.Mapping.ChildCollectionBuilders;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.Mapping.ChildCollectionBuilders;
-
     internal class CreateAssociationSetMappingCommand : Command
     {
         internal static readonly string PrereqId = "CreateAssociationSetMappingCommand";
@@ -53,13 +53,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             StorageEntitySet = storageEntitySet;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // if we don't have an ECM yet, go create one
             if (EntityContainerMapping == null)
             {
-                var createECM = new CreateEntityContainerMappingCommand(AssociationSet.Artifact);
+                CreateEntityContainerMappingCommand createECM = new CreateEntityContainerMappingCommand(AssociationSet.Artifact);
                 CommandProcessor.InvokeSingleCommand(cpc, createECM);
                 EntityContainerMapping = createECM.EntityContainerMapping;
             }
@@ -71,7 +70,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // create the ETM
-            var asm = new AssociationSetMapping(EntityContainerMapping, null);
+            AssociationSetMapping asm = new AssociationSetMapping(EntityContainerMapping, null);
             asm.Name.SetRefName(AssociationSet);
             asm.TypeName.SetRefName(Association);
             asm.StoreEntitySet.SetRefName(StorageEntitySet);
@@ -115,12 +114,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             var associationSet = association.AssociationSet;
             Debug.Assert(associationSet != null, "An association found that doesn't have an association set");
 
-            var cmd = new CreateAssociationSetMappingCommand(association, storageEntityType);
+            CreateAssociationSetMappingCommand cmd = new CreateAssociationSetMappingCommand(association, storageEntityType);
             CommandProcessor.InvokeSingleCommand(cpc, cmd);
 
             foreach (var setEnd in associationSet.AssociationSetEnds())
             {
-                var builder = new AssociationSetEndMappingBuilderForCommand(setEnd, storageEntityType);
+                AssociationSetEndMappingBuilderForCommand builder = new AssociationSetEndMappingBuilderForCommand(setEnd, storageEntityType);
                 builder.Build(cpc);
             }
 
@@ -150,12 +149,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 }
 
                 // try to find the column with this name
-                var tableColumn = StorageEntityType.GetFirstNamedChildByLocalName(propertyName, true) as Property;
-                if (tableColumn != null)
+                if (StorageEntityType.GetFirstNamedChildByLocalName(propertyName, true) is Property tableColumn)
                 {
                     // now see if there is also a property with this name
-                    var entityProperty = ConceptualEntityType.GetFirstNamedChildByLocalName(propertyName) as Property;
-                    if (entityProperty == null)
+                    if (ConceptualEntityType.GetFirstNamedChildByLocalName(propertyName) is not Property entityProperty)
                     {
                         // they might be trying to map a key from the base class
                         EntityType topMostBaseType = ConceptualEntityType.ResolvableTopMostBaseType;

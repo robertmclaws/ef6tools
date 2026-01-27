@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.UI;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.UI;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-
     // <summary>
     //     This is a simple selection container object that
     //     wraps the designers selection system.

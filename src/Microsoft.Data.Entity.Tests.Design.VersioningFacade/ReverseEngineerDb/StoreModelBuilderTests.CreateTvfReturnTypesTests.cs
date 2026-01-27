@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     public partial class StoreModelBuilderTests
     {
         [TestMethod]
         public void CreateTvfReturnTypes_creates_row_types_for_valid_input_rows()
         {
-            var columns =
+            List<TableDetailsRow> columns =
                 new List<TableDetailsRow>
                     {
                         CreateRow(table: "rowtype", columnName: "Id", dataType: "int"),
@@ -31,7 +31,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateTvfReturnTypes_creates_multiple_row_types_for_multiple_valid_definitons()
         {
-            var columns =
+            List<TableDetailsRow> columns =
                 new List<TableDetailsRow>
                     {
                         CreateRow(table: "rowtype", columnName: "Id", dataType: "int"),
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void CreateTvfReturnTypes_creates_row_types_with_errors_for_invalidtype()
         {
-            var columns =
+            List<TableDetailsRow> columns =
                 new List<TableDetailsRow>
                     {
                         CreateRow(table: "rowtype", columnName: "Id", dataType: "foo"),

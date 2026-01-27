@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-
     /// <summary>
     ///     Class for managing and maintaining dependency info.  This class is a specialized form of a
     ///     directed graph  where each edge in one direction has a correspending "anti-edge" in the opposite
@@ -30,7 +30,7 @@ namespace Microsoft.Data.Entity.Design.Model
         ///     For example, if <code>Customer</code> is derived from <code>Person</code>, then <code>Customer</code> has a dependency on
         ///     <code>Person</code>, and <code>Person</code> has an "anti-dependency" on <code>Customer</code>.
         /// </summary>
-        protected Dictionary<T, List<T>> _antiDependencyMap = new Dictionary<T, List<T>>();
+        protected Dictionary<T, List<T>> _antiDependencyMap = [];
 
         #endregion
 
@@ -67,14 +67,13 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns></returns>
         internal ICollection<T> GetAntiDependencies(T item)
         {
-            List<T> l = null;
-            if (_antiDependencyMap.TryGetValue(item, out l))
+            if (_antiDependencyMap.TryGetValue(item, out List<T> l))
             {
                 return l.AsReadOnly();
             }
             else
             {
-                return new List<T>(0);
+                return [];
             }
         }
 
@@ -106,10 +105,9 @@ namespace Microsoft.Data.Entity.Design.Model
                 deps.Add(dependency);
 #endif
 
-            List<T> antiDeps = null;
-            if (!_antiDependencyMap.TryGetValue(dependency, out antiDeps))
+            if (!_antiDependencyMap.TryGetValue(dependency, out List<T> antiDeps))
             {
-                antiDeps = new List<T>();
+                antiDeps = [];
                 _antiDependencyMap.Add(dependency, antiDeps);
             }
             antiDeps.Add(item);
@@ -142,8 +140,7 @@ namespace Microsoft.Data.Entity.Design.Model
             }
 #endif
 
-            List<T> antiDeps = null;
-            _antiDependencyMap.TryGetValue(dependency, out antiDeps);
+            _antiDependencyMap.TryGetValue(dependency, out List<T> antiDeps);
             if (antiDeps == null
                 || !antiDeps.Contains(item))
             {
@@ -178,7 +175,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <typeparam name="T"></typeparam>
         private class QueueHashSet<R>
         {
-            private readonly HashSet<R> _dictionary = new HashSet<R>();
+            private readonly HashSet<R> _dictionary = [];
             private readonly LinkedList<R> _queue = new LinkedList<R>();
 
             internal void Enqueue(R t)
@@ -253,8 +250,8 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns></returns>
         private static ICollection<T> GetClosure(T item, EdgeFunction edgeFunction)
         {
-            var closure = new QueueHashSet<T>();
-            var queue = new QueueHashSet<T>();
+            QueueHashSet<T> closure = new QueueHashSet<T>();
+            QueueHashSet<T> queue = new QueueHashSet<T>();
 
             foreach (var i in edgeFunction(item))
             {

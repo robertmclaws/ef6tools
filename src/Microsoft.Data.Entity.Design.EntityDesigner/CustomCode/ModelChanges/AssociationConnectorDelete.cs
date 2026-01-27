@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class AssociationConnectorDelete : AssociationConnectorModelChange
     {
         internal AssociationConnectorDelete(AssociationConnector associationConnector)
@@ -22,8 +22,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var modelAssociationConnector = viewModel.ModelXRef.GetExisting(AssociationConnector) as Model.Designer.AssociationConnector;
-                if (modelAssociationConnector != null)
+                if (viewModel.ModelXRef.GetExisting(AssociationConnector) is Model.Designer.AssociationConnector modelAssociationConnector)
                 {
                     DeleteEFElementCommand.DeleteInTransaction(cpc, modelAssociationConnector);
                     viewModel.ModelXRef.Remove(modelAssociationConnector, AssociationConnector);

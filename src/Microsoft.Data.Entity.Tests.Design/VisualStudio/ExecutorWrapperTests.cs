@@ -1,30 +1,30 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.IO;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
-    using System;
-    using System.IO;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class ExecutorWrapperTests
     {
         [TestMethod]
         public void GetProviderServices_returns_assembly_qualified_type_name()
         {
-            var domain = AppDomain.CreateDomain("ExecutorWrapperTests", null, AppDomain.CurrentDomain.SetupInformation);
+            AppDomain domain = AppDomain.CreateDomain("ExecutorWrapperTests", null, AppDomain.CurrentDomain.SetupInformation);
             try
             {
-                var executor = new ExecutorWrapper(
+                ExecutorWrapper executor = new ExecutorWrapper(
                     domain,
                     Path.GetFileName(GetType().Assembly.CodeBase));
 
                 var typeName = executor.GetProviderServices("System.Data.SqlClient");
 
                 // Use reflection to get SqlProviderServices type since compile assets are excluded
-                var sqlProviderServicesType = Type.GetType(
+                Type sqlProviderServicesType = Type.GetType(
                     "System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer",
                     throwOnError: true);
                 typeName.Should().Be(sqlProviderServicesType.AssemblyQualifiedName);
@@ -38,10 +38,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void GetProviderServices_returns_null_when_unknown()
         {
-            var domain = AppDomain.CreateDomain("ExecutorWrapperTests", null, AppDomain.CurrentDomain.SetupInformation);
+            AppDomain domain = AppDomain.CreateDomain("ExecutorWrapperTests", null, AppDomain.CurrentDomain.SetupInformation);
             try
             {
-                var executor = new ExecutorWrapper(
+                ExecutorWrapper executor = new ExecutorWrapper(
                     domain,
                     Path.GetFileName(GetType().Assembly.CodeBase));
 

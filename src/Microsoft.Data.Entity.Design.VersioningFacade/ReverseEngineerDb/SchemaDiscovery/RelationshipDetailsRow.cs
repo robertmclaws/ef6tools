@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Data;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Text;
-
     /// <summary>
     ///     Strongly typed RelationshipDetail row
     /// </summary>
@@ -422,7 +422,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
 
         public string GetMostQualifiedPrimaryKey()
         {
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             var separator = string.Empty;
 
             if (!IsPKCatalogNull())
@@ -447,7 +447,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
 
         public string GetMostQualifiedForeignKey()
         {
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             var separator = string.Empty;
 
             if (!IsFKCatalogNull())

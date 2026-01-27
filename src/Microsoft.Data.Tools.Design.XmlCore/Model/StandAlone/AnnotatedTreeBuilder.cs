@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 {
-    using System;
-    using System.Xml;
-    using System.Xml.Linq;
-
     internal class AnnotatedTreeBuilder
     {
         internal const int EmptyElementOffset = 3;
@@ -36,7 +36,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 
         internal XDocument Build(Uri uri)
         {
-            using (var xmlReader = XmlReader.Create(uri.AbsoluteUri))
+            using (XmlReader xmlReader = XmlReader.Create(uri.AbsoluteUri))
             {
                 return Build(xmlReader);
             }
@@ -52,7 +52,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             _lastTextRange = null;
 
             // Enable getting line and column info
-            var lineInfo = xmlReader as IXmlLineInfo;
+            IXmlLineInfo lineInfo = xmlReader as IXmlLineInfo;
             while (xmlReader.Read())
             {
                 switch (xmlReader.NodeType)
@@ -73,10 +73,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                             lineInfo.LinePosition - TextOffset);
                         _prevNode = new XText(xmlReader.Value);
                         UpdateTextRange(_prevNode, lineInfo);
-                        if (_parent != null)
-                        {
-                            _parent.Add(_prevNode);
-                        }
+                        _parent?.Add(_prevNode);
                         break;
 
                     case XmlNodeType.CDATA:
@@ -85,10 +82,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                             lineInfo.LinePosition - CDataOffset);
                         _prevNode = new XCData(xmlReader.Value);
                         UpdateTextRange(_prevNode, lineInfo);
-                        if (_parent != null)
-                        {
-                            _parent.Add(_prevNode);
-                        }
+                        _parent?.Add(_prevNode);
                         break;
 
                     case XmlNodeType.Comment:
@@ -97,10 +91,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                             lineInfo.LinePosition - CommentOffset);
                         _prevNode = new XComment(xmlReader.Value);
                         UpdateTextRange(_prevNode, lineInfo);
-                        if (_parent != null)
-                        {
-                            _parent.Add(_prevNode);
-                        }
+                        _parent?.Add(_prevNode);
                         break;
 
                     case XmlNodeType.ProcessingInstruction:
@@ -110,10 +101,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                         _prevNode = new XProcessingInstruction(
                             xmlReader.Name, xmlReader.Value);
                         UpdateTextRange(_prevNode, lineInfo);
-                        if (_parent != null)
-                        {
-                            _parent.Add(_prevNode);
-                        }
+                        _parent?.Add(_prevNode);
                         break;
                     case XmlNodeType.EntityReference:
                         xmlReader.ResolveEntity();
@@ -141,7 +129,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 
             var localName = xmlReader.LocalName;
             var nsUri = xmlReader.NamespaceURI;
-            var element = new XElement(XName.Get(localName, nsUri));
+            XElement element = new XElement(XName.Get(localName, nsUri));
 
             _lastReadElementEmpty = xmlReader.IsEmptyElement;
 
@@ -210,7 +198,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                     {
                         attributeName = XNamespace.Get(xmlReader.NamespaceURI) + xmlReader.LocalName;
                     }
-                    var attribute = new XAttribute(attributeName, xmlReader.Value);
+                    XAttribute attribute = new XAttribute(attributeName, xmlReader.Value);
                     attribute.SetTextRange(_lastTextRange);
                     element.Add(attribute);
                 }
@@ -236,7 +224,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
         private static void CreateInitialTextRangeAnnotation(
             XElement element, int openStartLine, int openStartColumn)
         {
-            var elemTextRange = new ElementTextRange();
+            ElementTextRange elemTextRange = new ElementTextRange();
             elemTextRange.OpenStartLine = openStartLine;
             elemTextRange.OpenStartColumn = openStartColumn;
             element.SetTextRange(elemTextRange);
@@ -250,7 +238,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                 return;
             }
 
-            var element = _prevNode as XElement;
+            XElement element = _prevNode as XElement;
             if (_lastReadElementEmpty)
             {
                 // Go ahead and update close info for empty element
@@ -277,7 +265,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
                 return;
             }
 
-            var element = node as XElement;
+            XElement element = node as XElement;
             var elemTextRange = element.GetTextRange();
             elemTextRange.CloseEndLine = closeEndLine;
             elemTextRange.CloseEndColumn = closeEndCol;

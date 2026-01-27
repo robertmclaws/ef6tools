@@ -1,33 +1,55 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard
 {
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class DbContextGeneratorTests
     {
         [TestMethod]
-        public void TemplateSupported_returns_true_when_targeting_NetFramework4_or_newer()
+        public void TemplateSupported_returns_true_when_targeting_NetFramework4_7_2_or_newer()
         {
+            // Only .NET Framework 4.7.2+ is supported
+            var targets =
+                new[]
+                    {
+                        ".NETFramework,Version=v4.7.2",
+                        ".NETFramework,Version=v4.8"
+                    };
+
+            foreach (var target in targets)
+            {
+                MockDTE mockMonikerHelper = new MockDTE(target);
+
+                DbContextCodeGenerator.TemplateSupported(
+                    mockMonikerHelper.Project,
+                    mockMonikerHelper.ServiceProvider).Should().BeTrue();
+            }
+        }
+
+        [TestMethod]
+        public void TemplateSupported_returns_false_when_targeting_NetFramework_below_4_7_2()
+        {
+            // .NET Framework below 4.7.2 is no longer supported
             var targets =
                 new[]
                     {
                         ".NETFramework,Version=v4.0",
                         ".NETFramework,Version=v4.5",
-                        ".NETFramework,Version=v4.5.1"
+                        ".NETFramework,Version=v4.7.1"
                     };
 
             foreach (var target in targets)
             {
-                var mockMonikerHelper = new MockDTE(target);
+                MockDTE mockMonikerHelper = new MockDTE(target);
 
                 DbContextCodeGenerator.TemplateSupported(
                     mockMonikerHelper.Project,
-                    mockMonikerHelper.ServiceProvider).Should().BeTrue();
+                    mockMonikerHelper.ServiceProvider).Should().BeFalse();
             }
         }
 
@@ -48,7 +70,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard
 
             foreach (var target in targets)
             {
-                var mockMonikerHelper = new MockDTE(target);
+                MockDTE mockMonikerHelper = new MockDTE(target);
 
                 DbContextCodeGenerator.TemplateSupported(
                     mockMonikerHelper.Project,
@@ -59,7 +81,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard
         [TestMethod]
         public void TemplateSupported_returns_false_for_NetFramework3_5()
         {
-            var mockMonikerHelper =
+            MockDTE mockMonikerHelper =
                 new MockDTE(".NETFramework,Version=v3.5");
 
             DbContextCodeGenerator.TemplateSupported(
@@ -82,7 +104,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard
 
             foreach (var target in targets)
             {
-                var mockMonikerHelper = new MockDTE(target);
+                MockDTE mockMonikerHelper = new MockDTE(target);
 
                 DbContextCodeGenerator.TemplateSupported(
                     mockMonikerHelper.Project,
@@ -95,7 +117,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard
         {
             const string vsMiscFilesProjectUniqueName = "<MiscFiles>";
 
-            var mockMonikerHelper =
+            MockDTE mockMonikerHelper =
                 new MockDTE(".NETFramework,Version=v4.0", vsMiscFilesProjectUniqueName);
 
             DbContextCodeGenerator.TemplateSupported(

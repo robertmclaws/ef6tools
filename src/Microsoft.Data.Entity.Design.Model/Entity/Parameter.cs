@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-
     /// <summary>
     ///     This XML element is used in both the C and S Sides.  In a conceptual model, this will
     ///     be a child of a FunctionImport element.  In the storage model, this will be a child
@@ -23,7 +23,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             InOut
         }
 
-        private static readonly HashSet<PrimitiveTypeKind> RowsAffectedParameterCompatibleTypes = new HashSet<PrimitiveTypeKind>();
+        private static readonly HashSet<PrimitiveTypeKind> RowsAffectedParameterCompatibleTypes = [];
 
         internal static readonly string ElementName = "Parameter";
         internal static readonly string AttributeType = "Type";
@@ -36,7 +36,6 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         private DefaultableValue<string> _typeAttr;
         private DefaultableValue<string> _modeAttr;
 
-        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static Parameter()
         {
             RowsAffectedParameterCompatibleTypes.Add(PrimitiveTypeKind.Byte);
@@ -56,10 +55,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_typeAttr == null)
-                {
-                    _typeAttr = new TypeDefaultableValue(this);
-                }
+                _typeAttr ??= new TypeDefaultableValue(this);
                 return _typeAttr;
             }
         }
@@ -86,10 +82,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_modeAttr == null)
-                {
-                    _modeAttr = new ModeDefaultableValue(this);
-                }
+                _modeAttr ??= new ModeDefaultableValue(this);
                 return _modeAttr;
             }
         }
@@ -185,8 +178,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         internal bool CanBeUsedAsRowsAffectedParameter()
         {
             // must be on Storage-side of model
-            var f = Parent as Function;
-            if (null == f)
+            if (Parent is not Function f)
             {
                 return false;
             }

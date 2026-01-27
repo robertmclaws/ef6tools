@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Activities;
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
 {
-    using System.Activities;
-    using System.Collections.Generic;
-
     /// <summary>
     ///     Interface that is used by OutputGeneratorActivities which performs the bulk of the transformation in-code
     /// </summary>

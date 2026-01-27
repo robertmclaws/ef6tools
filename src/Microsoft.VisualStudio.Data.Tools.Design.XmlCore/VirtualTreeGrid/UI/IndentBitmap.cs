@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Drawing.Drawing2D;
-    using System.Drawing.Imaging;
-    using System.Runtime.InteropServices;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     #region IndentBitmapData structure
 
     /// <summary>
@@ -128,18 +128,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             if (myDisposePaths)
             {
                 myDisposePaths = false;
-                if (myPlusPath != null)
-                {
-                    myPlusPath.Dispose();
-                }
-                if (myMinusPath != null)
-                {
-                    myMinusPath.Dispose();
-                }
-                if (myBoxPath != null)
-                {
-                    myBoxPath.Dispose();
-                }
+                myPlusPath?.Dispose();
+                myMinusPath?.Dispose();
+                myBoxPath?.Dispose();
             }
         }
 
@@ -172,8 +163,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns false, there is no need to compare IndentBitmapData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator ==(IndentBitmapData operand1, IndentBitmapData operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -186,8 +175,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns false, there is no need to compare IndentBitmapData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool Compare(IndentBitmapData operand1, IndentBitmapData operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -200,8 +187,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns true, there is no need to compare IndentBitmapData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator !=(IndentBitmapData operand1, IndentBitmapData operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -225,7 +210,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         ///     The bitmap used to draw the indent region of the tree control. The
         ///     shape of the bitmap depends on the line and button settings.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "value")]
         protected Bitmap IndentBitmap
         {
             get
@@ -291,7 +275,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <returns>Colors and paths used to draw the indent bitmap.</returns>
         protected virtual IndentBitmapData GetIndentBitmapData(Color backColor, bool requireButtonPaths, int buttonExtent)
         {
-            var data = new IndentBitmapData();
+            IndentBitmapData data = new IndentBitmapData();
             data.BackgroundColor = backColor;
             data.LineColor = SystemColors.GrayText;
             data.LineStyle = DashStyle.Dot;
@@ -303,10 +287,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
             if (requireButtonPaths)
             {
-                GraphicsPath plusPath;
-                GraphicsPath minusPath;
-                GraphicsPath boxPath;
-                GeneratePlusMinusPaths(buttonExtent, out plusPath, out minusPath, out boxPath);
+                GeneratePlusMinusPaths(buttonExtent, out GraphicsPath plusPath, out GraphicsPath minusPath, out GraphicsPath boxPath);
                 data.SetPaths(plusPath, minusPath, boxPath, true);
             }
             return data;
@@ -336,9 +317,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return data;
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private Bitmap CreateIndentBmp(Color backColor, Color foreColor, int xExtent, int xMid, int yExtent)
         {
             var buttons = HasButtons;
@@ -394,7 +372,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             Pen boxPen = null;
             Brush plusMinusBrush = null;
             var themeHandle = IntPtr.Zero;
-            var data = new IndentBitmapData();
+            IndentBitmapData data = new IndentBitmapData();
 
             try
             {
@@ -643,21 +621,12 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 {
                     CloseTheme(themeHandle);
                 }
-                if (graphics != null)
-                {
-                    graphics.Dispose();
-                }
-                if (bmp != null)
-                {
-                    bmp.Dispose();
-                }
+                graphics?.Dispose();
+                bmp?.Dispose();
                 CleanBrush(ref backgroundBrush, data.BackgroundColor);
                 CleanPen(ref boxPen, data.BoxColor);
                 CleanBrush(ref plusMinusBrush, data.PlusMinusColor);
-                if (linePen != null)
-                {
-                    linePen.Dispose();
-                }
+                linePen?.Dispose();
                 data.Dispose();
             }
             return returnBmp;
@@ -671,7 +640,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             minusPath = new GraphicsPath();
             plusPath = new GraphicsPath(FillMode.Winding);
             boxPath = new GraphicsPath();
-            var rect = new Rectangle(0, 0, 0, 0);
+            Rectangle rect = new Rectangle(0, 0, 0, 0);
             if (p >= 5)
             {
                 // Minus sign
@@ -719,7 +688,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             return NativeMethods.WinVistaOrHigher;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.SetWindowTheme(System.IntPtr,System.String,System.String)")]
         private static IntPtr OpenTheme(IntPtr handle, bool enableExplorerTheme)
         {
             var themeHandle = IntPtr.Zero;
@@ -793,21 +761,17 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             using (var glyph = GetThemedButtonGlyph(themeHandle, themePartId, themeStateId, backgroundColor, buttonExtent))
             {
                 // get attributes so we can draw color-keyed glyph
-                using (var attributes = new ImageAttributes())
+                using (ImageAttributes attributes = new ImageAttributes())
                 {
                     attributes.SetColorKey(backgroundColor, backgroundColor);
 
                     // draw glyph
-                    var dest = new Rectangle(-glyph.Width / 2, -glyph.Height / 2, glyph.Width, glyph.Height);
+                    Rectangle dest = new Rectangle(-glyph.Width / 2, -glyph.Height / 2, glyph.Width, glyph.Height);
                     graphics.DrawImage(glyph, dest, 0, 0, glyph.Width, glyph.Height, GraphicsUnit.Pixel, attributes);
                 }
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.DeleteDC(System.IntPtr)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.ReleaseDC(System.IntPtr,System.IntPtr)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.DrawThemeBackground(System.IntPtr,System.IntPtr,System.Int32,System.Int32,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@,System.IntPtr)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.FillRect(System.IntPtr,Microsoft.Data.Entity.Design.VisualStudio.NativeMethods+RECT@,System.IntPtr)")]
         private static Bitmap GetThemedButtonGlyph(
             IntPtr themeHandle, int themePartId, int themeStateId, Color backgroundColor, int buttonExtent)
         {
@@ -823,7 +787,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 hScreenDC = NativeMethods.GetDC(IntPtr.Zero);
 
                 // get the size of the glyph
-                var size = new NativeMethods.SIZE();
+                NativeMethods.SIZE size = new NativeMethods.SIZE();
                 var hr = NativeMethods.GetThemePartSize(
                     themeHandle, hScreenDC, themePartId, themeStateId, IntPtr.Zero, NativeMethods.THEME_SIZE.TS_DRAW, ref size);
                 if (hr != NativeMethods.S_OK)
@@ -839,7 +803,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 NativeMethods.SelectObject(hBmpDC, hBmp);
 
                 // get rect for entire bitmap
-                var rect = NativeMethods.RECT.FromXYWH(0, 0, size.cx, size.cy);
+                NativeMethods.RECT rect = NativeMethods.RECT.FromXYWH(0, 0, size.cx, size.cy);
 
                 // fill bitmap with background color
                 var color = NativeMethods.RGB(backgroundColor.R, backgroundColor.G, backgroundColor.B);

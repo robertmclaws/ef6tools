@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System.Xml.Linq;
-    using EnvDTE;
-
     internal class VSModelBuilderEngineHostContext : ModelBuilderEngineHostContext
     {
         private readonly ModelBuilderSettings _settings;
@@ -23,8 +22,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             var edmx = ((EdmxModelBuilderEngine)_settings.ModelBuilderEngine).Edmx;
 
-            var fromDBDocument = new XDocument(edmx);
-            var dispatcher =
+            XDocument fromDBDocument = new XDocument(edmx);
+            ModelGenerationExtensionDispatcher dispatcher =
                 new ModelGenerationExtensionDispatcher(
                     _settings.WizardKind,
                     fromDBDocument,

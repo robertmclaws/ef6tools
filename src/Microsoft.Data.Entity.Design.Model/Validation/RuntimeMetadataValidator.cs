@@ -1,28 +1,28 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Mapping;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Core.SchemaObjectModel;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using NavigationProperty = Microsoft.Data.Entity.Design.Model.Entity.NavigationProperty;
+using ReferentialConstraint = Microsoft.Data.Entity.Design.Model.Entity.ReferentialConstraint;
+using AssociationSetMapping = Microsoft.Data.Entity.Design.Model.Mapping.AssociationSetMapping;
+using ModificationFunctionMapping = Microsoft.Data.Entity.Design.Model.Mapping.ModificationFunctionMapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Validation
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Mapping;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Core.SchemaObjectModel;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using NavigationProperty = Microsoft.Data.Entity.Design.Model.Entity.NavigationProperty;
-    using ReferentialConstraint = Microsoft.Data.Entity.Design.Model.Entity.ReferentialConstraint;
-    using AssociationSetMapping = Microsoft.Data.Entity.Design.Model.Mapping.AssociationSetMapping;
-    using ModificationFunctionMapping = Microsoft.Data.Entity.Design.Model.Mapping.ModificationFunctionMapping;
-
     internal class RuntimeMetadataValidator
     {
         private readonly ModelManager _modelManager;
@@ -55,7 +55,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         private static XmlReader CreateXmlReader(EFArtifact artifact, XElement xobject)
         {
             var baseReader = xobject.CreateReader();
-            var lineNumberService = new XNodeReaderLineNumberService(artifact.XmlModelProvider, baseReader, artifact.Uri);
+            XNodeReaderLineNumberService lineNumberService = new XNodeReaderLineNumberService(artifact.XmlModelProvider, baseReader, artifact.Uri);
             return new XmlReaderProxy(baseReader, artifact.Uri, lineNumberService);
         }
 
@@ -129,8 +129,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             using (var reader = CreateXmlReader(designArtifact, designArtifact.ConceptualModel.XElement))
             {
-                IList<EdmSchemaError> modelErrors;
-                var edmItemCollection = EdmItemCollection.Create(new[] { reader }, null, out modelErrors);
+                EdmItemCollection edmItemCollection = EdmItemCollection.Create(new[] { reader }, null, out IList<EdmSchemaError> modelErrors);
 
                 Debug.Assert(modelErrors != null);
 
@@ -174,9 +173,8 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             using (var reader = CreateXmlReader(designArtifact, designArtifact.StorageModel.XElement))
             {
-                IList<EdmSchemaError> storeErrors;
-                var storeItemCollection =
-                    StoreItemCollection.Create(new[] { reader }, null, _dependencyResolver, out storeErrors);
+                StoreItemCollection storeItemCollection =
+                    StoreItemCollection.Create(new[] { reader }, null, _dependencyResolver, out IList<EdmSchemaError> storeErrors);
 
                 Debug.Assert(storeErrors != null);
 
@@ -230,11 +228,10 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             using (var reader = CreateXmlReader(designArtifact, designArtifact.MappingModel.XElement))
             {
-                IList<EdmSchemaError> mappingErrors;
 
-                var mappingItemCollection =
+                StorageMappingItemCollection mappingItemCollection =
                     StorageMappingItemCollection.Create(
-                        edmItemCollection, storeItemCollection, new[] { reader }, null, out mappingErrors);
+                        edmItemCollection, storeItemCollection, new[] { reader }, null, out IList<EdmSchemaError> mappingErrors);
 
                 Debug.Assert(mappingErrors != null);
 
@@ -248,7 +245,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
             Debug.Assert(mappingItemCollection != null, "mappingItemCollection != null");
             Debug.Assert(designArtifact != null, "designArtifact != null");
 
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
             mappingItemCollection.GenerateViews(errors);
 
             ProcessErrors(errors, designArtifact, ErrorClass.Runtime_ViewGen);
@@ -270,8 +267,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                     // we want to replace runtime error for missing complex property type with ours. This
                     // is classified as a Runtime_CSDL error even though we are using an Escher error code
                     // since we are basically re-interpreting a runtime error.
-                    var property = efObject as ComplexConceptualProperty;
-                    if (property != null
+                    if (efObject is ComplexConceptualProperty property
                         && property.ComplexType.RefName == Resources.ComplexPropertyUndefinedType)
                     {
                         artifactSet.AddError(
@@ -290,7 +286,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                          && error.Severity == EdmSchemaErrorSeverity.Warning)
                 {
                     // this is a warning about AssociationSetMappings on fk associations for pk-to-pk associations being ignored.
-                    var associationSetMapping = efObject as AssociationSetMapping;
+                    AssociationSetMapping associationSetMapping = efObject as AssociationSetMapping;
                     Debug.Assert(associationSetMapping != null, "Warning 2005 reported on EFObject other than Association Set Mapping");
                     if (associationSetMapping != null)
                     {
@@ -341,10 +337,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                 a = _modelManager.GetArtifact(Utils.FileName2Uri(error.SchemaLocation));
             }
 
-            if (a == null)
-            {
-                a = defaultArtifactForError;
-            }
+            a ??= defaultArtifactForError;
 
             return a.FindEFObjectForLineAndColumn(error.Line, error.Column);
         }
@@ -401,8 +394,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             if (errorInfo.ErrorCode == (int)ErrorCode.XmlError)
             {
-                var navigationProperty = o as NavigationProperty;
-                if (navigationProperty != null)
+                if (o is NavigationProperty navigationProperty)
                 {
                     // we allow the user to have navigation properties not bound to any association via an AssociationEnd if the Name property is defined as it's still required.
                     return

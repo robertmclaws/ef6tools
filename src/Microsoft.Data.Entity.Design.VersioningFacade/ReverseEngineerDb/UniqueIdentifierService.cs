@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-
     /// <summary>
     ///     Service making names within a scope unique. Initialize a new instance for every scope.
     /// </summary>
@@ -34,7 +34,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         public UniqueIdentifierService(StringComparer comparer, Func<string, string> transform = null)
         {
             _knownIdentifiers = new Dictionary<string, bool>(comparer);
-            _identifierToAdjustedIdentifier = new Dictionary<object, string>();
+            _identifierToAdjustedIdentifier = [];
             _transform = transform ?? IdentityTransform;
         }
 

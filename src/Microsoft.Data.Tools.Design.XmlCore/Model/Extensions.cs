@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Tools.XmlDesignerBase.Model
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Text;
-    using System.Xml.Linq;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -38,7 +37,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
         public override string ToString()
         {
-            var buffer = new StringBuilder();
+            StringBuilder buffer = new StringBuilder();
             buffer.Append("OpenStartLine=");
             buffer.Append(OpenStartLine);
             buffer.Append(",OpenStartColumn=");
@@ -92,7 +91,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model
         /// <returns></returns>
         public override string ToString()
         {
-            var buffer = new StringBuilder();
+            StringBuilder buffer = new StringBuilder();
             buffer.Append("OpenStartLine=");
             buffer.Append(OpenStartLine);
             buffer.Append(",OpenStartColumn=");
@@ -145,7 +144,6 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model
             internal ElementTextRange TextRange;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "This is an extension method.")]
         public static ElementTextRange GetTextRange(this XElement element)
         {
             var sfa = element.Annotation<XmlFileAnnotation>();
@@ -156,7 +154,6 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model
             return sfa.TextRange;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "This is an extension method")]
         public static void SetTextRange(this XElement element, ElementTextRange textRange)
         {
             var sfa = element.Annotation<XmlFileAnnotation>();
@@ -168,7 +165,6 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model
             sfa.TextRange = textRange;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "This is an extension method")]
         public static void EnsureAnnotation(this XElement element)
         {
             var sfa = element.Annotation<XmlFileAnnotation>();

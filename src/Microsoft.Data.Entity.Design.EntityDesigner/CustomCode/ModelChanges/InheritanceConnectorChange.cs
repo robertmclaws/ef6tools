@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using InheritanceConnector = Microsoft.Data.Entity.Design.EntityDesigner.View.InheritanceConnector;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using InheritanceConnector = Microsoft.Data.Entity.Design.EntityDesigner.View.InheritanceConnector;
-
     internal class InheritanceConnectorChange : InheritanceConnectorModelChange
     {
         private readonly Guid _domainPropertyId;
@@ -71,7 +71,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
                     if (points != null)
                     {
-                        var cmd = new SetConnectorPointsCommand(modelInheritanceConnector, points);
+                        SetConnectorPointsCommand cmd = new SetConnectorPointsCommand(modelInheritanceConnector, points);
                         CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     }
                 }
@@ -82,12 +82,12 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
                         && modelInheritanceConnector.ConnectorPoints != null
                         && modelInheritanceConnector.ConnectorPoints.Count > 0)
                     {
-                        var points = new List<KeyValuePair<double, double>>();
-                        var setConnectorPointscmd = new SetConnectorPointsCommand(modelInheritanceConnector, points);
+                        List<KeyValuePair<double, double>> points = new List<KeyValuePair<double, double>>();
+                        SetConnectorPointsCommand setConnectorPointscmd = new SetConnectorPointsCommand(modelInheritanceConnector, points);
                         CommandProcessor.InvokeSingleCommand(cpc, setConnectorPointscmd);
                     }
 
-                    var cmd = new UpdateDefaultableValueCommand<bool>(
+                    UpdateDefaultableValueCommand<bool> cmd = new UpdateDefaultableValueCommand<bool>(
                         modelInheritanceConnector.ManuallyRouted, inheritanceConnector.ManuallyRouted);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }

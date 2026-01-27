@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
+using Microsoft.Data.Entity.Design.UI.Views.Explorer;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
-    using Microsoft.Data.Entity.Design.UI.Views.Explorer;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal delegate void NavigateTo(EFObject efobject);
 
     // <summary>
@@ -40,20 +40,17 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         // </summary>
         // <param name="sender">This should be an instance of ErrorTask and implement IEFErrorTask</param>
         // <param name="arguments"></param>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         internal static void NavigateTo(Object sender, EventArgs arguments)
         {
             Debug.Assert(_dslDesignerOnNavigate != null, "DSL navigation delegate is null!");
 
-            var task = sender as ErrorTask;
-            if (task == null)
+            if (sender is not ErrorTask task)
             {
                 Debug.Fail("unable to cast sender to Task instance");
                 return;
             }
 
-            var efTask = task as IXmlModelErrorTask;
-            if (efTask == null)
+            if (task is not IXmlModelErrorTask efTask)
             {
                 Debug.Fail("Unable to cast errorTask to IEFErrorTask");
                 return;
@@ -159,14 +156,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             // Do this first so if there is any problem in the code below with out-of-date line numbers, the document will open
             // if it is closed, and the error list will be refreshed with correct line-numbers.
             //
-            IVsUIHierarchy ppHierOpen;
-            uint itemID;
-            IVsWindowFrame windowFrame;
             // Check if there is already primary or logical view opened for the document.
             // If not, open the primary view for the document.
             if (
                 !VsShellUtilities.IsDocumentOpen(
-                    serviceProvider, uri.LocalPath, VSConstants.LOGVIEWID_Primary, out ppHierOpen, out itemID, out windowFrame)
+                    serviceProvider, uri.LocalPath, VSConstants.LOGVIEWID_Primary, out IVsUIHierarchy ppHierOpen, out uint itemID, out IVsWindowFrame windowFrame)
                 &&
                 !VsShellUtilities.IsDocumentOpen(
                     serviceProvider, uri.LocalPath, PackageConstants.guidLogicalView, out ppHierOpen, out itemID, out windowFrame))
@@ -206,11 +200,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     "non-zero line/column didn't find an efobject linked to an xobject!");
             }
 
-            var cModel = efobject.GetParentOfType(typeof(ConceptualEntityModel)) as ConceptualEntityModel;
-            var sModel = efobject.GetParentOfType(typeof(StorageEntityModel)) as StorageEntityModel;
-            var mModel = efobject.GetParentOfType(typeof(MappingModel)) as MappingModel;
-
-            if (cModel != null)
+            if (efobject.GetParentOfType(typeof(ConceptualEntityModel)) is ConceptualEntityModel cModel)
             {
                 var isComplexTypeOrFunctionImportOrChild = false;
                 var obj = efobject;
@@ -233,16 +223,15 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     _dslDesignerOnNavigate(efobject);
                 }
             }
-            else if (sModel != null)
+            else if (efobject.GetParentOfType(typeof(StorageEntityModel)) is StorageEntityModel sModel)
             {
                 // node is in s-space, so navigate to the appropriate node in the explorer.
                 ExplorerNavigationHelper.NavigateTo(efobject);
             }
-            else if (mModel != null)
+            else if (efobject.GetParentOfType(typeof(MappingModel)) is MappingModel mModel)
             {
                 // see if this is a function import error
-                var fim = efobject.GetParentOfType(typeof(FunctionImportMapping)) as FunctionImportMapping;
-                if (fim != null)
+                if (efobject.GetParentOfType(typeof(FunctionImportMapping)) is FunctionImportMapping fim)
                 {
                     ExplorerNavigationHelper.NavigateTo(fim.FunctionImportName.Target);
                 }
@@ -267,9 +256,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         {
             Debug.Assert(uri != null, "uri is null");
 
-            using (var tempModelManager = new EntityDesignModelManager(new EFArtifactFactory(), new VSArtifactSetFactory()))
+            using (EntityDesignModelManager tempModelManager = new EntityDesignModelManager(new EFArtifactFactory(), new VSArtifactSetFactory()))
             {
-                using (var xmlModelProvider = new StandaloneXmlModelProvider(PackageManager.Package))
+                using (StandaloneXmlModelProvider xmlModelProvider = new StandaloneXmlModelProvider(PackageManager.Package))
                 {
                     var artifact = tempModelManager.GetNewOrExistingArtifact(uri, xmlModelProvider);
                     Debug.Assert(artifact != null, "failed to get the artifact to determine if it is designer-safe");

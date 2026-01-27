@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System.Collections.Generic;
-    using System.Windows;
-    using System.Windows.Automation.Peers;
-    using System.Windows.Controls;
-    using System.Windows.Documents;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -38,8 +38,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
             if (adornerY >= 0)
             {
-                SearchTickAdorner adorner;
-                if (!_adorners.TryGetValue(adornerY, out adorner))
+                if (!_adorners.TryGetValue(adornerY, out SearchTickAdorner adorner))
                 {
                     adorner = new SearchTickAdorner(adornerY, adornedElement);
                     _adorners[adornerY] = adorner;
@@ -62,7 +61,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
             // The adorner Y offset in the scrollbar adornedElement
             var size = SearchTickAdorner.GetRectangleSize(SearchTickAdorner.GetTickSize(adornedElement));
-            var padding = (Thickness)adornedElement.GetValue(Border.PaddingProperty);
+            Thickness padding = (Thickness)adornedElement.GetValue(Border.PaddingProperty);
             var y = padding.Top +
                     ((adornedElement.ActualHeight - padding.Top - padding.Bottom) * treeViewItemY)
                     / (explorerFrame.ScrollViewer.ExtentHeight);

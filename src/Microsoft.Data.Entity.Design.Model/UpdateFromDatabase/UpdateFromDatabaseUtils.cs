@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal delegate void AddCSideEntityTypeToEntityTypeIdentityMapping(EntityType et, DatabaseObject dbObj);
 
     internal static class UpdateModelFromDatabaseUtils
@@ -20,10 +20,9 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                 {
                     foreach (var mf in etm.MappingFragments())
                     {
-                        var sSideEntitySet = mf.StoreEntitySet.Target as StorageEntitySet;
-                        if (null != sSideEntitySet)
+                        if (mf.StoreEntitySet.Target is StorageEntitySet sSideEntitySet)
                         {
-                            var dbObj = DatabaseObject.CreateFromEntitySet(sSideEntitySet);
+                            DatabaseObject dbObj = DatabaseObject.CreateFromEntitySet(sSideEntitySet);
 
                             // record mappings to C-side entity types
                             foreach (var entry in etm.TypeName.Entries)

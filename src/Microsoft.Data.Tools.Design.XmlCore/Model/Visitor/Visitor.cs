@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Model.Visitor
 {
-    using System.Collections.Generic;
-
     internal abstract class Visitor
     {
         internal abstract void Visit(IVisitable visitable);
@@ -18,7 +18,7 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
         internal void Traverse(IVisitable visitable)
         {
             // do a BFS across the metadata graph starting from item.
-            var toVisit = new Queue<IVisitable>();
+            Queue<IVisitable> toVisit = new Queue<IVisitable>();
             toVisit.Enqueue(visitable);
             while (toVisit.Count > 0)
             {

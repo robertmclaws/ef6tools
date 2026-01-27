@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Xml;
-    using System.Xml.Linq;
-
     // <summary>
     //     Translate System.Version to XNamespaces used by the Entity Framework.
     // </summary>
@@ -33,33 +33,33 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
         public const string CodeGenerationNamespace = "http://schemas.microsoft.com/ado/2006/04/codegeneration";
         public const string ProviderManifestNamespace = "http://schemas.microsoft.com/ado/2006/04/edm/providermanifest";
 
-        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static SchemaManager()
         {
-            const short arraySize = 3;
+            // Only Version3 (EF6) namespaces are supported
+            const short arraySize = 1;
 
-            CsdlNamespaces = new Dictionary<Version, XNamespace>(arraySize);
-            CsdlNamespaces.Add(EntityFrameworkVersion.Version1, XNamespace.Get("http://schemas.microsoft.com/ado/2006/04/edm"));
-            CsdlNamespaces.Add(EntityFrameworkVersion.Version2, XNamespace.Get("http://schemas.microsoft.com/ado/2008/09/edm"));
-            CsdlNamespaces.Add(EntityFrameworkVersion.Version3, XNamespace.Get("http://schemas.microsoft.com/ado/2009/11/edm"));
+            CsdlNamespaces = new Dictionary<Version, XNamespace>(arraySize)
+            {
+                { EntityFrameworkVersion.Version3, XNamespace.Get("http://schemas.microsoft.com/ado/2009/11/edm") }
+            };
             CsdlNamespaceNames = CsdlNamespaces.Select(n => n.Value.NamespaceName).ToArray();
 
-            MslNamespaces = new Dictionary<Version, XNamespace>(arraySize);
-            MslNamespaces.Add(EntityFrameworkVersion.Version1, XNamespace.Get("urn:schemas-microsoft-com:windows:storage:mapping:CS"));
-            MslNamespaces.Add(EntityFrameworkVersion.Version2, XNamespace.Get("http://schemas.microsoft.com/ado/2008/09/mapping/cs"));
-            MslNamespaces.Add(EntityFrameworkVersion.Version3, XNamespace.Get("http://schemas.microsoft.com/ado/2009/11/mapping/cs"));
+            MslNamespaces = new Dictionary<Version, XNamespace>(arraySize)
+            {
+                { EntityFrameworkVersion.Version3, XNamespace.Get("http://schemas.microsoft.com/ado/2009/11/mapping/cs") }
+            };
             MslNamespaceNames = MslNamespaces.Select(n => n.Value.NamespaceName).ToArray();
 
-            SsdlNamespaces = new Dictionary<Version, XNamespace>(arraySize);
-            SsdlNamespaces.Add(EntityFrameworkVersion.Version1, XNamespace.Get("http://schemas.microsoft.com/ado/2006/04/edm/ssdl"));
-            SsdlNamespaces.Add(EntityFrameworkVersion.Version2, XNamespace.Get("http://schemas.microsoft.com/ado/2009/02/edm/ssdl"));
-            SsdlNamespaces.Add(EntityFrameworkVersion.Version3, XNamespace.Get("http://schemas.microsoft.com/ado/2009/11/edm/ssdl"));
+            SsdlNamespaces = new Dictionary<Version, XNamespace>(arraySize)
+            {
+                { EntityFrameworkVersion.Version3, XNamespace.Get("http://schemas.microsoft.com/ado/2009/11/edm/ssdl") }
+            };
             SsdlNamespaceNames = SsdlNamespaces.Select(n => n.Value.NamespaceName).ToArray();
 
-            EdmxNamespaces = new Dictionary<Version, XNamespace>(arraySize);
-            EdmxNamespaces.Add(EntityFrameworkVersion.Version1, XNamespace.Get("http://schemas.microsoft.com/ado/2007/06/edmx"));
-            EdmxNamespaces.Add(EntityFrameworkVersion.Version2, XNamespace.Get("http://schemas.microsoft.com/ado/2008/10/edmx"));
-            EdmxNamespaces.Add(EntityFrameworkVersion.Version3, XNamespace.Get("http://schemas.microsoft.com/ado/2009/11/edmx"));
+            EdmxNamespaces = new Dictionary<Version, XNamespace>(arraySize)
+            {
+                { EntityFrameworkVersion.Version3, XNamespace.Get("http://schemas.microsoft.com/ado/2009/11/edmx") }
+            };
             EdmxNamespaceNames = EdmxNamespaces.Select(n => n.Value.NamespaceName).ToArray();
 
             NamespaceToVersionReverseLookUp = new Dictionary<XNamespace, Version>();
@@ -195,13 +195,10 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
         // </summary>
         internal static Version GetSchemaVersion(XNamespace xNamespace)
         {
-            // TODO: Returing V1 if the namespace not found feels wrong. Investigate where it is used and return null (or throw?)
-            // Note that throwing from this method can crash VS if the exception is not handled.
-
-            Version schemaVersion;
-            return xNamespace != null && NamespaceToVersionReverseLookUp.TryGetValue(xNamespace, out schemaVersion)
+            // Return Version3 as fallback since it's the only supported version
+            return xNamespace != null && NamespaceToVersionReverseLookUp.TryGetValue(xNamespace, out Version schemaVersion)
                        ? schemaVersion
-                       : EntityFrameworkVersion.Version1;
+                       : EntityFrameworkVersion.Version3;
         }
 
         private static string GetNamespaceName(Version schemaVersion, IDictionary<Version, XNamespace> xNamespaces)
@@ -219,7 +216,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
             Debug.Assert(xmlNameTable != null, "xmlNameTable != null");
             Debug.Assert(schemaVersion != null, "schemaVersion != null");
 
-            var nsMgr = new XmlNamespaceManager(xmlNameTable);
+            XmlNamespaceManager nsMgr = new XmlNamespaceManager(xmlNameTable);
             nsMgr.AddNamespace("edmx", GetEDMXNamespaceName(schemaVersion));
             nsMgr.AddNamespace("csdl", GetCSDLNamespaceName(schemaVersion));
             nsMgr.AddNamespace("essg", GetEntityStoreSchemaGeneratorNamespaceName());

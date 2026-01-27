@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Microsoft.VisualStudio.TextTemplating.VSHost;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.VisualStudio.TextTemplating.VSHost;
-
     internal class CustomGenerator : IContextGenerator, IEntityTypeGenerator
     {
         private readonly TextTemplatingHost _host;
@@ -56,7 +56,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
 
         private string ProcessTemplate()
         {
-            var callback = new Callback();
+            Callback callback = new Callback();
 
             var result = _host.ProcessTemplate(_templatePath, File.ReadAllText(_templatePath), callback);
 
@@ -70,7 +70,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
 
         private class Callback : ITextTemplatingCallback
         {
-            private readonly ICollection<string> _errors = new List<string>();
+            private readonly ICollection<string> _errors = [];
 
             public IEnumerable<string> Errors
             {

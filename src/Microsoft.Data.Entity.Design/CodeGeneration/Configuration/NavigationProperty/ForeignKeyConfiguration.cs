@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-
     /// <summary>
     /// Represents a model configuration to set the foreign key properties of an association.
     /// </summary>
     public class ForeignKeyConfiguration : IFluentConfiguration
     {
-        private readonly ICollection<EdmProperty> _properties = new List<EdmProperty>();
+        private readonly ICollection<EdmProperty> _properties = [];
 
         /// <summary>
         /// Gets the properties used for the foreign key of the association.

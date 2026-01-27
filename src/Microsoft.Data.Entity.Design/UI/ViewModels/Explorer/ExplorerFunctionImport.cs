@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class ExplorerFunctionImport : EntityDesignExplorerEFElement
     {
         private readonly TypedChildList<ExplorerParameter> _parameters =
@@ -29,7 +29,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         private void LoadParametersFromModel()
         {
             // load children from model
-            var functionImport = ModelItem as FunctionImport;
+            FunctionImport functionImport = ModelItem as FunctionImport;
             Debug.Assert(functionImport != null, "Underlying FunctionImport is null for ExplorerFunctionImport with name " + Name);
             if (functionImport != null)
             {
@@ -59,8 +59,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var param = efElementToInsert as Parameter;
-            if (param != null)
+            if (efElementToInsert is Parameter param)
             {
                 var explorerParam = AddParameter(param);
                 var index = _parameters.IndexOf(explorerParam);
@@ -74,8 +73,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerParameter = efElementToRemove as ExplorerParameter;
-            if (explorerParameter == null)
+            if (efElementToRemove is not ExplorerParameter explorerParameter)
             {
                 Debug.Fail(
                     string.Format(
@@ -90,7 +88,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         private ExplorerParameter AddParameter(Parameter param)
         {
-            var explorerParam =
+            ExplorerParameter explorerParam =
                 ModelToExplorerModelXRef.GetNew(_context, param, this, typeof(ExplorerParameter)) as ExplorerParameter;
             _parameters.Insert(explorerParam);
             return explorerParam;

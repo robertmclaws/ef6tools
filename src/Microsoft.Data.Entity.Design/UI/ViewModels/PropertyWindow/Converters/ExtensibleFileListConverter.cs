@@ -1,13 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Globalization;
+using System.IO;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using System;
-    using System.ComponentModel;
-    using System.Globalization;
-    using System.IO;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     // <summary>
     //     The extensibility of certain features such as Model First may be driven by files in the user's file system.
     //     This converter allows displaying lists of files in three separate scopes:
@@ -32,8 +33,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {
-            var extFilePath = value as string;
-            if (extFilePath != null
+            if (value is string extFilePath
                 && destinationType == typeof(string))
             {
                 // Format the display. Note that we use InvariantCulture to create the display value since the order of the type '(User)', etc. and the name is significant.

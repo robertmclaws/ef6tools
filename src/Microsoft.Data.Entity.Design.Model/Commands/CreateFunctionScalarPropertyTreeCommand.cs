@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to create a ScalarProperty that lives on any level of a ComplexProperty tree inside
     ///     a ModificationFunction.
@@ -83,17 +83,15 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _version = version;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2208:InstantiateArgumentExceptionsCorrectly")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
-            var cp = new CommandProcessor(cpc);
+            CommandProcessor cp = new CommandProcessor(cpc);
             CreateFunctionComplexPropertyCommand preReqCmd = null;
             for (var i = 0; i < _propertyChain.Count; i++)
             {
                 var property = _propertyChain[i];
                 Debug.Assert(property.EntityModel.IsCSDL, "Each Property in the chain must be in the CSDL");
-                var complexConceptualProperty = property as ComplexConceptualProperty;
-                if (complexConceptualProperty != null)
+                if (property is ComplexConceptualProperty complexConceptualProperty)
                 {
                     Debug.Assert(i < _propertyChain.Count - 1, "Last property shouldn't be ComplexConceptualProperty");
                     CreateFunctionComplexPropertyCommand cmd = null;

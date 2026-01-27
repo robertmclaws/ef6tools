@@ -1,38 +1,38 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using EnvDTE;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Moq.Protected;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using VSLangProj;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Resources = Microsoft.Data.Entity.Design.Resources;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
 {
-    using EnvDTE;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Moq.Protected;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using VSLangProj;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [TestClass]
     public class StandaloneXmlModelProviderTests
     {
         [TestMethod]
         public void TryGetBufferViaExtensions_returns_false_when_converter_is_present_but_transformer_is_absent_for_non_edmx_file()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
-            var mockProjectItem = new Mock<ProjectItem>();
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            Mock<ProjectItem> mockProjectItem = new Mock<ProjectItem>();
             mockProjectItem.SetupGet(i => i.ContainingProject).Returns(mockDte.Project);
             mockProjectItem.Setup(i => i.get_FileNames(It.IsAny<short>())).Returns("non-edmx-file.xmde");
 
-            var mockConversionData = new Mock<IEntityDesignerConversionData>();
+            Mock<IEntityDesignerConversionData> mockConversionData = new Mock<IEntityDesignerConversionData>();
             mockConversionData.SetupGet(d => d.FileExtension).Returns("xmde");
 
-            var mockConversionExtension = new Mock<IModelConversionExtension>();
+            Mock<IModelConversionExtension> mockConversionExtension = new Mock<IModelConversionExtension>();
             mockConversionExtension
                 .Setup(e => e.OnAfterFileLoaded(It.IsAny<ModelConversionExtensionContext>()))
                 .Callback<ModelConversionExtensionContext>(
@@ -44,15 +44,13 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
                             ctx.Project.Should().BeSameAs(mockDte.Project);
                         });
 
-            var converter =
+            Lazy<IModelConversionExtension, IEntityDesignerConversionData> converter =
                 new Lazy<IModelConversionExtension, IEntityDesignerConversionData>(
                     () => mockConversionExtension.Object, mockConversionData.Object);
 
-            string outputDocument;
-            List<ExtensionError> errors;
             StandaloneXmlModelProvider.TryGetBufferViaExtensions(
                 mockDte.ServiceProvider, mockProjectItem.Object, string.Empty, new[] { converter },
-                new Lazy<IModelTransformExtension>[0], out outputDocument, out errors).Should().BeFalse();
+                new Lazy<IModelTransformExtension>[0], out string outputDocument, out List<ExtensionError> errors).Should().BeFalse();
 
             outputDocument.Should().BeEmpty();
             errors.Should().BeEmpty();
@@ -66,23 +64,21 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
         // note that this may not be the desired behavior see: https://entityframework.codeplex.com/workitem/1371
         public void TryGetBufferViaExtensions_throws_when_converter_is_absent_for_non_edmx_file()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
-            var mockProjectItem = new Mock<ProjectItem>();
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            Mock<ProjectItem> mockProjectItem = new Mock<ProjectItem>();
             mockProjectItem.SetupGet(i => i.ContainingProject).Returns(mockDte.Project);
             mockProjectItem.Setup(i => i.get_FileNames(It.IsAny<short>())).Returns("non-edmx-file.xmde");
 
             // need to pass a transformer since there must be at least onve converter or transformer
             // and the test tests a case where converter does not exist
-            var mockTransformExtension = new Mock<IModelTransformExtension>();
-            var transformer = new Lazy<IModelTransformExtension>(() => mockTransformExtension.Object);
+            Mock<IModelTransformExtension> mockTransformExtension = new Mock<IModelTransformExtension>();
+            Lazy<IModelTransformExtension> transformer = new Lazy<IModelTransformExtension>(() => mockTransformExtension.Object);
 
-            string outputDocument;
-            List<ExtensionError> errors;
 
             Action action = () => StandaloneXmlModelProvider.TryGetBufferViaExtensions(
                 mockDte.ServiceProvider, mockProjectItem.Object, "<root/>",
                 new Lazy<IModelConversionExtension, IEntityDesignerConversionData>[0],
-                new[] { transformer }, out outputDocument, out errors);
+                new[] { transformer }, out string outputDocument, out List<ExtensionError> errors);
 
             action.Should().Throw<InvalidOperationException>()
                 .WithMessage(Resources.Extensibility_NoConverterForExtension);
@@ -91,12 +87,12 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
         [TestMethod]
         public void TryGetBufferViaExtensions_returns_false_when_transformer_does_not_modify_original_document()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
-            var mockProjectItem = new Mock<ProjectItem>();
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            Mock<ProjectItem> mockProjectItem = new Mock<ProjectItem>();
             mockProjectItem.SetupGet(i => i.ContainingProject).Returns(mockDte.Project);
             mockProjectItem.Setup(i => i.get_FileNames(It.IsAny<short>())).Returns("model.edmx");
 
-            var mockTransformExtension = new Mock<IModelTransformExtension>();
+            Mock<IModelTransformExtension> mockTransformExtension = new Mock<IModelTransformExtension>();
             mockTransformExtension
                 .Setup(e => e.OnAfterModelLoaded(It.IsAny<ModelTransformExtensionContext>()))
                 .Callback<ModelTransformExtensionContext>(
@@ -108,14 +104,12 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
                             ctx.Project.Should().BeSameAs(mockDte.Project);
                         });
 
-            var transformer = new Lazy<IModelTransformExtension>(() => mockTransformExtension.Object);
+            Lazy<IModelTransformExtension> transformer = new Lazy<IModelTransformExtension>(() => mockTransformExtension.Object);
 
-            string outputDocument;
-            List<ExtensionError> errors;
             StandaloneXmlModelProvider.TryGetBufferViaExtensions(
                 mockDte.ServiceProvider, mockProjectItem.Object, "<root/>",
                 new Lazy<IModelConversionExtension, IEntityDesignerConversionData>[0],
-                new[] { transformer }, out outputDocument, out errors).Should().BeFalse();
+                new[] { transformer }, out string outputDocument, out List<ExtensionError> errors).Should().BeFalse();
 
             outputDocument.Should().BeEmpty();
             errors.Should().BeEmpty();
@@ -129,12 +123,12 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
         [TestMethod]
         public void TryGetBufferViaExtensions_returns_true_when_transformer_is_present_but_converter_is_absent_for_edmx_file()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
-            var mockProjectItem = new Mock<ProjectItem>();
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            Mock<ProjectItem> mockProjectItem = new Mock<ProjectItem>();
             mockProjectItem.SetupGet(i => i.ContainingProject).Returns(mockDte.Project);
             mockProjectItem.Setup(i => i.get_FileNames(It.IsAny<short>())).Returns("model.edmx");
 
-            var mockTransformExtension = new Mock<IModelTransformExtension>();
+            Mock<IModelTransformExtension> mockTransformExtension = new Mock<IModelTransformExtension>();
             mockTransformExtension
                 .Setup(e => e.OnAfterModelLoaded(It.IsAny<ModelTransformExtensionContext>()))
                 .Callback<ModelTransformExtensionContext>(
@@ -145,19 +139,17 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
                             ctx.ProjectItem.Should().BeSameAs(mockProjectItem.Object);
                             ctx.Project.Should().BeSameAs(mockDte.Project);
 
-                            var modifiedDocument = new XDocument(ctx.OriginalDocument);
+                            XDocument modifiedDocument = new XDocument(ctx.OriginalDocument);
                             modifiedDocument.Root.Add(new XAttribute("test", "value"));
                             ctx.CurrentDocument = modifiedDocument;
                         });
 
-            var transformer = new Lazy<IModelTransformExtension>(() => mockTransformExtension.Object);
+            Lazy<IModelTransformExtension> transformer = new Lazy<IModelTransformExtension>(() => mockTransformExtension.Object);
 
-            string outputDocument;
-            List<ExtensionError> errors;
             StandaloneXmlModelProvider.TryGetBufferViaExtensions(
                 mockDte.ServiceProvider, mockProjectItem.Object, "<root/>",
                 new Lazy<IModelConversionExtension, IEntityDesignerConversionData>[0],
-                new[] { transformer }, out outputDocument, out errors).Should().BeTrue();
+                new[] { transformer }, out string outputDocument, out List<ExtensionError> errors).Should().BeTrue();
 
             XNode.DeepEquals(XDocument.Parse("<root test=\"value\" />"), XDocument.Parse(outputDocument)).Should().BeTrue();
             errors.Should().BeEmpty();
@@ -171,16 +163,16 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
         // [TestMethod] https://entityframework.codeplex.com/workitem/1371
         public void TryGetBufferViaExtensions_passes_content_from_converter_to_transformer_and_returns_true()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
-            var mockProjectItem = new Mock<ProjectItem>();
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            Mock<ProjectItem> mockProjectItem = new Mock<ProjectItem>();
             mockProjectItem.SetupGet(i => i.ContainingProject).Returns(mockDte.Project);
             mockProjectItem.Setup(i => i.get_FileNames(It.IsAny<short>())).Returns("non-edmx-file.xmde");
 
             // converter setup
-            var mockConversionData = new Mock<IEntityDesignerConversionData>();
+            Mock<IEntityDesignerConversionData> mockConversionData = new Mock<IEntityDesignerConversionData>();
             mockConversionData.SetupGet(d => d.FileExtension).Returns("xmde");
 
-            var mockConversionExtension = new Mock<IModelConversionExtension>();
+            Mock<IModelConversionExtension> mockConversionExtension = new Mock<IModelConversionExtension>();
             mockConversionExtension
                 .Setup(e => e.OnAfterFileLoaded(It.IsAny<ModelConversionExtensionContext>()))
                 .Callback<ModelConversionExtensionContext>(
@@ -196,7 +188,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
                         });
 
             // transformer setup
-            var mockTransformExtension = new Mock<IModelTransformExtension>();
+            Mock<IModelTransformExtension> mockTransformExtension = new Mock<IModelTransformExtension>();
             mockTransformExtension
                 .Setup(e => e.OnAfterModelLoaded(It.IsAny<ModelTransformExtensionContext>()))
                 .Callback<ModelTransformExtensionContext>(
@@ -207,21 +199,19 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
                             ctx.ProjectItem.Should().BeSameAs(mockProjectItem.Object);
                             ctx.Project.Should().BeSameAs(mockDte.Project);
 
-                            var modifiedDocument = new XDocument(ctx.OriginalDocument);
+                            XDocument modifiedDocument = new XDocument(ctx.OriginalDocument);
                             modifiedDocument.Root.Add(new XAttribute("test", "value"));
                             ctx.CurrentDocument = modifiedDocument;
                         });
 
-            var converter =
+            Lazy<IModelConversionExtension, IEntityDesignerConversionData> converter =
                 new Lazy<IModelConversionExtension, IEntityDesignerConversionData>(
                     () => mockConversionExtension.Object, mockConversionData.Object);
-            var transformer = new Lazy<IModelTransformExtension>(() => mockTransformExtension.Object);
+            Lazy<IModelTransformExtension> transformer = new Lazy<IModelTransformExtension>(() => mockTransformExtension.Object);
 
-            string outputDocument;
-            List<ExtensionError> errors;
             StandaloneXmlModelProvider.TryGetBufferViaExtensions(
                 mockDte.ServiceProvider, mockProjectItem.Object, string.Empty,
-                new[] { converter }, new[] { transformer }, out outputDocument, out errors).Should().BeTrue();
+                new[] { converter }, new[] { transformer }, out string outputDocument, out List<ExtensionError> errors).Should().BeTrue();
 
             XNode.DeepEquals(XDocument.Parse("<root test=\"value\" />"), XDocument.Parse(outputDocument)).Should().BeTrue();
             errors.Should().BeEmpty();
@@ -243,7 +233,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Model
         public void Build_creates_annotated_XDocument()
         {
             var serviceProvider = new Mock<IServiceProvider>().Object;
-            var mockModelProvider = new Mock<StandaloneXmlModelProvider>(serviceProvider) { CallBase = true };
+            Mock<StandaloneXmlModelProvider> mockModelProvider = new Mock<StandaloneXmlModelProvider>(serviceProvider) { CallBase = true };
             mockModelProvider.Protected()
                 .Setup<string>("ReadEdmxContents", ItExpr.IsAny<Uri>())
                 .Returns("<root>\n<child />\n</root>");

@@ -1,19 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [TreeGridDesignerRootBranch(typeof(ParametersBranch))]
     [TreeGridDesignerColumn(typeof(ParameterColumn), Order = 1)]
     internal class MappingFunctionScalarProperties : MappingFunctionMappingRoot
@@ -63,12 +63,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal void LoadScalarProperties()
         {
             if (null == _scalarProperties)
             {
-                _scalarProperties = new List<MappingFunctionScalarProperty>();
+                _scalarProperties = [];
 
                 // load children from model
                 // note: have to go to parent to get this as this is a dummy node
@@ -89,12 +88,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                         {
                             // this FunctionScalarProperty could be right under the function, nested inside an AssociationEnd, 
                             // or N levels deep inside a complex type hierarchy
-                            var spmf = scalarProperty.GetParentOfType(typeof(ModificationFunction)) as ModificationFunction;
 
                             // if we find one, validate it
                             if (scalarProperty != null
                                 && scalarProperty.Name.Status == BindingStatus.Known
-                                && spmf != null
+                                && scalarProperty.GetParentOfType(typeof(ModificationFunction)) is ModificationFunction spmf
                                 && ModificationFunction == spmf)
                             {
                                 // make sure we are looking at something mapped by the entity type we are mapping
@@ -112,13 +110,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                         // if we didn't find one, then create a dummy row with just the column info
                         if (existingScalarProperty == null)
                         {
-                            var msp = new MappingFunctionScalarProperty(_context, null, this);
+                            MappingFunctionScalarProperty msp = new MappingFunctionScalarProperty(_context, null, this);
                             msp.StoreParameter = parm;
                             _scalarProperties.Add(msp);
                         }
                         else
                         {
-                            var msp =
+                            MappingFunctionScalarProperty msp =
                                 (MappingFunctionScalarProperty)
                                 ModelToMappingModelXRef.GetNewOrExisting(_context, existingScalarProperty, this);
                             _scalarProperties.Add(msp);
@@ -150,7 +148,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 
         protected override void OnChildDeleted(MappingEFElement melem)
         {
-            var child = melem as MappingFunctionScalarProperty;
+            MappingFunctionScalarProperty child = melem as MappingFunctionScalarProperty;
             Debug.Assert(child != null, "Unknown child being deleted");
             if (child != null)
             {

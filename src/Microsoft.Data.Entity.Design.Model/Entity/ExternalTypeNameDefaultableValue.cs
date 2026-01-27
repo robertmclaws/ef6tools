@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class ExternalTypeNameDefaultableValue : DefaultableValue<string>
     {
         internal const string AttributeExternalTypeName = "ExternalTypeName";

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 {
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     internal class EntityTypeElementListCompartmentDescription : ElementListCompartmentDescription
     {
         private bool _isScalarPropertiesCompartment;
@@ -30,7 +30,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// <returns></returns>
         public override Compartment CreateCompartment(Partition partition)
         {
-            var compartment = new EntityTypeElementListCompartment(partition, _isScalarPropertiesCompartment);
+            EntityTypeElementListCompartment compartment = new EntityTypeElementListCompartment(partition, _isScalarPropertiesCompartment);
             if (IsDefaultCollapsed)
             {
                 compartment.IsExpanded = false;

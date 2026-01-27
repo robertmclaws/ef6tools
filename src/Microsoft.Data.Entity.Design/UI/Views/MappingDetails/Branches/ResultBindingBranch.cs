@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 {
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     This branch displays all of the conditions in for a table/entity mapping.  It also displays a
     //     creator node so that users can add new conditions.
@@ -34,8 +34,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                 return false;
             }
 
-            var mappingResultBindings = component as MappingResultBindings;
-            if (mappingResultBindings != null)
+            if (component is MappingResultBindings mappingResultBindings)
             {
                 _mappingResultBindings = mappingResultBindings;
             }
@@ -48,10 +47,9 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
             return _mappingResultBindings.Children[index];
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override object GetCreatorElement()
         {
-            var mrb = new MappingResultBinding(null, null, _mappingResultBindings);
+            MappingResultBinding mrb = new MappingResultBinding(null, null, _mappingResultBindings);
             return mrb;
         }
 
@@ -83,13 +81,12 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
             return Resources.MappingDetails_ResultBindingCreatorNode;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override LabelEditResult OnCreatorNodeEditCommitted(int index, object value, int insertIndex)
         {
             var columnName = value as string;
             if (!string.IsNullOrEmpty(columnName))
             {
-                var mrb = new MappingResultBinding(null, null, _mappingResultBindings);
+                MappingResultBinding mrb = new MappingResultBinding(null, null, _mappingResultBindings);
                 if (mrb.CreateModelItem(null, _mappingResultBindings.Context, columnName))
                 {
                     DoBranchModification(BranchModificationEventArgs.InsertItems(this, insertIndex, 1));

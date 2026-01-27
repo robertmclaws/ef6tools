@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+
 namespace Microsoft.Data.Entity.Design.Base.Host
 {
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-
     // <summary>
     //     The MappingDesignerContext provides contextual services to the
     //     designer.  All IO through the designer is handled through the

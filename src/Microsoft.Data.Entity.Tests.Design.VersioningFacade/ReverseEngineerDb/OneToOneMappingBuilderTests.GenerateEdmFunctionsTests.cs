@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
-{
-   using System;
-   using System.Data.Entity.Core.Metadata.Edm;
-   using System.Data.Entity.Infrastructure.Pluralization;
-   using System.Linq;
-   using Microsoft.Data.Entity.Design.VersioningFacade;
-   using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-   using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-   using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure.Pluralization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
 
+namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
+{
    public partial class OneToOneMappingBuilderTests
    {
       [TestClass]
@@ -703,7 +703,7 @@ using FluentAssertions;
             private static EdmModel BuildStoreModel(
                 TableDetailsRow[] tableDetails,
                 RelationshipDetailsRow[] relationshipDetails) {
-               var storeSchemaDetails = new StoreSchemaDetails(
+                    StoreSchemaDetails storeSchemaDetails = new StoreSchemaDetails(
                    tableDetails,
                    new TableDetailsRow[0],
                    relationshipDetails,
@@ -1148,7 +1148,7 @@ using FluentAssertions;
             }
 
             [TestMethod]
-            public static void GenerateAssociationType_from_store_association_type_creates_non_FK_association_if_EF_version1() {
+            public static void GenerateAssociationType_from_store_association_type_creates_FK_association_in_Version3() {
                var tableDetails = new[]
                    {
                         StoreModelBuilderTests.CreateRow(
@@ -1163,7 +1163,7 @@ using FluentAssertions;
                             "R1", "R1", 0, false, "catalog", "schema", "A", "Id", "catalog", "schema", "B", "Id")
                     };
 
-               var storeSchemaDetails = new StoreSchemaDetails(
+                    StoreSchemaDetails storeSchemaDetails = new StoreSchemaDetails(
                    tableDetails,
                    new TableDetailsRow[0],
                    relationshipDetails,
@@ -1173,7 +1173,7 @@ using FluentAssertions;
                var storeModelBuilder = StoreModelBuilderTests.CreateStoreModelBuilder(
                    "System.Data.SqlClient",
                    "2008",
-                   EntityFrameworkVersion.Version1);
+                   EntityFrameworkVersion.Version3);
 
                var storeModel = storeModelBuilder.Build(storeSchemaDetails);
 
@@ -1183,7 +1183,8 @@ using FluentAssertions;
 
                var associationType = mappingContext.ConceptualAssociationTypes().ElementAt(0);
 
-               associationType.IsForeignKey.Should().BeFalse();
+               // In Version3, associations are created as FK associations
+               associationType.IsForeignKey.Should().BeTrue();
                associationType.ReferentialConstraints.Count.Should().Be(1);
 
                mappingContext.StoreForeignKeyProperties.Should().Equal(new[] { mappingContext.StoreAssociationTypes().Single().ReferentialConstraints[0].ToProperties[0] });

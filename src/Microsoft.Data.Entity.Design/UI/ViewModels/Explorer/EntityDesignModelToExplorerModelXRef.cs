@@ -1,42 +1,43 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class EntityDesignModelToExplorerModelXRef : ModelToExplorerModelXRef
     {
         private static readonly Dictionary<Type, Type> _modelType2ExplorerViewModelType;
 
-        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static EntityDesignModelToExplorerModelXRef()
         {
-            _modelType2ExplorerViewModelType = new Dictionary<Type, Type>();
-            _modelType2ExplorerViewModelType.Add(typeof(AssociationSet), typeof(ExplorerAssociationSet));
-            _modelType2ExplorerViewModelType.Add(typeof(ConceptualEntityContainer), typeof(ExplorerConceptualEntityContainer));
-            _modelType2ExplorerViewModelType.Add(typeof(ConceptualEntityModel), typeof(ExplorerConceptualEntityModel));
-            _modelType2ExplorerViewModelType.Add(typeof(ConceptualEntitySet), typeof(ExplorerEntitySet));
-            _modelType2ExplorerViewModelType.Add(typeof(ConceptualEntityType), typeof(ExplorerConceptualEntityType));
-            _modelType2ExplorerViewModelType.Add(typeof(ComplexType), typeof(ExplorerComplexType));
-            _modelType2ExplorerViewModelType.Add(typeof(ConceptualProperty), typeof(ExplorerConceptualProperty));
-            _modelType2ExplorerViewModelType.Add(typeof(ComplexConceptualProperty), typeof(ExplorerConceptualProperty));
-            _modelType2ExplorerViewModelType.Add(typeof(EntityTypeShape), typeof(ExplorerEntityTypeShape));
-            _modelType2ExplorerViewModelType.Add(typeof(EnumType), typeof(ExplorerEnumType));
-            _modelType2ExplorerViewModelType.Add(typeof(Diagram), typeof(ExplorerDiagram));
-            _modelType2ExplorerViewModelType.Add(typeof(Diagrams), typeof(ExplorerDiagrams));
-            _modelType2ExplorerViewModelType.Add(typeof(Function), typeof(ExplorerFunction));
-            _modelType2ExplorerViewModelType.Add(typeof(FunctionImport), typeof(ExplorerFunctionImport));
-            _modelType2ExplorerViewModelType.Add(typeof(NavigationProperty), typeof(ExplorerNavigationProperty));
-            _modelType2ExplorerViewModelType.Add(typeof(Parameter), typeof(ExplorerParameter));
-            _modelType2ExplorerViewModelType.Add(typeof(StorageEntityModel), typeof(ExplorerStorageEntityModel));
-            _modelType2ExplorerViewModelType.Add(typeof(StorageEntityType), typeof(ExplorerStorageEntityType));
-            _modelType2ExplorerViewModelType.Add(typeof(StorageProperty), typeof(ExplorerStorageProperty));
+            _modelType2ExplorerViewModelType = new Dictionary<Type, Type>
+            {
+                { typeof(AssociationSet), typeof(ExplorerAssociationSet) },
+                { typeof(ConceptualEntityContainer), typeof(ExplorerConceptualEntityContainer) },
+                { typeof(ConceptualEntityModel), typeof(ExplorerConceptualEntityModel) },
+                { typeof(ConceptualEntitySet), typeof(ExplorerEntitySet) },
+                { typeof(ConceptualEntityType), typeof(ExplorerConceptualEntityType) },
+                { typeof(ComplexType), typeof(ExplorerComplexType) },
+                { typeof(ConceptualProperty), typeof(ExplorerConceptualProperty) },
+                { typeof(ComplexConceptualProperty), typeof(ExplorerConceptualProperty) },
+                { typeof(EntityTypeShape), typeof(ExplorerEntityTypeShape) },
+                { typeof(EnumType), typeof(ExplorerEnumType) },
+                { typeof(Diagram), typeof(ExplorerDiagram) },
+                { typeof(Diagrams), typeof(ExplorerDiagrams) },
+                { typeof(Function), typeof(ExplorerFunction) },
+                { typeof(FunctionImport), typeof(ExplorerFunctionImport) },
+                { typeof(NavigationProperty), typeof(ExplorerNavigationProperty) },
+                { typeof(Parameter), typeof(ExplorerParameter) },
+                { typeof(StorageEntityModel), typeof(ExplorerStorageEntityModel) },
+                { typeof(StorageEntityType), typeof(ExplorerStorageEntityType) },
+                { typeof(StorageProperty), typeof(ExplorerStorageProperty) }
+            };
         }
 
         // <summary>
@@ -74,14 +75,12 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
             var efElementType = efElement.GetType();
 
-            Type explorerType = null;
-            _modelType2ExplorerViewModelType.TryGetValue(efElementType, out explorerType);
+            _modelType2ExplorerViewModelType.TryGetValue(efElementType, out Type explorerType);
 
             // Get correct view-model type for a c-side or s-side entity type.  
             if (explorerType == null)
             {
-                var assoc = efElement as Association;
-                if (assoc != null)
+                if (efElement is Association assoc)
                 {
                     if (assoc.EntityModel.IsCSDL)
                     {

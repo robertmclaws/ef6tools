@@ -1,20 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration.Extensions
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal static class EntitySetExtensions
     {
         public static string GetStoreModelBuilderMetadataProperty(this EntitySet entitySet, string name)
         {
-            MetadataProperty metadataProperty;
             if (!entitySet.MetadataProperties.TryGetValue(
                 SchemaManager.EntityStoreSchemaGeneratorNamespace + ":" + name,
                 false,
-                out metadataProperty))
+                out MetadataProperty metadataProperty))
             {
                 return null;
             }

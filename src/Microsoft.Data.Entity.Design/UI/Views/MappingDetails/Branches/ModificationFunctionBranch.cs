@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 {
-    using System.Collections;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     // <summary>
     //     This branch shows 3 lines, one each for an Insert, Update and Delete function.
     // </summary>
@@ -35,8 +35,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                 return false;
             }
 
-            var mappingFunctionTypeMapping = component as MappingFunctionEntityType;
-            if (mappingFunctionTypeMapping != null)
+            if (component is MappingFunctionEntityType mappingFunctionTypeMapping)
             {
                 _mappingFunctionTypeMapping = mappingFunctionTypeMapping;
             }
@@ -88,8 +87,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
         {
             if (index < ElementCount)
             {
-                var mfm = GetElement(index) as MappingModificationFunctionMapping;
-                if (mfm != null
+                if (GetElement(index) is MappingModificationFunctionMapping mfm
                     && (mfm.MappingFunctionScalarProperties != null || mfm.MappingResultBindings != null))
                 {
                     return true;
@@ -102,8 +100,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
         {
             if (index < ElementCount)
             {
-                var mfm = GetElement(index) as MappingModificationFunctionMapping;
-                if (mfm != null)
+                if (GetElement(index) is MappingModificationFunctionMapping mfm)
                 {
                     if (mfm.ModificationFunctionType == ModificationFunctionType.Delete)
                     {
@@ -111,9 +108,11 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                     }
                     else
                     {
-                        var branchList = new ArrayList(2);
-                        branchList.Add(new ParametersBranch(mfm, GetColumns()));
-                        branchList.Add(new ResultBindingsBranch(mfm, GetColumns()));
+                        ArrayList branchList = new ArrayList(2)
+                        {
+                            new ParametersBranch(mfm, GetColumns()),
+                            new ResultBindingsBranch(mfm, GetColumns())
+                        };
                         _expandedBranches[index] = new AggregateBranch(branchList, 0);
                     }
                     return _expandedBranches[index];

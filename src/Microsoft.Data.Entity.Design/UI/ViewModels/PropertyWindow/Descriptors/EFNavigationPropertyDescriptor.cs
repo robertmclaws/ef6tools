@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System.ComponentModel;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System.ComponentModel;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class EFNavigationPropertyDescriptor : EFPropertyBaseDescriptor<NavigationProperty>
     {
         [LocDescription("PropertyWindow_Description_NavigationPropertyName")]
@@ -43,7 +43,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                     Command c = new ChangeNavigationPropertyCommand(TypedEFElement, Association, value);
-                    var cp = new CommandProcessor(cpc, c);
+                    CommandProcessor cp = new CommandProcessor(cpc, c);
                     cp.Invoke();
                 }
             }
@@ -92,7 +92,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                 Command c = new ChangeNavigationPropertyCommand(TypedEFElement, value);
-                var cp = new CommandProcessor(cpc, c);
+                CommandProcessor cp = new CommandProcessor(cpc, c);
                 cp.Invoke();
             }
         }
@@ -111,7 +111,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                     Command c = new ChangeNavigationPropertyCommand(TypedEFElement, Association, value, TypedEFElement.FromRole.Target);
-                    var cp = new CommandProcessor(cpc, c);
+                    CommandProcessor cp = new CommandProcessor(cpc, c);
                     cp.Invoke();
                 }
             }
@@ -131,7 +131,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                     Command c = new ChangeNavigationPropertyCommand(TypedEFElement, Association, TypedEFElement.ToRole.Target, value);
-                    var cp = new CommandProcessor(cpc, c);
+                    CommandProcessor cp = new CommandProcessor(cpc, c);
                     cp.Invoke();
                 }
             }

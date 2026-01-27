@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.VisualStudio.Data.Services.RelationalObjectModel;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Data.Sql
 {
-    using System;
-    using System.Data;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.VisualStudio.Data.Services.RelationalObjectModel;
-
     internal class DataSchemaColumn : DataSchemaObject, IDataSchemaColumn
     {
         private const int MaxPrecisionValue = 38;

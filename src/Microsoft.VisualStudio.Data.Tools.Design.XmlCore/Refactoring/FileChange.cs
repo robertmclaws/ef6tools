@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using Microsoft.Data.Entity.Design.Common;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.Common;
-
     /// <summary>
     ///     Class represents changes for one file.
     ///     Those changes can from different RefactoringContributor and can from
@@ -41,7 +41,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 
             _filename = fileName;
             ProjectName = projectName;
-            _changeList = new Dictionary<RefactoringPreviewGroup, HashSet<ChangeProposal>>();
+            _changeList = [];
         }
 
         /// <summary>
@@ -135,12 +135,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             }
             if (!exist)
             {
-                HashSet<ChangeProposal> changes = null;
-                if (_changeList.TryGetValue(previewGroup, out changes) == false)
+                if (_changeList.TryGetValue(previewGroup, out HashSet<ChangeProposal> changes) == false)
                 {
                     // There is no change list for this preview group,
                     // create one and add to the dictionary.
-                    changes = new HashSet<ChangeProposal>();
+                    changes = [];
                     _changeList.Add(previewGroup, changes);
                 }
                 // Add change to the change list.
@@ -158,10 +157,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             ArgumentValidation.CheckForNullReference(previewGroup, "previewGroup");
 
             List<ChangeProposal> results = null;
-            HashSet<ChangeProposal> changes = null;
-            if (_changeList.TryGetValue(previewGroup, out changes) == false)
+            if (_changeList.TryGetValue(previewGroup, out HashSet<ChangeProposal> changes) == false)
             {
-                results = new List<ChangeProposal>();
+                results = [];
             }
             else
             {

@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using DslModeling = Microsoft.VisualStudio.Modeling;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class EntityDesignerDiagramAdd : EntityDesignerDiagramModelChange
     {
         internal EntityDesignerDiagramAdd(EntityDesignerDiagram diagram)
@@ -22,7 +20,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
             StaticInvoke(cpc, Diagram);
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static void StaticInvoke(CommandProcessorContext cpc, EntityDesignerDiagram diagram)
         {
             var viewModel = diagram.ModelElement;

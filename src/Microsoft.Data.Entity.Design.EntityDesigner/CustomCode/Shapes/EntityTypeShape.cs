@@ -1,26 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Globalization;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.EntityDesigner.CustomCode.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Microsoft.VisualStudio.Modeling.Immutability;
+using Microsoft.VisualStudio.PlatformUI;
+using Diagram = Microsoft.Data.Entity.Design.Model.Designer.Diagram;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Globalization;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.EntityDesigner.CustomCode.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Microsoft.VisualStudio.Modeling.Immutability;
-    using Microsoft.VisualStudio.PlatformUI;
-    using Diagram = Microsoft.Data.Entity.Design.Model.Designer.Diagram;
-    using Resources = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
-
     [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal partial class EntityTypeShape
     {
@@ -43,10 +42,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
             protected override Image GetButtonImage(ShapeElement parentShape)
             {
-                var entityShape = parentShape as EntityTypeShape;
                 var state = IsExpanded(parentShape);
                 if (state.HasValue
-                    && entityShape != null)
+                    && parentShape is EntityTypeShape entityShape)
                 {
                     return state.Value
                                ? CachedFillColorAppearance(entityShape.FillColor).ChevronExpanded
@@ -73,8 +71,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
             public override Image GetDisplayImage(ShapeElement parentShape)
             {
-                var entityShape = parentShape as EntityTypeShape;
-                return entityShape != null
+                return parentShape is EntityTypeShape entityShape
                            ? _bitmapAccessor(CachedFillColorAppearance(entityShape.FillColor))
                            : DefaultImage;
             }
@@ -97,7 +94,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             //
             // Seed shapes along a gradient so that there is no overlap, favor vertical over horizontal scrolling
             // Done in the constructor so it happens before GraphObject initialization
-            var randomized = new PointD(
+            PointD randomized = new PointD(
                 (EntityDesignerViewModel.EntityShapeLocationSeed % 7) * 3.0, EntityDesignerViewModel.EntityShapeLocationSeed * 1.5);
             var bounds = AbsoluteBounds;
             bounds.Location = randomized;
@@ -151,8 +148,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         {
             get
             {
-                var headerTitleTextField = FindShapeField(ShapeFields, "Name") as TextField;
-                return headerTitleTextField != null ? headerTitleTextField.GetDisplayText(this) : null;
+                TextField headerTitleTextField = FindShapeField(ShapeFields, "Name") as TextField;
+                return headerTitleTextField?.GetDisplayText(this);
             }
         }
 
@@ -239,17 +236,17 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         }
 
         // bitmaps are cached to avoid deserializing the resources more than once and creating multiple instances in memory 
-        private static readonly Bitmap EntityGlyph = MakeBitmapTransparent(Resources.EntityGlyph);
-        private static readonly Bitmap BaseTypeIcon = MakeBitmapTransparent(Resources.BaseTypeIcon);
-        private static readonly Bitmap ChevronExpanded = MakeBitmapTransparent(Resources.ChevronExpanded);
-        private static readonly Bitmap ChevronCollapsed = MakeBitmapTransparent(Resources.ChevronCollapsed);
+        private static readonly Bitmap EntityGlyph = MakeBitmapTransparent(EntityDesignerRes.EntityGlyph);
+        private static readonly Bitmap BaseTypeIcon = MakeBitmapTransparent(EntityDesignerRes.BaseTypeIcon);
+        private static readonly Bitmap ChevronExpanded = MakeBitmapTransparent(EntityDesignerRes.ChevronExpanded);
+        private static readonly Bitmap ChevronCollapsed = MakeBitmapTransparent(EntityDesignerRes.ChevronCollapsed);
 
         /// <summary>
         ///     Calculates appropriate colors and icons for a shape's fill color.
         /// </summary>
         private static FillColorAppearance CalculateFillColorAppearance(Color fillColor)
         {
-            var hslColor = HslColor.FromRgbColor(fillColor);
+            HslColor hslColor = HslColor.FromRgbColor(fillColor);
             return new FillColorAppearance
                 {
                     TextColor = GetTextColor(fillColor),
@@ -260,18 +257,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                                 Saturation = hslColor.Saturation * 3 / 5,
                                 Luminosity = GetHighlightLuminosity(hslColor.Luminosity)
                             }.ToRgbColor(),
-#if VS12ORNEWER
                     EntityGlyph = ThemeUtils.GetThemedButtonImage(EntityGlyph, fillColor),
                     BaseTypeIcon = ThemeUtils.GetThemedButtonImage(BaseTypeIcon, fillColor),
                     ChevronExpanded = ThemeUtils.GetThemedButtonImage(ChevronExpanded, fillColor),
                     ChevronCollapsed = ThemeUtils.GetThemedButtonImage(ChevronCollapsed, fillColor)
-#else
-                    // avoid icon inversion in VS11 because it causes unclear images on light backgrounds
-                    EntityGlyph = EntityGlyph,
-                    BaseTypeIcon = BaseTypeIcon,
-                    ChevronExpanded = ChevronExpanded,
-                    ChevronCollapsed = ChevronCollapsed
-#endif
                 };
         }
 
@@ -324,11 +313,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// </remarks>
         private static Func<TArg, TResult> Memoize<TArg, TResult>(Func<TArg, TResult> func)
         {
-            var map = new Dictionary<TArg, TResult>();
+            Dictionary<TArg, TResult> map = new Dictionary<TArg, TResult>();
             return arg =>
                 {
-                    TResult result;
-                    if (!map.TryGetValue(arg, out result))
+                    if (!map.TryGetValue(arg, out TResult result))
                     {
                         result = func(arg);
                         map.Add(arg, result);
@@ -375,29 +363,25 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         {
             if (element is Property)
             {
-                var scalarProperty = element as ScalarProperty;
-                if (scalarProperty != null)
+                if (element is ScalarProperty scalarProperty)
                 {
                     if (scalarProperty.EntityKey)
                     {
-                        return _keyPropertyBitmap ??
-                               (_keyPropertyBitmap =
+                        return _keyPropertyBitmap ??=
                                 ThemeUtils.GetThemedButtonImage(
-                                    Resources.PropertyPK,
-                                    PropertiesCompartment.CompartmentFillColor));
+                                    EntityDesignerRes.PropertyPK,
+                                    PropertiesCompartment.CompartmentFillColor);
                     }
-                    return _propertyBitmap ??
-                           (_propertyBitmap =
+                    return _propertyBitmap ??=
                             ThemeUtils.GetThemedButtonImage(
-                                Resources.Property,
-                                PropertiesCompartment.CompartmentFillColor));
+                                EntityDesignerRes.Property,
+                                PropertiesCompartment.CompartmentFillColor);
                 }
                 Debug.Assert(element is ComplexProperty, "Unknown property type");
-                return _complexPropertyBitmap ??
-                       (_complexPropertyBitmap =
+                return _complexPropertyBitmap ??=
                         ThemeUtils.GetThemedButtonImage(
-                            Resources.ComplexProperty,
-                            PropertiesCompartment.CompartmentFillColor));
+                            EntityDesignerRes.ComplexProperty,
+                            PropertiesCompartment.CompartmentFillColor);
             }
             return null;
         }
@@ -408,14 +392,12 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// </summary>
         private Image NavigationDisplayImageGetter(ModelElement element)
         {
-            var property = element as NavigationProperty;
-            if (property != null)
+            if (element is NavigationProperty property)
             {
-                return _navigationPropertyBitmap ??
-                       (_navigationPropertyBitmap =
+                return _navigationPropertyBitmap ??=
                         ThemeUtils.GetThemedButtonImage(
-                            Resources.NavigationProperty,
-                            NavigationCompartment.CompartmentFillColor));
+                            EntityDesignerRes.NavigationProperty,
+                            NavigationCompartment.CompartmentFillColor);
             }
             return null;
         }
@@ -426,7 +408,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             // Call the base class FIRST because it wipes all the anchoring information
             base.InitializeDecorators(shapeFields, decorators);
 
-            var headerTitleTextField = FindShapeField(shapeFields, "Name") as TextField;
+            TextField headerTitleTextField = FindShapeField(shapeFields, "Name") as TextField;
             var headerExpandCollapseButtonField = FindShapeField(shapeFields, "ExpandCollapse");
 
             Debug.Assert(headerTitleTextField != null, "headerTitleTextField != null");
@@ -437,13 +419,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         protected override void InitializeShapeFields(IList<ShapeField> shapeFields)
         {
             base.InitializeShapeFields(shapeFields);
-            var headerTitleTextField = FindShapeField(shapeFields, "Name") as TextField;
+            TextField headerTitleTextField = FindShapeField(shapeFields, "Name") as TextField;
 
             Debug.Assert(headerTitleTextField != null, "headerTitleTextField != null");
 
             // DD 40501: Specify the MSAA name/description for the class title
-            headerTitleTextField.DefaultAccessibleName = Resources.AccName_EntityTypeHeader;
-            headerTitleTextField.DefaultAccessibleDescription = Resources.AccDesc_EntityTypeHeader;
+            headerTitleTextField.DefaultAccessibleName = EntityDesignerRes.AccName_EntityTypeHeader;
+            headerTitleTextField.DefaultAccessibleDescription = EntityDesignerRes.AccDesc_EntityTypeHeader;
 
             // replace default glyphs in header with ones that respond to filler color and scale with the UX
             ReplaceField(
@@ -503,8 +485,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             if (e != null
                 && e.KeyCode == Keys.Insert)
             {
-                var compartment = sender as ElementListCompartment;
-                if (compartment != null)
+                if (sender is ElementListCompartment compartment)
                 {
                     var domainClassInfo = compartment.Partition.DomainDataDirectory.GetDomainClass(ScalarProperty.DomainClassId);
                     compartment.HandleNewListItemInsertion(e.DiagramClientView, domainClassInfo);
@@ -559,26 +540,23 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 compartment.ItemAccessibleNameGetter = AccessibilityNameGetterMethod;
                 compartment.ItemAccessibleDescriptionGetter = AccessibilityDescriptionGetterMethod;
+                //ListCompartment.MainListFieldName
 
-                // DD 40502: ListCompartments get accessibility info from their field
-                var hdrField = compartment.FindShapeField("HdrText") as TextField; //Compartment.HeaderTextFieldName
-                var listField = compartment.FindShapeField("MainListField") as ListField; //ListCompartment.MainListFieldName
-
-                if (hdrField != null
-                    && listField != null)
+                if (compartment.FindShapeField("HdrText") is TextField hdrField
+                    && compartment.FindShapeField("MainListField") is ListField listField)
                 {
                     string aaName;
                     string aaDescription;
 
                     if (scalarProperty)
                     {
-                        aaName = Resources.AccName_EntityTypeScalarPropertyCompartment;
-                        aaDescription = Resources.AccDesc_EntityTypeScalarPropertyCompartment;
+                        aaName = EntityDesignerRes.AccName_EntityTypeScalarPropertyCompartment;
+                        aaDescription = EntityDesignerRes.AccDesc_EntityTypeScalarPropertyCompartment;
                     }
                     else
                     {
-                        aaName = Resources.AccName_EntityTypeNavigationPropertyCompartment;
-                        aaDescription = Resources.AccDesc_EntityTypeNavigationPropertyCompartment;
+                        aaName = EntityDesignerRes.AccName_EntityTypeNavigationPropertyCompartment;
+                        aaDescription = EntityDesignerRes.AccDesc_EntityTypeNavigationPropertyCompartment;
                     }
 
                     hdrField.DefaultAccessibleName = aaName;
@@ -591,8 +569,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
         internal static string AccessibilityNameGetterMethod(ModelElement element)
         {
-            var named = element as NameableItem;
-            if (named != null)
+            if (element is NameableItem named)
             {
                 return named.Name;
             }
@@ -605,15 +582,15 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.AccDesc_ScalarProperty,
-                    Resources.CompClassName_ScalarProperty);
+                    EntityDesignerRes.AccDesc_ScalarProperty,
+                    EntityDesignerRes.CompClassName_ScalarProperty);
             }
             if (element is NavigationProperty)
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.AccDesc_NavigationProperty,
-                    Resources.CompClassName_NavigationProperty);
+                    EntityDesignerRes.AccDesc_NavigationProperty,
+                    EntityDesignerRes.CompClassName_NavigationProperty);
             }
             return "??";
         }
@@ -624,8 +601,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
             foreach (var mapping in baseMappings)
             {
-                var elementMap = mapping as ElementListCompartmentMapping;
-                if (elementMap != null)
+                if (mapping is ElementListCompartmentMapping elementMap)
                 {
                     if (elementMap.CompartmentId.Equals(PropertiesCompartmentName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -658,11 +634,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.AccDesc_EntityType,
+                    EntityDesignerRes.AccDesc_EntityType,
                     TypedModelElement != null
                     && !string.IsNullOrWhiteSpace(TypedModelElement.Name)
                         ? TypedModelElement.Name
-                        : Resources.Acc_Unnamed);
+                        : EntityDesignerRes.Acc_Unnamed);
             }
         }
 
@@ -672,8 +648,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.AccDesc_EntityType,
-                    Resources.CompClassName_EntityType);
+                    EntityDesignerRes.AccDesc_EntityType,
+                    EntityDesignerRes.CompClassName_EntityType);
             }
         }
 
@@ -683,8 +659,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.AccHelp_EntityType,
-                    IsExpanded ? Resources.ExpandedStateExpanded : Resources.ExpandedStateCollapsed);
+                    EntityDesignerRes.AccHelp_EntityType,
+                    IsExpanded ? EntityDesignerRes.ExpandedStateExpanded : EntityDesignerRes.ExpandedStateCollapsed);
             }
         }
 
@@ -722,7 +698,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             Debug.Assert(compartmentDescription.Length == 2, "There should be 2 compartment descriptions.");
             if (compartmentDescription.Length == 2)
             {
-                var originalElementListCompartmentDescription = compartmentDescription[0] as ListCompartmentDescription;
+                ListCompartmentDescription originalElementListCompartmentDescription = compartmentDescription[0] as ListCompartmentDescription;
                 Debug.Assert(
                     originalElementListCompartmentDescription != null,
                     "The compartment description is not type of ListCompartmentDescription. Actual type: "
@@ -759,8 +735,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             Debug.Assert(propertyBase != null, "propertyBase is null.");
             if (propertyBase != null)
             {
-                var property = propertyBase as Property;
-                var navigationProperty = propertyBase as NavigationProperty;
+                Property property = propertyBase as Property;
+                NavigationProperty navigationProperty = propertyBase as NavigationProperty;
                 Debug.Assert(
                     property != null || navigationProperty != null,
                     "Unexpected property type. Property Type: " + propertyBase.GetType().Name);

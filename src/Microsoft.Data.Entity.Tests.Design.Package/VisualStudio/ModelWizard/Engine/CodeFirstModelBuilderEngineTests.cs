@@ -1,18 +1,11 @@
-﻿
+﻿using System.Collections.Generic;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
 {
-    using System.Collections.Generic;
-    using System.Data.Entity;
-    using System.Data.Entity.Core.Mapping;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Data.Entity.Resources;
-    using System.Data.Entity.SqlServer;
-    using System.Linq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
-
     [TestClass]
     public class CodeFirstModelBuilderEngineTests
     {

@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to create a ScalarProperty that lives on any level of a ComplexProperty tree inside the MappingFragment.
     ///     It will create all the ComplexProperties in the middle if necessary.
@@ -58,19 +58,17 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _mode = Mode.MappingFragment;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2208:InstantiateArgumentExceptionsCorrectly")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(
                 _mode == Mode.EntityType || _mode == Mode.MappingFragment, "Unknown mode set in CreateFragmentScalarPropertyTreeCommand");
 
-            var cp = new CommandProcessor(cpc);
+            CommandProcessor cp = new CommandProcessor(cpc);
             CreateFragmentComplexPropertyCommand prereqCmd = null;
             for (var i = 0; i < _properties.Count; i++)
             {
                 var property = _properties[i];
-                var complexConceptualProperty = property as ComplexConceptualProperty;
-                if (complexConceptualProperty != null)
+                if (property is ComplexConceptualProperty complexConceptualProperty)
                 {
                     Debug.Assert(i < _properties.Count - 1, "Last property shouldn't be ComplexConceptualProperty");
                     CreateFragmentComplexPropertyCommand cmd = null;

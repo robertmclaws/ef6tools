@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     public partial class StoreModelBuilderTests
     {
         private const string StoreTypeMetadataPropertyName =
@@ -25,10 +25,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
                         CreateRow("catalog", "dbo", "Customer", "Name", 1, false, "nvarchar", isPrimaryKey: false),
                     };
 
-            var entityRegister = new StoreModelBuilder.EntityRegister();
+            StoreModelBuilder.EntityRegister entityRegister = new StoreModelBuilder.EntityRegister();
             var entitySets = entityRegister.EntitySets;
             var entityTypes = entityRegister.EntityTypes;
-            var entitySetsForReadOnlyEntities = new List<EntitySet>();
+            List<EntitySet> entitySetsForReadOnlyEntities = new List<EntitySet>();
 
             CreateStoreModelBuilder()
                 .CreateEntitySets(inputTableDetailsRows, entityRegister, entitySetsForReadOnlyEntities, DbObjectType.Table);
@@ -56,10 +56,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
                         CreateRow("catalog", "dbo", "Customer", "Name", 1, false, "nvarchar", isPrimaryKey: false),
                     };
 
-            var entityRegister = new StoreModelBuilder.EntityRegister();
+            StoreModelBuilder.EntityRegister entityRegister = new StoreModelBuilder.EntityRegister();
             var entitySets = entityRegister.EntitySets;
             var entityTypes = entityRegister.EntityTypes;
-            var entitySetsForReadOnlyEntities = new List<EntitySet>();
+            List<EntitySet> entitySetsForReadOnlyEntities = new List<EntitySet>();
 
             CreateStoreModelBuilder()
                 .CreateEntitySets(inputTableDetailsRows, entityRegister, entitySetsForReadOnlyEntities, DbObjectType.View);
@@ -85,10 +85,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
                         CreateRow("catalog", "dbo", "Customer", "Id", 0, false, "int", isPrimaryKey: true),
                     };
 
-            var entityRegister = new StoreModelBuilder.EntityRegister();
+            StoreModelBuilder.EntityRegister entityRegister = new StoreModelBuilder.EntityRegister();
             var entitySets = entityRegister.EntitySets;
             var entityTypes = entityRegister.EntityTypes;
-            var entitySetsForReadOnlyEntities = new List<EntitySet>();
+            List<EntitySet> entitySetsForReadOnlyEntities = new List<EntitySet>();
 
             CreateStoreModelBuilder()
                 .CreateEntitySets(inputTableDetailsRows, entityRegister, entitySetsForReadOnlyEntities, DbObjectType.Table);
@@ -107,10 +107,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
                         CreateRow("catalog", null, "Customer", "Id", 0, false, "int", isPrimaryKey: true),
                     };
 
-            var entityRegister = new StoreModelBuilder.EntityRegister();
+            StoreModelBuilder.EntityRegister entityRegister = new StoreModelBuilder.EntityRegister();
             var entitySets = entityRegister.EntitySets;
             var entityTypes = entityRegister.EntityTypes;
-            var entitySetsForReadOnlyEntities = new List<EntitySet>();
+            List<EntitySet> entitySetsForReadOnlyEntities = new List<EntitySet>();
 
             CreateStoreModelBuilder()
                 .CreateEntitySets(inputTableDetailsRows, entityRegister, entitySetsForReadOnlyEntities, DbObjectType.Table);
@@ -132,10 +132,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
                         CreateRow("catalog", "dbo", tableName, "Id", 0, false, "int", isPrimaryKey: true),
                     };
 
-            var entityRegister = new StoreModelBuilder.EntityRegister();
+            StoreModelBuilder.EntityRegister entityRegister = new StoreModelBuilder.EntityRegister();
             var entitySets = entityRegister.EntitySets;
             var entityTypes = entityRegister.EntityTypes;
-            var entitySetsForReadOnlyEntities = new List<EntitySet>();
+            List<EntitySet> entitySetsForReadOnlyEntities = new List<EntitySet>();
 
             CreateStoreModelBuilder()
                 .CreateEntitySets(inputTableDetailsRows, entityRegister, entitySetsForReadOnlyEntities, DbObjectType.Table);
@@ -155,10 +155,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
                         CreateRow("catalog", null, "Customer", "location", 0, false, "geometry", isPrimaryKey: true)
                     };
 
-            var entityRegister = new StoreModelBuilder.EntityRegister();
+            StoreModelBuilder.EntityRegister entityRegister = new StoreModelBuilder.EntityRegister();
             var entitySets = entityRegister.EntitySets;
             var entityTypes = entityRegister.EntityTypes;
-            var entitySetsForReadOnlyEntities = new List<EntitySet>();
+            List<EntitySet> entitySetsForReadOnlyEntities = new List<EntitySet>();
 
             CreateStoreModelBuilder()
                 .CreateEntitySets(inputTableDetailsRows, entityRegister, entitySetsForReadOnlyEntities, DbObjectType.Table);
@@ -183,7 +183,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
                         CreateRow("catalog", "dbo", "EvenBetterCustomer", "Id", 0, false, "int", isPrimaryKey: true),
                     };
 
-            var entityRegister = new StoreModelBuilder.EntityRegister();
+            StoreModelBuilder.EntityRegister entityRegister = new StoreModelBuilder.EntityRegister();
             var entitySets = entityRegister.EntitySets;
             var entityTypes = entityRegister.EntityTypes;
 
@@ -218,7 +218,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
                         CreateRow("catalog", "dbo", "EvenBetterCustomer", "SSN", 0, false, "nvarchar", isPrimaryKey: false),
                     };
 
-            var entityRegister = new StoreModelBuilder.EntityRegister();
+            StoreModelBuilder.EntityRegister entityRegister = new StoreModelBuilder.EntityRegister();
             var entitySets = entityRegister.EntitySets;
             var entityTypes = entityRegister.EntityTypes;
 

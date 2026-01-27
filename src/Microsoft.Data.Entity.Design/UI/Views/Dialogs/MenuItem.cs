@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Windows.Controls;
+using System.Windows.Input;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 {
-    using System.Collections.Generic;
-    using System.Windows.Controls;
-    using System.Windows.Input;
-
     // <summary>
     //     WPF Menus are not bound to the visual tree. A way to get around this and still
     //     use routed commands is to dynamically populate a list of these MenuItems and feed
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         public WpfMenuItem(string item)
         {
             Text = item;
-            Children = new List<WpfMenuItem>();
+            Children = [];
         }
     }
 }

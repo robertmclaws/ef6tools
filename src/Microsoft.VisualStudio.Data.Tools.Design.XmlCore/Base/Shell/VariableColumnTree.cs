@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     /// <summary>
     ///     An implementation of IMultiColumnTree in which the number of columns may vary.  Ideally, perhaps, this
     ///     functionality would be part of IMultiColumnTree itself (i.e, make ColumnCount a read/write property), but
@@ -41,10 +41,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         {
             get
             {
-                if (_singleColumnTree == null)
-                {
-                    _singleColumnTree = CreateSingleColumnTree();
-                }
+                _singleColumnTree ??= CreateSingleColumnTree();
                 return _singleColumnTree;
             }
         }

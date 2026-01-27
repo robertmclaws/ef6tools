@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Infrastructure.Design;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
-
     // <summary>
     //     Used for design-time scenarios where the user's code needs to be executed inside
     //     of an isolated, runtime-like <see cref="AppDomain" />.
@@ -56,7 +56,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         // </summary>
         // <param name="invariantName">The provider's invariant name.</param>
         // <returns>The assembly-qualified name</returns>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public string GetProviderServices(string invariantName)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(invariantName), "invariantName is null or empty.");
@@ -68,7 +67,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         {
             Debug.Assert(args != null, "args is null.");
 
-            var handler = new ResultHandler<TResult>();
+            ResultHandler<TResult> handler = new ResultHandler<TResult>();
             Invoke(operation, handler, args, anonymousArguments);
 
             return handler.Result;
@@ -79,9 +78,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Debug.Assert(handler != null, "handler is null.");
             Debug.Assert(args != null, "args is null.");
 
-            var realArgs = new List<object>();
-            realArgs.Add(_executor.Value);
-            realArgs.Add(handler);
+            List<object> realArgs = new List<object>
+            {
+                _executor.Value,
+                handler
+            };
             realArgs.AddRange(args);
             realArgs.Add(ConvertAnonymousObjectToDictionary(anonymousArguments));
 
@@ -98,7 +99,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         private static IDictionary<string, object> ConvertAnonymousObjectToDictionary(object anonymousObject)
         {
-            var dictionary = new Dictionary<string, object>();
+            Dictionary<string, object> dictionary = new Dictionary<string, object>();
 
             if (anonymousObject != null)
             {

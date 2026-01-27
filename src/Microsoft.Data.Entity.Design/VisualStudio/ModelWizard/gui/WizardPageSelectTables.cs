@@ -1,27 +1,27 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.WizardFramework;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Security;
+using System.Windows.Forms;
+using System.Xml;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 {
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.WizardFramework;
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Security;
-    using System.Windows.Forms;
-    using System.Xml;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     This is the third page in the ModelGen VS wizard and is invoked if the user wants to generate the model from a database.
     //     This page lets the user select tables that should be included in the generated model
@@ -29,7 +29,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
     // to view this class in the forms designer, make it temporarily derive from Microsoft.WizardFramework.WizardPage
     internal partial class WizardPageSelectTables : WizardPageBase
     {
-        private readonly bool _isNetFx35;
         private string _initializedDataConnection;
         private bool _initializedUsingLegacyProvider;
         // -1 ensures we set the state of the controls when OnActivate is called the first time
@@ -59,11 +58,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
             _stopwatch = new Stopwatch();
 
-            // For modern .NET projects, TargetNetFrameworkVersion returns null - treat as not .NET 3.5
-            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(Wizard.Project, ServiceProvider);
-            _isNetFx35 = targetNetFrameworkVersion != null &&
-                targetNetFrameworkVersion < NetFrameworkVersioningHelper.NetFrameworkVersion4;
-
             InitializeModelOptions();
 
             _bgWorkerPopulateTree = new BackgroundWorker();
@@ -90,18 +84,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 toolTip.SetToolTip(chkPluralize, ModelWizard.Properties.Resources.PluralizeCheckBoxDisabledToolTipText);
             }
 
-            if (_isNetFx35)
-            {
-                toolTip.SetToolTip(chkIncludeForeignKeys, Resources.DisabledFeatureTooltip);
-                chkIncludeForeignKeys.Parent.MouseMove += IncludeForeignKeysArea_OnMouseMove;
-                chkIncludeForeignKeys.Parent.MouseLeave += IncludeForeignKeysArea_OnMouseLeave;
-            }
-            else
-            {
-                toolTip.SetToolTip(
-                    chkIncludeForeignKeys,
-                    ModelWizard.Properties.Resources.SelectTablesPage_IncludeForeignKeysToolTip);
-            }
+            toolTip.SetToolTip(
+                chkIncludeForeignKeys,
+                ModelWizard.Properties.Resources.SelectTablesPage_IncludeForeignKeysToolTip);
 
             // assume we have no Stored Procs and so default the Create Function Imports checkbox to unchecked and not enabled
             chkCreateFunctionImports.Enabled = false;
@@ -177,18 +162,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             }
             else if(_initializedGenerationOption != Wizard.ModelBuilderSettings.GenerationOption)
             {
-
-                if (!_isNetFx35)
-                {
-                    chkIncludeForeignKeys.Enabled = true;
-                    chkIncludeForeignKeys.Checked = true;
-                }
-                else
-                {
-                    // EF1 did not support foreign keys
-                    chkIncludeForeignKeys.Enabled = false;
-                    chkIncludeForeignKeys.Checked = false;
-                }
+                chkIncludeForeignKeys.Enabled = true;
+                chkIncludeForeignKeys.Checked = true;
             }
         }
 
@@ -360,9 +335,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             using (new VsUtils.HourglassHelper())
             {
                 ISchemaListingSettings schemaListingSettings = SchemaListingSettings.FromWizard(Wizard);
-                var ssdlAggregator = new DatabaseConnectionSsdlAggregator(schemaListingSettings);
+                DatabaseConnectionSsdlAggregator ssdlAggregator = new DatabaseConnectionSsdlAggregator(schemaListingSettings);
 
-                var result = new ICollection<EntityStoreSchemaFilterEntry>[3];
+                ICollection<EntityStoreSchemaFilterEntry>[] result = new ICollection<EntityStoreSchemaFilterEntry>[3];
                 try
                 {
                     result[0] = ssdlAggregator.GetTableFilterEntries(args);
@@ -403,7 +378,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         //     This method is called by background worker component on the same thread as the UI thread.
         //     ModelBuilderEngine gaves us table names to display so we add them to the TreeView
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected void bgWorkerPopulateTree_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs args)
         {
             try
@@ -428,7 +402,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                     using (new VsUtils.HourglassHelper())
                     {
                         // No errors, populate nodes in TreeView - create the nodes accordingly
-                        var result = (ICollection<EntityStoreSchemaFilterEntry>[])args.Result;
+                        ICollection<EntityStoreSchemaFilterEntry>[] result = (ICollection<EntityStoreSchemaFilterEntry>[])args.Result;
                         var tableEntries = result[0];
                         var viewEntries = result[1];
                         var sprocEntries = result[2];
@@ -495,23 +469,18 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
         private ICollection<EntityStoreSchemaFilterEntry> GetSelectedFilterEntriesFromTreeView()
         {
-            var mapper = new TreeViewSchemaFilterMapper(databaseObjectTreeView.TreeViewControl);
+            TreeViewSchemaFilterMapper mapper = new TreeViewSchemaFilterMapper(databaseObjectTreeView.TreeViewControl);
             var filterEntryBag = mapper.CreateSchemaFilterEntryBag();
 
             return filterEntryBag.CollapseAndOptimize(SchemaFilterPolicy.GetByValEdmxPolicy());
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "result")]
         private void UpdateModelBuilderFilterSettings()
         {
-            var mapper = new TreeViewSchemaFilterMapper(databaseObjectTreeView.TreeViewControl);
+            TreeViewSchemaFilterMapper mapper = new TreeViewSchemaFilterMapper(databaseObjectTreeView.TreeViewControl);
             var filterEntryBag = mapper.CreateSchemaFilterEntryBag();
 
-            IList<EntityStoreSchemaFilterEntry> newFunctionEntries = new List<EntityStoreSchemaFilterEntry>();
-            foreach (var entry in filterEntryBag.IncludedSprocEntries)
-            {
-                newFunctionEntries.Add(entry);
-            }
+            IList<EntityStoreSchemaFilterEntry> newFunctionEntries = [.. filterEntryBag.IncludedSprocEntries];
 
             // if there are any new Function entries and if the user has selected to create matching Function Imports
             // then create and run a ProgressDialog while we are collecting the sproc return type info
@@ -524,12 +493,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
         internal static HashSet<string> InitializeExistingNamespaces(Project project)
         {
-            var existingNamespaces = new HashSet<string>();
+            HashSet<string> existingNamespaces = new HashSet<string>();
             if (project != null)
             {
                 // find the namespace used in the CSDL section of each existing edmx file in the project
                 var vsHierarchy = VsUtils.GetVsHierarchy(project, Services.ServiceProvider);
-                var fileFinder = new VSFileFinder(EntityDesignArtifact.ExtensionEdmx);
+                VSFileFinder fileFinder = new VSFileFinder(EntityDesignArtifact.ExtensionEdmx);
                 fileFinder.FindInProject(vsHierarchy);
 
                 foreach (var fileInfo in fileFinder.MatchingFiles)
@@ -596,8 +565,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         internal static void ToolTipOnDisabledControl_OnMouseMove(
             Object sender, MouseEventArgs e, Control disabledControl, ToolTip toolTip, ref Control controlWithToolTipShown)
         {
-            var parent = sender as Control;
-            if (parent == null)
+            if (sender is not Control parent)
             {
                 return;
             }
@@ -624,8 +592,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         // <summary>
         //     Helper method to display a tooltip over a disabled control
         // </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "sender")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "e")]
         internal static void ToolTipOnDisabledControl_OnMouseLeave(
             object sender, EventArgs e, ToolTip toolTip, ref Control controlWithToolTipShown)
         {

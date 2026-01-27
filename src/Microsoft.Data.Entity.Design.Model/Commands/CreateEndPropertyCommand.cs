@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class CreateEndPropertyCommand : Command
     {
         internal static readonly string PrereqId = "CreateEndPropertyCommand";
@@ -39,8 +39,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (AssociationSetMapping == null)
             {
-                var prereq = GetPreReqCommand(CreateAssociationSetMappingCommand.PrereqId) as CreateAssociationSetMappingCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateAssociationSetMappingCommand.PrereqId) is CreateAssociationSetMappingCommand prereq)
                 {
                     AssociationSetMapping = prereq.AssociationSetMapping;
                 }
@@ -49,10 +48,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
-            var end = new EndProperty(AssociationSetMapping, null);
+            EndProperty end = new EndProperty(AssociationSetMapping, null);
             end.Name.SetRefName(AssociationSetEnd);
             AssociationSetMapping.AddEndProperty(end);
 

@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class AssociationSet : NameableAnnotatableElement
     {
         internal static readonly string ElementName = "AssociationSet";
         internal static readonly string AttributeAssociation = "Association";
 
         private SingleItemBinding<Association> _associationBinding;
-        private readonly List<AssociationSetEnd> _ends = new List<AssociationSetEnd>();
+        private readonly List<AssociationSetEnd> _ends = [];
 
         internal AssociationSet(EFElement parent, XElement element)
             : base(parent, element)
@@ -32,13 +32,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_associationBinding == null)
-                {
-                    _associationBinding = new SingleItemBinding<Association>(
+                _associationBinding ??= new SingleItemBinding<Association>(
                         this,
                         AttributeAssociation,
                         AssociationNameNormalizer.NameNormalizer);
-                }
                 return _associationBinding;
             }
         }
@@ -124,8 +121,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child = efContainer as AssociationSetEnd;
-            if (child != null)
+            if (efContainer is AssociationSetEnd child)
             {
                 _ends.Remove(child);
                 return;
@@ -169,7 +165,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             if (elem.Name.LocalName == AssociationSetEnd.ElementName)
             {
-                var ase = new AssociationSetEnd(this, elem);
+                AssociationSetEnd ase = new AssociationSetEnd(this, elem);
                 _ends.Add(ase);
                 ase.Parse(unprocessedElements);
             }
@@ -203,10 +199,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             {
                 var antiDeps = Artifact.ArtifactSet.GetAntiDependencies(this);
 
-                var mappings = new List<AssociationSetMapping>();
+                List<AssociationSetMapping> mappings = new List<AssociationSetMapping>();
                 foreach (var antiDep in antiDeps)
                 {
-                    var asm = antiDep as AssociationSetMapping;
+                    AssociationSetMapping asm = antiDep as AssociationSetMapping;
                     if (asm == null
                         && antiDep.Parent != null)
                     {

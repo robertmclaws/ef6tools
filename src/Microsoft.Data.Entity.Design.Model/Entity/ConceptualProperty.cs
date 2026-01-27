@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-
     internal class ConceptualProperty : Property
     {
         private DefaultableValue<string> _typeAttrForPrimitiveType;
@@ -169,10 +169,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_typeAttrForPrimitiveType == null)
-                {
-                    _typeAttrForPrimitiveType = new TypeDefaultableValue(this);
-                }
+                _typeAttrForPrimitiveType ??= new TypeDefaultableValue(this);
                 return _typeAttrForPrimitiveType;
             }
         }
@@ -181,13 +178,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_typeAttrForEnumType == null)
-                {
-                    _typeAttrForEnumType = new SingleItemBinding<EnumType>(
+                _typeAttrForEnumType ??= new SingleItemBinding<EnumType>(
                         this,
                         AttributeType,
                         EFNormalizableItemDefaults.DefaultNameNormalizerForEDM);
-                }
                 return _typeAttrForEnumType;
             }
         }

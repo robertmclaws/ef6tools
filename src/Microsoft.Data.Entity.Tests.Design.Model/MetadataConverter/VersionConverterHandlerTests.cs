@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System;
-    using System.Xml;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class VersionConverterHandlerTests
     {
@@ -16,8 +16,8 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         {
             for (var i = 1; i <= 3; i++)
             {
-                var schemaVersion = new Version(i, 0, 0, 0);
-                var xmlDoc = new XmlDocument();
+                Version schemaVersion = new Version(i, 0, 0, 0);
+                XmlDocument xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml("<root />");
 
                 new VersionConverterHandler(schemaVersion).HandleConversion(xmlDoc);
@@ -31,8 +31,8 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         {
             for (var i = 1; i <= 3; i++)
             {
-                var schemaVersion = new Version(i, 0, 0, 0);
-                var xmlDoc = new XmlDocument();
+                Version schemaVersion = new Version(i, 0, 0, 0);
+                XmlDocument xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml("<root Version=\"X.Y\"/>");
 
                 new VersionConverterHandler(schemaVersion).HandleConversion(xmlDoc);

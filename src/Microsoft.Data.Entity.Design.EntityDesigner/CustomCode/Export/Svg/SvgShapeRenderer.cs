@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using System;
+using System.Collections;
+using System.Drawing;
+using System.Drawing.Text;
+using System.Globalization;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 {
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using System;
-    using System.Collections;
-    using System.Drawing;
-    using System.Drawing.Text;
-    using System.Globalization;
-    using System.Text;
-
     /// <summary>
     /// Renders EntityTypeShape elements to SVG format.
     /// </summary>
@@ -110,13 +110,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             // Compartment background color (light mode style for entity internals)
             var compartmentBgColor = Color.White;
 
-            var entityType = shape.ModelElement as EntityType;
+            EntityType entityType = shape.ModelElement as EntityType;
             var entityName = entityType?.Name ?? "Entity";
 
             // Calculate required width based on text content, using UseOriginalDimensions optimization
             var width = CalculateRequiredWidth(shape, entityName, options, originalWidth);
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             // Start group for the entity
             sb.AppendFormat(
@@ -198,13 +198,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             // Compartment background color (light mode style for entity internals)
             var compartmentBgColor = Color.White;
 
-            var entityType = shape.ModelElement as EntityType;
+            EntityType entityType = shape.ModelElement as EntityType;
             var entityName = entityType?.Name ?? "Entity";
 
             // Calculate required width based on text content
             var width = CalculateRequiredWidth(shape, entityName, showTypes, originalWidth);
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             // Start group for the entity
             sb.AppendFormat(
@@ -403,8 +403,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             string iconName;
 
             // Determine the appropriate icon based on property type
-            var scalarProp = item as ScalarProperty;
-            if (scalarProp != null)
+            if (item is ScalarProperty scalarProp)
             {
                 // Use PropertyKey icon for key properties, Property icon otherwise
                 iconName = scalarProp.EntityKey ? "PropertyKey" : "Property";
@@ -436,8 +435,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
         {
             if (isScalarProperty)
             {
-                var scalarProp = item as ScalarProperty;
-                if (scalarProp != null)
+                if (item is ScalarProperty scalarProp)
                 {
                     if (showTypes)
                     {
@@ -446,8 +444,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                     return scalarProp.Name;
                 }
 
-                var complexProp = item as ComplexProperty;
-                if (complexProp != null)
+                if (item is ComplexProperty complexProp)
                 {
                     // ComplexProperty type is determined by its relationship; just display the name
                     return complexProp.Name;
@@ -455,14 +452,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             }
             else
             {
-                var navProp = item as NavigationProperty;
-                if (navProp != null)
+                if (item is NavigationProperty navProp)
                 {
                     return navProp.Name;
                 }
             }
 
-            var namedItem = item as NameableItem;
+            NameableItem namedItem = item as NameableItem;
             return namedItem?.Name ?? "Property";
         }
 
@@ -488,7 +484,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             double max = Math.Max(r, Math.Max(g, b));
             double min = Math.Min(r, Math.Min(g, b));
 
-            var hsl = new HslColor { L = (max + min) / 2 };
+            HslColor hsl = new HslColor { L = (max + min) / 2 };
 
             if (Math.Abs(max - min) < 0.0001)
             {
@@ -629,12 +625,12 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                 return 0;
             }
 
-            using (var bmp = new Bitmap(1, 1))
-            using (var graphics = Graphics.FromImage(bmp))
+            using (Bitmap bmp = new Bitmap(1, 1))
+            using (Graphics graphics = Graphics.FromImage(bmp))
             {
                 graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
                 var fontStyle = bold ? FontStyle.Bold : FontStyle.Regular;
-                using (var font = new Font(FontFamily, fontSize, fontStyle, GraphicsUnit.Point))
+                using (Font font = new Font(FontFamily, fontSize, fontStyle, GraphicsUnit.Point))
                 {
                     var size = graphics.MeasureString(text, font);
                     return size.Width;

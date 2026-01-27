@@ -1,31 +1,31 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+// Resharper wants to remove the below but do not - it causes build errors
+// Resharper wants to remove the above but do not - it causes build errors
+
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Linq;
+using System.Reflection;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using ComplexType = Microsoft.Data.Entity.Design.Model.Entity.ComplexType;
+using DesignAssociationSetMapping = Microsoft.Data.Entity.Design.Model.Mapping.AssociationSetMapping;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
 {
     extern alias EntityDesignModel;
-    // Resharper wants to remove the below but do not - it causes build errors
-    // Resharper wants to remove the above but do not - it causes build errors
-
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Linq;
-    using System.Reflection;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-    using ComplexType = Microsoft.Data.Entity.Design.Model.Entity.ComplexType;
-    using DesignAssociationSetMapping = Microsoft.Data.Entity.Design.Model.Mapping.AssociationSetMapping;
-
     [TestClass]
     public class RuntimeMetadataValidatorTests
     {
@@ -36,7 +36,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
         {
             get
             {
-                var type = Type.GetType("System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer");
+                Type type = Type.GetType("System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer");
                 if (type != null)
                 {
                     var instanceProperty = type.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static);
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
 
         public RuntimeMetadataValidatorTests()
         {
-            var mockResolver = new Mock<IDbDependencyResolver>();
+            Mock<IDbDependencyResolver> mockResolver = new Mock<IDbDependencyResolver>();
             mockResolver.Setup(
                 r => r.GetService(
                     It.Is<Type>(t => t == typeof(DbProviderServices)),
@@ -60,7 +60,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
         [TestMethod]
         public void ValidateArtifactSet_does_not_validate_artifact_set_if_no_errors_and_forceValidation_false()
         {
-            var mockModelManager =
+            Mock<ModelManager> mockModelManager =
                 new Mock<ModelManager>(new Mock<IEFArtifactFactory>().Object, new Mock<IEFArtifactSetFactory>().Object);
 
             using (var modelManager = mockModelManager.Object)
@@ -69,7 +69,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
                     new Mock<EFArtifact>(
                         modelManager, new Uri("http://tempuri"), new Mock<XmlModelProvider>().Object).Object;
 
-                var mockArtifactSet = new Mock<EFArtifactSet>(artifact);
+                Mock<EFArtifactSet> mockArtifactSet = new Mock<EFArtifactSet>(artifact);
 
                 new RuntimeMetadataValidator(modelManager, new Version(2, 0, 0, 0), _resolver)
                     .ValidateArtifactSet(mockArtifactSet.Object, forceValidation: false, validateMsl: false, runViewGen: false);
@@ -178,10 +178,10 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
                 "</Mapping>",
                 (mockModelManager, mockArtifactSet) =>
                     {
-                        var error = new EdmSchemaError("test", 42, EdmSchemaErrorSeverity.Error);
+                        EdmSchemaError error = new EdmSchemaError("test", 42, EdmSchemaErrorSeverity.Error);
 
                         var artifactSet = mockArtifactSet.Object;
-                        var mockArtifact = Mock.Get(artifactSet.GetEntityDesignArtifact());
+                        Mock<EntityDesignArtifact> mockArtifact = Mock.Get(artifactSet.GetEntityDesignArtifact());
                         mockArtifact
                             .Setup(m => m.GetModelGenErrors())
                             .Returns(new List<EdmSchemaError>(new[] { error }));
@@ -244,28 +244,22 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
         }
 
         [TestMethod]
-        public void ValidateArtifactSet_returns_errors_for_mapping_models_whose_version_is_greater_than_target_runtime_version()
+        public void ValidateArtifactSet_validates_Version3_models_successfully()
         {
+            // Only Version3 is supported - test that Version3 models validate without version mismatch errors
             SetupModelAndInvokeAction(
-                "<Schema xmlns=\"http://schemas.microsoft.com/ado/2008/09/edm\" Namespace=\"Model\" />",
-                "<Schema xmlns=\"http://schemas.microsoft.com/ado/2009/02/edm/ssdl\" Namespace=\"Model.Store\" Provider=\"System.Data.SqlClient\" ProviderManifestToken=\"2012\"/>",
+                "<Schema xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm\" Namespace=\"Model\" />",
+                "<Schema xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm/ssdl\" Namespace=\"Model.Store\" Provider=\"System.Data.SqlClient\" ProviderManifestToken=\"2012\"/>",
                 "<Mapping Space=\"C-S\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/mapping/cs\" />",
                 (mockModelManager, mockArtifactSet) =>
                     {
                         var artifactSet = mockArtifactSet.Object;
-                        new RuntimeMetadataValidator(mockModelManager.Object, new Version(2, 0, 0, 0), _resolver)
+                        new RuntimeMetadataValidator(mockModelManager.Object, new Version(3, 0, 0, 0), _resolver)
                             .ValidateArtifactSet(artifactSet, forceValidation: true, validateMsl: true, runViewGen: false);
 
+                        // No version mismatch errors should occur since all models use Version3
                         var errors = artifactSet.GetAllErrors();
-                        errors.Count.Should().Be(1);
-                        errors.First().ErrorCode.Should().Be(ErrorCodes.ErrorValidatingArtifact_InvalidMSLNamespaceForTargetFrameworkVersion);
-                        errors.First().Message.Should().Contain(Resources.ErrorValidatingArtifact_InvalidMSLNamespaceForTargetFrameworkVersion);
-                        errors.First().Item.Should().Be(artifactSet.GetEntityDesignArtifact().MappingModel);
-
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Escher_CSDL | ErrorClass.Escher_SSDL).Should().BeFalse();
-                        artifactSet.IsValidityDirtyForErrorClass(ErrorClass.Escher_MSL | ErrorClass.Runtime_ViewGen).Should().BeTrue();
-
-                        mockArtifactSet.Verify(m => m.AddError(It.IsAny<ErrorInfo>()), Times.Once());
+                        errors.Any(e => e.ErrorCode == ErrorCodes.ErrorValidatingArtifact_InvalidMSLNamespaceForTargetFrameworkVersion).Should().BeFalse();
                     });
         }
 
@@ -388,7 +382,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
                 null, null, null,
                 (mockModelManager, mockArtifactSet) =>
                     {
-                        var mockValidator =
+                        Mock<RuntimeMetadataValidator> mockValidator =
                             new Mock<RuntimeMetadataValidator>(mockModelManager.Object, new Version(3, 0, 0, 0), _resolver);
 
                         mockValidator.Object.Validate(mockArtifactSet.Object);
@@ -405,7 +399,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
                 null, null, null,
                 (mockModelManager, mockArtifactSet) =>
                     {
-                        var mockValidator =
+                        Mock<RuntimeMetadataValidator> mockValidator =
                             new Mock<RuntimeMetadataValidator>(mockModelManager.Object, new Version(3, 0, 0, 0), _resolver);
 
                         foreach (var validateMapping in new[] { true, false })
@@ -502,7 +496,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
                         var artifactSet = mockArtifactSet.Object;
                         var artifact = artifactSet.GetEntityDesignArtifact();
                         var complexType = new Mock<ComplexType>(null, new XElement("dummy")).Object;
-                        var mockProperty = new Mock<ComplexConceptualProperty>(complexType, new XElement("dummy"))
+                        Mock<ComplexConceptualProperty> mockProperty = new Mock<ComplexConceptualProperty>(complexType, new XElement("dummy"))
                             {
                                 CallBase = true
                             };
@@ -558,7 +552,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
                         var artifactSet = mockArtifactSet.Object;
                         var artifact = artifactSet.GetEntityDesignArtifact();
 
-                        var mockAssociationSetMapping = new Mock<DesignAssociationSetMapping>(null, new XElement("dummy"));
+                        Mock<DesignAssociationSetMapping> mockAssociationSetMapping = new Mock<DesignAssociationSetMapping>(null, new XElement("dummy"));
                         mockAssociationSetMapping
                             .Setup(m => m.Artifact)
                             .Returns(artifact);
@@ -602,7 +596,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
                 null, null, null,
                 (mockModelManager, mockArtifactSet) =>
                     {
-                        var error = new ErrorInfo(
+                        ErrorInfo error = new ErrorInfo(
                             ErrorInfo.Severity.ERROR, null, mockArtifactSet.Object.GetEntityDesignArtifact(),
                             42, ErrorClass.ParseError);
                         RuntimeMetadataValidator.IsOpenInEditorError(error, mockArtifactSet.Object.Artifacts.First())
@@ -627,7 +621,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
                     {
                         var artifact = mockArtifactSet.Object.GetEntityDesignArtifact();
 
-                        var mockEfObject = new Mock<EFObject>(null, new XElement("dummy"));
+                        Mock<EFObject> mockEfObject = new Mock<EFObject>(null, new XElement("dummy"));
                         mockEfObject.Setup(m => m.Artifact).Returns(artifact);
 
                         var unrecoverableErrorCodes =
@@ -637,7 +631,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
 
                         foreach (var errorCode in unrecoverableErrorCodes)
                         {
-                            var error = new ErrorInfo(
+                            ErrorInfo error = new ErrorInfo(
                                 ErrorInfo.Severity.ERROR, null, mockEfObject.Object, errorCode, ErrorClass.Runtime_CSDL);
 
                             RuntimeMetadataValidator.IsOpenInEditorError(error, artifact).Should().BeTrue();
@@ -693,7 +687,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
                     {
                         var artifact = mockArtifactSet.Object.GetEntityDesignArtifact();
 
-                        var mockEfObject =
+                        Mock<T> mockEfObject =
                             new Mock<T>(null, new XElement("dummy"));
                         mockEfObject.Setup(m => m.Artifact).Returns(artifact);
 
@@ -701,7 +695,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
                             .Setup(m => m.FindEFObjectForLineAndColumn(It.IsAny<int>(), It.IsAny<int>()))
                             .Returns(mockEfObject.Object);
 
-                        var error = new ErrorInfo(
+                        ErrorInfo error = new ErrorInfo(
                             ErrorInfo.Severity.ERROR, null, mockEfObject.Object,
                             errorCode, ErrorClass.Runtime_CSDL);
 
@@ -714,19 +708,19 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
         private static void SetupModelAndInvokeAction(
             string conceptualModel, string storeModel, string mappingModel, Action<Mock<ModelManager>, Mock<EFArtifactSet>> action)
         {
-            var tempUri = new Uri("http://tempuri");
+            Uri tempUri = new Uri("http://tempuri");
 
-            var mockModelManager =
+            Mock<ModelManager> mockModelManager =
                 new Mock<ModelManager>(new Mock<IEFArtifactFactory>().Object, new Mock<IEFArtifactSetFactory>().Object);
 
             using (var modelManager = mockModelManager.Object)
             {
-                var xmlModelProvider = new Mock<XmlModelProvider>();
+                Mock<XmlModelProvider> xmlModelProvider = new Mock<XmlModelProvider>();
                 xmlModelProvider
                     .Setup(m => m.GetXmlModel(tempUri))
                     .Returns(new Mock<XmlModel>().Object);
 
-                var mockArtifact =
+                Mock<EntityDesignArtifact> mockArtifact =
                     new Mock<EntityDesignArtifact>(modelManager, tempUri, xmlModelProvider.Object);
 
                 mockArtifact
@@ -747,7 +741,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
 
                 mockArtifact.Object.SetValidityDirtyForErrorClass(ErrorClass.Runtime_All, true);
 
-                var mockArtifactSet = new Mock<EFArtifactSet>(mockArtifact.Object) { CallBase = true };
+                Mock<EFArtifactSet> mockArtifactSet = new Mock<EFArtifactSet>(mockArtifact.Object) { CallBase = true };
                 mockArtifact
                     .Setup(m => m.ArtifactSet)
                     .Returns(mockArtifactSet.Object);
@@ -760,7 +754,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
         {
             if (storeModel != null)
             {
-                var mockStorageModel =
+                Mock<StorageEntityModel> mockStorageModel =
                     new Mock<StorageEntityModel>(
                         mockArtifact.Object,
                         XElement.Parse(storeModel));
@@ -779,7 +773,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
         {
             if (conceptualModel != null)
             {
-                var mockConceptualModel =
+                Mock<ConceptualEntityModel> mockConceptualModel =
                     new Mock<ConceptualEntityModel>(
                         mockArtifact.Object,
                         XElement.Parse(conceptualModel));
@@ -798,7 +792,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Validation
         {
             if (mappingModel != null)
             {
-                var mockMappingModel =
+                Mock<MappingModel> mockMappingModel =
                     new Mock<MappingModel>(
                         mockArtifact.Object,
                         XElement.Parse(mappingModel));

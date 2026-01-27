@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 {
-    using System;
-    using System.Runtime.InteropServices;
-    using Microsoft.VisualStudio.OLE.Interop;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-
     /// <summary>
     ///     Wrapper class for access to the IVSTextLines of a file even if it's not currently open in a document. This class
     ///     will use any existing documents in the RDT for the file if they exist, otherwise it will use an invisible editor.

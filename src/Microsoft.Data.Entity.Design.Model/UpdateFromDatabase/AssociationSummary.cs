@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections.Generic;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
-
     internal class AssociationSummary
     {
         // private ctor.  Use CreateAssociationSummary(...)
@@ -17,15 +17,15 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         // map from association to its AssociationIdentity
         private readonly Dictionary<Association, AssociationIdentity> _associationToAssociationIdentity =
-            new Dictionary<Association, AssociationIdentity>();
+            [];
 
         // map from a table in the database, to all association identities whose dependent end references a column in this table
         private readonly Dictionary<DatabaseObject, List<AssociationIdentity>> _dependentEndTablesToAssociationIdentities =
-            new Dictionary<DatabaseObject, List<AssociationIdentity>>();
+            [];
 
         internal string TraceString()
         {
-            var sb = new StringBuilder("[AssociationSummary");
+            StringBuilder sb = new StringBuilder("[AssociationSummary");
             sb.Append(
                 " " +
                 EFToolsTraceUtils.FormatNamedDictionary(
@@ -54,8 +54,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal AssociationIdentity GetAssociationIdentity(Association a)
         {
-            AssociationIdentity id = null;
-            _associationToAssociationIdentity.TryGetValue(a, out id);
+            _associationToAssociationIdentity.TryGetValue(a, out AssociationIdentity id);
             return id;
         }
 
@@ -66,8 +65,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
             // candidate AssociationIdentity to see if it covers the passed in id.
             foreach (var table in id.AssociationTables)
             {
-                List<AssociationIdentity> otherIDs = null;
-                if (_dependentEndTablesToAssociationIdentities.TryGetValue(table, out otherIDs))
+                if (_dependentEndTablesToAssociationIdentities.TryGetValue(table, out List<AssociationIdentity> otherIDs))
                 {
                     foreach (var otherID in otherIDs)
                     {
@@ -86,10 +84,9 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
             _associationToAssociationIdentity.Add(a, aID);
             foreach (var table in aID.AssociationTables)
             {
-                List<AssociationIdentity> l = null;
-                if (false == _dependentEndTablesToAssociationIdentities.TryGetValue(table, out l))
+                if (false == _dependentEndTablesToAssociationIdentities.TryGetValue(table, out List<AssociationIdentity> l))
                 {
-                    l = new List<AssociationIdentity>();
+                    l = [];
                     _dependentEndTablesToAssociationIdentities.Add(table, l);
                 }
                 l.Add(aID);
@@ -100,7 +97,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         {
             var ecm = artifact.MappingModel().FirstEntityContainerMapping;
 
-            var summary = new AssociationSummary();
+            AssociationSummary summary = new AssociationSummary();
 
             if (!EdmFeatureManager.GetForeignKeysInModelFeatureState(artifact.SchemaVersion).IsEnabled())
             {

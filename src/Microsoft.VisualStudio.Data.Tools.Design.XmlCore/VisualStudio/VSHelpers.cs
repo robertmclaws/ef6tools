@@ -1,25 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using EnvDTE;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+using VSErrorHandler = Microsoft.VisualStudio.ErrorHandler;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Runtime.InteropServices;
-    using System.Windows.Forms;
-    using EnvDTE;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.PlatformUI;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-    using VSErrorHandler = Microsoft.VisualStudio.ErrorHandler;
-
     internal static class VSHelpers
     {
         // keeping as int so the GetVsColor would cache into the same table if we need it
-        private static readonly Dictionary<int, Color> _cachedColors = new Dictionary<int, Color>();
+        private static readonly Dictionary<int, Color> _cachedColors = [];
 
         /// <summary>
         ///     Return environment VS Font
@@ -32,10 +32,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             {
                 try
                 {
-                    var hostLocale = serviceProvider.GetService(typeof(SUIHostLocale)) as IUIHostLocale2;
-                    if (hostLocale != null)
+                    if (serviceProvider.GetService(typeof(SUIHostLocale)) is IUIHostLocale2 hostLocale)
                     {
-                        var fonts = new UIDLGLOGFONT[1];
+                        UIDLGLOGFONT[] fonts = new UIDLGLOGFONT[1];
                         var hr = hostLocale.GetDialogFont(fonts);
                         ErrorHandler.ThrowOnFailure(hr);
 
@@ -75,11 +74,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
             if (serviceProvider != null)
             {
-                var vsUIShell = serviceProvider.GetService(typeof(IVsUIShell)) as IVsUIShell2;
-                if (vsUIShell != null)
+                if (serviceProvider.GetService(typeof(IVsUIShell)) is IVsUIShell2 vsUIShell)
                 {
-                    uint vscolor;
-                    NativeMethods.ThrowOnFailure(vsUIShell.GetVSSysColorEx((int)colorToFetch, out vscolor));
+                    NativeMethods.ThrowOnFailure(vsUIShell.GetVSSysColorEx((int)colorToFetch, out uint vscolor));
 
                     var vsColor = ColorTranslator.FromWin32((int)vscolor);
                     _cachedColors.Add((int)colorToFetch, vsColor);
@@ -147,8 +144,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         public static object GetDocData(IServiceProvider site, string documentPath)
         {
-            uint docCookie;
-            return GetDocData(site, documentPath, _VSRDTFLAGS.RDT_NoLock, out docCookie);
+            return GetDocData(site, documentPath, _VSRDTFLAGS.RDT_NoLock, out uint docCookie);
         }
 
         public static object GetDocData(IServiceProvider site, string documentPath, _VSRDTFLAGS lockFlags, out uint docCookie)
@@ -158,10 +154,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 VSErrorHandler.ThrowOnFailure(VSConstants.E_UNEXPECTED);
             }
 
-            var rdtService = site.GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
+            IVsRunningDocumentTable rdtService = site.GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
 
-            IVsHierarchy hierarchy;
-            uint itemId;
             var docDataPtr = IntPtr.Zero;
             docCookie = VSConstants.VSCOOKIE_NIL;
             object ret = null;
@@ -171,7 +165,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 if (
                     ErrorHandler.Succeeded(
                         rdtService.FindAndLockDocument(
-                            (uint)lockFlags, documentPath, out hierarchy, out itemId, out docDataPtr, out docCookie))
+                            (uint)lockFlags, documentPath, out IVsHierarchy hierarchy, out uint itemId, out docDataPtr, out docCookie))
                     && docDataPtr != IntPtr.Zero)
                 {
                     ret = Marshal.GetObjectForIUnknown(docDataPtr);
@@ -196,11 +190,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         /// <returns></returns>
         internal static Project GetProjectForDocument(string path)
         {
-            uint itemId = 0;
-            var isDocInProject = false;
-            IVsHierarchy projectHierarchy = null;
-            Project project = null;
-            GetProjectAndFileInfoForPath(path, out projectHierarchy, out project, out itemId, out isDocInProject);
+            GetProjectAndFileInfoForPath(path, out IVsHierarchy projectHierarchy, out Project project, out uint itemId, out bool isDocInProject);
             return project;
         }
 
@@ -211,16 +201,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         /// <returns></returns>
         internal static Project GetProjectForDocument(string path, IServiceProvider serviceProvider)
         {
-            uint itemId = 0;
-            var isDocInProject = false;
-            IVsHierarchy projectHierarchy = null;
-            Project project = null;
-            GetProjectAndFileInfoForPath(path, serviceProvider, out projectHierarchy, out project, out itemId, out isDocInProject);
+            GetProjectAndFileInfoForPath(path, serviceProvider, out IVsHierarchy projectHierarchy, out Project project, out uint itemId, out bool isDocInProject);
             return project;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IEnumHierarchies.Next(System.UInt32,Microsoft.VisualStudio.Shell.Interop.IVsHierarchy[],System.UInt32@)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IEnumHierarchies.Reset")]
         private static void GetProjectAndFileInfoForPath(
             string originalPath, IServiceProvider serviceProvider, IVsSolution solution, out IVsHierarchy projectHierarchy,
             out Project project, out uint fileItemId, out bool isDocumentInProject)
@@ -239,14 +223,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 {
                     hierarchyEnum.Reset();
 
-                    uint numFetched = 1;
-                    var item = new IVsHierarchy[1];
+                    IVsHierarchy[] item = new IVsHierarchy[1];
 
-                    hierarchyEnum.Next(1, item, out numFetched);
+                    hierarchyEnum.Next(1, item, out uint numFetched);
                     while (numFetched == 1)
                     {
-                        var vsProject = item[0] as IVsProject;
-                        if (vsProject != null)
+                        if (item[0] is IVsProject vsProject)
                         {
                             GetProjectAndFileInfoForPath(
                                 vsProject, originalPath, out projectHierarchy, out project, out fileItemId, out isDocumentInProject);
@@ -305,7 +287,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         private static void GetProjectAndFileInfoForPath(
             string originalPath, out IVsHierarchy projectHierarchy, out Project project, out uint fileItemId, out bool isDocumentInProject)
         {
-            var solution = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
+            IVsSolution solution = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
             GetProjectAndFileInfoForPath(
                 originalPath, null, solution, out projectHierarchy, out project, out fileItemId, out isDocumentInProject);
         }
@@ -323,7 +305,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             string originalPath, IServiceProvider serviceProvider, out IVsHierarchy projectHierarchy, out Project project,
             out uint fileItemId, out bool isDocumentInProject)
         {
-            var solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            IVsSolution solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
             GetProjectAndFileInfoForPath(
                 originalPath, serviceProvider, solution, out projectHierarchy, out project, out fileItemId, out isDocumentInProject);
         }
@@ -337,11 +319,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             projectHierarchy = null;
             project = null;
 
-            var priority = new VSDOCUMENTPRIORITY[1];
-            var isDocInProjectInt = 0;
+            VSDOCUMENTPRIORITY[] priority = new VSDOCUMENTPRIORITY[1];
 
-            uint foundItemId = 0;
-            var hr = vsProject.IsDocumentInProject(originalPath, out isDocInProjectInt, priority, out foundItemId);
+            var hr = vsProject.IsDocumentInProject(originalPath, out int isDocInProjectInt, priority, out uint foundItemId);
             if (NativeMethods.Succeeded(hr) && isDocInProjectInt == 1)
             {
                 projectHierarchy = vsProject as IVsHierarchy;
@@ -365,8 +345,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Debug.Assert(hierarchy != null, "null hierarchy passed to GetProject?");
             if (hierarchy != null)
             {
-                object o;
-                var hr = hierarchy.GetProperty(NativeMethods.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out o);
+                var hr = hierarchy.GetProperty(NativeMethods.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out object o);
 
                 //Debug.Assert(NativeMethods.Succeeded(hr), "hierarchy.GetProperty(ExtObject) failed?");
                 if (NativeMethods.Succeeded(hr)
@@ -392,10 +371,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         /// </returns>
         private static IVsProject3 GetMiscellaneousProject()
         {
-            var miscFiles =
-                Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsExternalFilesManager)) as IVsExternalFilesManager;
             IVsProject project = null;
-            if (miscFiles != null)
+            if (Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsExternalFilesManager)) is IVsExternalFilesManager miscFiles)
             {
                 NativeMethods.ThrowOnFailure(miscFiles.GetExternalFilesProject(out project));
             }
@@ -420,9 +397,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 throw new ArgumentNullException("provider");
             }
 
-            var miscFiles = provider.GetService(typeof(SVsExternalFilesManager)) as IVsExternalFilesManager;
             IVsProject project = null;
-            if (miscFiles != null)
+            if (provider.GetService(typeof(SVsExternalFilesManager)) is IVsExternalFilesManager miscFiles)
             {
                 NativeMethods.ThrowOnFailure(miscFiles.GetExternalFilesProject(out project));
             }
@@ -440,11 +416,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             {
                 return null;
             }
-            var buffer = docData as IVsTextLines;
+            IVsTextLines buffer = docData as IVsTextLines;
             if (buffer == null)
             {
-                var bp = docData as IVsTextBufferProvider;
-                if (bp != null)
+                if (docData is IVsTextBufferProvider bp)
                 {
                     VSErrorHandler.ThrowOnFailure(bp.GetTextBuffer(out buffer));
                 }
@@ -454,21 +429,17 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         internal static string GetTextFromVsTextLines(IVsTextLines vsTextLines)
         {
-            int lines;
-            int lastLineLength;
-            VSErrorHandler.ThrowOnFailure(vsTextLines.GetLineCount(out lines));
-            VSErrorHandler.ThrowOnFailure(vsTextLines.GetLengthOfLine(lines - 1, out lastLineLength));
+            VSErrorHandler.ThrowOnFailure(vsTextLines.GetLineCount(out int lines));
+            VSErrorHandler.ThrowOnFailure(vsTextLines.GetLengthOfLine(lines - 1, out int lastLineLength));
 
-            string text;
-            VSErrorHandler.ThrowOnFailure(vsTextLines.GetLineText(0, 0, lines - 1, lastLineLength, out text));
+            VSErrorHandler.ThrowOnFailure(vsTextLines.GetLineText(0, 0, lines - 1, lastLineLength, out string text));
             return text;
         }
 
         internal static IVsHierarchy GetVsHierarchy(Project project, IServiceProvider serviceProvider)
         {
-            var vsSolution = serviceProvider.GetService(typeof(IVsSolution)) as IVsSolution;
-            IVsHierarchy hier;
-            NativeMethods.ThrowOnFailure(vsSolution.GetProjectOfUniqueName(project.UniqueName, out hier));
+            IVsSolution vsSolution = serviceProvider.GetService(typeof(IVsSolution)) as IVsSolution;
+            NativeMethods.ThrowOnFailure(vsSolution.GetProjectOfUniqueName(project.UniqueName, out IVsHierarchy hier));
             Debug.Assert(hier != null, "Could not get project for name " + project.UniqueName);
             return hier;
         }
@@ -476,19 +447,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         /// <summary>
         ///     Navigates to the document and places the selection at the specified location.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.TextManager.Interop.IVsTextManager.NavigateToLineAndColumn(Microsoft.VisualStudio.TextManager.Interop.IVsTextBuffer,System.Guid@,System.Int32,System.Int32,System.Int32,System.Int32)")]
         internal static void TextBufferNavigateTo(
             IServiceProvider serviceProvider, object docData, Guid logicalViewGuid, int lineNumber, int columnNumber)
         {
             // get the VsTextBuffer
-            var buffer = docData as VsTextBuffer;
+            VsTextBuffer buffer = docData as VsTextBuffer;
             if (buffer == null)
             {
-                var bufferProvider = docData as IVsTextBufferProvider;
-                if (bufferProvider != null)
+                if (docData is IVsTextBufferProvider bufferProvider)
                 {
-                    IVsTextLines lines;
-                    NativeMethods.ThrowOnFailure(bufferProvider.GetTextBuffer(out lines));
+                    NativeMethods.ThrowOnFailure(bufferProvider.GetTextBuffer(out IVsTextLines lines));
                     buffer = lines as VsTextBuffer;
                     Debug.Assert(buffer != null, "IVsTextLines does not implement IVsTextBuffer");
                 }
@@ -500,8 +468,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             }
 
             // finally, perform the navigation.
-            var mgr = serviceProvider.GetService(typeof(VsTextManagerClass)) as IVsTextManager;
-            if (mgr == null)
+            if (serviceProvider.GetService(typeof(VsTextManagerClass)) is not IVsTextManager mgr)
             {
                 return;
             }
@@ -527,14 +494,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 throw new ArgumentNullException("solution");
             }
 
-            IEnumHierarchies penum = null;
             var nullGuid = Guid.Empty;
-            var hr = solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_ALLPROJECTS, ref nullGuid, out penum);
+            var hr = solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_ALLPROJECTS, ref nullGuid, out IEnumHierarchies penum);
             if (ErrorHandler.Succeeded(hr)
                 && (penum != null))
             {
                 uint fetched = 0;
-                var rgelt = new IVsHierarchy[1];
+                IVsHierarchy[] rgelt = new IVsHierarchy[1];
                 while (penum.Next(1, rgelt, out fetched) == 0
                        && fetched == 1)
                 {
@@ -554,10 +520,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             // query the VS SCC provider and ask if we can edit the file
             if (documents.Length > 0)
             {
-                var queryEditQuerySave = serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
-                if (queryEditQuerySave != null)
+                if (serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) is IVsQueryEditQuerySave2 queryEditQuerySave)
                 {
-                    uint result;
 
                     // This may bring up a UI to ask the user to checkout a file depending on the user's settings.
                     // NOTE that we should not allow the QEF_ImplicitEdit input flag because this is the wrong user experience and the user
@@ -568,7 +532,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                         documents, // Files to edit
                         null, // Input flags
                         null, // Input array of VSQEQS_FILE_ATTRIBUTE_DATA
-                        out result // result of the checkout
+                        out uint result // result of the checkout
                         );
                     if (NativeMethods.Succeeded(hr)
                         && (result == (uint)tagVSQueryEditResult.QER_EditOK))
@@ -600,11 +564,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             // query the VS SCC provider and ask if we can edit the file
             if (documents.Length > 0)
             {
-                var queryEditQuerySave = serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
-                if (queryEditQuerySave != null)
+                if (serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) is IVsQueryEditQuerySave2 queryEditQuerySave)
                 {
-                    uint result;
-                    uint outFlags;
 
                     // This may bring up a UI to ask the user to checkout a file depending on the user's settings.
                     // NOTE that we should not allow the QEF_ImplicitEdit input flag because this is the wrong user experience and the user
@@ -615,8 +576,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                         documents, // Files to edit
                         null, // Input flags
                         null, // Input array of VSQEQS_FILE_ATTRIBUTE_DATA
-                        out result, // result of the checkout
-                        out outFlags // Additional flags
+                        out uint result, // result of the checkout
+                        out uint outFlags // Additional flags
                         );
                     if (NativeMethods.Succeeded(hr)
                         && (result == (uint)tagVSQueryEditResult.QER_EditOK))

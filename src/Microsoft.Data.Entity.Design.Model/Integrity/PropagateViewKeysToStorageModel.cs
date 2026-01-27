@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Integrity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     This class should be registered in a transaction where mappings are changed.  This will
     ///     push targeted updates to view keys from the conceptual model to the storage model.
@@ -17,7 +17,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
         private readonly CommandProcessorContext _cpc;
         private readonly ConceptualEntityType _conceptualEntityType;
         private readonly IEnumerable<ConceptualEntityType> _conceptualEntityTypes;
-        private readonly HashSet<EntityType> _views = new HashSet<EntityType>();
+        private readonly HashSet<EntityType> _views = [];
 
         internal PropagateViewKeysToStorageModel(CommandProcessorContext cpc, ConceptualEntityType entityType)
         {
@@ -33,8 +33,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
         public bool IsEqual(IIntegrityCheck otherCheck)
         {
-            var typedOtherCheck = otherCheck as PropagateViewKeysToStorageModel;
-            if (typedOtherCheck != null)
+            if (otherCheck is PropagateViewKeysToStorageModel typedOtherCheck)
             {
                 if (typedOtherCheck._conceptualEntityType == _conceptualEntityType)
                 {
@@ -51,7 +50,6 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             return false;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public void Invoke()
         {
             try
@@ -135,8 +133,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             if (table != null)
             {
                 // if we are mapped to a view or a defining query then proceed with key checking
-                var ses = table.EntitySet as StorageEntitySet;
-                if (ses != null
+                if (table.EntitySet is StorageEntitySet ses
                     && (ses.DefiningQuery != null || ses.StoreSchemaGeneratorTypeIsView))
                 {
                     // cache this view off to process later
@@ -166,7 +163,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
                     if (setKey != null)
                     {
-                        var command = new SetKeyPropertyCommand(column, (bool)setKey);
+                        SetKeyPropertyCommand command = new SetKeyPropertyCommand(column, (bool)setKey);
                         CommandProcessor.InvokeSingleCommand(_cpc, command);
                     }
                 }
@@ -184,7 +181,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     var mappings = column.GetAntiDependenciesOfType<ScalarProperty>();
                     if (mappings.Count == 0)
                     {
-                        var command = new SetKeyPropertyCommand(column, false);
+                        SetKeyPropertyCommand command = new SetKeyPropertyCommand(column, false);
                         CommandProcessor.InvokeSingleCommand(_cpc, command);
                     }
                 }

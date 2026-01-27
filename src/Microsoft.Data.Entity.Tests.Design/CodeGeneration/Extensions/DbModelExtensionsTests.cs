@@ -1,22 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
 {
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class DbModelExtensionsTests
     {
         [TestMethod]
         public void GetProviderManifest_resolves_manifest()
         {
-            var modelBuilder = new DbModelBuilder();
-            var providerInfo = new DbProviderInfo("System.Data.SqlClient", "2012");
+            DbModelBuilder modelBuilder = new DbModelBuilder();
+            DbProviderInfo providerInfo = new DbProviderInfo("System.Data.SqlClient", "2012");
             var model = modelBuilder.Build(providerInfo);
 
             var providerServices = model.GetProviderManifest(DbConfiguration.DependencyResolver);
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void GetColumn_resolves_simple_property_mappings()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>();
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var property = model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Name");
@@ -42,7 +42,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void GetColumn_resolves_rename_property_mappings()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>().Property(e => e.Name).HasColumnName("Rename");
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var property = model.ConceptualModel.EntityTypes.First().Properties.First(p => p.Name == "Name");

@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-
     internal partial class EntityType : IContainRelatedElementsToEmphasizeWhenSelected
     {
         /// <summary>
@@ -20,14 +20,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         {
             get
             {
-                var entityType = EntityDesignerViewModel.ModelXRef.GetExisting(this) as ConceptualEntityType;
+                ConceptualEntityType entityType = EntityDesignerViewModel.ModelXRef.GetExisting(this) as ConceptualEntityType;
                 Debug.Assert(entityType != null, "Unable to find model EntityType for DSL EntityType:" + Name);
                 if (entityType != null)
                 {
                     foreach (var modelAssociation in Model.Entity.Association.GetAssociationsForEntityType(entityType))
                     {
-                        var viewAssociation = EntityDesignerViewModel.ModelXRef.GetExisting(modelAssociation) as Association;
-                        if (viewAssociation != null
+                        if (EntityDesignerViewModel.ModelXRef.GetExisting(modelAssociation) is Association viewAssociation
                             && viewAssociation.IsDeleted == false)
                         {
                             yield return viewAssociation;

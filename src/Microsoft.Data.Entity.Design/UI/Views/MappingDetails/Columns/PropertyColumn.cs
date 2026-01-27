@@ -1,24 +1,24 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImports;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImports;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class PropertyColumn : BaseColumn
     {
         public PropertyColumn()
@@ -44,29 +44,25 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         public override object /* PropertyDescriptor */ GetValue(object component)
         {
-            var mfsp = component as MappingFunctionScalarProperty;
-            if (mfsp != null)
+            if (component is MappingFunctionScalarProperty mfsp)
             {
                 EnsureTypeConverters(mfsp);
                 return new MappingLovEFElement(mfsp, mfsp.Value);
             }
 
-            var mrb = component as MappingResultBinding;
-            if (mrb != null)
+            if (component is MappingResultBinding mrb)
             {
                 EnsureTypeConverters(mrb);
                 return new MappingLovEFElement(mrb, mrb.Value);
             }
 
-            var mfi = component as MappingFunctionImport;
-            if (mfi != null)
+            if (component is MappingFunctionImport mfi)
             {
                 EnsureTypeConverters(mfi);
                 return new MappingLovEFElement(mfi, mfi.FunctionName);
             }
 
-            var elem = component as MappingEFElement;
-            if (elem != null)
+            if (component is MappingEFElement elem)
             {
                 EnsureTypeConverters(elem);
                 return new MappingLovEFElement(elem, elem.Name);
@@ -81,7 +77,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 || component is MappingFunctionScalarProperty
                 || component is MappingResultBinding)
             {
-                var mappingElement = component as MappingEFElement;
+                MappingEFElement mappingElement = component as MappingEFElement;
                 Debug.Assert(mappingElement != null, "The component should be a MappingEFElement");
                 if (mappingElement.ModelItem != null)
                 {
@@ -93,8 +89,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         // This method receives changes as MappingLovElements (user used the mouse)
         // or as strings (user used the keyboard)
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public override void SetValue(object component, object value)
         {
             // the user clicked off of the drop-down without choosing a value
@@ -110,7 +104,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var lovElement = value as MappingLovEFElement;
+            MappingLovEFElement lovElement = value as MappingLovEFElement;
             var valueAsString = value as string;
             Debug.Assert(
                 lovElement != null || valueAsString != null,
@@ -124,8 +118,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var mas = component as MappingAssociationSet;
-            if (mas != null)
+            if (component is MappingAssociationSet mas)
             {
                 lovElement = mas.GetLovElementFromLovElementOrString(lovElement, valueAsString, ListOfValuesCollection.FirstColumn);
                 if (lovElement == null)
@@ -145,7 +138,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 }
                 else
                 {
-                    var et = lovElement.ModelElement as EntityType;
+                    EntityType et = lovElement.ModelElement as EntityType;
                     Debug.Assert(
                         et != null, "component is a MappingAssociationSet but value.ModelElement is of type " + value.GetType().FullName);
 
@@ -159,7 +152,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                     {
                         // they switched to a different table so delete the old
                         // underlying model item and create a new one
-                        var cpc = new CommandProcessorContext(
+                        CommandProcessorContext cpc = new CommandProcessorContext(
                             Host.Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_UpdateMappingFragment);
                         mas.SwitchModelItem(cpc, Host.Context, et, true);
                         OnValueChanged(this, new ColumnValueChangedEventArgs(new TreeGridDesignerBranchChangedArgs()));
@@ -169,8 +162,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var mfsp = component as MappingFunctionScalarProperty;
-            if (mfsp != null)
+            if (component is MappingFunctionScalarProperty mfsp)
             {
                 lovElement = mfsp.GetLovElementFromLovElementOrString(lovElement, valueAsString, ListOfValuesCollection.ThirdColumn);
                 if (lovElement == null)
@@ -194,8 +186,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                     //       added to lovElement.Object as a List<Property> whereas properties from the other end
                     //       of a NavigationProperty are added as a Property (see 
                     //       MappingFunctionScalarProperty.GetListOfValues()).
-                    var propertiesChain = lovElement.Object as List<Property>;
-                    if (propertiesChain != null)
+                    if (lovElement.Object is List<Property> propertiesChain)
                     {
                         // there is no NavProp involved - clear out any old one
                         mfsp.SetNavigationProperty(null);
@@ -205,7 +196,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                     }
                     else
                     {
-                        var property = lovElement.ModelElement as Property;
+                        Property property = lovElement.ModelElement as Property;
 
                         Debug.Assert(
                             property != null,
@@ -240,7 +231,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                                     if (mfsp.MappingFunctionEntityType != null
                                         && mfsp.MappingFunctionEntityType.EntityType != null)
                                     {
-                                        var cet = mfsp.MappingFunctionEntityType.EntityType as ConceptualEntityType;
+                                        ConceptualEntityType cet = mfsp.MappingFunctionEntityType.EntityType as ConceptualEntityType;
                                         Debug.Assert(cet != null, "EntityType is not ConceptualEntityType");
                                         navProp = ModelHelper.FindNavigationPropertyByName(cet, navPropRefName);
                                         Debug.Assert(
@@ -260,8 +251,10 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                             }
 
                             // create or update the item dependent on whether it already exists in the model
-                            var propChain = new List<Property>(1);
-                            propChain.Add(property);
+                            List<Property> propChain = new List<Property>(1)
+                            {
+                                property
+                            };
                             mfsp.CreateOrUpdateModelItem(Host.Context, propChain);
                         }
                     }
@@ -271,8 +264,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var mrb = component as MappingResultBinding;
-            if (mrb != null)
+            if (component is MappingResultBinding mrb)
             {
                 lovElement = mrb.GetLovElementFromLovElementOrString(lovElement, valueAsString, ListOfValuesCollection.ThirdColumn);
                 if (lovElement == null)
@@ -292,7 +284,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 }
                 else
                 {
-                    var prop = lovElement.ModelElement as Property;
+                    Property prop = lovElement.ModelElement as Property;
                     Debug.Assert(
                         prop != null,
                         "component is a " + component.GetType().Name + " but value.ModelElement is of type " + value.GetType().FullName);
@@ -304,14 +296,12 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var mfi = component as MappingFunctionImport;
-            if (mfi != null)
+            if (component is MappingFunctionImport mfi)
             {
                 lovElement = mfi.GetLovElementFromLovElementOrString(lovElement, valueAsString, ListOfValuesCollection.FirstColumn);
                 if (lovElement != null)
                 {
-                    var function = lovElement.ModelElement as Function;
-                    if (function != null)
+                    if (lovElement.ModelElement is Function function)
                     {
                         mfi.ChangeModelItem(Host.Context, function);
                         OnValueChanged(this, ColumnValueChangedEventArgs.Default);
@@ -323,7 +313,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         internal override TreeGridDesignerValueSupportedStates GetValueSupported(object component)
         {
-            var mfsp = component as MappingFunctionScalarProperty;
             if (component is MappingAssociationSetEnd
                 || component is MappingEndScalarProperty
                 || component is MappingFunctionEntityType
@@ -334,7 +323,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
             {
                 return TreeGridDesignerValueSupportedStates.None;
             }
-            else if (null != mfsp)
+            else if (component is MappingFunctionScalarProperty mfsp)
             {
                 if (null != mfsp.StoreParameter
                     && Parameter.InOutMode.Out == mfsp.StoreParameter.InOut)

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System.Windows.Forms;
-
     internal class TreeGridDesignerWatermarkInfo
     {
         internal TreeGridDesignerWatermarkInfo(string text, params LinkData[] linkDatum)

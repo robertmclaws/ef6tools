@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.Drawing;
-    using System.Windows.Forms;
-
     internal interface ITreeGridDesignerToolWindowContainer : IDisposable
     {
         bool WatermarkVisible { get; set; }

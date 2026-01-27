@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.EntityClient;
+using System.Text;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System.Data.Entity.Core.EntityClient;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class EntityStoreSchemaQueryGeneratorTests
     {
@@ -133,7 +133,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         public void AppendFilterEntry_uses_OR_to_connect_multiple_filters()
         {
             var parameters = CreateParameters();
-            var filterBuilder = new StringBuilder();
+            StringBuilder filterBuilder = new StringBuilder();
 
             EntityStoreSchemaQueryGenerator.AppendFilterEntry(
                 filterBuilder,

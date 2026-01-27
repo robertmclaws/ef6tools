@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to change whether an entity is Abstract or not.  If we are marking an entity
     ///     as abstract, then we need to remove any function mappings.
@@ -44,7 +44,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(cpc != null, "InvokeInternal is called when EntityContainerMapping is null.");
@@ -60,7 +59,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // remove any function mappings if we are setting this to abstract
             if (SetAbstract)
             {
-                var etms = new List<EntityTypeMapping>();
+                List<EntityTypeMapping> etms = new List<EntityTypeMapping>();
                 etms.AddRange(EntityType.GetAntiDependenciesOfType<EntityTypeMapping>());
 
                 for (var i = etms.Count - 1; i >= 0; i--)

@@ -1,21 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public partial class StoreModelBuilderTests
     {
@@ -23,7 +18,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 
         static StoreModelBuilderTests()
         {
-            var mockResolver = new Mock<IDbDependencyResolver>();
+            Mock<IDbDependencyResolver> mockResolver = new Mock<IDbDependencyResolver>();
             mockResolver.Setup(
                 r => r.GetService(
                     It.Is<Type>(t => t == typeof(DbProviderServices)),
@@ -41,7 +36,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
             int? scale = null, bool? isIdentity = null,
             bool? isServerGenerated = null, bool isPrimaryKey = false)
         {
-            var tableDetailsRow = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow tableDetailsRow = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action<TableDetailsRow, string, object> setColumnValue =
                 (row, column, value) =>
@@ -75,7 +70,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
             string pkCatalog, string pkSchema, string pkTable, string pkColumn,
             string fkCatalog, string fkSchema, string fkTable, string fkColumn)
         {
-            var relationshipDetailsRow = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
+            RelationshipDetailsRow relationshipDetailsRow = (RelationshipDetailsRow)new RelationshipDetailsCollection().NewRow();
 
             Action<RelationshipDetailsRow, string, object> setColumnValue =
                 (row, column, value) =>

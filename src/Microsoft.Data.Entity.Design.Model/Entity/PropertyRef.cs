@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class PropertyRef : EFElement
     {
         internal static readonly string ElementName = "PropertyRef";
         internal static readonly string AttributeName = "Name";
-        internal static List<EFObject> EmptyList = new List<EFObject>(0);
+        internal static List<EFObject> EmptyList = [];
 
         private SingleItemBinding<Property> _property;
         private readonly SingleItemBinding<Property>.NameNormalizer _nameNormalizerForPropertyRef;
@@ -29,7 +29,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var parent = Parent as Key;
+                Key parent = Parent as Key;
                 return parent;
             }
         }
@@ -41,7 +41,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var parent = Parent as ReferentialConstraintRole;
+                ReferentialConstraintRole parent = Parent as ReferentialConstraintRole;
                 return parent;
             }
         }
@@ -50,13 +50,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_property == null)
-                {
-                    _property = new SingleItemBinding<Property>(
+                _property ??= new SingleItemBinding<Property>(
                         this,
                         AttributeName,
                         _nameNormalizerForPropertyRef);
-                }
                 return _property;
             }
         }
@@ -118,8 +115,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         internal override DeleteEFElementCommand GetDeleteCommand()
         {
-            var prc = Parent as PropertyRefContainer;
-            if (prc != null)
+            if (Parent is PropertyRefContainer prc)
             {
                 return prc.GetDeleteCommandForChild(this);
             }

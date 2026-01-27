@@ -1,20 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.Common;
+using System.Data.Entity.Core.EntityClient;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure.Interception;
+using System.Data.Entity.Utilities;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Configuration;
-    using System.Data;
-    using System.Data.Common;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.Interception;
-    using System.Data.Entity.Utilities;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-
     /// <summary>
     ///     Responsible for Loading Database Schema Information
     /// </summary>
@@ -29,8 +29,6 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
         private readonly Func<string, object> _lookupValueFromAppSettings;
         private readonly IDbCommandInterceptor _addOptionMergeJoinInterceptor;
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
-            Justification = "For this purpose we want to ignore any exception that is thrown.")]
         public EntityStoreSchemaGeneratorDatabaseSchemaLoader(
             EntityConnection entityConnection,
             Version storeSchemaModelVersion,
@@ -77,7 +75,6 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
         }
 
         // Checks AppSettings for the quirk which can switch off metadata merge joins
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "System.Boolean.TryParse(System.String,System.Boolean@)")]
         private bool SwitchOffMetadataMergeJoins()
         {
             var switchOffMetadataMergeJoins = false;
@@ -152,10 +149,9 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
         }
 
         // internal virtual for testing
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal virtual IEnumerable<TableDetailsRow> LoadTableDetails(IEnumerable<EntityStoreSchemaFilterEntry> filters)
         {
-            var table = new TableDetailsCollection();
+            TableDetailsCollection table = new TableDetailsCollection();
             return LoadDataTable<TableDetailsRow>(
                 TableDetailSql,
                 rows =>
@@ -170,10 +166,9 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
         }
 
         // internal virtual for testing
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal virtual IEnumerable<TableDetailsRow> LoadViewDetails(IEnumerable<EntityStoreSchemaFilterEntry> filters)
         {
-            var views = new TableDetailsCollection();
+            TableDetailsCollection views = new TableDetailsCollection();
             return LoadDataTable<TableDetailsRow>(
                 ViewDetailSql,
                 rows =>
@@ -188,10 +183,9 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
         }
 
         // internal virtual for testing
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal virtual IEnumerable<RelationshipDetailsRow> LoadRelationships(IEnumerable<EntityStoreSchemaFilterEntry> filters)
         {
-            var table = new RelationshipDetailsCollection();
+            RelationshipDetailsCollection table = new RelationshipDetailsCollection();
             return LoadDataTable<RelationshipDetailsRow>(
                 RelationshipDetailSql,
                 rows =>
@@ -209,11 +203,11 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
         // internal virtual for testing
         internal virtual IEnumerable<FunctionDetailsRowView> LoadFunctionDetails(IEnumerable<EntityStoreSchemaFilterEntry> filters)
         {
-            var functionDetailsRows = new List<FunctionDetailsRowView>();
+            List<FunctionDetailsRowView> functionDetailsRows = new List<FunctionDetailsRowView>();
 
             using (var command = CreateFunctionDetailsCommand(filters))
             {
-                using (var reader = new FunctionDetailsReader(command, _storeSchemaModelVersion))
+                using (FunctionDetailsReader reader = new FunctionDetailsReader(command, _storeSchemaModelVersion))
                 {
                     while (reader.Read())
                     {
@@ -225,14 +219,13 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
         }
 
         // internal virtual for testing
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal virtual IEnumerable<TableDetailsRow> LoadFunctionReturnTableDetails(IEnumerable<EntityStoreSchemaFilterEntry> filters)
         {
             Debug.Assert(
                 _storeSchemaModelVersion >= EntityFrameworkVersion.Version3,
                 "_storeSchemaModelVersion >= EntityFrameworkVersions.Version3");
 
-            var table = new TableDetailsCollection();
+            TableDetailsCollection table = new TableDetailsCollection();
             return LoadDataTable<TableDetailsRow>(
                 FunctionReturnTableDetailSql,
                 rows =>
@@ -283,14 +276,11 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
         }
 
         // virtual for testing
-        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities",
-            Justification = "All SQL comes from private constant queries that the user cannot change")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal virtual EntityCommand CreateFilteredCommand(
             string sql, string orderByClause, EntityStoreSchemaFilterObjectTypes queryTypes, List<EntityStoreSchemaFilterEntry> filters,
             string[] filterAliases)
         {
-            var command =
+            EntityCommand command =
                 new EntityCommand(null, _connection, DependencyResolver.Instance)
                 {
                     CommandType = CommandType.Text,
@@ -616,8 +606,6 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
         /// </summary>
         private sealed class AddOptionMergeJoinInterceptor : DbCommandInterceptor
         {
-            [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities",
-                Justification = "The user has no control over the text added to the SQL.")]
             public override void ReaderExecuting(DbCommand command, DbCommandInterceptionContext<DbDataReader> interceptionContext)
             {
                 command.CommandText = command.CommandText + Environment.NewLine + "OPTION (MERGE JOIN)";

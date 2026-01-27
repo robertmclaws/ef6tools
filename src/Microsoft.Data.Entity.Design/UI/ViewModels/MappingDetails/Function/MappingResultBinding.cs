@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [TreeGridDesignerRootBranch(typeof(ResultBindingBranch))]
     [TreeGridDesignerColumn(typeof(ParameterColumn), Order = 1)]
     [TreeGridDesignerColumn(typeof(OperatorColumn), Order = 2)]
@@ -71,8 +71,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                     // is it different than what we have already?
                     if (string.CompareOrdinal(ColumnName, newColumnName) != 0)
                     {
-                        var cmd = new ChangeResultBindingCommand(ResultBinding, null, newColumnName);
-                        var cp = new CommandProcessor(
+                        ChangeResultBindingCommand cmd = new ChangeResultBindingCommand(ResultBinding, null, newColumnName);
+                        CommandProcessor cp = new CommandProcessor(
                             Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeResultBinding, cmd);
                         cp.Invoke();
                     }
@@ -113,8 +113,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                 // is it different than what we have already?
                 if (ResultBinding.Name.Target != property)
                 {
-                    var cmd = new ChangeResultBindingCommand(ResultBinding, property, null);
-                    var cp = new CommandProcessor(
+                    ChangeResultBindingCommand cmd = new ChangeResultBindingCommand(ResultBinding, property, null);
+                    CommandProcessor cp = new CommandProcessor(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeResultBinding, cmd);
                     cp.Invoke();
                 }
@@ -144,18 +144,17 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 
         internal override Dictionary<MappingLovEFElement, string> GetListOfValues(ListOfValuesCollection type)
         {
-            var lov = new Dictionary<MappingLovEFElement, string>();
+            Dictionary<MappingLovEFElement, string> lov = new Dictionary<MappingLovEFElement, string>();
 
             Debug.Assert(type == ListOfValuesCollection.ThirdColumn, "Unsupported lov type was sent");
 
             if (type == ListOfValuesCollection.ThirdColumn)
             {
-                var properties = new List<Property>();
+                List<Property> properties = new List<Property>();
 
                 var entityType = MappingFunctionEntityType.EntityType;
-                var conceptualEntityType = entityType as ConceptualEntityType;
 
-                if (conceptualEntityType != null)
+                if (entityType is ConceptualEntityType conceptualEntityType)
                 {
                     properties.AddRange(conceptualEntityType.SafeInheritedAndDeclaredProperties);
                 }
@@ -209,7 +208,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
             Context = context;
 
             // local shortcuts
-            var entityType = MappingFunctionEntityType.EntityType as ConceptualEntityType;
+            ConceptualEntityType entityType = MappingFunctionEntityType.EntityType as ConceptualEntityType;
             Debug.Assert(MappingFunctionEntityType.EntityType == null || entityType != null, "EntityType is not ConceptualEntityType");
             var function = MappingModificationFunctionMapping.Function;
 
@@ -237,14 +236,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
             if (property != null)
             {
                 // create a context if we weren't passed one
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_CreateResultBinding);
-                }
 
                 // create the command
-                var cmd = new CreateResultBindingCommand(
+                CreateResultBindingCommand cmd = new CreateResultBindingCommand(
                     entityType, function, MappingModificationFunctionMapping.ModificationFunctionType,
                     property, columnName);
 
@@ -262,7 +258,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                 try
                 {
                     // now make the change
-                    var cp = new CommandProcessor(cpc, cmd);
+                    CommandProcessor cp = new CommandProcessor(cpc, cmd);
                     cp.Invoke();
                 }
                 catch
@@ -293,11 +289,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
             Debug.Assert(ModelItem != null, "We are trying to delete a null ModelItem");
             if (IsModelItemDeleted() == false)
             {
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_DeleteResultBinding);
-                }
 
                 // use the item's delete command
                 var deleteCommand = ResultBinding.GetDeleteCommand();

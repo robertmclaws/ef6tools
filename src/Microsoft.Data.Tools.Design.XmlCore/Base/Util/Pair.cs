@@ -32,7 +32,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Base.Util
                 return false;
             }
 
-            var pair = (Pair<P, Q>)obj;
+            Pair<P, Q> pair = (Pair<P, Q>)obj;
 
             if (pair == this)
             {

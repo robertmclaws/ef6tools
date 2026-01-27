@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+#region Using Statements
+
+using System;
+using System.Diagnostics;
+using System.IO;
+using EnvDTE;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Constants = EnvDTE.Constants;
+using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+
 namespace Microsoft.Data.Entity.Tests.Shared.VS
 {
-    #region Using Statements
-
-    using System;
-    using System.Diagnostics;
-    using System.IO;
-    using EnvDTE;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Constants = EnvDTE.Constants;
-    using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
-
     #endregion
 
     #region VS IDE related utitilies
@@ -119,12 +119,9 @@ namespace Microsoft.Data.Entity.Tests.Shared.VS
             Debug.Assert(dte != null, "dte must not be null.");
             Debug.Assert(!string.IsNullOrWhiteSpace(fullFilePath), "fullFilePath must not be null or emtpy string.");
 
-            var serviceProvider = new ServiceProvider((IServiceProvider)dte);
+            ServiceProvider serviceProvider = new ServiceProvider((IServiceProvider)dte);
 
-            IVsUIHierarchy hierarchy;
-            uint itemId;
-            IVsWindowFrame windowFrame;
-            if (VsShellUtilities.IsDocumentOpen(serviceProvider, fullFilePath, Guid.Empty, out hierarchy, out itemId, out windowFrame))
+            if (VsShellUtilities.IsDocumentOpen(serviceProvider, fullFilePath, Guid.Empty, out IVsUIHierarchy hierarchy, out uint itemId, out IVsWindowFrame windowFrame))
             {
                 windowFrame.Show();
                 dte.ExecuteCommand(command, "");
@@ -144,17 +141,13 @@ namespace Microsoft.Data.Entity.Tests.Shared.VS
             Debug.Assert(dte != null, "dte must not be null.");
             Debug.Assert(!string.IsNullOrWhiteSpace(documentPath), "!string.IsNullOrWhiteSpace(documentPath)");
 
-            var serviceProvider = new ServiceProvider((IServiceProvider)dte);
+            ServiceProvider serviceProvider = new ServiceProvider((IServiceProvider)dte);
 
-            IVsHierarchy vsHierarchy;
-            uint itemId, docCookie;
-            IVsPersistDocData vsPersistDocData;
             VsShellUtilities.GetRDTDocumentInfo(
-                serviceProvider, documentPath, out vsHierarchy, out itemId, out vsPersistDocData, out docCookie);
+                serviceProvider, documentPath, out IVsHierarchy vsHierarchy, out uint itemId, out IVsPersistDocData vsPersistDocData, out uint docCookie);
             if (vsPersistDocData != null)
             {
-                int isDirty;
-                vsPersistDocData.IsDocDataDirty(out isDirty);
+                vsPersistDocData.IsDocDataDirty(out int isDirty);
                 return isDirty == 1;
             }
 
@@ -321,7 +314,7 @@ namespace Microsoft.Data.Entity.Tests.Shared.VS
                 }
             }
 
-            var hierarchy = (UIHierarchy)dte.Windows.Item(Constants.vsWindowKindSolutionExplorer).Object;
+            UIHierarchy hierarchy = (UIHierarchy)dte.Windows.Item(Constants.vsWindowKindSolutionExplorer).Object;
             // Add the solution node to the item full name
             uiItemFullName = hierarchy.UIHierarchyItems.Item(1).Name + uiItemFullName;
             // Get the hierarchy item given the item full name and select the item

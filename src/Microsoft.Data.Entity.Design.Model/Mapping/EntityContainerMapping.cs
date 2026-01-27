@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class EntityContainerMapping : EFElement
     {
         internal static readonly string ElementName = "EntityContainerMapping";
@@ -15,9 +15,9 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         internal static readonly string AttributeStorageEntityContainer = "StorageEntityContainer";
         internal static readonly string AttributeGenerateUpdateViews = "GenerateUpdateViews";
 
-        private readonly List<EntitySetMapping> _entitySetMapppings = new List<EntitySetMapping>();
-        private readonly List<AssociationSetMapping> _associationSetMapppings = new List<AssociationSetMapping>();
-        private readonly List<FunctionImportMapping> _functionImportMapppings = new List<FunctionImportMapping>();
+        private readonly List<EntitySetMapping> _entitySetMapppings = [];
+        private readonly List<AssociationSetMapping> _associationSetMapppings = [];
+        private readonly List<FunctionImportMapping> _functionImportMapppings = [];
         private SingleItemBinding<ConceptualEntityContainer> _cdmEntityContainer;
         private SingleItemBinding<StorageEntityContainer> _storageEntityContainer;
         private DefaultableValue<bool> _generateUpdateViewsAttr;
@@ -35,13 +35,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_cdmEntityContainer == null)
-                {
-                    _cdmEntityContainer = new SingleItemBinding<ConceptualEntityContainer>(
+                _cdmEntityContainer ??= new SingleItemBinding<ConceptualEntityContainer>(
                         this,
                         AttributeCdmEntityContainer,
                         null);
-                }
                 return _cdmEntityContainer;
             }
         }
@@ -53,13 +50,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_storageEntityContainer == null)
-                {
-                    _storageEntityContainer = new SingleItemBinding<StorageEntityContainer>(
+                _storageEntityContainer ??= new SingleItemBinding<StorageEntityContainer>(
                         this,
                         AttributeStorageEntityContainer,
                         null);
-                }
                 return _storageEntityContainer;
             }
         }
@@ -71,10 +65,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_generateUpdateViewsAttr == null)
-                {
-                    _generateUpdateViewsAttr = new GenerateUpdateViewsDefaultableValue(this);
-                }
+                _generateUpdateViewsAttr ??= new GenerateUpdateViewsDefaultableValue(this);
                 return _generateUpdateViewsAttr;
             }
         }
@@ -168,22 +159,19 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as EntitySetMapping;
-            if (child1 != null)
+            if (efContainer is EntitySetMapping child1)
             {
                 _entitySetMapppings.Remove(child1);
                 return;
             }
 
-            var child2 = efContainer as AssociationSetMapping;
-            if (child2 != null)
+            if (efContainer is AssociationSetMapping child2)
             {
                 _associationSetMapppings.Remove(child2);
                 return;
             }
 
-            var child3 = efContainer as FunctionImportMapping;
-            if (child3 != null)
+            if (efContainer is FunctionImportMapping child3)
             {
                 _functionImportMapppings.Remove(child3);
                 return;
@@ -266,19 +254,19 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == EntitySetMapping.ElementName)
             {
-                var esm = new EntitySetMapping(this, elem);
+                EntitySetMapping esm = new EntitySetMapping(this, elem);
                 _entitySetMapppings.Add(esm);
                 esm.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == AssociationSetMapping.ElementName)
             {
-                var asm = new AssociationSetMapping(this, elem);
+                AssociationSetMapping asm = new AssociationSetMapping(this, elem);
                 _associationSetMapppings.Add(asm);
                 asm.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == FunctionImportMapping.ElementName)
             {
-                var fim = new FunctionImportMapping(this, elem);
+                FunctionImportMapping fim = new FunctionImportMapping(this, elem);
                 _functionImportMapppings.Add(fim);
                 fim.Parse(unprocessedElements);
             }

@@ -1,10 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Windows;
+using System.Windows.Controls;
+using Microsoft.Data.Entity.Design;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System.Windows;
-    using System.Windows.Controls;
-
     /// <summary>
     ///     This must be public since it needs to be accessible from a satellite resource DLL for localization
     /// </summary>

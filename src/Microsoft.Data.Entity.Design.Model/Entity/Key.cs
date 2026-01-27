@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics;
-    using System.Xml.Linq;
-
     internal sealed class Key : PropertyRefContainer
     {
         internal static readonly string ElementName = "Key";
@@ -28,23 +28,19 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 return null;
             }
 
-            var pr = parent as PropertyRef;
-            var key = pr.Parent as Key;
-            var entityType = key.Parent as EntityType;
+            PropertyRef pr = parent as PropertyRef;
+            Key key = pr.Parent as Key;
+            EntityType entityType = key.Parent as EntityType;
 
-            var em = entityType.Parent as BaseEntityModel;
             Symbol symbol = null;
-            if (em != null)
+            if (entityType.Parent is BaseEntityModel em)
             {
                 symbol = new Symbol(em.NamespaceValue, entityType.LocalName.Value, refName);
             }
 
-            if (symbol == null)
-            {
-                symbol = new Symbol(refName);
-            }
+            symbol ??= new Symbol(refName);
 
-            var normalizedName = new NormalizedName(symbol, null, null, refName);
+            NormalizedName normalizedName = new NormalizedName(symbol, null, null, refName);
 
             return normalizedName;
         }

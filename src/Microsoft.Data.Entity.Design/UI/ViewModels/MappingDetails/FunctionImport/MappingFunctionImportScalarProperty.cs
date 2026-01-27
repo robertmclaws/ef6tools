@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImports
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     Class that represents a scalar property in the FunctionImportMapping.  This class has to be creatable without a ModelItem existing
     //     since we want to be able to display every Property from the ReturnType of the FunctionImport, even if the Property isn't mapped
@@ -157,11 +157,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImpo
                         else
                         {
                             // change the column name
-                            var cpc = new CommandProcessorContext(
+                            CommandProcessorContext cpc = new CommandProcessorContext(
                                 Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeScalarProperty);
-                            var cmd = new UpdateDefaultableValueCommand<string>(ScalarProperty.ColumnName, value);
+                            UpdateDefaultableValueCommand<string> cmd = new UpdateDefaultableValueCommand<string>(ScalarProperty.ColumnName, value);
 
-                            var cp = new CommandProcessor(cpc, cmd);
+                            CommandProcessor cp = new CommandProcessor(cpc, cmd);
                             cp.Invoke();
                         }
                     }
@@ -204,11 +204,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImpo
                 }
 
                 // create a context if we weren't passed one
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeScalarProperty);
-                }
 
                 // first we need to create a FunctionImportTypeMapping element (either EntityTypeMapping or ComplexTypeMapping)
                 var cmd = entityType != null
@@ -216,7 +213,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImpo
                               : new CreateFunctionImportTypeMappingCommand(MappingFunctionImport.FunctionImportMapping, complexType);
 
                 // create the ScalarProperty
-                var cmd2 = new CreateFunctionImportScalarPropertyCommand(cmd, _property, columnName);
+                CreateFunctionImportScalarPropertyCommand cmd2 = new CreateFunctionImportScalarPropertyCommand(cmd, _property, columnName);
                 // set up our post event to fix up the view model
                 cmd2.PostInvokeEvent += (o, eventsArgs) =>
                     {
@@ -229,7 +226,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImpo
                     };
 
                 // now make the change
-                var cp = new CommandProcessor(cpc, cmd, cmd2);
+                CommandProcessor cp = new CommandProcessor(cpc, cmd, cmd2);
                 cp.Invoke();
             }
         }
@@ -244,11 +241,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImpo
                 _property = ScalarProperty.Name.Target;
 
                 // create a context if we weren't passed one
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeScalarProperty);
-                }
 
                 // use the item's delete command
                 var deleteCommand = ScalarProperty.GetDeleteCommand();

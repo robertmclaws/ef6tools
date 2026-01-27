@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Breaks the inheritance chain for the passed in entity.  This essentially removes the BaseType attribute from the
     ///     EntityType definition.
@@ -58,11 +58,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             EnforceEntitySetMappingRules.AddRule(cpc, _derivedType.EntitySet);
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "newetm")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "DerivedType")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit
@@ -74,19 +69,21 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             // store off some local variables
             var baseType = _derivedType.BaseType.Target;
-            var baseEntitySet = baseType.EntitySet as ConceptualEntitySet;
-            var baseEntitySetMapping = (baseEntitySet == null ? null : baseEntitySet.EntitySetMapping);
+            ConceptualEntitySet baseEntitySet = baseType.EntitySet as ConceptualEntitySet;
+            var baseEntitySetMapping = (baseEntitySet?.EntitySetMapping);
 
             // save off a HashSet of all base types up the inheritance tree for searching later
-            var allBaseTypes = new HashSet<EntityType>();
+            HashSet<EntityType> allBaseTypes = new HashSet<EntityType>();
             for (var baseEntityType = baseType; baseEntityType != null; baseEntityType = baseEntityType.BaseType.Target)
             {
                 allBaseTypes.Add(baseEntityType);
             }
 
             // set up list of all derived types down the inheritance tree
-            var derivedAndAllDerivedTypes = new List<ConceptualEntityType>();
-            derivedAndAllDerivedTypes.Add(_derivedType);
+            List<ConceptualEntityType> derivedAndAllDerivedTypes = new List<ConceptualEntityType>
+            {
+                _derivedType
+            };
             derivedAndAllDerivedTypes.AddRange(_derivedType.ResolvableAllDerivedTypes);
 
             // remove any mappings which refer to properties which were inherited as these will
@@ -94,7 +91,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // window to open in non-edit mode). This must be done _before_ proceeding to clone the
             // EntityTypeMapping below and before we delete the inheritance (i.e. before the 
             // DefaultableValue Target becomes unresolved).
-            var scalarPropsToDelete = new List<ScalarProperty>();
+            List<ScalarProperty> scalarPropsToDelete = new List<ScalarProperty>();
             if (allBaseTypes.Count > 0)
             {
                 foreach (EntityType et in derivedAndAllDerivedTypes)
@@ -109,8 +106,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                                 if (prop != null)
                                 {
                                     // find EntityType of which this Property is a member
-                                    var propEntityType = prop.GetParentOfType(typeof(EntityType)) as EntityType;
-                                    if (propEntityType != null
+                                    if (prop.GetParentOfType(typeof(EntityType)) is EntityType propEntityType
                                         && allBaseTypes.Contains(propEntityType))
                                     {
                                         // sp references a Property of an EntityType which will no longer
@@ -144,15 +140,15 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // since this type no longer derives, it is stand alone and needs its own entity set
             // derive a name for the new entity set and create it
             var trialSetName = ModelHelper.ConstructProposedEntitySetName(_derivedType.Artifact, _derivedType.LocalName.Value);
-            var ces = new CreateEntitySetCommand(trialSetName, _derivedType, true);
+            CreateEntitySetCommand ces = new CreateEntitySetCommand(trialSetName, _derivedType, true);
             CommandProcessor.InvokeSingleCommand(cpc, ces);
-            var newEntitySet = ces.EntitySet as ConceptualEntitySet;
+            ConceptualEntitySet newEntitySet = ces.EntitySet as ConceptualEntitySet;
 
             // if the old entityset had mappings, then some may need to be moved
             if (baseEntitySetMapping != null)
             {
                 // create a new EntitySetMapping for the new EntitySet that we made for the formally derivedType
-                var createESM = new CreateEntitySetMappingCommand(entityContainer.EntityContainerMapping, newEntitySet);
+                CreateEntitySetMappingCommand createESM = new CreateEntitySetMappingCommand(entityContainer.EntityContainerMapping, newEntitySet);
                 CommandProcessor.InvokeSingleCommand(cpc, createESM);
                 var newEntitySetMapping = createESM.EntitySetMapping;
 
@@ -162,7 +158,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 // to the new one created for the new EntitySet and EntitySetMapping
                 foreach (EntityType changingType in derivedAndAllDerivedTypes)
                 {
-                    var etms = new List<EntityTypeMapping>();
+                    List<EntityTypeMapping> etms = new List<EntityTypeMapping>();
                     etms.AddRange(changingType.GetAntiDependenciesOfType<EntityTypeMapping>());
 
                     foreach (var etm in etms)
@@ -184,8 +180,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 foreach (var role in end.GetAntiDependenciesOfType<ReferentialConstraintRole>())
                 {
-                    var rc = role.Parent as ReferentialConstraint;
-                    if (rc != null
+                    if (role.Parent is ReferentialConstraint rc
                         && rc.Principal == role)
                     {
                         foreach (var pr in rc.Principal.PropertyRefs)
@@ -199,7 +194,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void PostInvoke(CommandProcessorContext cpc)
         {
             // now that we have a new entity set, make sure that it and any derived types use correct MSL
@@ -235,7 +229,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 if (storeEntitySet != null
                     && storeEntitySet.EntityType.Target != null)
                 {
-                    var set = storeEntitySet.EntityType.Target as StorageEntityType;
+                    StorageEntityType set = storeEntitySet.EntityType.Target as StorageEntityType;
                     Debug.Assert(storeEntitySet.EntityType.Target == null || set != null, "EntityType is not StorageEntityType");
 
                     CreateAssociationSetMappingCommand.CreateAssociationSetMappingAndIntellimatch(cpc, association, set);

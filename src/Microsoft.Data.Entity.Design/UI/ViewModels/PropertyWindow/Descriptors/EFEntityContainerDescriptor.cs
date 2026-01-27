@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Core.Controls;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.ComponentModel;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Core.Controls;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class EFEntityContainerDescriptor : EFAnnotatableElementDescriptor<ConceptualEntityContainer>
     {
         [LocCategory("PropertyWindow_Category_General")]
@@ -85,7 +85,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 if (concEc != null)
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                    var cmd = new UpdateDefaultableValueCommand<string>(concEc.TypeAccess, value);
+                    UpdateDefaultableValueCommand<string> cmd = new UpdateDefaultableValueCommand<string>(concEc.TypeAccess, value);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }
             }

@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
-
     internal class UpdatedModelSummary
     {
         // the artifact from which this was created
@@ -17,12 +17,12 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         // a map of the C-side EntityTypes to their EntityTypeIdentity
         private readonly Dictionary<EntityType, EntityTypeIdentity> _cEntityTypeToEntityTypeIdentity =
-            new Dictionary<EntityType, EntityTypeIdentity>();
+            [];
 
         // a map with key the DatabaseObject (from the S-side EntitySet) to 
         // a value which is a HashSet of the underlying S-side Property objects
         private readonly Dictionary<DatabaseObject, HashSet<Property>> _databaseObjectColumns =
-            new Dictionary<DatabaseObject, HashSet<Property>>();
+            [];
 
         // Summary info about associations in the model.
         private readonly AssociationSummary _associationSummary;
@@ -48,8 +48,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                 if (null != artifact.StorageModel()
                     && null != artifact.StorageModel().FirstEntityContainer)
                 {
-                    var sec = artifact.StorageModel().FirstEntityContainer as StorageEntityContainer;
-                    if (sec != null)
+                    if (artifact.StorageModel().FirstEntityContainer is StorageEntityContainer sec)
                     {
                         RecordStorageProperties(sec);
                     }
@@ -59,7 +58,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal string TraceString()
         {
-            var sb = new StringBuilder("[" + typeof(UpdatedModelSummary).Name);
+            StringBuilder sb = new StringBuilder("[" + typeof(UpdatedModelSummary).Name);
             sb.AppendLine(" artifactUri=" + (_artifact == null ? "null" : _artifact.Uri.ToString()));
 
             sb.Append(
@@ -98,15 +97,13 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal EntityTypeIdentity GetEntityTypeIdentityForEntityType(EntityType et)
         {
-            EntityTypeIdentity results;
-            _cEntityTypeToEntityTypeIdentity.TryGetValue(et, out results);
+            _cEntityTypeToEntityTypeIdentity.TryGetValue(et, out EntityTypeIdentity results);
             return results;
         }
 
         internal HashSet<Property> GetPropertiesForDatabaseObject(DatabaseObject dbObj)
         {
-            HashSet<Property> results;
-            _databaseObjectColumns.TryGetValue(dbObj, out results);
+            _databaseObjectColumns.TryGetValue(dbObj, out HashSet<Property> results);
             return results;
         }
 
@@ -129,10 +126,9 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         {
             foreach (var es in sec.EntitySets())
             {
-                var ses = es as StorageEntitySet;
-                if (null != ses)
+                if (es is StorageEntitySet ses)
                 {
-                    var dbObj = DatabaseObject.CreateFromEntitySet(ses);
+                    DatabaseObject dbObj = DatabaseObject.CreateFromEntitySet(ses);
                     var et = ses.EntityType.Target;
                     if (null == et)
                     {
@@ -152,8 +148,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         private void AddCEntityTypeToEntityTypeIdentityMapping(
             EntityType key, DatabaseObject dbObj)
         {
-            EntityTypeIdentity etId = null;
-            _cEntityTypeToEntityTypeIdentity.TryGetValue(key, out etId);
+            _cEntityTypeToEntityTypeIdentity.TryGetValue(key, out EntityTypeIdentity etId);
             if (null == etId)
             {
                 etId = _cEntityTypeToEntityTypeIdentity[key] = new EntityTypeIdentity();
@@ -164,11 +159,10 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         private void AddDbObjToPropertiesMapping(DatabaseObject key, Property prop)
         {
-            HashSet<Property> propsSet = null;
-            _databaseObjectColumns.TryGetValue(key, out propsSet);
+            _databaseObjectColumns.TryGetValue(key, out HashSet<Property> propsSet);
             if (null == propsSet)
             {
-                propsSet = _databaseObjectColumns[key] = new HashSet<Property>();
+                propsSet = _databaseObjectColumns[key] = [];
             }
 
             propsSet.Add(prop);

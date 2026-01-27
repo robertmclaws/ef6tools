@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+using Microsoft.VisualStudio.Modeling.Shell;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.Win32;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.Collections;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Microsoft.VisualStudio.PlatformUI;
-    using Microsoft.Win32;
-
     /// <summary>
     ///     Base class for tool windows that use the Tree Grid (VirtualTreeControl)
     /// </summary>
@@ -55,29 +55,14 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                 {
                     SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
                     VSColorTheme.ThemeChanged -= VSColorTheme_ThemeChanged;
+                    _deferredExpandAllNodes?.Dispose();
+                    _deferredExpandAllNodes = null;
+                    _containerControl?.Dispose();
+                    _containerControl = null;
+                    _treeControl?.Dispose();
+                    _treeControl = null;
 
-                    if (_deferredExpandAllNodes != null)
-                    {
-                        _deferredExpandAllNodes.Dispose();
-                        _deferredExpandAllNodes = null;
-                    }
-
-                    if (_containerControl != null)
-                    {
-                        _containerControl.Dispose();
-                        _containerControl = null;
-                    }
-
-                    if (_treeControl != null)
-                    {
-                        _treeControl.Dispose();
-                        _treeControl = null;
-                    }
-
-                    if (vsEventBroadcaster != null)
-                    {
-                        vsEventBroadcaster.Dispose();
-                    }
+                    vsEventBroadcaster?.Dispose();
                     _treeProvider = null;
                 }
             }
@@ -207,10 +192,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                 try
                 {
                     // clear tree data, causes event handlers to be removed from our branches.
-                    if (_treeProvider != null)
-                    {
-                        _treeProvider.Root = null;
-                    }
+                    _treeProvider?.Root = null;
 
                     // clear cached selection
                     _currentSelection = null;
@@ -244,7 +226,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// <param name="newView">Current DocData</param>
         protected override void OnDocumentWindowChanged(ModelingDocView oldView, ModelingDocView newView)
         {
-            var newModelingData = newView != null ? newView.DocData : null;
+            var newModelingData = newView?.DocData;
             if (newModelingData != null
                 && IsDocumentSupported(newModelingData))
             {
@@ -258,10 +240,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                         if (newModelingData.Store != _currentDocData.Store)
                         {
                             // clear tree data, causes event handlers to be removed from our branches.
-                            if (_treeProvider != null)
-                            {
-                                _treeProvider.Root = null;
-                            }
+                            _treeProvider?.Root = null;
 
                             // clear cached selection
                             _currentSelection = null;
@@ -291,7 +270,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             else
             {
                 // it's possible that the oldView is not some docData we support, in that case, don't do anything
-                var oldModelingData = oldView != null ? oldView.DocData : null;
+                var oldModelingData = oldView?.DocData;
                 if (oldModelingData != null
                     && IsDocumentSupported(oldModelingData))
                 {
@@ -301,10 +280,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                     // because we don't want to push anything to the property browser while the watermark is showing.
                     _currentBrowseObject = PrimarySelection;
                     SetSelectedComponents(new object[] { });
-                    if (_containerControl != null)
-                    {
-                        _containerControl.WatermarkVisible = true;
-                    }
+                    _containerControl?.WatermarkVisible = true;
                 }
             }
         }
@@ -344,10 +320,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// </summary>
         protected void ForceWatermarkTextChange()
         {
-            if (_containerControl != null)
-            {
-                _containerControl.SetWatermarkInfo(WatermarkInfo);
-            }
+            _containerControl?.SetWatermarkInfo(WatermarkInfo);
         }
 
         protected bool DoSelectionChanged(object selection)
@@ -482,12 +455,11 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                 if (key == (int)Keys.Tab)
                 {
                     // let container handle Tab key
-                    var c = _containerControl as Control;
-                    return c != null && c.PreProcessMessage(ref m);
+                    return _containerControl is Control c && c.PreProcessMessage(ref m);
                 }
                 else
                 {
-                    var c = Control.FromHandle(m.HWnd);
+                    Control c = Control.FromHandle(m.HWnd);
                     return c != null && c.PreProcessMessage(ref m);
                 }
             }

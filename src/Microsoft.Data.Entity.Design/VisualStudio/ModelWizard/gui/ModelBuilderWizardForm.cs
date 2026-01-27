@@ -1,21 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Windows.Forms;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+using Microsoft.WizardFramework;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Windows.Forms;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.WizardFramework;
-    using Resources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
-
     // <summary>
     //     ModelBuilder Wizard form that contains the wizard pages
     // </summary>
@@ -50,7 +49,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
         // Keeping the lists of pages as member vars ensures
         // you get the same page back even if you use "Previous"/"Next" buttons
-        private readonly List<WizardPage> _standardPages = new List<WizardPage>();
+        private readonly List<WizardPage> _standardPages = [];
 
         private readonly ModelBuilderSettings _modelBuilderSettings;
         private readonly IServiceProvider _serviceProvider;
@@ -132,14 +131,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             {
                 case WizardMode.PerformSelectTablesOnly:
                 case WizardMode.PerformDatabaseConfigAndSelectTables:
-                    Title = Resources.UpdateFromDatabaseWizard_Title;
+                    Title = WizardResources.UpdateFromDatabaseWizard_Title;
                     break;
                 case WizardMode.PerformDBGenSummaryOnly:
                 case WizardMode.PerformDatabaseConfigAndDBGenSummary:
-                    Title = Resources.DbGenWizard_Title;
+                    Title = WizardResources.DbGenWizard_Title;
                     break;
                 default:
-                    Title = Resources.WizardFormDialog_Title;
+                    Title = WizardResources.WizardFormDialog_Title;
                     break;
             }
         }
@@ -148,8 +147,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         //     Helper to create &amp; initialize wizard pages depending on the mode
         // </summary>
         // virtual to allow mocking
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected virtual void InitializeWizardPages()
         {
             switch (_wizardMode)
@@ -208,12 +205,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             var page = ActivePage;
             while (null != page)
             {
-                var basePage = page as WizardPageBase;
+                WizardPageBase basePage = page as WizardPageBase;
                 Debug.Assert(null != basePage, "All wizard pages should inherit from WizardPageBase");
-                if (null != basePage)
-                {
-                    basePage.OnWizardCancel();
-                }
+                basePage?.OnWizardCancel();
                 page = NextPageFromPage(page);
             }
 
@@ -234,7 +228,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             var page = ActivePage;
             while (null != page)
             {
-                var basePage = page as WizardPageBase;
+                WizardPageBase basePage = page as WizardPageBase;
                 Debug.Assert(null != basePage, "All wizard pages should inherit from WizardPageBase");
                 if (null != basePage)
                 {
@@ -290,7 +284,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
             // show the error dialog
             var errMsgWithInnerExceptions = VsUtils.ConstructInnerExceptionErrorMessage(e);
             var errMsg = string.Format(
-                CultureInfo.CurrentCulture, Resources.DbConnectionErrorText, e.GetType().FullName, errMsgWithInnerExceptions);
+                CultureInfo.CurrentCulture, WizardResources.DbConnectionErrorText, e.GetType().FullName, errMsgWithInnerExceptions);
             VsUtils.ShowErrorDialog(errMsg);
 
             return errMsg;

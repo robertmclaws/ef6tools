@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     internal partial class ComplexTypePickerDialog : Form
     {
         internal ComplexTypePickerDialog(ConceptualEntityModel cModel)
@@ -26,7 +26,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             Debug.Assert(cModel != null, "Please specify ConceptualEntityModel");
             if (cModel != null)
             {
-                var complexTypes = new List<ComplexType>(cModel.ComplexTypes());
+                List<ComplexType> complexTypes = new List<ComplexType>(cModel.ComplexTypes());
                 complexTypes.Sort(EFElement.EFElementDisplayNameComparison);
                 complexTypesListBox.Items.AddRange(complexTypes.ToArray());
                 ViewUtils.DisplayHScrollOnListBoxIfNecessary(complexTypesListBox);

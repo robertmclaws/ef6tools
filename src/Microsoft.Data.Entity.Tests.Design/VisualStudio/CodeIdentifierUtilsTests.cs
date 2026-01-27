@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class CodeIdentifierUtilsTests
     {

@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Schema;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Validation
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Text.RegularExpressions;
-    using System.Xml;
-    using System.Xml.Linq;
-    using System.Xml.Schema;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     /// <summary>
     ///     This class can be used to validate attribute content specific to EDMX documents *before* updating the XLinq tree, and without revalidating the entire document.
     /// </summary>
@@ -30,10 +30,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         /// </summary>
         internal static EscherAttributeContentValidator GetInstance(Version schemaVersion)
         {
-            if (_instances == null)
-            {
-                _instances = new Dictionary<Version, EscherAttributeContentValidator>(3);
-            }
+            _instances ??= new Dictionary<Version, EscherAttributeContentValidator>(3);
 
             if (!_instances.ContainsKey(schemaVersion))
             {
@@ -85,7 +82,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         internal static AttributePath MakeAttributePathFromString(string nameSpaceUri, string path)
         {
             var parts = path.Split('/');
-            var attributePath = new AttributePath();
+            AttributePath attributePath = new AttributePath();
             for (var i = parts.Length - 1; i >= 0; --i)
             {
                 // assume that the last one is always an attribute with empty namespace URI.  This is a valid assumption for our csdl/ssdl/msl cases
@@ -106,23 +103,23 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         /// </summary>
         private static AttributePath MakeAttributePathFromEFObject(EFObject efobject)
         {
-            var attributePath = new AttributePath();
+            AttributePath attributePath = new AttributePath();
             var curr = efobject.XObject;
             while (curr != null)
             {
                 if (curr.NodeType == XmlNodeType.Document)
                 {
-                    var doc = (XDocument)curr;
+                    XDocument doc = (XDocument)curr;
                     attributePath.PushFront(doc.Root.Name.LocalName, doc.Root.Name.Namespace.NamespaceName, true);
                 }
                 else if (curr.NodeType == XmlNodeType.Attribute)
                 {
-                    var attr = (XAttribute)curr;
+                    XAttribute attr = (XAttribute)curr;
                     attributePath.PushFront(attr.Name.LocalName, attr.Name.Namespace.NamespaceName, false);
                 }
                 else if (curr.NodeType == XmlNodeType.Element)
                 {
-                    var el = (XElement)curr;
+                    XElement el = (XElement)curr;
                     attributePath.PushFront(el.Name.LocalName, el.Name.Namespace.NamespaceName, true);
                 }
                 else
@@ -143,16 +140,10 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         /// </summary>
         private static XmlSchemaSet BuildEdmxSchemaSet()
         {
-            var xmlSchemaSet = new XmlSchemaSet();
-            var validationErrorCollector = new SchemaValidationErrorCollector();
+            XmlSchemaSet xmlSchemaSet = new XmlSchemaSet();
+            SchemaValidationErrorCollector validationErrorCollector = new SchemaValidationErrorCollector();
             xmlSchemaSet.ValidationEventHandler += validationErrorCollector.ValidationCallBack;
             xmlSchemaSet.XmlResolver = new EdmRuntimeSchemaResolver();
-            xmlSchemaSet.Add(
-                SchemaManager.GetEDMXNamespaceName(EntityFrameworkVersion.Version1),
-                EdmxUtils.GetEDMXXsdResource(EntityFrameworkVersion.Version1));
-            xmlSchemaSet.Add(
-                SchemaManager.GetEDMXNamespaceName(EntityFrameworkVersion.Version2),
-                EdmxUtils.GetEDMXXsdResource(EntityFrameworkVersion.Version2));
             xmlSchemaSet.Add(
                 SchemaManager.GetEDMXNamespaceName(EntityFrameworkVersion.Version3),
                 EdmxUtils.GetEDMXXsdResource(EntityFrameworkVersion.Version3));

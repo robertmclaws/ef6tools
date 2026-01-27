@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.Model.Visitor
 {
-    using System;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal class ResolvingVisitor : MissedItemCollectingVisitor
     {
         private readonly EFArtifactSet _artifactSet;
@@ -18,12 +18,9 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
             _artifactSet = artifactSet;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal override void Visit(IVisitable visitable)
         {
-            var item = visitable as EFContainer;
-
-            if (item == null)
+            if (visitable is not EFContainer item)
             {
                 return;
             }
@@ -43,15 +40,13 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
                 item.State = EFElementState.ResolveAttempted;
 
                 string name = null;
-                var nameable = item as EFNameableItem;
-                if (nameable != null)
+                if (item is EFNameableItem nameable)
                 {
                     name = nameable.LocalName.Value;
                 }
                 else
                 {
-                    var element = item.XObject as XElement;
-                    if (element != null)
+                    if (item.XObject is XElement element)
                     {
                         name = element.Name.LocalName;
                     }
@@ -61,15 +56,14 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
                     }
                 }
                 var message = string.Format(CultureInfo.CurrentCulture, Resources.ErrorResolvingItem, name, e.Message);
-                var errorInfo = new ErrorInfo(
+                ErrorInfo errorInfo = new ErrorInfo(
                     ErrorInfo.Severity.ERROR, message, item, ErrorCodes.FATAL_RESOLVE_ERROR, ErrorClass.ResolveError);
                 _artifactSet.AddError(errorInfo);
             }
 
             if (item.State != EFElementState.Resolved)
             {
-                var efElement = item as EFElement;
-                if (efElement != null)
+                if (item is EFElement efElement)
                 {
                     _missedCount++;
                     if (!_missed.Contains(efElement))

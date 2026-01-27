@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using System.Text;
+using Microsoft.VisualStudio.TextTemplating.VSHost;
+using Microsoft.Data.Entity.Design;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.TextTemplating
 {
-    using System;
-    using System.Globalization;
-    using System.Text;
-    using Microsoft.VisualStudio.TextTemplating.VSHost;
-
     // <summary>
     //     TemplateCallback is used by the TextTemplatingService to handle error messages
     //     NOTE that this class should avoid any dependencies on any instance types (especially types instantiated by the

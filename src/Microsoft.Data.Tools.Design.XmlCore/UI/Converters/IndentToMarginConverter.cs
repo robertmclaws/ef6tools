@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Windows;
+using System.Windows.Data;
+
 namespace Microsoft.Data.Entity.Design.UI.Converters
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Windows;
-    using System.Windows.Data;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>

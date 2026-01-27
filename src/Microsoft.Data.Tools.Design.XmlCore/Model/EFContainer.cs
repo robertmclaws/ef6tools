@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using EFVisitor = Microsoft.Data.Entity.Design.Model.Visitor.Visitor;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Visitor;
 
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
-
     internal abstract class EFContainer : EFObject
     {
         private EFElementState _state = EFElementState.None;
@@ -64,20 +63,14 @@ namespace Microsoft.Data.Entity.Design.Model
                 var children = Children;
                 foreach (var o in children)
                 {
-                    if (o != null)
-                    {
-                        o.Dispose();
-                    }
+                    o?.Dispose();
                 }
             }
         }
 
         protected static void ClearEFObject(EFObject efObjectToClear)
         {
-            if (efObjectToClear != null)
-            {
-                efObjectToClear.Dispose();
-            }
+            efObjectToClear?.Dispose();
         }
 
         protected static void ClearEFObjectCollection<T>(ICollection<T> efObjectsToClear) where T : EFObject
@@ -113,7 +106,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             // we need to make a copy of the Children to avoid modifying the Children collection while iterating over it
             // also, we should delete the Children in reverse so that on an undo of this we preserve as close as possible the state of the XML
-            var childrenCopy = new List<EFObject>();
+            List<EFObject> childrenCopy = new List<EFObject>();
             foreach (var child in Children.Reverse())
             {
                 childrenCopy.Add(child);
@@ -130,10 +123,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 RemoveFromXlinq();
             }
 
-            if (Parent != null)
-            {
-                Parent.OnChildDeleted(this);
-            }
+            Parent?.OnChildDeleted(this);
         }
 
         protected virtual void OnChildDeleted(EFContainer efContainer)
@@ -149,8 +139,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             foreach (var child in Children)
             {
-                var nameable = child as EFNameableItem;
-                if (nameable != null)
+                if (child is EFNameableItem nameable)
                 {
                     if (nameable.NormalizedName != null)
                     {
@@ -183,8 +172,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             foreach (var child in Children)
             {
-                var nameable = child as EFNameableItem;
-                if (nameable != null)
+                if (child is EFNameableItem nameable)
                 {
                     if (nameable.LocalName.Value != null)
                     {
@@ -199,8 +187,6 @@ namespace Microsoft.Data.Entity.Design.Model
             return null;
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic",
-            Justification = "Do refer to instance properties but only in Debug")]
         protected void AssertSafeToNormalize()
         {
             Debug.Assert(
@@ -211,8 +197,6 @@ namespace Microsoft.Data.Entity.Design.Model
                 State == EFElementState.Resolved);
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic",
-            Justification = "Do refer to instance properties but only in Debug")]
         protected void AssertSafeToResolve()
         {
             Debug.Assert(

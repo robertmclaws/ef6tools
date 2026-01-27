@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+
 namespace Microsoft.Data.Entity.Tests.Shared.EFDesigner
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-
     internal static class EFArtifactExtensions
     {
         public static EditingContext GetEditingContext(this EFArtifact artifact)
         {
             Debug.Assert(artifact != null, "artifact != null");
 
-            var service = new EFArtifactService(artifact);
-            var editingContext = new EditingContext();
+            EFArtifactService service = new EFArtifactService(artifact);
+            EditingContext editingContext = new EditingContext();
             editingContext.SetEFArtifactService(service);
             return editingContext;
         }

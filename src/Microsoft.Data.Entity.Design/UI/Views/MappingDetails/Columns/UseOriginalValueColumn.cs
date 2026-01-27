@@ -1,13 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
 
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 {
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     internal class UseOriginalValueColumn : BaseColumn
     {
         public UseOriginalValueColumn()
@@ -28,8 +29,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         internal override CheckBoxState GetCheckBoxValue(object component)
         {
-            var mfsp = component as MappingFunctionScalarProperty;
-            if (mfsp != null
+            if (component is MappingFunctionScalarProperty mfsp
                 && mfsp.MappingModificationFunctionMapping != null
                 && mfsp.MappingModificationFunctionMapping.ModificationFunctionType == ModificationFunctionType.Update)
             {
@@ -48,8 +48,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         internal override StateRefreshChanges ToggleCheckBoxValue(object component)
         {
-            var mfsp = component as MappingFunctionScalarProperty;
-            if (mfsp != null
+            if (component is MappingFunctionScalarProperty mfsp
                 &&
                 mfsp.ModelItem != null)
             {

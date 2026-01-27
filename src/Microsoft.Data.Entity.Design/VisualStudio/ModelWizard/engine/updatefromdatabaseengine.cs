@@ -1,39 +1,35 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Xml.Linq;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.Views.Explorer;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone;
+using Command = Microsoft.Data.Entity.Design.Model.Commands.Command;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Text;
-    using System.Xml.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.Views.Explorer;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone;
-    using Command = Microsoft.Data.Entity.Design.Model.Commands.Command;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal class UpdateFromDatabaseEngine : DatabaseEngineBase
     {
         // <summary>
         //     Updates the EDMX file based on the Database changes
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal static void UpdateModelFromDatabase(EntityDesignArtifact artifact)
         {
             VsUtils.EnsureProvider(artifact);
@@ -42,12 +38,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             var project = VSHelpers.GetProjectForDocument(artifact.Uri.LocalPath, serviceProvider);
 
             // set up ModelBuilderSettings for startMode=PerformDatabaseConfigAndSelectTables
-            ModelBuilderWizardForm.WizardMode startMode;
             var settings =
                 SetupSettingsAndModeForDbPages(
                     serviceProvider, project, artifact, true,
                     ModelBuilderWizardForm.WizardMode.PerformDatabaseConfigAndSelectTables,
-                    ModelBuilderWizardForm.WizardMode.PerformSelectTablesOnly, out startMode);
+                    ModelBuilderWizardForm.WizardMode.PerformSelectTablesOnly, out ModelBuilderWizardForm.WizardMode startMode);
             settings.WizardKind = WizardKind.UpdateModel;
 
             // use existing storage namespace as new storage namespace
@@ -72,7 +67,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             settings.ModelBuilderEngine = new UpdateModelFromDatabaseModelBuilderEngine();
 
             // call the ModelBuilderWizardForm
-            var form = new ModelBuilderWizardForm(serviceProvider, settings, startMode);
+            ModelBuilderWizardForm form = new ModelBuilderWizardForm(serviceProvider, settings, startMode);
 
             try
             {
@@ -121,9 +116,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private static bool ProcessAccumulatedInfo(
             EditingContext editingContext, EntityDesignArtifact existingArtifact, ModelBuilderSettings settings)
         {
@@ -181,7 +173,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                     }
                 }
 
-                var cpc = new CommandProcessorContext(
+                CommandProcessorContext cpc = new CommandProcessorContext(
                     editingContext, EfiTransactionOriginator.UpdateModelFromDatabaseId,
                     Resources.Tx_UpdateModelFromDatabase, null, transactionContext);
 
@@ -195,8 +187,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 }
 
                 // Update the existing artifact based on tempArtifactBasedOnDatabase
-                var commands = new List<Command>();
-                var cmd = new UpdateModelFromDatabaseCommand(tempArtifactBasedOnDatabase);
+                List<Command> commands = new List<Command>();
+                UpdateModelFromDatabaseCommand cmd = new UpdateModelFromDatabaseCommand(tempArtifactBasedOnDatabase);
                 commands.Add(cmd);
 
                 // set up our post event to clear out the error list
@@ -205,16 +197,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                         {
                             var errorList =
                                 ErrorListHelper.GetSingleDocErrorList(e.CommandProcessorContext.Artifact.Uri);
-                            if (errorList != null)
-                            {
-                                errorList.Clear();
-                            }
+                            errorList?.Clear();
                         };
 
-                DesignerInfo designerInfo;
-                if (existingArtifact.DesignerInfo().TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out designerInfo))
+                if (existingArtifact.DesignerInfo().TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out DesignerInfo designerInfo))
                 {
-                    var optionsDesignerInfo = designerInfo as OptionsDesignerInfo;
+                    OptionsDesignerInfo optionsDesignerInfo = designerInfo as OptionsDesignerInfo;
                     Debug.Assert(optionsDesignerInfo != null, "expected non-null optionsDesignerInfo");
                     if (optionsDesignerInfo != null)
                     {
@@ -243,10 +231,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 // Note: this must take place as a DelegateCommand as ProcessStoredProcedureReturnTypeInformation()
                 // can depend on finding the existing Functions to delete. And it won't find them until the
                 // ReplaceSsdlCommand within UpdateModelFromDatabaseCommand has executed.
-                var createMatchingFunctionImportsDelegateCommand = new DelegateCommand(
+                DelegateCommand createMatchingFunctionImportsDelegateCommand = new DelegateCommand(
                     () =>
                         {
-                            var functionImportCommands = new List<Command>();
+                            List<Command> functionImportCommands = new List<Command>();
                             ProgressDialogHelper.ProcessStoredProcedureReturnTypeInformation(
                                 existingArtifact, settings.NewFunctionSchemaProcedures, functionImportCommands, true);
 
@@ -261,7 +249,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 // if needed, create a command to dispatch any extensions
                 if (EscherExtensionPointManager.LoadModelGenerationExtensions().Length > 0)
                 {
-                    var dispatchCommand = new DispatchToExtensionsCommand(settings);
+                    DispatchToExtensionsCommand dispatchCommand = new DispatchToExtensionsCommand(settings);
                     commands.Add(dispatchCommand);
                 }
 
@@ -299,10 +287,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 }
 
                 // dispose of our temp model manager
-                if (tempModelManager != null)
-                {
-                    tempModelManager.Dispose();
-                }
+                tempModelManager?.Dispose();
 
                 // delete temporary file
                 if (tempEdmxFile != null
@@ -326,7 +311,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         //     Will validate the passed in artifact and throw an exception if validation fails
         //     TODO: figure out what to do with the actual errors (write to a log?)
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static void ValidateArtifact(EntityDesignModelManager modelManager, EFArtifact artifact, WizardKind kind)
         {
             var errorsFound = false;
@@ -335,7 +319,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             try
             {
                 VsUtils.EnsureProvider(artifact);
-                var artifactSet = (EntityDesignArtifactSet)modelManager.GetArtifactSet(artifact.Uri);
+                EntityDesignArtifactSet artifactSet = (EntityDesignArtifactSet)modelManager.GetArtifactSet(artifact.Uri);
                 modelManager.ValidateAndCompileMappings(artifactSet, false); // just run the runtime's validation
                 var errors = artifactSet.GetAllErrorsForArtifact(artifact);
                 if (errors != null
@@ -391,18 +375,17 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 || checkBoxValue != bool.Parse(property.ValueAttr.Value))
             {
                 var value = checkBoxValue ? Boolean.TrueString : Boolean.FalseString;
-                var cmd = new ChangeDesignerPropertyCommand(propertyName, value, optionsDesignerInfo);
+                ChangeDesignerPropertyCommand cmd = new ChangeDesignerPropertyCommand(propertyName, value, optionsDesignerInfo);
                 commands.Add(cmd);
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         private static FileInfo ConstructTempEdmxFile(ModelBuilderSettings settings)
         {
             var tempFilePath = Path.GetTempFileName().Replace(".tmp", EntityDesignArtifact.ExtensionEdmx);
-            using (var fs = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write))
+            using (FileStream fs = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write))
             {
-                using (var sw = new StreamWriter(fs, Encoding.UTF8))
+                using (StreamWriter sw = new StreamWriter(fs, Encoding.UTF8))
                 {
                     sw.Write(((EdmxModelBuilderEngine)settings.ModelBuilderEngine).Edmx.ToString());
                 }
@@ -432,9 +415,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             protected override void InvokeInternal(CommandProcessorContext cpc)
             {
                 // make a copy of the artifact in its current state.  This is the "update model document".  That is, the document after we've run update-model logic on it.
-                var updateModelDocument = XDocument.Parse(_artifact.XDocument.ToString(), LoadOptions.PreserveWhitespace);
+                XDocument updateModelDocument = XDocument.Parse(_artifact.XDocument.ToString(), LoadOptions.PreserveWhitespace);
 
-                var dispatcher = new UpdateModelFromDBExtensionDispatcher(
+                UpdateModelFromDBExtensionDispatcher dispatcher = new UpdateModelFromDBExtensionDispatcher(
                     WizardKind.UpdateModel, _fromDbDocument, _artifact.XDocument, _projectItem, _originalDocument, updateModelDocument);
                 dispatcher.Dispatch();
 
@@ -475,18 +458,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                     }
                     finally
                     {
-                        if (tempArtifact != null)
-                        {
-                            tempArtifact.Dispose();
-                        }
-                        if (tempModelManager != null)
-                        {
-                            tempModelManager.Dispose();
-                        }
-                        if (modelProvider != null)
-                        {
-                            modelProvider.Dispose();
-                        }
+                        tempArtifact?.Dispose();
+                        tempModelManager?.Dispose();
+                        modelProvider?.Dispose();
                     }
                 }
             }

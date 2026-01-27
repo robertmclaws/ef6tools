@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Globalization;
+using System.Reflection;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.ComponentModel;
-    using System.Globalization;
-    using System.Reflection;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     This is a wrapper for property descriptors that were obtained through reflection
     ///     by calling TypeDescriptor.GetProperties.
@@ -105,11 +105,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                     // if the converter needs to be reinitialized before being reused.
                     // Note: This could also have been accomplished by controlling the instantiation of the 
                     // converter ourselves, but there may be converters that rely on the fact that they get cached. 
-                    var resettableConverter = _converter as IResettableConverter;
-                    if (resettableConverter != null)
-                    {
-                        resettableConverter.Reset();
-                    }
+                    IResettableConverter resettableConverter = _converter as IResettableConverter;
+                    resettableConverter?.Reset();
                 }
                 return _converter;
             }

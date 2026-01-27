@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using EnvDTE;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-
     // Helpful utility functions for finding and using the proper error list for a given document
     internal static class ErrorListHelper
     {
@@ -41,10 +41,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         private static uint _updateSolutionEventsCookie;
 
         private static readonly Dictionary<SingleDocErrorListsIdentifier, DesignerErrorList> _singleDocErrorLists =
-            new Dictionary<SingleDocErrorListsIdentifier, DesignerErrorList>();
+            [];
 
         private static readonly Dictionary<MultiDocErrorListIdentifier, DesignerErrorList> _multiDocErrorLists =
-            new Dictionary<MultiDocErrorListIdentifier, DesignerErrorList>();
+            [];
 
         public static DesignerErrorList GetExtensionErrorList(IServiceProvider serviceProvider)
         {
@@ -88,7 +88,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static DesignerErrorList GetSingleDocErrorList(IVsHierarchy hier, uint ItemID)
         {
             DesignerErrorList errorList = null;
@@ -126,7 +125,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 var hierarchy = VsUtils.GetVsHierarchy(currentProject, Services.ServiceProvider);
                 if (hierarchy != null)
                 {
-                    var fileFinder = new VSFileFinder(uri.LocalPath);
+                    VSFileFinder fileFinder = new VSFileFinder(uri.LocalPath);
                     fileFinder.FindInProject(hierarchy);
 
                     Debug.Assert(fileFinder.MatchingFiles.Count <= 1, "Unexpected count of matching files in project");
@@ -147,8 +146,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         private static DesignerErrorList GetMultiDocErrorList(MultiDocErrorListIdentifier identifier)
         {
-            DesignerErrorList errorList;
-            _multiDocErrorLists.TryGetValue(identifier, out errorList);
+            _multiDocErrorLists.TryGetValue(identifier, out DesignerErrorList errorList);
             return errorList;
         }
 
@@ -183,9 +181,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             // that dictionary won't be cleared.  The SingleDocErrorListIdentifier will hold a pointer to the IVSHierarchy as well, preventing that 
             // from being GC'd.  This is bad.  Don't do this. 
             //
-            SingleDocErrorListsIdentifier id;
-            DesignerErrorList singleDocErrorList;
-            if (TryGetSingleDocErrorList(pHier, itemId, out id, out singleDocErrorList))
+            if (TryGetSingleDocErrorList(pHier, itemId, out SingleDocErrorListsIdentifier id, out DesignerErrorList singleDocErrorList))
             {
                 singleDocErrorList.Clear();
                 _singleDocErrorLists.Remove(id);
@@ -202,13 +198,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     continue;
                 }
 
-                var errorTasksToRemove = new List<ErrorTask>();
+                List<ErrorTask> errorTasksToRemove = new List<ErrorTask>();
 
                 // go through all multi-doc error lists and mark the errors that are associated with the given document for removal
                 foreach (var xmlModelErrorTask in multiDocErrorList.Value.Provider.Tasks.OfType<IXmlModelErrorTask>())
                 {
-                    var genericErrorTask = xmlModelErrorTask as ErrorTask;
-                    if (genericErrorTask != null)
+                    if (xmlModelErrorTask is ErrorTask genericErrorTask)
                     {
                         if (genericErrorTask.HierarchyItem == pHier
                             && xmlModelErrorTask.ItemID == itemId)
@@ -235,7 +230,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 var hierarchy = VsUtils.GetVsHierarchy(currentProject, Services.ServiceProvider);
                 if (hierarchy != null)
                 {
-                    var fileFinder = new VSFileFinder(uri.LocalPath);
+                    VSFileFinder fileFinder = new VSFileFinder(uri.LocalPath);
                     fileFinder.FindInProject(hierarchy);
 
                     Debug.Assert(fileFinder.MatchingFiles.Count <= 1, "Unexpected count of matching files in project");
@@ -307,8 +302,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Debug.Assert(serviceProvider != null, "ServiceProvider does not exist");
             if (null != serviceProvider)
             {
-                var solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
-                if (null == solution)
+                if (serviceProvider.GetService(typeof(SVsSolution)) is not IVsSolution solution)
                 {
                     // If the serviceProvider cannot provide a solution we are being called outside
                     // of VS - so there is no Error List window in which to log the errors. This can 
@@ -324,8 +318,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     var hierarchy = VsUtils.GetVsHierarchy(projectItem.ContainingProject, serviceProvider);
                     var itemId = VsUtils.GetProjectItemId(hierarchy, projectItem);
                     var errorList = WizardErrorList;
-                    var errors = new List<ErrorInfo>();
-                    errors.Add(errorInfo);
+                    List<ErrorInfo> errors = new List<ErrorInfo>
+                    {
+                        errorInfo
+                    };
                     AddErrorInfosToErrorList(errors, hierarchy, itemId, errorList);
                 }
             }
@@ -379,12 +375,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     {
                         filePath = fullPathProperty.Value as String;
                     }
-                    if (filePath == null)
-                    {
-                        filePath = projectItem.Name;
-                    }
+                    filePath ??= projectItem.Name;
 
-                    var textSpan = new TextSpan();
+                    TextSpan textSpan = new TextSpan();
                     textSpan.iStartLine = error.Line;
                     textSpan.iStartIndex = error.Column;
                     textSpan.iEndLine = error.Line;
@@ -443,12 +436,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     {
                         filePath = fullPathProperty.Value as String;
                     }
-                    if (filePath == null)
-                    {
-                        filePath = projectItem.Name;
-                    }
+                    filePath ??= projectItem.Name;
 
-                    var textSpan = new TextSpan();
+                    TextSpan textSpan = new TextSpan();
                     textSpan.iStartLine = error.Line;
                     textSpan.iStartIndex = error.Column;
                     textSpan.iEndLine = error.Line + 1;
@@ -469,8 +459,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             LogWizardErrors(errors, projectItem, MARKERTYPE.MARKER_COMPILE_ERROR);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsSolutionBuildManager2.AdviseUpdateSolutionEvents(Microsoft.VisualStudio.Shell.Interop.IVsUpdateSolutionEvents,System.UInt32@)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsSolution.AdviseSolutionEvents(Microsoft.VisualStudio.Shell.Interop.IVsSolutionEvents,System.UInt32@)")]
         internal static void RegisterForNotifications()
         {
             // The document frame listens for the RunningDocumentTable events, and it will 
@@ -480,24 +468,15 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             var IVsSolution = Services.IVsSolution;
             Debug.Assert(IVsSolution != null, "Failed to get IVsSolution!");
 
-            if (IVsSolution != null)
-            {
-                IVsSolution.AdviseSolutionEvents(EdmSolutionEvents.Instance, out _solutionEventsCookie);
-            }
+            IVsSolution?.AdviseSolutionEvents(EdmSolutionEvents.Instance, out _solutionEventsCookie);
 
             // Register to receive update solution events
             var solutionBuildManager = Services.IVsSolutionBuildManager2;
             Debug.Assert(solutionBuildManager != null, "Failed to get IVsSolutionBuildManager!");
 
-            if (solutionBuildManager != null)
-            {
-                solutionBuildManager.AdviseUpdateSolutionEvents(EdmUpdateSolutionEvents.Instance, out _updateSolutionEventsCookie);
-            }
+            solutionBuildManager?.AdviseUpdateSolutionEvents(EdmUpdateSolutionEvents.Instance, out _updateSolutionEventsCookie);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsSolutionBuildManager2.UnadviseUpdateSolutionEvents(System.UInt32)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsSolution.UnadviseSolutionEvents(System.UInt32)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsRunningDocumentTable.UnadviseRunningDocTableEvents(System.UInt32)")]
         internal static void UnregisterForNotifications()
         {
             // Unregister for RunningDocTable notifications
@@ -506,10 +485,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 var IVsRDT = Services.IVsRunningDocumentTable;
                 Debug.Assert(IVsRDT != null, "Failed to get IVsRunningDocumentTable");
 
-                if (IVsRDT != null)
-                {
-                    IVsRDT.UnadviseRunningDocTableEvents(_rdtEventsCookie);
-                }
+                IVsRDT?.UnadviseRunningDocTableEvents(_rdtEventsCookie);
             }
 
             // Unregister for solution events
@@ -518,10 +494,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 var IVsSolution = Services.IVsSolution;
                 Debug.Assert(IVsSolution != null, "Failed to get IVsSolution!");
 
-                if (IVsSolution != null)
-                {
-                    IVsSolution.UnadviseSolutionEvents(_solutionEventsCookie);
-                }
+                IVsSolution?.UnadviseSolutionEvents(_solutionEventsCookie);
             }
 
             // Unregister for update solution events
@@ -530,10 +503,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 var solutionBuildManager = Services.IVsSolutionBuildManager2;
                 Debug.Assert(solutionBuildManager != null, "Failed to get IVsSolutionBuildManager!");
 
-                if (solutionBuildManager != null)
-                {
-                    solutionBuildManager.UnadviseUpdateSolutionEvents(_updateSolutionEventsCookie);
-                }
+                solutionBuildManager?.UnadviseUpdateSolutionEvents(_updateSolutionEventsCookie);
             }
         }
     }

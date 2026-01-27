@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Tools.Model.Diagram;
+
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Tools.Model.Diagram;
-
     internal class Diagram : EFNameableItem, IDiagram
     {
         internal static readonly string ElementName = "Diagram";
@@ -20,9 +20,9 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         internal static readonly string AttributeDisplayType = "DisplayType";
         internal static readonly string AttributeId = "DiagramId";
 
-        private readonly List<EntityTypeShape> _entityTypeShapes = new List<EntityTypeShape>();
-        private readonly List<AssociationConnector> _associationConnectors = new List<AssociationConnector>();
-        private readonly List<InheritanceConnector> _inheritanceConnectors = new List<InheritanceConnector>();
+        private readonly List<EntityTypeShape> _entityTypeShapes = [];
+        private readonly List<AssociationConnector> _associationConnectors = [];
+        private readonly List<InheritanceConnector> _inheritanceConnectors = [];
         private DefaultableValue<int> _zoomLevelAttr;
         private DefaultableValue<bool> _showGridAttr;
         private DefaultableValue<bool> _snapToGridAttr;
@@ -38,10 +38,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_id == null)
-                {
-                    _id = new DiagramIdDefaultableValue(this);
-                }
+                _id ??= new DiagramIdDefaultableValue(this);
                 return _id;
             }
         }
@@ -64,10 +61,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_zoomLevelAttr == null)
-                {
-                    _zoomLevelAttr = new ZoomLevelDefaultableValue(this);
-                }
+                _zoomLevelAttr ??= new ZoomLevelDefaultableValue(this);
                 return _zoomLevelAttr;
             }
         }
@@ -76,10 +70,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_showGridAttr == null)
-                {
-                    _showGridAttr = new ShowGridDefaultableValue(this);
-                }
+                _showGridAttr ??= new ShowGridDefaultableValue(this);
                 return _showGridAttr;
             }
         }
@@ -88,10 +79,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_snapToGridAttr == null)
-                {
-                    _snapToGridAttr = new SnapToGridDefaultableValue(this);
-                }
+                _snapToGridAttr ??= new SnapToGridDefaultableValue(this);
                 return _snapToGridAttr;
             }
         }
@@ -100,10 +88,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_displayTypeAttr == null)
-                {
-                    _displayTypeAttr = new DisplayTypeDefaultableValue(this);
-                }
+                _displayTypeAttr ??= new DisplayTypeDefaultableValue(this);
                 return _displayTypeAttr;
             }
         }
@@ -115,22 +100,19 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         /// <returns></returns>
         internal bool IsEFObjectRepresentedInDiagram(EFObject efObject)
         {
-            var entityTypesInDiagram = EntityTypeShapes.Select(ets => ets.EntityType.Target).ToList();
+            List<EntityType> entityTypesInDiagram = EntityTypeShapes.Select(ets => ets.EntityType.Target).ToList();
 
-            var entityType = efObject.GetParentOfType(typeof(ConceptualEntityType)) as ConceptualEntityType;
-            var association = efObject.GetParentOfType(typeof(Association)) as Association;
-            var associationSet = efObject as AssociationSet;
-            var entitySet = efObject as EntitySet;
+            Association association = efObject.GetParentOfType(typeof(Association)) as Association;
 
             // if efobject is an associationset, check if the corresponding association is in the diagram.
-            if (associationSet != null
+            if (efObject is AssociationSet associationSet
                 && associationSet.Association.Status == BindingStatus.Known)
             {
                 association = associationSet.Association.Target;
             }
 
             // if efobject is an entity-set, Return true only if all the entity-types contained in the set are represented in the diagram.
-            if (entitySet != null)
+            if (efObject is EntitySet entitySet)
             {
                 foreach (var et in entitySet.GetEntityTypesInTheSet())
                 {
@@ -141,13 +123,13 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
                 }
                 return true;
             }
-            else if (entityType != null)
+            else if (efObject.GetParentOfType(typeof(ConceptualEntityType)) is ConceptualEntityType entityType)
             {
                 return entityTypesInDiagram.Contains(entityType);
             }
             else if (association != null)
             {
-                var associationsInDiagram = AssociationConnectors.Select(a => a.Association.Target).ToList();
+                List<Association> associationsInDiagram = AssociationConnectors.Select(a => a.Association.Target).ToList();
                 return associationsInDiagram.Contains(association);
             }
             return false;
@@ -228,20 +210,17 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var shape = efContainer as EntityTypeShape;
-            if (shape != null)
+            if (efContainer is EntityTypeShape shape)
             {
                 _entityTypeShapes.Remove(shape);
             }
 
-            var associationConnector = efContainer as AssociationConnector;
-            if (associationConnector != null)
+            if (efContainer is AssociationConnector associationConnector)
             {
                 _associationConnectors.Remove(associationConnector);
             }
 
-            var inheritanceConnector = efContainer as InheritanceConnector;
-            if (inheritanceConnector != null)
+            if (efContainer is InheritanceConnector inheritanceConnector)
             {
                 _inheritanceConnectors.Remove(inheritanceConnector);
             }
@@ -293,24 +272,23 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == EntityTypeShape.ElementName)
             {
-                var shape = new EntityTypeShape(this, elem);
+                EntityTypeShape shape = new EntityTypeShape(this, elem);
                 shape.Parse(unprocessedElements);
                 _entityTypeShapes.Add(shape);
             }
             else if (elem.Name.LocalName == AssociationConnector.ElementName)
             {
-                var associationConnector = new AssociationConnector(this, elem);
+                AssociationConnector associationConnector = new AssociationConnector(this, elem);
                 associationConnector.Parse(unprocessedElements);
                 _associationConnectors.Add(associationConnector);
             }
             else if (elem.Name.LocalName == InheritanceConnector.ElementName)
             {
-                var inheritanceConnector = new InheritanceConnector(this, elem);
+                InheritanceConnector inheritanceConnector = new InheritanceConnector(this, elem);
                 inheritanceConnector.Parse(unprocessedElements);
                 _inheritanceConnectors.Add(inheritanceConnector);
             }

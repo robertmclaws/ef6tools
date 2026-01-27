@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Windows.Threading;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.Diagnostics;
-    using System.Windows.Threading;
-
     /// <summary>
     ///     This class gives a UI component the ability to defer some processing.  This can be helpful
     ///     for some UI situations where, for example, you want an event handler to finish processing before

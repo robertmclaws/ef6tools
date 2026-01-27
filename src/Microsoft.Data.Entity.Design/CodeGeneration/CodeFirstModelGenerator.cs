@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Infrastructure;
-    using System.Diagnostics;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Resources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
-
     internal class CodeFirstModelGenerator
     {
         private readonly LangEnum _language;
@@ -45,7 +45,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
             catch (Exception ex)
             {
                 throw new CodeFirstModelGenerationException(
-                    string.Format(Resources.ErrorGeneratingCodeFirstModel, contextFileName),
+                    string.Format(WizardResources.ErrorGeneratingCodeFirstModel, contextFileName),
                     ex);
             }
 
@@ -66,7 +66,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
                     catch (Exception ex)
                     {
                         throw new CodeFirstModelGenerationException(
-                            string.Format(Resources.ErrorGeneratingCodeFirstModel, entityTypeFileName),
+                            string.Format(WizardResources.ErrorGeneratingCodeFirstModel, entityTypeFileName),
                             ex);
                     }
 

@@ -1,30 +1,30 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Forms;
+using System.Windows.Forms.Integration;
+using System.Windows.Input;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.Views;
+using Microsoft.Data.Entity.Design.UI.Views.Explorer;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Cursor = System.Windows.Forms.Cursor;
+using Cursors = System.Windows.Forms.Cursors;
+using MenuItem = System.Windows.Controls.MenuItem;
+using Point = System.Drawing.Point;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.InteropServices;
-    using System.Windows;
-    using System.Windows.Forms;
-    using System.Windows.Forms.Integration;
-    using System.Windows.Input;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.Views;
-    using Microsoft.Data.Entity.Design.UI.Views.Explorer;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.PlatformUI;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Cursor = System.Windows.Forms.Cursor;
-    using Cursors = System.Windows.Forms.Cursors;
-    using MenuItem = System.Windows.Controls.MenuItem;
-    using Point = System.Drawing.Point;
-
     internal abstract class ExplorerWindow : ToolWindowPane, IVsWindowFrameNotify3
     {
         private ExplorerInfo _currentExplorerInfo;
@@ -52,10 +52,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
         private void OnColorThemeChanged(EventArgs e)
         {
-            if (_elementHost != null)
-            {
-                _elementHost.BackColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
-            }
+            _elementHost?.BackColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
         }
 
         private int OnFileNameChanged(object sender, ModelChangeEventArgs args)
@@ -138,27 +135,18 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         /// <summary>
         ///     Hides the tool window frame if we switch to a context that doesn't need it
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsWindowFrame.Hide")]
         internal void Hide()
         {
-            var frame = Frame as IVsWindowFrame;
-            if (frame != null)
-            {
-                frame.Hide();
-            }
+            IVsWindowFrame frame = Frame as IVsWindowFrame;
+            frame?.Hide();
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsWindowFrame.Show")]
         internal void Show()
         {
-            var frame = Frame as IVsWindowFrame;
-            if (frame != null)
-            {
-                frame.Show();
-            }
+            IVsWindowFrame frame = Frame as IVsWindowFrame;
+            frame?.Show();
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         private void OnContentGotFocus(object sender, EventArgs e)
         {
             if (_currentExplorerInfo != null
@@ -171,7 +159,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void OnModelChangesCommitted(object sender, EfiChangedEventArgs e)
         {
             if (_currentExplorerInfo != null
@@ -190,7 +177,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection.UnadviseSelectionEvents(System.UInt32)")]
         protected override void Dispose(bool disposing)
         {
             try
@@ -204,26 +190,17 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     if (_monitorSelectionCookie != 0)
                     {
                         // Unregister for VS Selection Events
-                        var monSel = GetService(typeof(IVsMonitorSelection)) as IVsMonitorSelection;
-                        if (monSel != null)
-                        {
-                            monSel.UnadviseSelectionEvents(_monitorSelectionCookie);
-                        }
+                        IVsMonitorSelection monSel = GetService(typeof(IVsMonitorSelection)) as IVsMonitorSelection;
+                        monSel?.UnadviseSelectionEvents(_monitorSelectionCookie);
 
                         _monitorSelectionCookie = 0;
                     }
 
                     Context = null;
 
-                    if (_elementHost != null)
-                    {
-                        _elementHost.Dispose();
-                    }
+                    _elementHost?.Dispose();
 
-                    if (vsEventBroadcaster != null)
-                    {
-                        vsEventBroadcaster.Dispose();
-                    }
+                    vsEventBroadcaster?.Dispose();
                 }
             }
             finally
@@ -269,9 +246,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             IServiceProvider serviceProvider = _package;
             if (serviceProvider != null)
             {
-                var packageMenuService = serviceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
                 _menuService = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-                if (packageMenuService != null
+                if (serviceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService packageMenuService
                     && _menuService != null)
                 {
                     var cmd = packageMenuService.FindCommand(StandardCommands.Delete);
@@ -339,7 +315,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             return NativeMethods.S_OK;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         int IVsWindowFrameNotify3.OnShow(int fShow)
         {
             try
@@ -393,19 +368,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 var menuCmd = DefineCommandHandler(invokeHandler, guidCmdSet, cmdid);
 
                 Debug.Assert(null != menuCmd, "Unable to define OleMenuCommand for GUID " + guidCmdSet + ", cmdid " + cmdid);
-                if (null != menuCmd)
-                {
-                    menuCmd.BeforeQueryStatus += (sender, arguments) =>
+                menuCmd?.BeforeQueryStatus += (sender, arguments) =>
                         {
                             if (null != _currentExplorerInfo)
                             {
                                 var canExecute = null != _currentExplorerInfo._explorerFrame
                                                  && canExecuteCmd(_currentExplorerInfo._explorerFrame);
-                                var oleMenuCommandSender = (OleMenuCommand)sender;
+                                OleMenuCommand oleMenuCommandSender = (OleMenuCommand)sender;
                                 oleMenuCommandSender.Enabled = oleMenuCommandSender.Visible = canExecute;
                             }
                         };
-                }
             }
         }
 
@@ -417,11 +389,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         /// <returns>The menu command. This can be used to set parameter such as the default visibility once the package is loaded</returns>
         internal OleMenuCommand DefineCommandHandler(EventHandler invokeHandler, Guid guidCmdSet, int cmdid)
         {
-            var commandId = new CommandID(guidCmdSet, cmdid);
+            CommandID commandId = new CommandID(guidCmdSet, cmdid);
             if (null != _menuService)
             {
                 // Add the command handler
-                var command = new OleMenuCommand(invokeHandler, commandId);
+                OleMenuCommand command = new OleMenuCommand(invokeHandler, commandId);
                 if (null != command)
                 {
                     _menuService.AddCommand(command);
@@ -432,7 +404,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             return null;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void UpdateView()
         {
             if (_currentExplorerInfo != null
@@ -445,10 +416,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             {
                 // We set the explorer frame to be null so that we can reset it
                 // whenever a model is brought into focus (see 'Setting Explorer Info:' below)
-                if (_currentExplorerInfo != null)
-                {
-                    _currentExplorerInfo._explorerFrame = null;
-                }
+                _currentExplorerInfo?._explorerFrame = null;
                 _currentExplorerInfo = null;
                 _elementHost.Child = null;
             }
@@ -565,10 +533,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
         private void vsEventBroadcaster_OnFontChanged(object sender, EventArgs e)
         {
-            if (_elementHost != null)
-            {
-                _elementHost.Font = VSHelpers.GetVSFont(_package);
-            }
+            _elementHost?.Font = VSHelpers.GetVSFont(_package);
         }
 
         internal class ExplorerInfo : ContextItem
@@ -589,19 +554,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
             private void OnContextDisposing(object sender, EventArgs e)
             {
-                var context = (EditingContext)sender;
-
-                if (_selectionContainer != null)
-                {
-                    _selectionContainer.Dispose();
-                    _selectionContainer = null;
-                }
-
-                if (_explorerFrame != null)
-                {
-                    _explorerFrame.Dispose();
-                    _explorerFrame = null;
-                }
+                EditingContext context = (EditingContext)sender;
+                _selectionContainer?.Dispose();
+                _selectionContainer = null;
+                _explorerFrame?.Dispose();
+                _explorerFrame = null;
 
                 context.Items.SetValue(new ExplorerInfo());
                 context.Disposing -= OnContextDisposing;

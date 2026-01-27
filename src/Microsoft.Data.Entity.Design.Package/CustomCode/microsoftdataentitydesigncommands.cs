@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Entity.Design.Package
 {
-    using System;
-    using System.ComponentModel.Design;
-    using System.Diagnostics.CodeAnalysis;
-
     internal static class MicrosoftDataEntityDesignCommands
     {
         internal static readonly Guid menuGroupGuid = new Guid(Constants.MicrosoftDataEntityDesignCommandSetId);
@@ -254,7 +254,6 @@ namespace Microsoft.Data.Entity.Design.Package
 
         public static readonly CommandID ConvertToEnum = new CommandID(menuGroupGuid, cmdIdConvertToEnum);
 
-        [SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static MicrosoftDataEntityDesignCommands()
         {
             CommandZoomLevels = new CommandID[ZoomIds.Length];

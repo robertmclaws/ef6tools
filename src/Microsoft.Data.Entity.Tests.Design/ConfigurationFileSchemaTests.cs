@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-namespace Microsoft.Data.Entity.Tests.Design
-{
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Xml;
-    using System.Xml.Linq;
-    using System.Xml.Schema;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Schema;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
 
+namespace Microsoft.Data.Entity.Tests.Design
+{
     [TestClass]
     public class ConfigurationFileSchemaTests
     {
@@ -52,7 +52,7 @@ using FluentAssertions;
                 @"    <xs:attribute name=""Transform"" type=""xs:string"" />" +
                 @"</xs:schema>";
 
-            using (var reader = XmlReader.Create(EntityFrameworkConfigSchemaName))
+            using (XmlReader reader = XmlReader.Create(EntityFrameworkConfigSchemaName))
             {
                 ConfigurationFileSchema = XmlSchema.Read(reader, null);
             }
@@ -651,7 +651,7 @@ using FluentAssertions;
         [TestMethod]
         public void EntityFrameworkCatalog_points_to_the_right_config_schema()
         {
-            var catalogXml = XDocument.Load(EntityFrameworkCatalogFileName);
+            XDocument catalogXml = XDocument.Load(EntityFrameworkCatalogFileName);
             XNamespace catalogNs = "http://schemas.microsoft.com/xsd/catalog";
 
             var association =
@@ -667,7 +667,7 @@ using FluentAssertions;
 
         private List<ValidationEventArgs> ValidateWithExpectedValidationEvents(string config, bool allowAllTypesAtTopLevel = true)
         {
-            var validationEvents = new List<ValidationEventArgs>();
+            List<ValidationEventArgs> validationEvents = new List<ValidationEventArgs>();
             Validate(config, allowAllTypesAtTopLevel, (o, e) => validationEvents.Add(e));
 
             return validationEvents;
@@ -682,7 +682,7 @@ using FluentAssertions;
 
         private static void Validate(string config, bool allowAllTypesAtTopLevel, ValidationEventHandler validationEventHandler)
         {
-            var readerSettings = new XmlReaderSettings { ValidationType = ValidationType.Schema };
+            XmlReaderSettings readerSettings = new XmlReaderSettings { ValidationType = ValidationType.Schema };
             readerSettings.Schemas.Add(ConfigurationFileSchema);
             readerSettings.Schemas.Add(FakeXmlDocumentTransformationSchema);
 
@@ -694,7 +694,7 @@ using FluentAssertions;
             readerSettings.ValidationFlags = XmlSchemaValidationFlags.ReportValidationWarnings;
             readerSettings.ValidationEventHandler += validationEventHandler;
 
-            using (var reader = XmlReader.Create(new StringReader(config), readerSettings))
+            using (XmlReader reader = XmlReader.Create(new StringReader(config), readerSettings))
             {
                 while (reader.Read())
                 {

@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal abstract class ExplorerProperty : EntityDesignExplorerEFElement
     {
         // Note: we have to keep the _isKeyProperty state in the ViewModel
@@ -50,7 +50,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             if (modelPropName == IsKeyPropertyID)
             {
                 // reset the _isKeyProperty field
-                var prop = ModelItem as Property;
+                Property prop = ModelItem as Property;
                 Debug.Assert(
                     null != prop, "Received OnModelPropertyChanged event on an " + typeof(ExplorerProperty).Name +
                                   " node with no corresponding Property model item");

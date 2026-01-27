@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.IO;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen;
-
     internal class LegacyCodeGenerationDriver
     {
         private readonly LanguageOption _language;
@@ -53,8 +53,8 @@ namespace Microsoft.Data.Entity.Design.Model
         private static XmlReader CreateXmlReader(EFArtifact artifact, XElement xobject)
         {
             var baseReader = xobject.CreateReader();
-            var lineNumberService = new XNodeReaderLineNumberService(artifact.XmlModelProvider, baseReader, artifact.Uri);
-            var proxyReader = new XmlReaderProxy(baseReader, artifact.Uri, lineNumberService);
+            XNodeReaderLineNumberService lineNumberService = new XNodeReaderLineNumberService(artifact.XmlModelProvider, baseReader, artifact.Uri);
+            XmlReaderProxy proxyReader = new XmlReaderProxy(baseReader, artifact.Uri, lineNumberService);
             return proxyReader;
         }
 

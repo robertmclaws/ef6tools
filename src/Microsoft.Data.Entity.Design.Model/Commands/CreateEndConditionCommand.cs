@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class CreateEndConditionCommand : Command
     {
         private readonly AssociationSetMapping _associationSetMapping;
@@ -36,10 +36,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _conditionValue = conditionValue;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
-            var cond = new Condition(_associationSetMapping, null);
+            Condition cond = new Condition(_associationSetMapping, null);
             cond.ColumnName.SetRefName(_tableColumn);
             _associationSetMapping.AddCondition(cond);
 

@@ -1,29 +1,29 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Data.Common;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.IO;
+using System.Linq;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.VisualStudio.Shell.Design;
+using Microsoft.VisualStudio.Shell.Interop;
+using Moq;
+using Moq.Protected;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using VSLangProj;
+using VSLangProj80;
+using VsWebSite;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using DbProviderServices = System.Data.Entity.Core.Common.DbProviderServices;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.Design;
-    using System.Data.Common;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.IO;
-    using System.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.VisualStudio.Shell.Design;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Moq;
-    using Moq.Protected;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using VSLangProj;
-    using VSLangProj80;
-    using VsWebSite;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-    using DbProviderServices = System.Data.Entity.Core.Common.DbProviderServices;
-
     [TestClass]
     public class VsUtilsTests
     {
@@ -111,8 +111,8 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void AddProjectReference_adds_reference()
         {
-            var vsReferences = new Mock<References>();
-            var vsProject = new Mock<VSProject2>();
+            Mock<References> vsReferences = new Mock<References>();
+            Mock<VSProject2> vsProject = new Mock<VSProject2>();
             vsProject.SetupGet(p => p.References).Returns(vsReferences.Object);
 
             var project = MockDTE.CreateProject();
@@ -126,8 +126,8 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void AddProjectReference_adds_reference_for_websites()
         {
-            var vsAssemblyReferences = new Mock<AssemblyReferences>();
-            var vsWebSite = new Mock<VSWebSite>();
+            Mock<AssemblyReferences> vsAssemblyReferences = new Mock<AssemblyReferences>();
+            Mock<VSWebSite> vsWebSite = new Mock<VSWebSite>();
             vsWebSite.SetupGet(p => p.References).Returns(vsAssemblyReferences.Object);
             var project = MockDTE.CreateWebSite();
             Mock.Get(project).Setup(p => p.Object).Returns(vsWebSite.Object);
@@ -193,17 +193,17 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void EntityFrameworkSupportedInProject_returns_true_for_applicable_projects()
         {
+            // Only .NET Framework 4.7.2+ is supported
             var targets =
                 new[]
                     {
-                        ".NETFramework,Version=v4.0",
-                        ".NETFramework,Version=v3.5",
-                        ".NETFramework,Version=v4.5",
+                        ".NETFramework,Version=v4.7.2",
+                        ".NETFramework,Version=v4.8",
                     };
 
             foreach (var target in targets)
             {
-                var monikerHelper = new MockDTE(target);
+                MockDTE monikerHelper = new MockDTE(target);
 
                 VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true).Should().BeTrue();
                 VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false).Should().BeTrue();
@@ -215,7 +215,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             const string vsMiscFilesProjectUniqueName = "<MiscFiles>";
 
-            var monikerHelper = new MockDTE("anytarget", vsMiscFilesProjectUniqueName);
+            MockDTE monikerHelper = new MockDTE("anytarget", vsMiscFilesProjectUniqueName);
 
             VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true).Should().BeTrue();
         }
@@ -225,7 +225,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             const string vsMiscFilesProjectUniqueName = "<MiscFiles>";
 
-            var monikerHelper = new MockDTE("anytarget", vsMiscFilesProjectUniqueName);
+            MockDTE monikerHelper = new MockDTE("anytarget", vsMiscFilesProjectUniqueName);
 
             VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false).Should().BeFalse();
         }
@@ -245,7 +245,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 
             foreach (var target in targets)
             {
-                var monikerHelper = new MockDTE(target);
+                MockDTE monikerHelper = new MockDTE(target);
 
                 VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true).Should().BeFalse();
                 VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: false).Should().BeFalse();
@@ -253,188 +253,40 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         }
 
         [TestMethod]
-        public void SchemaVersionSupportedInProject_returns_true_for_all_versions_for_misc_project()
+        public void SchemaVersionSupportedInProject_returns_true_for_Version3_for_misc_project()
         {
             var serviceProvider = new Mock<IServiceProvider>().Object;
 
-            VsUtils.SchemaVersionSupportedInProject(
-                MockDTE.CreateMiscFilesProject(), EntityFrameworkVersion.Version1, serviceProvider).Should().BeTrue();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                MockDTE.CreateMiscFilesProject(), EntityFrameworkVersion.Version2, serviceProvider).Should().BeTrue();
-
+            // Only Version3 is supported for modern development
             VsUtils.SchemaVersionSupportedInProject(
                 MockDTE.CreateMiscFilesProject(), EntityFrameworkVersion.Version3, serviceProvider).Should().BeTrue();
         }
 
         [TestMethod]
-        public void SchemaVersionSupportedInProject_returns_true_for_v1_and_NetFramework_3_5_otherwise_false()
+        public void SchemaVersionSupportedInProject_only_supports_Version3_for_modern_projects()
         {
-            var mockDte =
-                new MockDTE(
-                    ".NETFramework, Version=v3.5",
-                    references: new[] { MockDTE.CreateReference("System.Data.Entity", "3.5.0.0") });
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeTrue();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeFalse();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void SchemaVersionSupportedInProject_returns_true_for_v2_and_NetFramework_4_otherwise_false()
-        {
-            var mockDte =
-                new MockDTE(
-                    ".NETFramework, Version=v4.0",
-                    references: new[] { MockDTE.CreateReference("System.Data.Entity", "4.0.0.0") });
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeTrue();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void SchemaVersionSupportedInProject_returns_true_for_v1_and_NetFramework_3_5_if_EF_not_referenced_otherwise_false()
-        {
-            var mockDte =
-                new MockDTE(".NETFramework, Version=v3.5", references: new Reference[0]);
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeTrue();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeFalse();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void
-            SchemaVersionSupportedInProject_returns_true_for_v2_and_NetFramework_4_if_EF_not_referenced_otherwise_false()
-        {
-            var mockDte =
-                new MockDTE(".NETFramework, Version=v4.0", references: new Reference[0]);
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeTrue();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void
-            SchemaVersionSupportedInProject_returns_true_for_v3_and_NetFramework_4_5_if_EF_not_referenced_otherwise_false()
-        {
-            var mockDte =
-                new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeFalse();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void SchemaVersionSupportedInProject_returns_true_for_v2_and_NetFramework_4_and_EF5_otherwise_false()
-        {
-            var mockDte =
-                new MockDTE(
-                    ".NETFramework, Version=v4.0",
-                    references:
-                        new[]
-                            {
-                                MockDTE.CreateReference("System.Data.Entity", "4.0.0.0"),
-                                MockDTE.CreateReference("EntityFramework", "4.4.0.0")
-                            });
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeTrue();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void SchemaVersionSupportedInProject_returns_true_for_v2_and_v3_if_EF4_and_EF6_present()
-        {
-            var mockDte =
-                new MockDTE(
-                    ".NETFramework, Version=v4.0",
-                    references:
-                        new[]
-                            {
-                                MockDTE.CreateReference("System.Data.Entity", "4.0.0.0"),
-                                MockDTE.CreateReference("EntityFramework", "6.0.0.0")
-                            });
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeTrue();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void SchemaVersionSupportedInProject_returns_true_for_v3_and_EF5_on_NetFramework_4_5_otherwise_false()
-        {
-            var mockDte =
+            // For modern development, only Version3 is supported (legacy version support removed)
+            MockDTE mockDte =
                 new MockDTE(
                     ".NETFramework, Version=v4.5",
-                    references: new[] { MockDTE.CreateReference("System.Data.Entity", "4.0.0.0") });
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
-
-            VsUtils.SchemaVersionSupportedInProject(
-                mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeFalse();
+                    references: new[] { MockDTE.CreateReference("EntityFramework", "6.0.0.0") });
 
             VsUtils.SchemaVersionSupportedInProject(
                 mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeTrue();
         }
 
         [TestMethod]
-        public void SchemaVersionSupportedInProject_returns_true_for_v3_and_EF6_otherwise_false()
+        public void SchemaVersionSupportedInProject_returns_true_for_v3_and_EF6()
         {
             var targetNetFrameworkVersions =
-                new[] { ".NETFramework, Version=v4.0", ".NETFramework, Version=v4.5" };
+                new[] { ".NETFramework, Version=v4.5", ".NETFramework, Version=v4.7.2" };
 
             foreach (var targetNetFrameworkVersion in targetNetFrameworkVersions)
             {
-                var mockDte =
+                MockDTE mockDte =
                     new MockDTE(
                         targetNetFrameworkVersion,
                         references: new[] { MockDTE.CreateReference("EntityFramework", "6.0.0.0") });
-
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version1, mockDte.ServiceProvider).Should().BeFalse();
-
-                VsUtils.SchemaVersionSupportedInProject(
-                    mockDte.Project, EntityFrameworkVersion.Version2, mockDte.ServiceProvider).Should().BeFalse();
 
                 VsUtils.SchemaVersionSupportedInProject(
                     mockDte.Project, EntityFrameworkVersion.Version3, mockDte.ServiceProvider).Should().BeTrue();
@@ -486,11 +338,11 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void GetProjectRoot_returns_solution_dir_when_misc_project()
         {
-            var solution = new Mock<IVsSolution>();
+            Mock<IVsSolution> solution = new Mock<IVsSolution>();
             var solutionDirectory = @"C:\Path\To\Solution\";
             string temp;
             solution.Setup(s => s.GetSolutionInfo(out solutionDirectory, out temp, out temp));
-            var serviceProvider = new Mock<IServiceProvider>();
+            Mock<IServiceProvider> serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(p => p.GetService(typeof(IVsSolution))).Returns(solution.Object);
 
             var root = VsUtils.GetProjectRoot(MockDTE.CreateMiscFilesProject(), serviceProvider.Object);
@@ -574,13 +426,13 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void GetTypeFromProject_uses_dynamic_type_service()
         {
-            var dte = new MockDTE(".NETFramework,Version=v4.5");
+            MockDTE dte = new MockDTE(".NETFramework,Version=v4.5");
 
-            var typeResolutionService = new Mock<ITypeResolutionService>();
-            var dynamicTypeService = new Mock<DynamicTypeService>(MockBehavior.Strict);
+            Mock<ITypeResolutionService> typeResolutionService = new Mock<ITypeResolutionService>();
+            Mock<DynamicTypeService> dynamicTypeService = new Mock<DynamicTypeService>(MockBehavior.Strict);
             dynamicTypeService.Setup(s => s.GetTypeResolutionService(It.IsAny<IVsHierarchy>(), It.IsAny<uint>()))
                 .Returns(typeResolutionService.Object);
-            var serviceProvider = Mock.Get(dte.ServiceProvider);
+            Mock<IServiceProvider> serviceProvider = Mock.Get(dte.ServiceProvider);
             serviceProvider.Setup(p => p.GetService(typeof(DynamicTypeService))).Returns(dynamicTypeService.Object);
 
             VsUtils.GetTypeFromProject("Some.Type", dte.Project, dte.ServiceProvider);
@@ -595,7 +447,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
             VsUtils.EnsureProvider("System.Data.SqlClient", false, Mock.Of<Project>(), Mock.Of<IServiceProvider>());
             try
             {
-                var sqlProviderServicesType = Type.GetType(
+                Type sqlProviderServicesType = Type.GetType(
                     "System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer",
                     throwOnError: true);
                 var instanceProperty = sqlProviderServicesType.GetProperty("Instance",
@@ -614,10 +466,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void GetProjectItemByPath_returns_item()
         {
-            var projectItem = new Mock<ProjectItem>();
-            var projectItems = new Mock<ProjectItems>();
+            Mock<ProjectItem> projectItem = new Mock<ProjectItem>();
+            Mock<ProjectItems> projectItems = new Mock<ProjectItems>();
             projectItems.Setup(i => i.Item("Class1.cs")).Returns(projectItem.Object);
-            var project = new Mock<Project>();
+            Mock<Project> project = new Mock<Project>();
             project.SetupGet(p => p.ProjectItems).Returns(projectItems.Object);
 
             var result = VsUtils.GetProjectItemByPath(project.Object, "Class1.cs");
@@ -628,14 +480,14 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void GetProjectItemByPath_returns_item_when_nested()
         {
-            var fileProjectItem = new Mock<ProjectItem>();
-            var directoryProjectItems = new Mock<ProjectItems>();
+            Mock<ProjectItem> fileProjectItem = new Mock<ProjectItem>();
+            Mock<ProjectItems> directoryProjectItems = new Mock<ProjectItems>();
             directoryProjectItems.Setup(i => i.Item("Class1.cs")).Returns(fileProjectItem.Object);
-            var directoryProjectItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> directoryProjectItem = new Mock<ProjectItem>();
             directoryProjectItem.SetupGet(i => i.ProjectItems).Returns(directoryProjectItems.Object);
-            var projectItems = new Mock<ProjectItems>();
+            Mock<ProjectItems> projectItems = new Mock<ProjectItems>();
             projectItems.Setup(i => i.Item("Model")).Returns(directoryProjectItem.Object);
-            var project = new Mock<Project>();
+            Mock<Project> project = new Mock<Project>();
             project.SetupGet(p => p.ProjectItems).Returns(projectItems.Object);
 
             var result = VsUtils.GetProjectItemByPath(project.Object, @"Model\Class1.cs");
@@ -646,9 +498,9 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void GetProjectItemByPath_returns_null_when_error()
         {
-            var projectItems = new Mock<ProjectItems>();
+            Mock<ProjectItems> projectItems = new Mock<ProjectItems>();
             projectItems.Setup(i => i.Item(It.IsAny<object>())).Throws<Exception>();
-            var project = new Mock<Project>();
+            Mock<Project> project = new Mock<Project>();
             project.SetupGet(p => p.ProjectItems).Returns(projectItems.Object);
 
             var result = VsUtils.GetProjectItemByPath(project.Object, "Class1.cs");
@@ -659,13 +511,13 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void GetProviderManifestTokenConnected_returns_provider_manifest_token()
         {
-            var providerServicesMock = new Mock<DbProviderServices>();
+            Mock<DbProviderServices> providerServicesMock = new Mock<DbProviderServices>();
             providerServicesMock
                 .Protected()
                 .Setup<string>("GetDbProviderManifestToken", ItExpr.IsAny<DbConnection>())
                 .Returns("FakeProviderManifestToken");
 
-            var mockResolver = new Mock<IDbDependencyResolver>();
+            Mock<IDbDependencyResolver> mockResolver = new Mock<IDbDependencyResolver>();
             mockResolver.Setup(
                 r => r.GetService(
                     It.Is<Type>(t => t == typeof(DbProviderServices)),
@@ -734,7 +586,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 
             foreach (var target in targets)
             {
-                var monikerHelper = new MockDTE(target, MockDTE.CreateSdkStyleProject());
+                MockDTE monikerHelper = new MockDTE(target, MockDTE.CreateSdkStyleProject());
 
                 VsUtils.EntityFrameworkSupportedInProject(monikerHelper.Project, monikerHelper.ServiceProvider, allowMiscProject: true)
                     .Should().BeTrue($"Expected true for {target}");
@@ -747,7 +599,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         public void SchemaVersionSupportedInProject_returns_true_for_v3_and_modern_dotnet_no_ef_referenced()
         {
             // Modern .NET projects without explicit EF reference should support v3 schema
-            var mockDte = new MockDTE(".NET,Version=v8.0", MockDTE.CreateSdkStyleProject());
+            MockDTE mockDte = new MockDTE(".NET,Version=v8.0", MockDTE.CreateSdkStyleProject());
 
             // For SDK-style projects, GetProjectReferenceAssemblyNames returns empty,
             // so we fall back to checking schema version against target framework.

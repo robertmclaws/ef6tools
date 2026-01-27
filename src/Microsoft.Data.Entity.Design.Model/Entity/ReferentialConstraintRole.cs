@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class ReferentialConstraintRole : PropertyRefContainer
     {
         private static string AttributeRole = "Role";
@@ -24,8 +24,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var referentialConstraint = Parent as ReferentialConstraint;
-                if (referentialConstraint != null)
+                if (Parent is ReferentialConstraint referentialConstraint)
                 {
                     if (referentialConstraint.Principal == this)
                     {
@@ -45,13 +44,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_role == null)
-                {
-                    _role = new SingleItemBinding<AssociationEnd>(
+                _role ??= new SingleItemBinding<AssociationEnd>(
                         this,
                         AttributeRole,
                         ReferentialConstraintRoleNameNormalizer);
-                }
                 return _role;
             }
         }
@@ -86,26 +82,26 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         internal static NormalizedName ReferentialConstraintRoleNameNormalizer(EFElement parent, string refName)
         {
-            var role = parent as ReferentialConstraintRole;
+            ReferentialConstraintRole role = parent as ReferentialConstraintRole;
             Debug.Assert(role != null, "role should not be null");
 
-            var rc = role.Parent as ReferentialConstraint;
+            ReferentialConstraint rc = role.Parent as ReferentialConstraint;
             Debug.Assert(rc != null, "role.Parent should be a ReferentialConstraint");
 
-            var assoc = rc.Parent as Association;
+            Association assoc = rc.Parent as Association;
             Debug.Assert(assoc != null, "referential constraint parent should be a Association");
 
-            var symbol = new Symbol(assoc.EntityModel.NamespaceValue, assoc.LocalName.Value, refName);
-            var normalizedName = new NormalizedName(symbol, null, null, refName);
+            Symbol symbol = new Symbol(assoc.EntityModel.NamespaceValue, assoc.LocalName.Value, refName);
+            NormalizedName normalizedName = new NormalizedName(symbol, null, null, refName);
             return normalizedName;
         }
 
         internal static NormalizedName ReferentialConstraintPropertyRefNameNormalizer(EFElement parent, string refName)
         {
-            var pr = parent as PropertyRef;
+            PropertyRef pr = parent as PropertyRef;
             Debug.Assert(pr != null, "referential constraint parent should be a PropertyRef");
 
-            var role = pr.Parent as ReferentialConstraintRole;
+            ReferentialConstraintRole role = pr.Parent as ReferentialConstraintRole;
             Debug.Assert(role != null, "PropertyRef parent should be a ReferentialConstraintRole");
 
             Symbol symbol = null;
@@ -122,8 +118,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                     // the key can only exist on the base type.
 
                     Symbol endTypeName;
-                    var cet = end.Type.Target as ConceptualEntityType;
-                    if (cet != null)
+                    if (end.Type.Target is ConceptualEntityType cet)
                     {
                         endTypeName = (end.Type.Status == BindingStatus.Known)
                                           ? cet.ResolvableTopMostBaseType.NormalizedName
@@ -150,11 +145,12 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                     if (artifactSet != null
                         && end.Type.Status == BindingStatus.Known)
                     {
-                        var typesToSearch = new List<EntityType>();
-                        typesToSearch.Add(end.Type.Target);
+                        List<EntityType> typesToSearch = new List<EntityType>
+                        {
+                            end.Type.Target
+                        };
 
-                        var cet = end.Type.Target as ConceptualEntityType;
-                        if (cet != null)
+                        if (end.Type.Target is ConceptualEntityType cet)
                         {
                             typesToSearch.AddRange(cet.ResolvableBaseTypes);
                         }
@@ -162,7 +158,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                         foreach (var entityType in typesToSearch)
                         {
                             var endTypeName = entityType.NormalizedName;
-                            var testSymbol = new Symbol(endTypeName, refName);
+                            Symbol testSymbol = new Symbol(endTypeName, refName);
 
                             var item = artifactSet.LookupSymbol(testSymbol);
                             if (item != null)
@@ -175,10 +171,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 }
             }
 
-            if (symbol == null)
-            {
-                symbol = new Symbol(refName);
-            }
+            symbol ??= new Symbol(refName);
 
             return new NormalizedName(symbol, null, null, refName);
         }

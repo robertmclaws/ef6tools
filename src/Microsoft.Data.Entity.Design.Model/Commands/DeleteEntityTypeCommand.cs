@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using XamlDesignerBaseResources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal class DeleteEntityTypeCommand : DeleteEFElementCommand
     {
         internal string DeletedEntityTypeName { get; private set; }
@@ -37,17 +37,17 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             DeletedEntityTypeName = EntityType.Name.Value;
 
             // Collect all of the mapped storage property names in case we need to 
-            var deletedStoragePropertyNames = new HashSet<EntityQualifiedPropertyName>();
+            HashSet<EntityQualifiedPropertyName> deletedStoragePropertyNames = new HashSet<EntityQualifiedPropertyName>();
             foreach (var cProp in EntityType.Properties())
             {
                 var scalarProperties = cProp.GetAntiDependenciesOfType<ScalarProperty>();
                 foreach (var scalarProperty in scalarProperties)
                 {
-                    var storageProperty = (StorageProperty)scalarProperty.ColumnName.Target;
+                    StorageProperty storageProperty = (StorageProperty)scalarProperty.ColumnName.Target;
                     if (storageProperty != null
                         && storageProperty.EntityType != null)
                     {
-                        var entityToPropertyName = new EntityQualifiedPropertyName(
+                        EntityQualifiedPropertyName entityToPropertyName = new EntityQualifiedPropertyName(
                             storageProperty.EntityType.Name.Value, storageProperty.Name.Value, false);
                         if (!deletedStoragePropertyNames.Contains(entityToPropertyName))
                         {
@@ -63,7 +63,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             get
             {
-                var elem = EFElement as EntityType;
+                EntityType elem = EFElement as EntityType;
                 Debug.Assert(elem != null, "underlying element does not exist or is not an EntityType");
                 if (elem == null)
                 {
@@ -88,12 +88,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 EnforceEntitySetMappingRules.AddRule(cpc, EntityType);
                 // remove base type for all derived EntityTypes
-                var cet = EntityType as ConceptualEntityType;
+                ConceptualEntityType cet = EntityType as ConceptualEntityType;
                 Debug.Assert(cet != null, "EntityType is not a ConceptualEntityType");
 
                 foreach (var derivedType in cet.ResolvableDirectDerivedTypes)
                 {
-                    var cmd = new DeleteInheritanceCommand(derivedType);
+                    DeleteInheritanceCommand cmd = new DeleteInheritanceCommand(derivedType);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }
             }
@@ -118,9 +118,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             if (EntityType.EntityModel.IsCSDL)
             {
-                var cModel = EntityType.RuntimeModelRoot() as ConceptualEntityModel;
-
-                if (cModel != null)
+                if (EntityType.RuntimeModelRoot() is ConceptualEntityModel cModel)
                 {
                     // If there is a FunctionImport which returns the entity type, set the FunctionImport return type to null.
                     foreach (var fi in EntityType.GetAntiDependenciesOfType<FunctionImport>())
@@ -129,7 +127,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                             cpc, new ChangeFunctionImportCommand(
                                 cModel.FirstEntityContainer as ConceptualEntityContainer,
                                 fi, fi.Function, fi.DisplayName, fi.IsComposable.Value, true,
-                                Resources.NoneDisplayValueUsedForUX));
+                                XamlDesignerBaseResources.NoneDisplayValueUsedForUX));
                     }
                 }
             }
@@ -145,7 +143,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// <returns>list of the Associations to be deleted</returns>
         internal static List<Association> GetListOfAssociationsToBeDeleted(EntityType entityType)
         {
-            var assocsToDelete = new List<Association>();
+            List<Association> assocsToDelete = new List<Association>();
             if (entityType == null)
             {
                 Debug.Fail("argument entityType must not be null");
@@ -155,7 +153,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // if this entity is used in an AssociationEnd, the entire Association should be deleted
             foreach (var associationEnd in entityType.GetAntiDependenciesOfType<AssociationEnd>())
             {
-                var association = associationEnd.Parent as Association;
+                Association association = associationEnd.Parent as Association;
                 Debug.Assert(association != null, " null association for AssociationEnd" + associationEnd.ToPrettyString());
                 if (association != null
                     && association.XObject != null)

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Diagnostics;
-    using System.Text;
-
     /// <summary>
     /// Represents a model configuration to set the column name, type, and order for a property.
     /// </summary>
@@ -31,7 +31,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
             Debug.Assert(code != null, "code is null.");
             Debug.Assert(Name != null || TypeName != null || Order != null, "Name, TypeName & Order are null.");
 
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             builder.Append("Column(");
 
             if (Name != null)
@@ -74,7 +74,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
             Debug.Assert(code != null, "code is null.");
             Debug.Assert(Name != null || TypeName != null || Order != null, "Name, TypeName & Order are null.");
 
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
 
             if (Name != null)
             {

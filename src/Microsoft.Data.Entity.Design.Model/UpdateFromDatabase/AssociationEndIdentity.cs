@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections.Generic;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
-
     /// <summary>
     ///     The identity of a given C-side AssociationEnd consists of the
     ///     set of DatabaseColumns to which it maps.
@@ -23,7 +23,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal string TraceString()
         {
-            var sb = new StringBuilder("[AssociationEndIdentity");
+            StringBuilder sb = new StringBuilder("[AssociationEndIdentity");
             sb.Append(
                 EFToolsTraceUtils.FormatNamedEnumerable(
                     "propertyIdentities", _propertyIdentities,
@@ -69,8 +69,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                 return false;
             }
 
-            var objAsAssocEndIdentity = obj as AssociationEndIdentity;
-            if (null == objAsAssocEndIdentity)
+            if (obj is not AssociationEndIdentity objAsAssocEndIdentity)
             {
                 return false;
             }

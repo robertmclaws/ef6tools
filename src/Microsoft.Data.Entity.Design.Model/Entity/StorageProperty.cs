@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-
     internal class StorageProperty : Property
     {
         private DefaultableValue<string> _typeAttr;
 
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         internal StorageProperty(StorageEntityType parent, XElement element)
             : base(parent, element)
         {
@@ -29,10 +28,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_typeAttr == null)
-                {
-                    _typeAttr = new TypeDefaultableValue(this);
-                }
+                _typeAttr ??= new TypeDefaultableValue(this);
                 return _typeAttr;
             }
         }

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateOrUpdateStorageAssociationCommand : CreateStorageAssociationCommand
     {
         internal CreateOrUpdateStorageAssociationCommand(Func<Command, CommandProcessorContext, bool> bindingAction)
@@ -29,10 +29,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     association.AssociationEnds().Count == 2, "Association element is invalid, it should always have exactly 2 ends");
                 if (association.AssociationEnds().Count == 2)
                 {
-                    AssociationEnd principal;
-                    AssociationEnd dependent;
                     ModelHelper.DeterminePrincipalDependentAssociationEnds(
-                        association, out principal, out dependent,
+                        association, out AssociationEnd principal, out AssociationEnd dependent,
                         ModelHelper.DeterminePrincipalDependentAssociationEndsScenario.CreateForeignKeyProperties);
                     var updatedPrincipalRoleName = ModelHelper.CreatePKAssociationEndName(PkTable.LocalName.Value);
                     var principalMultiplicity = IsNullableFk ? ModelConstants.Multiplicity_ZeroOrOne : ModelConstants.Multiplicity_One;

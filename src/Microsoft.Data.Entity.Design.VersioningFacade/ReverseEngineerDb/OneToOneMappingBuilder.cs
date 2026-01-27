@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure.Pluralization;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.Pluralization;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-
     internal class OneToOneMappingBuilder
     {
         private readonly string _namespaceName;
@@ -36,10 +36,10 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         {
             Debug.Assert(storeModel != null, "storeModel != null");
 
-            var mappingContext = new SimpleMappingContext(storeModel, _generateForeignKeyProperties);
+            SimpleMappingContext mappingContext = new SimpleMappingContext(storeModel, _generateForeignKeyProperties);
 
-            var uniqueEntityContainerNames = new UniqueIdentifierService();
-            var globallyUniqueTypeNames = new UniqueIdentifierService();
+            UniqueIdentifierService uniqueEntityContainerNames = new UniqueIdentifierService();
+            UniqueIdentifierService globallyUniqueTypeNames = new UniqueIdentifierService();
             CollectForeignKeyProperties(mappingContext, storeModel);
 
             foreach (var storeEntitySet in storeModel.Containers.Single().EntitySets)
@@ -56,15 +56,14 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 GenerateFunctions(mappingContext, storeModel, uniqueEntityContainerNames, globallyUniqueTypeNames)
                     .ToArray();
 
-            var conceptualModelContainer = EntityContainer.Create(
+            // Always add LazyLoadingEnabled annotation for EF6
+            EntityContainer conceptualModelContainer = EntityContainer.Create(
                 _containerName,
                 DataSpace.CSpace,
                 mappingContext.ConceptualEntitySets()
                     .Concat(mappingContext.ConceptualAssociationSets().Cast<EntitySetBase>()),
                 functionImports,
-                EntityFrameworkVersion.DoubleToVersion(storeModel.SchemaVersion) >= EntityFrameworkVersion.Version2
-                    ? new[] { CreateAnnotationMetadataProperty("LazyLoadingEnabled", "true") }
-                    : null);
+                new[] { CreateAnnotationMetadataProperty("LazyLoadingEnabled", "true") });
 
             mappingContext.AddMapping(storeModel.Containers.Single(), conceptualModelContainer);
 
@@ -89,7 +88,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 (_pluralizationService != null) ? _pluralizationService.Pluralize(storeEntitySet.Name) : storeEntitySet.Name,
                 uniqueEntityContainerNames);
 
-            var conceptualEntitySet = EntitySet.Create(conceptualEntitySetName, null, null, null, conceptualEntityType, null);
+            EntitySet conceptualEntitySet = EntitySet.Create(conceptualEntitySetName, null, null, null, conceptualEntityType, null);
 
             mappingContext.AddMapping(storeEntitySet, conceptualEntitySet);
         }
@@ -106,11 +105,11 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 (_pluralizationService != null) ? _pluralizationService.Singularize(storeEntityType.Name) : storeEntityType.Name,
                 globallyUniqueTypeNames);
 
-            var uniquePropertyNameService = new UniqueIdentifierService();
+            UniqueIdentifierService uniquePropertyNameService = new UniqueIdentifierService();
             uniquePropertyNameService.AdjustIdentifier(conceptualEntityTypeName);
 
-            var edmMembers = new List<EdmMember>();
-            var keyMemberNames = new List<string>();
+            List<EdmMember> edmMembers = new List<EdmMember>();
+            List<string> keyMemberNames = new List<string>();
 
             foreach (var storeProperty in storeEntityType.Properties)
             {
@@ -130,7 +129,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 }
             }
 
-            var conceptualEntity = EntityType.Create(
+            EntityType conceptualEntity = EntityType.Create(
                 conceptualEntityTypeName, _namespaceName, DataSpace.CSpace, keyMemberNames, edmMembers, null);
 
             mappingContext.AddMapping(storeEntityType, conceptualEntity);
@@ -147,7 +146,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             var conceptualPropertyName = CreateModelName(storeProperty.Name, uniquePropertyNameService);
 
-            var conceptualProperty =
+            EdmProperty conceptualProperty =
                 EdmProperty.Create(conceptualPropertyName, storeProperty.TypeUsage.ModelTypeUsage);
 
             if (storeProperty.StoreGeneratedPattern != StoreGeneratedPattern.None)
@@ -175,11 +174,10 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             UniqueIdentifierService uniqueEntityContainerNames,
             UniqueIdentifierService globallyUniqueTypeNames)
         {
-            IEnumerable<AssociationSet> associationSetsFromNonCollapsibleItems;
 
             var collapsibleItems = CollapsibleEntityAssociationSets.CreateCollapsibleItems(
                 mappingContext.StoreModel.Containers.Single().BaseEntitySets,
-                out associationSetsFromNonCollapsibleItems);
+                out IEnumerable<AssociationSet> associationSetsFromNonCollapsibleItems);
 
             foreach (var set in associationSetsFromNonCollapsibleItems)
             {
@@ -207,8 +205,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             UniqueIdentifierService globallyUniqueTypeNames)
         {
             // We will get a value when the same association type is used for multiple association sets.
-            AssociationType conceptualAssociationType;
-            if (!mappingContext.TryGetValue(storeAssociationSet.ElementType, out conceptualAssociationType))
+            if (!mappingContext.TryGetValue(storeAssociationSet.ElementType, out AssociationType conceptualAssociationType))
             {
                 conceptualAssociationType = GenerateAssociationType(
                     mappingContext,
@@ -220,11 +217,10 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             var storeSetEnd0 = storeAssociationSet.AssociationSetEnds[0];
             var storeSetEnd1 = storeAssociationSet.AssociationSetEnds[1];
 
-            EntitySet conceptualEntitySet0, conceptualEntitySet1;
-            mappingContext.TryGetValue(storeSetEnd0.EntitySet, out conceptualEntitySet0);
-            mappingContext.TryGetValue(storeSetEnd1.EntitySet, out conceptualEntitySet1);
+            mappingContext.TryGetValue(storeSetEnd0.EntitySet, out EntitySet conceptualEntitySet0);
+            mappingContext.TryGetValue(storeSetEnd1.EntitySet, out EntitySet conceptualEntitySet1);
 
-            var conceptualAssociationSet = AssociationSet.Create(
+            AssociationSet conceptualAssociationSet = AssociationSet.Create(
                 CreateModelName(storeAssociationSet.Name, uniqueEntityContainerNames),
                 conceptualAssociationType,
                 conceptualEntitySet0,
@@ -246,7 +242,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             UniqueIdentifierService uniqueEntityContainerNames,
             UniqueIdentifierService globallyUniqueTypeNames)
         {
-            var uniqueEndMemberNames = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase);
+            UniqueIdentifierService uniqueEndMemberNames = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase);
 
             var associationSetEndDetails0 = collapsibleItem.GetStoreAssociationSetEnd(0);
 
@@ -275,7 +271,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             var associationTypeName = CreateModelName(collapsibleItem.EntitySet.Name, globallyUniqueTypeNames);
             var associationSetName = CreateModelName(collapsibleItem.EntitySet.Name, uniqueEntityContainerNames);
 
-            var conceptualAssociationType = AssociationType.Create(
+            AssociationType conceptualAssociationType = AssociationType.Create(
                 associationTypeName,
                 _namespaceName,
                 false,
@@ -287,7 +283,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             CreateModelNavigationProperties(conceptualAssociationType);
 
-            var conceptualAssociationSet = AssociationSet.Create(
+            AssociationSet conceptualAssociationSet = AssociationSet.Create(
                 associationSetName,
                 conceptualAssociationType,
                 conceptualEntitySet0,
@@ -311,14 +307,13 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         {
             Debug.Assert(storeAssociationType.RelationshipEndMembers.Count == 2);
 
-            var storeEndMember0 = (AssociationEndMember)storeAssociationType.RelationshipEndMembers[0];
-            var storeEndMember1 = (AssociationEndMember)storeAssociationType.RelationshipEndMembers[1];
+            AssociationEndMember storeEndMember0 = (AssociationEndMember)storeAssociationType.RelationshipEndMembers[0];
+            AssociationEndMember storeEndMember1 = (AssociationEndMember)storeAssociationType.RelationshipEndMembers[1];
 
-            var storeSchemaVersion = EntityFrameworkVersion.DoubleToVersion(mappingContext.StoreModel.SchemaVersion);
-            var isFkAssociation = storeSchemaVersion > EntityFrameworkVersion.Version1
-                                  && (_generateForeignKeyProperties || RequiresReferentialConstraint(storeAssociationType));
+            // For EF6, always use FK associations when appropriate
+            var isFkAssociation = _generateForeignKeyProperties || RequiresReferentialConstraint(storeAssociationType);
 
-            var uniqueEndMemberNames = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase);
+            UniqueIdentifierService uniqueEndMemberNames = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase);
             var multiplicityOverride = GetMultiplicityOverride(storeAssociationType);
 
             var conceptualEndMember0 = GenerateAssociationEndMember(
@@ -333,7 +328,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 uniqueEndMemberNames,
                 multiplicityOverride);
 
-            var conceptualAssociationType = AssociationType.Create(
+            AssociationType conceptualAssociationType = AssociationType.Create(
                 CreateModelName(storeAssociationType.Name, globallyUniqueTypeNames),
                 _namespaceName,
                 isFkAssociation,
@@ -375,10 +370,10 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             RelationshipMultiplicity multiplicity,
             OperationAction deleteBehavior)
         {
-            var storeEntityType = ((EntityType)((RefType)storeEndMember.TypeUsage.EdmType).ElementType);
+            EntityType storeEntityType = ((EntityType)((RefType)storeEndMember.TypeUsage.EdmType).ElementType);
             var conceptualEntityType = mappingContext[storeEntityType];
 
-            var conceptualEndMember = AssociationEndMember.Create(
+            AssociationEndMember conceptualEndMember = AssociationEndMember.Create(
                 CreateModelName(storeEndMember.Name, uniqueEndMemberNames),
                 conceptualEntityType.GetReferenceType(),
                 multiplicity,
@@ -432,7 +427,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 storeConstraint.ToProperties[0].DeclaringType.BuiltInTypeKind == BuiltInTypeKind.EntityType,
                 "The property is not from an EntityType.");
 
-            var toType = (EntityType)storeConstraint.ToProperties[0].DeclaringType;
+            EntityType toType = (EntityType)storeConstraint.ToProperties[0].DeclaringType;
             // If we are generating foreign keys, there is always a referential constraint. Otherwise, check
             // if the dependent end includes key properties. If so, this implies that there is a referential
             // constraint. Otherwise, it is assumed that the foreign key properties are not defined in the 
@@ -445,8 +440,8 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             // Create the constraint.
             var count = storeConstraint.FromProperties.Count;
-            var fromProperties = new EdmProperty[count];
-            var toProperties = new EdmProperty[count];
+            EdmProperty[] fromProperties = new EdmProperty[count];
+            EdmProperty[] toProperties = new EdmProperty[count];
             var fromRole = mappingContext[(AssociationEndMember)storeConstraint.FromRole];
             var toRole = mappingContext[(AssociationEndMember)storeConstraint.ToRole];
             for (var index = 0; index < count; index++)
@@ -478,7 +473,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 storeConstraint.ToProperties[0].DeclaringType.BuiltInTypeKind == BuiltInTypeKind.EntityType,
                 "The property is not from an EntityType.");
 
-            var toType = (EntityType)storeConstraint.ToProperties[0].DeclaringType;
+            EntityType toType = (EntityType)storeConstraint.ToProperties[0].DeclaringType;
             return RequiresReferentialConstraint(storeConstraint, toType);
         }
 
@@ -491,8 +486,8 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         {
             Debug.Assert(associationType.Members.Count == 2, "association.Members.Count == 2");
 
-            var endMember0 = (AssociationEndMember)associationType.Members[0];
-            var endMember1 = (AssociationEndMember)associationType.Members[1];
+            AssociationEndMember endMember0 = (AssociationEndMember)associationType.Members[0];
+            AssociationEndMember endMember1 = (AssociationEndMember)associationType.Members[1];
 
             CreateModelNavigationProperty(endMember0, endMember1);
             CreateModelNavigationProperty(endMember1, endMember0);
@@ -500,13 +495,13 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
         private void CreateModelNavigationProperty(AssociationEndMember from, AssociationEndMember to)
         {
-            var entityType = (EntityType)((RefType)from.TypeUsage.EdmType).ElementType;
-            var uniqueMemberNames = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase);
+            EntityType entityType = (EntityType)((RefType)from.TypeUsage.EdmType).ElementType;
+            UniqueIdentifierService uniqueMemberNames = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase);
 
             LoadNameLookupWithUsedMemberNames(entityType, uniqueMemberNames);
 
             var name = CreateModelName(GetNavigationPropertyName(_pluralizationService, to, to.Name), uniqueMemberNames);
-            var navigationProperty = NavigationProperty.Create(
+            NavigationProperty navigationProperty = NavigationProperty.Create(
                 name,
                 to.TypeUsage,
                 (AssociationType)to.DeclaringType,
@@ -607,7 +602,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             var functionImportName = CreateModelName(storeFunction.Name, uniqueEntityContainerNames);
             var returnTypeName = CreateModelName(functionImportName + "_Result", globallyUniqueTypeNames);
-            var returnParameter =
+            FunctionParameter returnParameter =
                 FunctionParameter.Create(
                     "ReturnType",
                     CreateComplexTypeFromRowType(mappingContext, tvfReturnType, returnTypeName).GetCollectionType(),
@@ -634,9 +629,9 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(mappingContext != null, "mappingContext != null");
             Debug.Assert(storeFunction != null, "storeFunctionParameters != null");
 
-            var functionImportParameters = new FunctionParameter[storeFunction.Parameters.Count];
+            FunctionParameter[] functionImportParameters = new FunctionParameter[storeFunction.Parameters.Count];
 
-            var uniqueParameterNames = new UniqueIdentifierService();
+            UniqueIdentifierService uniqueParameterNames = new UniqueIdentifierService();
 
             for (var idx = 0; idx < storeFunction.Parameters.Count; idx++)
             {
@@ -676,9 +671,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             if (storeFunction.ReturnParameter != null)
             {
-                var collectionType = storeFunction.ReturnParameter.TypeUsage.EdmType as CollectionType;
-
-                var returnType = collectionType != null ? collectionType.TypeUsage.EdmType as RowType : null;
+                var returnType = storeFunction.ReturnParameter.TypeUsage.EdmType is CollectionType collectionType ? collectionType.TypeUsage.EdmType as RowType : null;
 
                 if (returnType != null)
                 {
@@ -705,7 +698,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(!string.IsNullOrEmpty(typeName), "typeName cannot be null or empty string.");
             Debug.Assert(rowType != null, "rowType != null");
 
-            var uniquePropertyNameService = new UniqueIdentifierService();
+            UniqueIdentifierService uniquePropertyNameService = new UniqueIdentifierService();
             uniquePropertyNameService.AdjustIdentifier(typeName);
 
             return

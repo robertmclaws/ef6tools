@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal static class EFExtensions
     {
         internal static StorageEntityModel StorageModel(this EFArtifact thisArtifact)
@@ -92,7 +92,6 @@ namespace Microsoft.Data.Entity.Design.Model
             return artifactSet.Artifacts.OfType<EntityDesignArtifact>().FirstOrDefault();
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         private static EntityDesignArtifact GetEntityDesignArtifact(EFArtifact baseArtifact)
         {
             // Assumption: DiagramArtifact's ArtifactSet will only contains 2 artifacts: DiagramArtifact and EntityDesignArtifact.
@@ -114,7 +113,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal static IEnumerable<ConceptualEntityType> ConceptualEntityTypes(this EFArtifactSet thisArtifactSet)
         {
-            var derivedArtifactSet = thisArtifactSet as EntityDesignArtifactSet;
+            EntityDesignArtifactSet derivedArtifactSet = thisArtifactSet as EntityDesignArtifactSet;
             Debug.Assert(
                 derivedArtifactSet != null,
                 "Every EFArtifactSet must be an EntityDesignArtifactSet to be used with the EFExtensions extension methods.");
@@ -169,12 +168,12 @@ namespace Microsoft.Data.Entity.Design.Model
             Debug.Assert(modelRoot.XElement != null,
                 "Could not find the runtime model root or its XElement in GetSchemaFromRuntimeModelRoot");
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             if (modelRoot != null
                 && modelRoot.XElement != null)
             {
-                using (var writer = new StringWriter(sb, CultureInfo.CurrentCulture))
+                using (StringWriter writer = new StringWriter(sb, CultureInfo.CurrentCulture))
                 {
                     modelRoot.XElement.Save(writer);
                 }
@@ -190,7 +189,7 @@ namespace Microsoft.Data.Entity.Design.Model
             var conceptualModel = artifact.ConceptualModel();
 
             EdmItemCollection edmItemCollection = null;
-            schemaErrors = new List<EdmSchemaError>();
+            schemaErrors = [];
 
             Debug.Assert(
                 conceptualModel != null && conceptualModel.XElement != null,

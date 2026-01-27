@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Tools.XmlDesignerBase.Core.Controls;
+
 namespace Microsoft.Data.Entity.Design.Core.Controls
 {
-    using Microsoft.Data.Tools.XmlDesignerBase.Core.Controls;
-
     /// <summary>
     ///     type converter for list of bool values
     /// </summary>

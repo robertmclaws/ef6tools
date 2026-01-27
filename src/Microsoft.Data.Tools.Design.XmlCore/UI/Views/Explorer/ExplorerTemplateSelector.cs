@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Windows;
+using System.Windows.Controls;
+using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System.Windows;
-    using System.Windows.Controls;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -19,14 +19,12 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
-            var explorerElement = item as ExplorerEFElement;
-            if (null == explorerElement)
+            if (item is not ExplorerEFElement explorerElement)
             {
                 return base.SelectTemplate(item, container);
             }
 
-            var fwkElem = container as FrameworkElement;
-            if (null == fwkElem)
+            if (container is not FrameworkElement fwkElem)
             {
                 return base.SelectTemplate(item, container);
             }

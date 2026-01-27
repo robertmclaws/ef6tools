@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class FunctionAssociationEnd : EFElement
     {
         internal static readonly string ElementName = "AssociationEnd";
@@ -16,7 +16,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         internal static readonly string AttributeFrom = "From";
         internal static readonly string AttributeTo = "To";
 
-        private readonly List<FunctionScalarProperty> _properties = new List<FunctionScalarProperty>();
+        private readonly List<FunctionScalarProperty> _properties = [];
         private SingleItemBinding<AssociationSet> _assocSet;
         private SingleItemBinding<AssociationSetEnd> _from;
         private SingleItemBinding<AssociationSetEnd> _to;
@@ -36,7 +36,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as ModificationFunction;
+                ModificationFunction parent = Parent as ModificationFunction;
                 Debug.Assert(parent != null, "this.Parent should be a ModificationFunction");
                 return parent;
             }
@@ -49,14 +49,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_assocSet == null)
-                {
-                    _assocSet = new SingleItemBinding<AssociationSet>(
+                _assocSet ??= new SingleItemBinding<AssociationSet>(
                         this,
                         AttributeAssociationSet,
                         AssociationSetNameNormalizer.NameNormalizer
                         );
-                }
                 return _assocSet;
             }
         }
@@ -68,14 +65,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_from == null)
-                {
-                    _from = new SingleItemBinding<AssociationSetEnd>(
+                _from ??= new SingleItemBinding<AssociationSetEnd>(
                         this,
                         AttributeFrom,
                         AssociationSetEndNameNormalizer.NameNormalizer
                         );
-                }
                 return _from;
             }
         }
@@ -87,14 +81,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_to == null)
-                {
-                    _to = new SingleItemBinding<AssociationSetEnd>(
+                _to ??= new SingleItemBinding<AssociationSetEnd>(
                         this,
                         AttributeTo,
                         AssociationSetEndNameNormalizer.NameNormalizer
                         );
-                }
                 return _to;
             }
         }
@@ -160,8 +151,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var sp = efContainer as FunctionScalarProperty;
-            if (sp != null)
+            if (efContainer is FunctionScalarProperty sp)
             {
                 _properties.Remove(sp);
                 return;
@@ -192,7 +182,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == FunctionScalarProperty.ElementName)
             {
-                var prop = new FunctionScalarProperty(this, elem);
+                FunctionScalarProperty prop = new FunctionScalarProperty(this, elem);
                 _properties.Add(prop);
                 prop.Parse(unprocessedElements);
             }

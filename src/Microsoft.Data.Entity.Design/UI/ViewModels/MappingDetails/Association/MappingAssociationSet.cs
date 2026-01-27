@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [TreeGridDesignerRootBranch(typeof(AssociationSetBranch))]
     [TreeGridDesignerColumn(typeof(PropertyColumn), Order = 1)]
     internal class MappingAssociationSet : MappingAssociationMappingRoot
@@ -38,7 +38,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
                 var entitySet = AssociationSet.AssociationSetMapping.StoreEntitySet.Target;
                 if (entitySet != null)
                 {
-                    var set = entitySet.EntityType.Target as StorageEntityType;
+                    StorageEntityType set = entitySet.EntityType.Target as StorageEntityType;
                     Debug.Assert(entitySet.EntityType.Target != null ? set != null : true, "EntityType is not StorageEntityType");
                     return set;
                 }
@@ -68,13 +68,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
         {
             get
             {
-                _ends = new List<MappingAssociationSetEnd>();
+                _ends = [];
 
                 if (AssociationSet != null)
                 {
                     foreach (var end in AssociationSet.AssociationSetEnds())
                     {
-                        var mend = (MappingAssociationSetEnd)ModelToMappingModelXRef.GetNewOrExisting(_context, end, this);
+                        MappingAssociationSetEnd mend = (MappingAssociationSetEnd)ModelToMappingModelXRef.GetNewOrExisting(_context, end, this);
                         _ends.Add(mend);
                     }
                 }
@@ -102,8 +102,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
                     &&
                     asm.StoreEntitySet.Status == BindingStatus.Known)
                 {
-                    var ses = asm.StoreEntitySet.Target as StorageEntitySet;
-                    if (ses != null
+                    if (asm.StoreEntitySet.Target is StorageEntitySet ses
                         &&
                         ses.EntityType.Status == BindingStatus.Known)
                     {
@@ -117,7 +116,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
 
         internal override Dictionary<MappingLovEFElement, string> GetListOfValues(ListOfValuesCollection type)
         {
-            var lov = new Dictionary<MappingLovEFElement, string>();
+            Dictionary<MappingLovEFElement, string> lov = new Dictionary<MappingLovEFElement, string>();
 
             if (type == ListOfValuesCollection.FirstColumn)
             {
@@ -182,7 +181,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
             Debug.Assert(context != null, "The context argument cannot be null");
             Debug.Assert(AssociationSet.AssociationSetMapping == null, "Don't call this method if we already have a mapping");
             Debug.Assert(underlyingModelItem != null, "The underlyingModelItem cannot be null");
-            var storeEntityType = underlyingModelItem as EntityType;
+            EntityType storeEntityType = underlyingModelItem as EntityType;
             Debug.Assert(
                 storeEntityType != null,
                 "underlyingModelItem must be of type EntityType, actual type = " + underlyingModelItem.GetType().FullName);
@@ -191,35 +190,27 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
             Context = context;
 
             // create a context if we weren't passed one
-            if (cpc == null)
-            {
-                cpc = new CommandProcessorContext(
+            cpc ??= new CommandProcessorContext(
                     Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_CreateAssociationSetMapping);
-            }
 
             // create the item
-            var cmd1 = new CreateAssociationSetMappingCommand(MappingAssociation.Association, storeEntityType);
+            CreateAssociationSetMappingCommand cmd1 = new CreateAssociationSetMappingCommand(MappingAssociation.Association, storeEntityType);
 
             // now try and do some match ups by name
-            var cmd2 = new DelegateCommand(
+            DelegateCommand cmd2 = new DelegateCommand(
                 () =>
                     {
                         Parent.AddChild(this);
 
                         foreach (var child in Children)
                         {
-                            var end = child as MappingAssociationSetEnd;
-                            if (end != null)
+                            if (child is MappingAssociationSetEnd end)
                             {
                                 foreach (var child2 in end.Children)
                                 {
-                                    var mesp = child2 as MappingEndScalarProperty;
-                                    if (mesp != null)
+                                    if (child2 is MappingEndScalarProperty mesp)
                                     {
-                                        var tableColumn =
-                                            MappingAssociationSet.StorageEntityType.GetFirstNamedChildByLocalName(mesp.Property, true) as
-                                            Property;
-                                        if (tableColumn != null)
+                                        if (MappingAssociationSet.StorageEntityType.GetFirstNamedChildByLocalName(mesp.Property, true) is Property tableColumn)
                                         {
                                             mesp.CreateModelItem(cpc, _context, tableColumn);
                                         }
@@ -230,7 +221,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
                     });
 
             // now make the change
-            var cp = new CommandProcessor(cpc);
+            CommandProcessor cp = new CommandProcessor(cpc);
             cp.EnqueueCommand(cmd1);
             cp.EnqueueCommand(cmd2);
             cp.Invoke();
@@ -246,11 +237,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations
             if (IsModelItemDeleted() == false)
             {
                 // create a context if we weren't passed one
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_DeleteAssociationSetMapping);
-                }
                 DeleteEFElementCommand.DeleteInTransaction(cpc, AssociationSet.AssociationSetMapping);
             }
         }

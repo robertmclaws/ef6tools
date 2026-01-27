@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class NavigationPropertyChange : ViewModelChange
     {
         private readonly NavigationProperty _property;
@@ -25,11 +23,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var property = viewModel.ModelXRef.GetExisting(_property) as Model.Entity.NavigationProperty;
+                Model.Entity.NavigationProperty property = viewModel.ModelXRef.GetExisting(_property) as Model.Entity.NavigationProperty;
                 Debug.Assert(property != null);
 
                 Command c = new EntityDesignRenameCommand(property, _property.Name, true);
-                var cp = new CommandProcessor(cpc, c);
+                CommandProcessor cp = new CommandProcessor(cpc, c);
                 cp.Invoke();
             }
         }

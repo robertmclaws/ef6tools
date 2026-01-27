@@ -1,17 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-
     internal partial class Association : IContainRelatedElementsToEmphasizeWhenSelected
     {
         public NavigationProperty SourceNavigationProperty { get; set; }
@@ -61,15 +59,14 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                 if (SourceEntityType != null)
                 {
                     var viewModel = SourceEntityType.EntityDesignerViewModel;
-                    var modelAssociation = viewModel.ModelXRef.GetExisting(this) as Model.Entity.Association;
+                    Model.Entity.Association modelAssociation = viewModel.ModelXRef.GetExisting(this) as Model.Entity.Association;
                     Debug.Assert(modelAssociation != null, "Unable to get model association for DSL association:" + Name);
 
                     if (modelAssociation != null)
                     {
                         foreach (var prop in modelAssociation.PrincipalRoleProperties.Union(modelAssociation.DependentRoleProperties))
                         {
-                            var viewProperty = viewModel.ModelXRef.GetExisting(prop) as Property;
-                            if (viewProperty != null
+                            if (viewModel.ModelXRef.GetExisting(prop) is Property viewProperty
                                 && viewProperty.IsDeleted == false)
                             {
                                 yield return viewProperty;

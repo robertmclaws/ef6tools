@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal interface IEFConnectionDesignerDescriptorAddOn
     {
         string MetadataArtifactProcessing { get; set; }
@@ -34,10 +34,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             get
             {
-                if (_metadataArtifactProcessingDefault == null)
-                {
-                    _metadataArtifactProcessingDefault = ConnectionManager.GetMetadataArtifactProcessingDefault();
-                }
+                _metadataArtifactProcessingDefault ??= ConnectionManager.GetMetadataArtifactProcessingDefault();
 
                 var val = _metadataArtifactProcessingDefault;
                 if (TypedEFElement != null

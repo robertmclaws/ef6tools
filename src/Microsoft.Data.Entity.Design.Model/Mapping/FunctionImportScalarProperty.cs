@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class FunctionImportScalarProperty : EFElement
     {
         internal static readonly string ElementName = "ScalarProperty";
@@ -38,14 +38,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_property == null)
-                {
-                    _property = new SingleItemBinding<Property>(
+                _property ??= new SingleItemBinding<Property>(
                         this,
                         AttributeName,
                         FunctionImportProperyMappingNameNormalizer.NameNormalizer
                         );
-                }
                 return _property;
             }
         }
@@ -57,10 +54,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_column == null)
-                {
-                    _column = new ColumnNameDefaultableValue(this);
-                }
+                _column ??= new ColumnNameDefaultableValue(this);
                 return _column;
             }
         }

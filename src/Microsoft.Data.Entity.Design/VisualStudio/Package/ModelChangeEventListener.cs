@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Runtime.InteropServices;
+using EnvDTE;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using EnvDTE;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal interface ITrackEdmxUIEvents
     {
         // if we have no App.Config/Web.Config for the edmx file then we have to create it
@@ -82,21 +82,15 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsRunningDocumentTable.AdviseRunningDocTableEvents(Microsoft.VisualStudio.Shell.Interop.IVsRunningDocTableEvents,System.UInt32@)")]
         private void StartTrackingRDTEvents()
         {
-            var rdt = Services.ServiceProvider.GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
-            if (rdt != null)
-            {
-                rdt.AdviseRunningDocTableEvents(this, out trackRDTEventsCookie);
-            }
+            IVsRunningDocumentTable rdt = Services.ServiceProvider.GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
+            rdt?.AdviseRunningDocTableEvents(this, out trackRDTEventsCookie);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsRunningDocumentTable.UnadviseRunningDocTableEvents(System.UInt32)")]
         private void StopTrackingRDTEvents()
         {
-            var rdt = Services.ServiceProvider.GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
-            if (rdt != null)
+            if (Services.ServiceProvider.GetService(typeof(SVsRunningDocumentTable)) is IVsRunningDocumentTable rdt)
             {
                 if (trackRDTEventsCookie != 0)
                 {
@@ -106,21 +100,15 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsTrackProjectDocuments2.AdviseTrackProjectDocumentsEvents(Microsoft.VisualStudio.Shell.Interop.IVsTrackProjectDocumentsEvents2,System.UInt32@)")]
         private void StartTrackingProjectEvents()
         {
-            var trackProjDocs = Services.ServiceProvider.GetService(typeof(SVsTrackProjectDocuments)) as IVsTrackProjectDocuments2;
-            if (trackProjDocs != null)
-            {
-                trackProjDocs.AdviseTrackProjectDocumentsEvents(this, out trackDocEventsCookie);
-            }
+            IVsTrackProjectDocuments2 trackProjDocs = Services.ServiceProvider.GetService(typeof(SVsTrackProjectDocuments)) as IVsTrackProjectDocuments2;
+            trackProjDocs?.AdviseTrackProjectDocumentsEvents(this, out trackDocEventsCookie);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsTrackProjectDocuments2.UnadviseTrackProjectDocumentsEvents(System.UInt32)")]
         private void StopTrackingProjectEvents()
         {
-            var trackProjDocs = Services.ServiceProvider.GetService(typeof(SVsTrackProjectDocuments)) as IVsTrackProjectDocuments2;
-            if (trackProjDocs != null)
+            if (Services.ServiceProvider.GetService(typeof(SVsTrackProjectDocuments)) is IVsTrackProjectDocuments2 trackProjDocs)
             {
                 if (trackDocEventsCookie != 0)
                 {
@@ -130,21 +118,15 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsSolution.AdviseSolutionEvents(Microsoft.VisualStudio.Shell.Interop.IVsSolutionEvents,System.UInt32@)")]
         private void StartTrackingSolutionEvents()
         {
-            var trackSol = Services.ServiceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
-            if (trackSol != null)
-            {
-                trackSol.AdviseSolutionEvents(this, out trackSolEventsCookie);
-            }
+            IVsSolution trackSol = Services.ServiceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            trackSol?.AdviseSolutionEvents(this, out trackSolEventsCookie);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsSolution.UnadviseSolutionEvents(System.UInt32)")]
         private void StopTrackingSolutionEvents()
         {
-            var trackSol = Services.ServiceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
-            if (trackSol != null)
+            if (Services.ServiceProvider.GetService(typeof(SVsSolution)) is IVsSolution trackSol)
             {
                 if (trackSolEventsCookie != 0)
                 {
@@ -167,12 +149,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 if (changeEnum.Current.Type == EfiChange.EfiChangeType.Update)
                 {
                     // are we updating the entity container name?
-                    var entityContainer = changeEnum.Current.Changed as SingleItemBinding<ConceptualEntityContainer>;
-                    if (entityContainer != null)
+                    if (changeEnum.Current.Changed is SingleItemBinding<ConceptualEntityContainer> entityContainer)
                     {
                         // get the values from the EfiChange properties, use those to construct the arguments
                         var pair = changeEnum.Current.Properties[EntityContainerMapping.AttributeCdmEntityContainer];
-                        var args = new ModelChangeEventArgs();
+                        ModelChangeEventArgs args = new ModelChangeEventArgs();
                         args.OldEntityContainerName = (string)pair.OldValue;
 
                         AfterEntityContainerNameChange(this, args);
@@ -183,19 +164,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 }
 
                 // are we updating the metadata artifact processing value?
-                var metadataArtifactProcessingValue = changeEnum.Current.Changed as DefaultableValue<string>;
-                if (metadataArtifactProcessingValue != null)
+                if (changeEnum.Current.Changed is DefaultableValue<string> metadataArtifactProcessingValue)
                 {
-                    var mapProp = metadataArtifactProcessingValue.Parent as DesignerProperty;
-
-                    if (mapProp != null
+                    if (metadataArtifactProcessingValue.Parent is DesignerProperty mapProp
                         && mapProp.LocalName != null
                         && String.Compare(
                             mapProp.LocalName.Value, ConnectionDesignerInfo.AttributeMetadataArtifactProcessing,
                             StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         var pair = changeEnum.Current.Properties[DesignerProperty.AttributeValue];
-                        var args = new ModelChangeEventArgs();
+                        ModelChangeEventArgs args = new ModelChangeEventArgs();
                         args.OldMetadataArtifactProcessing = (string)pair.OldValue;
                         AfterMetadataArtifactProcessingChange(this, args);
                         continue;
@@ -221,8 +199,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     break;
                 }
             }
-            var hierarchy = rgpProjects[projIndex] as IVsHierarchy;
-            if (hierarchy == null)
+            if (rgpProjects[projIndex] is not IVsHierarchy hierarchy)
             {
                 return null;
             }
@@ -249,7 +226,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             {
                 for (var fileCount = 0; fileCount < cFiles; fileCount++)
                 {
-                    var args = new ModelChangeEventArgs();
+                    ModelChangeEventArgs args = new ModelChangeEventArgs();
                     args.NewFileName = rgpszMkDocuments[fileCount];
                     args.ProjectObj = GetProjectFromArray(cProjects, fileCount, rgpProjects, rgFirstIndices);
                     if (args.ProjectObj == null)
@@ -282,7 +259,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 {
                     for (var fileCount = 0; fileCount < cFiles; fileCount++)
                     {
-                        var args = new ModelChangeEventArgs();
+                        ModelChangeEventArgs args = new ModelChangeEventArgs();
                         args.OldFileName = rgpszMkDocuments[fileCount];
                         args.ProjectObj = GetProjectFromArray(cProjects, fileCount, rgpProjects, rgFirstIndices);
                         if (args.ProjectObj == null)
@@ -304,7 +281,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             return VSConstants.S_OK;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public int OnAfterRenameFiles(
             int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices, string[] rgszMkOldNames, string[] rgszMkNewNames,
             VSRENAMEFILEFLAGS[] rgFlags)
@@ -315,7 +291,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             {
                 for (var fileCount = 0; fileCount < cFiles; fileCount++)
                 {
-                    var args = new ModelChangeEventArgs();
+                    ModelChangeEventArgs args = new ModelChangeEventArgs();
                     args.OldFileName = rgszMkOldNames[fileCount];
                     args.NewFileName = rgszMkNewNames[fileCount];
                     args.ProjectObj = GetProjectFromArray(cProjects, fileCount, rgpProjects, rgFirstIndices);
@@ -344,10 +320,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     }
                     finally
                     {
-                        if (tempModelManager != null)
-                        {
-                            tempModelManager.Dispose();
-                        }
+                        tempModelManager?.Dispose();
                     }
                 }
             }
@@ -405,7 +378,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 {
                     for (var fileCount = 0; fileCount < cFiles; fileCount++)
                     {
-                        var args = new ModelChangeEventArgs();
+                        ModelChangeEventArgs args = new ModelChangeEventArgs();
                         args.OldFileName = rgpszMkDocuments[fileCount];
                         args.ProjectObj = VSHelpers.GetProject(pProject as IVsHierarchy);
                         if (args.ProjectObj == null)
@@ -440,7 +413,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
         public int OnBeforeGenerateDDL(Project project, EFArtifact artifact)
         {
-            var args = new ModelChangeEventArgs();
+            ModelChangeEventArgs args = new ModelChangeEventArgs();
             args.ProjectObj = project;
             args.Artifact = artifact;
             if (BeforeGenerateDDL != null)
@@ -455,7 +428,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
         public int OnBeforeValidateModel(Project project, EFArtifact artifact, bool isCurrentlyBuilding)
         {
-            var args = new ModelChangeEventArgs();
+            ModelChangeEventArgs args = new ModelChangeEventArgs();
             args.ProjectObj = project;
             args.Artifact = artifact;
             args.IsCurrentlyBuilding = isCurrentlyBuilding;
@@ -501,7 +474,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             if (AfterSaveFile != null)
             {
                 var docTable = Services.IVsRunningDocumentTable;
-                uint rdtFlags, readLocks, editLocks, itemId;
                 string fileName;
                 IVsHierarchy hierarchy;
                 var docData = IntPtr.Zero;
@@ -509,7 +481,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 try
                 {
                     hr = docTable.GetDocumentInfo(
-                        docCookie, out rdtFlags, out readLocks, out editLocks, out fileName, out hierarchy, out itemId, out docData);
+                        docCookie, out uint rdtFlags, out uint readLocks, out uint editLocks, out fileName, out hierarchy, out uint itemId, out docData);
                 }
                 finally
                 {
@@ -525,7 +497,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     var projectObj = VSHelpers.GetProject(hierarchy);
                     if (projectObj != null)
                     {
-                        var args = new ModelChangeEventArgs();
+                        ModelChangeEventArgs args = new ModelChangeEventArgs();
                         args.DocCookie = docCookie;
                         args.Artifact = PackageManager.Package.ModelManager.GetArtifact(Utils.FileName2Uri(fileName));
                         args.ProjectObj = projectObj;
@@ -564,7 +536,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         {
             if (AfterOpenProject != null)
             {
-                var args = new ModelChangeEventArgs();
+                ModelChangeEventArgs args = new ModelChangeEventArgs();
                 try
                 {
                     args.ProjectObj = VSHelpers.GetProject(pRealHierarchy);
@@ -588,7 +560,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         {
             if (AfterOpenProject != null)
             {
-                var args = new ModelChangeEventArgs();
+                ModelChangeEventArgs args = new ModelChangeEventArgs();
                 try
                 {
                     args.ProjectObj = VSHelpers.GetProject(pHierarchy);
@@ -618,7 +590,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             var handler = BeforeCloseProject;
             if (handler != null)
             {
-                var args = new ModelChangeEventArgs();
+                ModelChangeEventArgs args = new ModelChangeEventArgs();
                 try
                 {
                     args.ProjectObj = VSHelpers.GetProject(pHierarchy);
@@ -648,7 +620,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             var handler = BeforeCloseProject;
             if (handler != null)
             {
-                var args = new ModelChangeEventArgs();
+                ModelChangeEventArgs args = new ModelChangeEventArgs();
                 try
                 {
                     args.ProjectObj = VSHelpers.GetProject(pRealHierarchy);

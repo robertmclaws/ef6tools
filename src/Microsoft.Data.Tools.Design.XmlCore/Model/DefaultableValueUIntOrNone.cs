@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     This is the Defaultable Value class for the Property's MaxLength Facet.
     /// </summary>

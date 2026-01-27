@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-
     /// <summary>
     ///     Rule fired when an NavigationProperty changes
     /// </summary>
@@ -25,7 +23,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
         {
             base.ElementAdded(e);
 
-            var addedProperty = e.ModelElement as NavigationProperty;
+            NavigationProperty addedProperty = e.ModelElement as NavigationProperty;
             Debug.Assert(addedProperty != null);
             Debug.Assert(addedProperty.EntityType != null && addedProperty.EntityType.EntityDesignerViewModel != null);
 

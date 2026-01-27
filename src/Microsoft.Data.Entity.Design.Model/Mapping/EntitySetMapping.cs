@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class EntitySetMapping : EFElement
     {
         internal static readonly string ElementName = "EntitySetMapping";
         internal static readonly string AttributeName = "Name";
 
-        private readonly List<EntityTypeMapping> _entityTypeMappings = new List<EntityTypeMapping>();
-        private readonly List<QueryView> _queryViews = new List<QueryView>();
+        private readonly List<EntityTypeMapping> _entityTypeMappings = [];
+        private readonly List<QueryView> _queryViews = [];
         private SingleItemBinding<EntitySet> _name;
 
         internal EntitySetMapping(EFElement parent, XElement element)
@@ -30,7 +30,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as EntityContainerMapping;
+                EntityContainerMapping parent = Parent as EntityContainerMapping;
                 Debug.Assert(parent != null, "this.Parent should be a EntityContainerMapping");
                 return parent;
             }
@@ -43,13 +43,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_name == null)
-                {
-                    _name = new SingleItemBinding<EntitySet>(
+                _name ??= new SingleItemBinding<EntitySet>(
                         this,
                         AttributeName,
                         EntitySetNameNormalizer.NameNormalizer);
-                }
                 return _name;
             }
         }
@@ -125,8 +122,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as EntityTypeMapping;
-            if (child1 != null)
+            if (efContainer is EntityTypeMapping child1)
             {
                 _entityTypeMappings.Remove(child1);
                 return;
@@ -188,7 +184,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                 if (_entityTypeMappings.Count == 0)
                 {
                     // TypeName attribute and no EntityTypeMapping children.  Create a "ghost-node".
-                    var etm = new EntityTypeMapping(this, XElement);
+                    EntityTypeMapping etm = new EntityTypeMapping(this, XElement);
                     _entityTypeMappings.Add(etm);
                     etm.Parse(unprocessedElements);
 
@@ -237,18 +233,17 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             get { return DisplayNameInternal(false); }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == EntityTypeMapping.ElementName)
             {
-                var etm = new EntityTypeMapping(this, elem);
+                EntityTypeMapping etm = new EntityTypeMapping(this, elem);
                 _entityTypeMappings.Add(etm);
                 etm.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == QueryView.ElementName)
             {
-                var qv = new QueryView(this, elem);
+                QueryView qv = new QueryView(this, elem);
                 qv.Parse(unprocessedElements);
                 _queryViews.Add(qv);
             }

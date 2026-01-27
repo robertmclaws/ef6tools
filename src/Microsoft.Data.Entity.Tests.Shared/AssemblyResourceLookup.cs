@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Resources;
+
 namespace Microsoft.Data.Entity.Tests.Shared
 {
-    using System;
-    using System.Globalization;
-    using System.Linq;
-    using System.Reflection;
-    using System.Resources;
-
     /// <summary>
     ///     Locates localized resources for an assembly
     /// </summary>

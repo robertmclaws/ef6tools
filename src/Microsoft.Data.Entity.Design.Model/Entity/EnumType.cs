@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class EnumType : DocumentableAnnotatableElement
     {
         internal static readonly string ElementName = "EnumType";
@@ -18,7 +18,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         private DefaultableValue<string> _underlyingTypeAttr;
         private DefaultableValue<string> _externalTypeAttr;
 
-        private readonly List<EnumTypeMember> _members = new List<EnumTypeMember>();
+        private readonly List<EnumTypeMember> _members = [];
 
         internal EnumType(ConceptualEntityModel model, XElement element)
             : base(model, element)
@@ -32,10 +32,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_typeAccessAttr == null)
-                {
-                    _typeAccessAttr = new TypeAccessDefaultableValue(this);
-                }
+                _typeAccessAttr ??= new TypeAccessDefaultableValue(this);
                 return _typeAccessAttr;
             }
         }
@@ -49,10 +46,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_externalTypeAttr == null)
-                {
-                    _externalTypeAttr = new ExternalTypeNameDefaultableValue(this);
-                }
+                _externalTypeAttr ??= new ExternalTypeNameDefaultableValue(this);
                 return _externalTypeAttr;
             }
         }
@@ -61,10 +55,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_isFlagAttr == null)
-                {
-                    _isFlagAttr = new EnumFlagAttributeDefaultableValue(this);
-                }
+                _isFlagAttr ??= new EnumFlagAttributeDefaultableValue(this);
                 return _isFlagAttr;
             }
         }
@@ -73,10 +64,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_underlyingTypeAttr == null)
-                {
-                    _underlyingTypeAttr = new UnderlyingEnumTypeDefaultableValue(this);
-                }
+                _underlyingTypeAttr ??= new UnderlyingEnumTypeDefaultableValue(this);
                 return _underlyingTypeAttr;
             }
         }
@@ -141,8 +129,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child = efContainer as EnumTypeMember;
-            if (child != null)
+            if (efContainer is EnumTypeMember child)
             {
                 _members.Remove(child);
                 return;
@@ -201,12 +188,11 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == EnumTypeMember.ElementName)
             {
-                var member = new EnumTypeMember(this, elem);
+                EnumTypeMember member = new EnumTypeMember(this, elem);
                 member.Parse(unprocessedElements);
                 AddMember(member);
             }

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Globalization;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal class UpdateDefaultableValueCommand<T> : Command
     {
         internal DefaultableValue<T> DefaultableValue { get; set; }

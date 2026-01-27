@@ -1,23 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.TemplateWizard;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 {
-    using System;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.TemplateWizard;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
-
     /// <summary>
     /// This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -47,7 +47,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
             List<KeyValuePair<string, string>> generatedCode = null)
         {
             _configFileUtils = configFileUtils;
-            _generatedCode = generatedCode ?? new List<KeyValuePair<string, string>>();
+            _generatedCode = generatedCode ?? [];
             _vsUtils = vsUtils;
             _errorListHelper = errorListHelper;
             _errorCache = errorCache;
@@ -77,7 +77,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 
             if(edmSchemaErrors != null && edmSchemaErrors.Any())
             {
-                using (var serviceProvider = new ServiceProvider((IOleServiceProvider)projectItem.ContainingProject.DTE))
+                using (ServiceProvider serviceProvider = new ServiceProvider((IOleServiceProvider)projectItem.ContainingProject.DTE))
                 {
                     var hierarchy = _vsUtils.GetVsHierarchy(projectItem.ContainingProject, serviceProvider);
                     var itemId = _vsUtils.GetProjectItemId(hierarchy, projectItem);
@@ -113,9 +113,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
                         .CreateValidIdentifier(replacementsDictionary["$safeitemname$"]);
 
                 _generatedCode = codeFirstModelGenerator.Generate(
-                    modelBuilderSettings.ModelBuilderEngine != null
-                            ? modelBuilderSettings.ModelBuilderEngine.Model
-                            : null,
+                    modelBuilderSettings.ModelBuilderEngine?.Model,
                     replacementsDictionary["$rootnamespace$"],
                     contextClassName,
                     modelBuilderSettings.SaveConnectionStringInAppConfig
@@ -150,7 +148,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 
             var project = settings.Project;
 
-            var filesToSave = _generatedCode.Skip(1)
+            Dictionary<string, object> filesToSave = _generatedCode.Skip(1)
                 .ToDictionary(kvp => Path.Combine(targetDirectory, kvp.Key), kvp => (object)kvp.Value);
 
             try
@@ -186,8 +184,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 
             _configFileUtils.GetOrCreateConfigFile();
             var existingConnectionStrings = ConnectionManager.GetExistingConnectionStrings(_configFileUtils);
-            string existingConnectionString;
-            if (existingConnectionStrings.TryGetValue(settings.AppConfigConnectionPropertyName, out existingConnectionString)
+            if (existingConnectionStrings.TryGetValue(settings.AppConfigConnectionPropertyName, out string existingConnectionString)
                 && string.Equals(existingConnectionString, connectionString))
             {
                 // An element with the same name and connectionString already exists - no need to update.

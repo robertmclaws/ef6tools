@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
 {
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class PropertyBaseTests
     {
@@ -42,16 +42,16 @@ namespace Microsoft.Data.Entity.Tests.Design.Model.Entity
 
         private static PropertyBase[] CreateProperties()
         {
-            var complexType = XElement.Parse(
+            XElement complexType = XElement.Parse(
                 "<ComplexType Name=\"Category\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edm\">" +
                 "  <Property Name=\"CategoryID\" Type=\"Int32\" Nullable=\"false\" />" +
                 "  <Property Name=\"Description\" Type=\"String\" MaxLength=\"4000\" FixedLength=\"false\" Unicode=\"true\" />" +
                 "</ComplexType>");
 
-            var mockCategoryId = new Mock<PropertyBase>(null, complexType.Elements().First(), null);
+            Mock<PropertyBase> mockCategoryId = new Mock<PropertyBase>(null, complexType.Elements().First(), null);
             mockCategoryId.Setup(m => m.EFTypeName).Returns("Property");
 
-            var mockDescription = new Mock<PropertyBase>(null, complexType.Elements().Last(), null);
+            Mock<PropertyBase> mockDescription = new Mock<PropertyBase>(null, complexType.Elements().Last(), null);
             mockDescription.Setup(m => m.EFTypeName).Returns("Property");
 
             return new[] { mockCategoryId.Object, mockDescription.Object };

@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class Function : EFNameableItem
     {
         internal static readonly string ElementName = "Function";
@@ -36,7 +36,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         private DefaultableValue<string> _storeSchemaGenNameAttr;
 
         private CommandText _commandText;
-        private readonly List<Parameter> _parameters = new List<Parameter>();
+        private readonly List<Parameter> _parameters = [];
 
         internal Function(EFElement parent, XElement element)
             : base(parent, element)
@@ -47,7 +47,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var baseType = Parent as StorageEntityModel;
+                StorageEntityModel baseType = Parent as StorageEntityModel;
                 Debug.Assert(baseType != null, "this.Parent should be a StorageEntityModel");
                 return baseType;
             }
@@ -62,10 +62,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_returnTypeAttr == null)
-                {
-                    _returnTypeAttr = new ReturnTypeDefaultableValue(this);
-                }
+                _returnTypeAttr ??= new ReturnTypeDefaultableValue(this);
                 return _returnTypeAttr;
             }
         }
@@ -92,10 +89,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_aggregateAttr == null)
-                {
-                    _aggregateAttr = new AggregrateDefaultableValue(this);
-                }
+                _aggregateAttr ??= new AggregrateDefaultableValue(this);
                 return _aggregateAttr;
             }
         }
@@ -122,10 +116,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_builtInAttr == null)
-                {
-                    _builtInAttr = new BuiltInDefaultableValue(this);
-                }
+                _builtInAttr ??= new BuiltInDefaultableValue(this);
                 return _builtInAttr;
             }
         }
@@ -152,10 +143,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_storeFunctionNameAttr == null)
-                {
-                    _storeFunctionNameAttr = new StoreFunctionNameDefaultableValue(this);
-                }
+                _storeFunctionNameAttr ??= new StoreFunctionNameDefaultableValue(this);
                 return _storeFunctionNameAttr;
             }
         }
@@ -182,10 +170,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_niladicFunctionAttr == null)
-                {
-                    _niladicFunctionAttr = new NiladicFunctionDefaultableValue(this);
-                }
+                _niladicFunctionAttr ??= new NiladicFunctionDefaultableValue(this);
                 return _niladicFunctionAttr;
             }
         }
@@ -212,10 +197,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_isComposableAttr == null)
-                {
-                    _isComposableAttr = new IsComposableDefaultableValue(this);
-                }
+                _isComposableAttr ??= new IsComposableDefaultableValue(this);
                 return _isComposableAttr;
             }
         }
@@ -242,10 +224,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_parameterTypeSemanticsAttr == null)
-                {
-                    _parameterTypeSemanticsAttr = new ParameterTypeSemanticDefaultableValue(this);
-                }
+                _parameterTypeSemanticsAttr ??= new ParameterTypeSemanticDefaultableValue(this);
                 return _parameterTypeSemanticsAttr;
             }
         }
@@ -272,10 +251,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_schemaAttr == null)
-                {
-                    _schemaAttr = new SchemaDefaultableValue(this);
-                }
+                _schemaAttr ??= new SchemaDefaultableValue(this);
                 return _schemaAttr;
             }
         }
@@ -312,10 +288,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_storeSchemaGenSchemaAttr == null)
-                {
-                    _storeSchemaGenSchemaAttr = new StoreSchemaGeneratorSchemaDefaultableValue(this);
-                }
+                _storeSchemaGenSchemaAttr ??= new StoreSchemaGeneratorSchemaDefaultableValue(this);
 
                 return _storeSchemaGenSchemaAttr;
             }
@@ -352,10 +325,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_storeSchemaGenNameAttr == null)
-                {
-                    _storeSchemaGenNameAttr = new StoreSchemaGeneratorNameDefaultableValue(this);
-                }
+                _storeSchemaGenNameAttr ??= new StoreSchemaGeneratorNameDefaultableValue(this);
 
                 return _storeSchemaGenNameAttr;
             }
@@ -433,15 +403,13 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as Parameter;
-            if (child1 != null)
+            if (efContainer is Parameter child1)
             {
                 _parameters.Remove(child1);
                 return;
             }
 
-            var child2 = efContainer as CommandText;
-            if (child2 != null)
+            if (efContainer is CommandText child2)
             {
                 _commandText = null;
                 return;
@@ -511,7 +479,6 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == CommandText.ElementName)
@@ -530,7 +497,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             }
             else if (elem.Name.LocalName == Parameter.ElementName)
             {
-                var param = new Parameter(this, elem);
+                Parameter param = new Parameter(this, elem);
                 param.Parse(unprocessedElements);
                 _parameters.Add(param);
             }
@@ -580,7 +547,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                         // if neither of the above attributes are present then 
                         // the schema name (as defined by the runtime) is the 
                         // value of the Namespace attribute of the parent Schema element
-                        var sem = Parent as StorageEntityModel;
+                        StorageEntityModel sem = Parent as StorageEntityModel;
                         Debug.Assert(
                             sem != null,
                             "Parent of Function should be a StorageEntityModel. Actual parent has type "

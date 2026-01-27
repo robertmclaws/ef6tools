@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.VisualStudio.Data.Services;
+using Microsoft.VisualStudio.Data.Services.SupportEntities;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Data.Sql
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.VisualStudio.Data.Services;
-    using Microsoft.VisualStudio.Data.Services.SupportEntities;
-
     internal class DataSchemaObject : IDataSchemaObject
     {
         protected DataSchemaServer _server;
@@ -96,7 +96,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Data.Sql
 
                     if (importantParts != null)
                     {
-                        var iConv =
+                        IVsDataObjectIdentifierConverter iConv =
                             (_server.Connection).GetService(typeof(IVsDataObjectIdentifierConverter)) as IVsDataObjectIdentifierConverter;
                         Debug.Assert(iConv != null, "Cannot get identifier converter");
                         if (iConv != null)
@@ -115,10 +115,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Data.Sql
         {
             get
             {
-                if (_displayName == null)
-                {
-                    _displayName = Identifier.ToString(DataObjectIdentifierFormat.ForDisplay);
-                }
+                _displayName ??= Identifier.ToString(DataObjectIdentifierFormat.ForDisplay);
 
                 return _displayName;
             }

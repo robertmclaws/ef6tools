@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using Microsoft.VisualStudio.Shell.Interop;
-
     /// <summary>
     ///     This class contains all preview data for an RefactorOperation.
     ///     Preview dialog will use all information in this class to populate the dialog.

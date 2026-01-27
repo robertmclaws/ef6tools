@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-
     /// <summary>
     ///     Class that represents a choice between a value indicating "not set" which will generally be
     ///     referred to as '(None)' and any string, including the string "(None)" which will be treated separately
@@ -45,8 +45,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         public override bool Equals(object obj)
         {
-            var other = obj as StringOrNone;
-            if (null == other)
+            if (obj is not StringOrNone other)
             {
                 return false;
             }

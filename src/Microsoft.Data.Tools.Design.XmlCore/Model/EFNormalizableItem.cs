@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-
     internal abstract class EFNormalizableItem : EFElement
     {
         private Symbol _normalizedName; // = string.Empty;

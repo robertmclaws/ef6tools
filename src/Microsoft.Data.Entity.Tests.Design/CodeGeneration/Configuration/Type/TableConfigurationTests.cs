@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class TableConfigurationTests
     {
         [TestMethod]
         public void GetAttributeBody_returns_body()
         {
-            var configuration = new TableConfiguration { Table = "Entities" };
-            var code = new CSharpCodeHelper();
+            TableConfiguration configuration = new TableConfiguration { Table = "Entities" };
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetAttributeBody(code).Should().Be("Table(\"Entities\")");
         }
@@ -21,8 +21,8 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void GetMethodChain_returns_body()
         {
-            var configuration = new TableConfiguration { Table = "Entities" };
-            var code = new CSharpCodeHelper();
+            TableConfiguration configuration = new TableConfiguration { Table = "Entities" };
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetMethodChain(code).Should().Be(".ToTable(\"Entities\")");
         }
@@ -36,7 +36,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [DataRow("One.Two", "Three.Four", "[One.Two].[Three.Four]")]
         public void GetName_escapes_parts_when_dot(string schema, string table, string expected)
         {
-            var configuration = new TableConfiguration { Schema = schema, Table = table };
+            TableConfiguration configuration = new TableConfiguration { Schema = schema, Table = table };
 
             configuration.GetName().Should().Be(expected);
         }

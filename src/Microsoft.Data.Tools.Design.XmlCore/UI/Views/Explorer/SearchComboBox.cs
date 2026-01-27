@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Automation.Peers;
+using System.Windows.Controls;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System.Windows;
-    using System.Windows.Automation;
-    using System.Windows.Automation.Peers;
-    using System.Windows.Controls;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -30,15 +30,13 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             TrySetCaretBrush();
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void TrySetCaretBrush()
         {
             try
             {
                 if (Template != null)
                 {
-                    var textBox = Template.FindName("PART_EditableTextBox", this) as TextBox;
-                    if (textBox != null)
+                    if (Template.FindName("PART_EditableTextBox", this) is TextBox textBox)
                     {
                         textBox.CaretBrush = textBox.Foreground;
                         textBox.SetValue(

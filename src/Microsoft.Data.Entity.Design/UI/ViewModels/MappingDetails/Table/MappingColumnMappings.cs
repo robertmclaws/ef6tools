@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     This class is here to represent the extra node we want into the UI, namely
     //     a child of the table, and a sibling of the list of conditions.  It shares a reference
@@ -56,12 +56,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal IList<MappingScalarProperty> ScalarProperties
         {
             get
             {
-                _scalarProperties = new List<MappingScalarProperty>();
+                _scalarProperties = [];
 
                 if (StorageEntityType != null)
                 {
@@ -71,7 +70,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                     // prime the list with all columns in the table (do not remove any columns
                     // used in conditions - design decision to allow the user to see the error message
                     // and respond rather than forcing them to unmap in order to re-map)
-                    var storageProperties = new List<Property>();
+                    List<Property> storageProperties = new List<Property>();
                     storageProperties.AddRange(StorageEntityType.Properties());
 
                     // loop through all of the 'columns' in the s-side entity
@@ -80,10 +79,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                         var skipProperty = false;
                         ScalarProperty existingScalarProperty = null;
 
-                        ScalarProperty scalarPropMappedToCurrentEntity;
-                        ScalarProperty nearestScalarPropMappedToAncestorEntity;
                         GetInheritanceScalarPropsForStorageProp(
-                            storageProp, entityType, out scalarPropMappedToCurrentEntity, out nearestScalarPropMappedToAncestorEntity);
+                            storageProp, entityType, out ScalarProperty scalarPropMappedToCurrentEntity, out ScalarProperty nearestScalarPropMappedToAncestorEntity);
 
                         switch (mappingStrategy)
                         {
@@ -198,7 +195,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                         // existing ScalarProperty
                         if (existingScalarProperty == null)
                         {
-                            var msp = new MappingScalarProperty(_context, null, this);
+                            MappingScalarProperty msp = new MappingScalarProperty(_context, null, this);
                             msp.ColumnName = storageProp.LocalName.Value;
                             msp.ColumnType = storageProp.TypeName;
                             msp.IsKeyColumn = storageProp.IsKeyProperty;
@@ -206,7 +203,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                         }
                         else
                         {
-                            var msp =
+                            MappingScalarProperty msp =
                                 (MappingScalarProperty)ModelToMappingModelXRef.GetNewOrExisting(_context, existingScalarProperty, this);
                             _scalarProperties.Add(msp);
                         }
@@ -266,7 +263,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 
         protected override void OnChildDeleted(MappingEFElement melem)
         {
-            var child = melem as MappingScalarProperty;
+            MappingScalarProperty child = melem as MappingScalarProperty;
             Debug.Assert(child != null, "Unknown child being deleted");
             if (child != null)
             {

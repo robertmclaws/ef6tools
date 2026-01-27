@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Controls.Primitives;
-    using System.Windows.Media;
-
     internal static class ExplorerUtility
     {
         internal static ScrollBar FindFirstVerticalScrollBar(Visual element)
@@ -17,8 +17,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             var childScrollBars = GetTypeDescendents(element, typeof(ScrollBar));
             foreach (var childScrollBar in childScrollBars)
             {
-                var scrollBar = childScrollBar as ScrollBar;
-                if (scrollBar != null
+                if (childScrollBar is ScrollBar scrollBar
                     && scrollBar.Orientation == Orientation.Vertical)
                 {
                     return scrollBar;
@@ -50,8 +49,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             var count = VisualTreeHelper.GetChildrenCount(element);
             for (var i = 0; i < count; i++)
             {
-                var child = VisualTreeHelper.GetChild(element, i) as Visual;
-                if (child != null)
+                if (VisualTreeHelper.GetChild(element, i) is Visual child)
                 {
                     yield return child;
                 }
@@ -63,8 +61,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             DependencyObject e = element;
             while (e != null)
             {
-                var returnValue = e as T;
-                if (returnValue != null)
+                if (e is T returnValue)
                 {
                     return (T)e;
                 }
@@ -78,8 +75,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             DependencyObject e = element;
             while (e != null)
             {
-                var returnValue = e as T;
-                if (returnValue != null)
+                if (e is T returnValue)
                 {
                     return (T)e;
                 }
@@ -92,14 +88,12 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         {
             if (treeViewItem != null)
             {
-                var grid = VisualTreeHelper.GetChild(treeViewItem, 0) as Grid;
-                if (grid != null)
+                if (VisualTreeHelper.GetChild(treeViewItem, 0) is Grid grid)
                 {
-                    var border = VisualTreeHelper.GetChild(grid, 0) as Border;
-                    if (border != null
+                    if (VisualTreeHelper.GetChild(grid, 0) is Border border
                         && border.Name == "PART_Header")
                     {
-                        var panel = VisualTreeHelper.GetChild(border, 0) as StackPanel;
+                        StackPanel panel = VisualTreeHelper.GetChild(border, 0) as StackPanel;
                         return panel;
                     }
                 }

@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-
     #region VirtualTreeHitTargets flags
 
     /// <summary>
@@ -233,8 +233,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     VirtualTreeHitInfo structures should not be compared
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator ==(VirtualTreeHitInfo operand1, VirtualTreeHitInfo operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -244,8 +242,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     VirtualTreeHitInfo structures should not be compared
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool Compare(VirtualTreeHitInfo operand1, VirtualTreeHitInfo operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -255,8 +251,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     VirtualTreeHitInfo structures should not be compared
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator !=(VirtualTreeHitInfo operand1, VirtualTreeHitInfo operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -429,8 +423,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     VirtualTreeExtendedHitInfo structures should not be compared
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator ==(VirtualTreeExtendedHitInfo operand1, VirtualTreeExtendedHitInfo operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -440,8 +432,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     VirtualTreeExtendedHitInfo structures should not be compared
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool Compare(VirtualTreeExtendedHitInfo operand1, VirtualTreeExtendedHitInfo operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -451,8 +441,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     VirtualTreeExtendedHitInfo structures should not be compared
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator !=(VirtualTreeExtendedHitInfo operand1, VirtualTreeExtendedHitInfo operand2)
         {
             Debug.Assert(false); // There is no need to compare these

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.Model;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-
     internal delegate int ModelChangeEventHandler(object sender, ModelChangeEventArgs args);
 
     internal sealed class ModelChangeEventArgs : EventArgs

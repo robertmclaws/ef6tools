@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.VisualStudio.Package;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using Microsoft.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-
     /// <summary>
     ///     This is the error task we use for open documents.  The DocumentTask will keep text ranges up to date when the buffer changes.
     /// </summary>
@@ -34,7 +34,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             var span = Span;
             if (textLineMarker != null)
             {
-                var spanArray = new TextSpan[1];
+                TextSpan[] spanArray = new TextSpan[1];
                 NativeMethods.ThrowOnFailure(textLineMarker.GetCurrentSpan(spanArray));
                 span = spanArray[0];
             }

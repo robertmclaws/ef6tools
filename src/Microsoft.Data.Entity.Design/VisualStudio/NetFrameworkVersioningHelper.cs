@@ -1,20 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Runtime.Versioning;
+using EnvDTE;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Runtime.Versioning;
-    using EnvDTE;
-
     internal class NetFrameworkVersioningHelper
     {
         private const string NetFrameworkMonikerIdentifier = ".NETFramework";
         private const string NetCoreMonikerIdentifier = ".NETCoreApp";
         private const string NetMonikerIdentifier = ".NET";
 
-        public static readonly Version NetFrameworkVersion3_5 = new Version(3, 5);
-        public static readonly Version NetFrameworkVersion4 = new Version(4, 0);
-        public static readonly Version NetFrameworkVersion4_5 = new Version(4, 5);
+        // Minimum supported .NET Framework version
+        public static readonly Version NetFrameworkVersion4_7_2 = new Version(4, 7, 2);
 
         /// <summary>
         /// Gets the target .NET Framework version for the project.
@@ -69,7 +68,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         /// <summary>
         /// Checks if the project targets any supported .NET runtime.
-        /// Returns true for .NET Framework 3.5+ and all modern .NET versions.
+        /// Returns true for .NET Framework 4.7.2+ and all modern .NET versions.
         /// </summary>
         public static bool IsSupportedDotNetProject(Project project, IServiceProvider serviceProvider)
         {
@@ -86,10 +85,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 return true;
             }
 
-            // .NET Framework 3.5+ is supported
+            // .NET Framework 4.7.2+ is supported
             if (frameworkName.Identifier == NetFrameworkMonikerIdentifier)
             {
-                return frameworkName.Version >= NetFrameworkVersion3_5;
+                return frameworkName.Version >= NetFrameworkVersion4_7_2;
             }
 
             return false;

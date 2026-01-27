@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     This command lets you add a new EntitySet to either the conceptual or the storage model.  You
     ///     can either send the EntityType that the set will be for to the constructor or, if both type and
@@ -94,8 +94,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (EntityType == null)
             {
-                var prereq = GetPreReqCommand(CreateEntityTypeCommand.PrereqId) as CreateEntityTypeCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateEntityTypeCommand.PrereqId) is CreateEntityTypeCommand prereq)
                 {
                     EntityType = prereq.EntityType;
 
@@ -114,9 +113,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "EntityType")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(EntityType != null, "InvokeInternal is called when EntityType is null");
@@ -159,8 +155,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
             else
             {
-                string msg = null;
-                if (ModelHelper.IsUniqueName(typeof(EntitySet), entityContainer, Name, false, out msg) == false)
+                if (ModelHelper.IsUniqueName(typeof(EntitySet), entityContainer, Name, false, out string msg) == false)
                 {
                     throw new CommandValidationFailedException(msg);
                 }
@@ -178,7 +173,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 // DefiningQuery creation
                 if (DefiningQueryContent != null)
                 {
-                    var definingQuery = new DefiningQuery(entitySet, null);
+                    DefiningQuery definingQuery = new DefiningQuery(entitySet, null);
                     definingQuery.XElement.SetValue(DefiningQueryContent);
                     ((StorageEntitySet)entitySet).DefiningQuery = definingQuery;
                 }

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Diagnostics;
-
     /// <summary>
     ///     Represents a reference from one part of the model to a named object
     ///     elsewhere. The reference can be of the form:

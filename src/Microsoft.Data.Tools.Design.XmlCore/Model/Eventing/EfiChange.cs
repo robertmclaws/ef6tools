@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Model.Eventing
 {
-    using System.Collections.Generic;
-
     /// <summary>
     ///     Represents a change to a field on an EFElement object (if type is update)
     ///     or else it represents the lifecycle event of an object creation or
@@ -26,7 +26,7 @@ namespace Microsoft.Data.Entity.Design.Model.Eventing
         {
             _changeType = changeType;
             _changed = changed;
-            _properties = new Dictionary<string, OldNewPair>();
+            _properties = [];
         }
 
         internal void RecordModelChange(string property, object oldValue, object newValue)
@@ -36,8 +36,7 @@ namespace Microsoft.Data.Entity.Design.Model.Eventing
                 return;
             }
 
-            OldNewPair onp;
-            if (_properties.TryGetValue(property, out onp))
+            if (_properties.TryGetValue(property, out OldNewPair onp))
             {
                 onp.NewValue = newValue;
             }

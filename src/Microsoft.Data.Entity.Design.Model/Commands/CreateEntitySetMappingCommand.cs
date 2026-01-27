@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class CreateEntitySetMappingCommand : Command
     {
         private EntityContainerMapping _entityContainerMapping;
@@ -24,13 +24,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _entitySet = entitySet;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // if don't have an ECM yet, go create one
             if (_entityContainerMapping == null)
             {
-                var cmd = new CreateEntityContainerMappingCommand(_entitySet.Artifact);
+                CreateEntityContainerMappingCommand cmd = new CreateEntityContainerMappingCommand(_entitySet.Artifact);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
 
                 _entityContainerMapping = cmd.EntityContainerMapping;
@@ -43,7 +42,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // create the ESM
-            var esm = new EntitySetMapping(_entityContainerMapping, null);
+            EntitySetMapping esm = new EntitySetMapping(_entityContainerMapping, null);
             esm.Name.SetRefName(_entitySet);
             _entityContainerMapping.AddEntitySetMapping(esm);
 

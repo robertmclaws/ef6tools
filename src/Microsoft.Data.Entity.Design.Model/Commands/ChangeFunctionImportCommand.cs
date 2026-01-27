@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to change aspects of a FunctionImport in the C-Side
     ///     Example Function and corresponding FunctionImport:
@@ -44,7 +44,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         internal ChangeFunctionImportCommand(Func<Command, CommandProcessorContext, bool> bindingAction)
             : base(bindingAction)
         {
-            _efContainerToBeNormalized = new List<EFContainer>();
+            _efContainerToBeNormalized = [];
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             FunctionImportIsComposable = functionImportIsComposable;
             ChangeReturnType = changeReturnType;
             ReturnSingleType = returnType;
-            _efContainerToBeNormalized = new List<EFContainer>();
+            _efContainerToBeNormalized = [];
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             FunctionImportName = functionImportName;
             FunctionImportIsComposable = functionImportIsComposable;
             ChangeReturnType = true;
-            _efContainerToBeNormalized = new List<EFContainer>();
+            _efContainerToBeNormalized = [];
             AddPreReqCommand(prereqCommand);
         }
 
@@ -106,8 +106,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (ReturnSingleType == null)
             {
-                var prereq = GetPreReqCommand(CreateComplexTypeCommand.PrereqId) as CreateComplexTypeCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateComplexTypeCommand.PrereqId) is CreateComplexTypeCommand prereq)
                 {
                     CommandValidation.ValidateComplexType(prereq.ComplexType);
                     ReturnSingleType = prereq.ComplexType;
@@ -116,8 +115,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "FunctionImport")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(FunctionImport != null, "InvokeInternal is called when FunctionImport is null");
@@ -237,7 +234,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                             && FunctionImport.Artifact.MappingModel() != null
                             && FunctionImport.Artifact.MappingModel().FirstEntityContainerMapping != null)
                         {
-                            var cmdFuncImpMapping = new CreateFunctionImportMappingCommand(
+                            CreateFunctionImportMappingCommand cmdFuncImpMapping = new CreateFunctionImportMappingCommand(
                                 FunctionImport.Artifact.MappingModel().FirstEntityContainerMapping,
                                 Function,
                                 FunctionImport);
@@ -265,8 +262,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             if (ChangeReturnType)
             {
                 // figure out if we are using a complex type, an entity type, primitive type or none as the return type
-                var complexType = ReturnSingleType as ComplexType;
-                var entityType = ReturnSingleType as EntityType;
+                ComplexType complexType = ReturnSingleType as ComplexType;
+                EntityType entityType = ReturnSingleType as EntityType;
                 // if returnTypeStringValue is not null, the value could be "None" or the string representation of primitive types (for example: "string", "Int16").
                 var returnTypeStringValue = ReturnSingleType as string;
 

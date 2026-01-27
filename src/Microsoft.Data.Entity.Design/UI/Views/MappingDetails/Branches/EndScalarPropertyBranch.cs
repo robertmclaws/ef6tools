@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 {
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     // <summary>
     //     This branch shows the scalar property mappings for an assocation set end property.
     // </summary>
@@ -31,8 +31,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                 return false;
             }
 
-            var mappingAssociationSetEnd = component as MappingAssociationSetEnd;
-            if (mappingAssociationSetEnd != null)
+            if (component is MappingAssociationSetEnd mappingAssociationSetEnd)
             {
                 _mappingAssociationSetEnd = mappingAssociationSetEnd;
             }

@@ -1,21 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     [RuleOn(typeof(AssociationConnector), FireTime = TimeToFire.TopLevelCommit)]
     internal sealed class AssociationConnector_AddRule : AddRule
     {
         public override void ElementAdded(ElementAddedEventArgs e)
         {
-            var associationConnector = e.ModelElement as AssociationConnector;
+            AssociationConnector associationConnector = e.ModelElement as AssociationConnector;
             Debug.Assert(associationConnector != null);
 
             var tx = ModelUtils.GetCurrentTx(associationConnector.Store);
@@ -33,7 +33,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
     {
         public override void ElementPropertyChanged(ElementPropertyChangedEventArgs e)
         {
-            var associationConnector = e.ModelElement as AssociationConnector;
+            AssociationConnector associationConnector = e.ModelElement as AssociationConnector;
             Debug.Assert(associationConnector != null);
 
             if (associationConnector != null)
@@ -67,8 +67,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
         {
             base.ElementDeleted(e);
 
-            var associationConnector = e.ModelElement as AssociationConnector;
-            if (associationConnector != null)
+            if (e.ModelElement is AssociationConnector associationConnector)
             {
                 var tx = ModelUtils.GetCurrentTx(associationConnector.Store);
                 Debug.Assert(tx != null);

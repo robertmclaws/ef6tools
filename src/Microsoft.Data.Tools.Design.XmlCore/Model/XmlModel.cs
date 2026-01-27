@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Tools.XmlDesignerBase.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -85,7 +85,6 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model
         /// </summary>
         /// <param name="xobject">This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</param>
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "This is a desirable name")]
         public abstract TextSpan GetTextSpan(XObject xobject);
 
         /// <summary>
@@ -181,11 +180,10 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model
             while (lookDeeper)
             {
                 lookDeeper = false;
-                var container = currentNode as XContainer;
-                if (container != null)
+                if (currentNode is XContainer container)
                 {
                     // look for a child whose textSpan contains (lin, col)
-                    var children = new List<XElement>(container.Elements());
+                    List<XElement> children = new List<XElement>(container.Elements());
                     var start = 0;
                     var end = children.Count - 1;
                     while (start <= end)

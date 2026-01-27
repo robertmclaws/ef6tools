@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class ChangeScalarPropertyCommand : Command
     {
         private readonly Property _entityProperty;
@@ -65,7 +65,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // if we change a scalar in an association mapping, make sure that we still have good MSL
             if (ScalarProperty.EndProperty != null)
             {
-                var asm = ScalarProperty.EndProperty.Parent as AssociationSetMapping;
+                AssociationSetMapping asm = ScalarProperty.EndProperty.Parent as AssociationSetMapping;
                 Debug.Assert(asm != null, "_sp.EndProperty parent is not an AssociationSetMapping");
                 if (asm != null)
                 {

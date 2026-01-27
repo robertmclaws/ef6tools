@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
 {
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     /// <summary>
     ///     After a shape is added to the diagram, keep track of it
     ///     so that the auto arrange can be done for all the objects before the
@@ -18,8 +18,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
         public override void ElementAdded(ElementAddedEventArgs e)
         {
             // if aren't adding a shape, just return
-            var addedShape = e.ModelElement as ShapeElement;
-            if (addedShape == null)
+            if (e.ModelElement is not ShapeElement addedShape)
             {
                 return;
             }
@@ -33,8 +32,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
             }
 
             // layout this new shape
-            var diagram = addedShape.Diagram as EntityDesignerDiagram;
-            if (diagram != null
+            if (addedShape.Diagram is EntityDesignerDiagram diagram
                 && diagram.Arranger != null)
             {
                 diagram.Arranger.Add(addedShape, false);

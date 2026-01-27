@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal static class ProperyMappingNameNormalizer
     {
         internal static NormalizedName NameNormalizer(EFElement parent, string refName)
@@ -17,7 +17,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                 return null;
             }
 
-            var parentItem = parent.Parent as EFElement;
+            EFElement parentItem = parent.Parent as EFElement;
             Debug.Assert(parentItem != null, "parent.Parent should be an EFElement");
 
             Debug.Assert(
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             //
             // try to normalize for location in a ComplexProperty
             //
-            var cp = parentItem.GetParentOfType(typeof(ComplexProperty)) as ComplexProperty;
+            ComplexProperty cp = parentItem.GetParentOfType(typeof(ComplexProperty)) as ComplexProperty;
             normalizedName = NormalizePropertyNameRelativeToComplexProperty(cp, refName);
             if (normalizedName != null)
             {
@@ -47,7 +47,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             //
             // try to normalize for an EntityTyepMapping with no FunctionAssociationEnd 
             //
-            var etm = parentItem.GetParentOfType(typeof(EntityTypeMapping)) as EntityTypeMapping;
+            EntityTypeMapping etm = parentItem.GetParentOfType(typeof(EntityTypeMapping)) as EntityTypeMapping;
             normalizedName = NormalizePropertyNameRelativeToEntityTypeMapping(etm, parent, refName);
             if (normalizedName != null)
             {
@@ -57,8 +57,8 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             //
             // try to normalize for an AssociationSetMapping
             //
-            var asm = parentItem.GetParentOfType(typeof(AssociationSetMapping)) as AssociationSetMapping;
-            var ep = parentItem.GetParentOfType(typeof(EndProperty)) as EndProperty;
+            AssociationSetMapping asm = parentItem.GetParentOfType(typeof(AssociationSetMapping)) as AssociationSetMapping;
+            EndProperty ep = parentItem.GetParentOfType(typeof(EndProperty)) as EndProperty;
             normalizedName = NormalizePropertyNameRelativeToAssociationSetMapping(asm, ep, parent, refName);
             if (normalizedName != null)
             {
@@ -67,7 +67,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
             if (asm != null)
             {
-                var cond = parent as Condition;
+                Condition cond = parent as Condition;
                 Debug.Assert(
                     cond == null, "It is assumed that Conditions under an AssociationSetMapping cannot have their Name property set.");
             }
@@ -97,8 +97,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                     var type = end.Type.Target;
                     if (type != null)
                     {
-                        var cet = type as ConceptualEntityType;
-                        if (cet != null)
+                        if (type is ConceptualEntityType cet)
                         {
                             // thie is a c-side entity type
                             while (cet != null)
@@ -128,7 +127,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         private static NormalizedName GetNormalizedNameRelativeToEntityType(EntityType et, string refName, EFArtifactSet artifactSet)
         {
-            var symbol = new Symbol(et.NormalizedName, refName);
+            Symbol symbol = new Symbol(et.NormalizedName, refName);
             var item = artifactSet.LookupSymbol(symbol);
             if (item != null)
             {
@@ -154,7 +153,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                     var complexType = cp.Name.Target.ComplexType.Target;
                     if (complexType != null)
                     {
-                        var symbol = new Symbol(complexType.NormalizedName, refName);
+                        Symbol symbol = new Symbol(complexType.NormalizedName, refName);
                         nn = new NormalizedName(symbol, null, null, refName);
                     }
                 }
@@ -183,19 +182,21 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                 {
                     if (binding.Status == BindingStatus.Known)
                     {
-                        var cet = binding.Target as ConceptualEntityType;
+                        ConceptualEntityType cet = binding.Target as ConceptualEntityType;
                         Debug.Assert(cet != null, "EntityType is not EntityTypeMapping");
 
                         // for each entity type in the list, look to see it contains the property
                         // if not, then check its parent
-                        var typesToCheck = new List<ConceptualEntityType>();
-                        typesToCheck.Add(cet);
+                        List<ConceptualEntityType> typesToCheck = new List<ConceptualEntityType>
+                        {
+                            cet
+                        };
                         typesToCheck.AddRange(cet.ResolvableBaseTypes);
 
                         foreach (EntityType entityType in typesToCheck)
                         {
                             var entityTypeSymbol = entityType.NormalizedName;
-                            var symbol = new Symbol(entityTypeSymbol, refName);
+                            Symbol symbol = new Symbol(entityTypeSymbol, refName);
 
                             var artifactSet = parent.Artifact.ModelManager.GetArtifactSet(parent.Artifact.Uri);
                             var item = artifactSet.LookupSymbol(symbol);
@@ -225,7 +226,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             if (ep != null
                 && asm != null)
             {
-                var prop = parent as ScalarProperty;
+                ScalarProperty prop = parent as ScalarProperty;
                 Debug.Assert(prop != null, "parent should be a ScalarProperty");
 
                 if (ep.Name.Status == BindingStatus.Known)

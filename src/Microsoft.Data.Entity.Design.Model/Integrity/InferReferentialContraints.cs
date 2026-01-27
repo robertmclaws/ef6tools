@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Integrity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class InferReferentialConstraints : IIntegrityCheck
     {
         private readonly CommandProcessorContext _context;
@@ -23,8 +23,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
         public bool IsEqual(IIntegrityCheck otherCheck)
         {
-            var typedOtherCheck = otherCheck as InferReferentialConstraints;
-            if (typedOtherCheck != null
+            if (otherCheck is InferReferentialConstraints typedOtherCheck
                 && typedOtherCheck._association == _association)
             {
                 return true;
@@ -40,8 +39,6 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
         /// </summary>
         /// <param name="cpc"></param>
         /// <param name="association">This is only valid for C-Side associations.</param>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public void Invoke()
         {
             Debug.Assert(_association != null, "The Association reference is null");
@@ -89,10 +86,8 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                 return;
             }
 
-            AssociationEnd principal = null;
-            AssociationEnd dependent = null;
             ModelHelper.DeterminePrincipalDependentAssociationEnds(
-                _association, out principal, out dependent,
+                _association, out AssociationEnd principal, out AssociationEnd dependent,
                 ModelHelper.DeterminePrincipalDependentAssociationEndsScenario.InferReferentialConstraint);
 
             // We found our principal and dependent ends but we still need to confirm that
@@ -110,8 +105,8 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                         && asm.EndProperties().Count == 2)
                     {
                         // any commonly mapped properties will be loaded into these HashSets
-                        var principalPropertyRefs = new HashSet<Property>();
-                        var dependentPropertyRefs = new HashSet<Property>();
+                        HashSet<Property> principalPropertyRefs = new HashSet<Property>();
+                        HashSet<Property> dependentPropertyRefs = new HashSet<Property>();
 
                         EndProperty dependentEndProperty = null;
                         EndProperty principalEndProperty = null;
@@ -160,7 +155,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                                 && principalPropertyRefs.Count == dependentPropertyRefs.Count)
                             {
                                 // if the propertyRefs sets have any data in them, add the constraint
-                                var cmd = new CreateReferentialConstraintCommand(
+                                CreateReferentialConstraintCommand cmd = new CreateReferentialConstraintCommand(
                                     principal, dependent, principalPropertyRefs, dependentPropertyRefs);
                                 CommandProcessor.InvokeSingleCommand(_context, cmd);
                             }
@@ -180,11 +175,11 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             Debug.Assert(entityType != null, "entityType should not be null");
             Debug.Assert(entityType.EntityModel.IsCSDL, "entityType should be from C-side");
 
-            var processedAssociations = new HashSet<Association>();
+            HashSet<Association> processedAssociations = new HashSet<Association>();
 
             foreach (var end in entityType.GetAntiDependenciesOfType<AssociationEnd>())
             {
-                var association = end.Parent as Association;
+                Association association = end.Parent as Association;
                 Debug.Assert(association != null, "end.Parent should be an Association");
                 if (association != null)
                 {

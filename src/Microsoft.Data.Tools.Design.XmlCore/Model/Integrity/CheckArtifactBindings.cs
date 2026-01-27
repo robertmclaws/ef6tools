@@ -1,12 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Visitor;
+
+
 namespace Microsoft.Data.Entity.Design.Model.Integrity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
+
+
 
     /// <summary>
     ///     At this point, this is a very basic check that rebinds all bindings in an EFArtifact.
@@ -54,7 +58,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
             if (bindingsToRebind.Count > 0)
             {
-                var check = new CheckArtifactBindings(cpc);
+                CheckArtifactBindings check = new CheckArtifactBindings(cpc);
                 cpc.AddIntegrityCheck(check);
 
                 foreach (var ib in bindingsToRebind)
@@ -74,7 +78,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             Debug.Assert(cpc != null);
             Debug.Assert(artifactSet != null);
 
-            var ubv = new UnknownBindingVisitor();
+            UnknownBindingVisitor ubv = new UnknownBindingVisitor();
             foreach (var artifact in artifactSet.Artifacts)
             {
                 ubv.Traverse(artifact);
@@ -86,7 +90,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
         internal static void ScheduleChildAntiDependenciesForRebinding(CommandProcessorContext cpc, EFObject efObject)
         {
             // identify any binding that was referencing this symbol, and add it to the list of things to rebind.
-            var visitor = new AntiDependencyCollectorVisitor();
+            AntiDependencyCollectorVisitor visitor = new AntiDependencyCollectorVisitor();
             visitor.Traverse(efObject);
             ScheduleBindingsForRebind(cpc, visitor.AntiDependencyBindings);
         }
@@ -95,9 +99,9 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
         ///     This class will traverse from the starting node, visiting all children accumulating
         ///     bindings whose state is unknown or undefined.
         /// </summary>
-        private class UnknownBindingVisitor : Visitor
+        private class UnknownBindingVisitor : Visitor.Visitor
         {
-            private readonly HashSet<ItemBinding> _unknownBindings = new HashSet<ItemBinding>();
+            private readonly HashSet<ItemBinding> _unknownBindings = [];
 
             internal ICollection<ItemBinding> UnknownBindings
             {
@@ -106,8 +110,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
             internal override void Visit(IVisitable visitable)
             {
-                var ib = visitable as ItemBinding;
-                if (ib != null)
+                if (visitable is ItemBinding ib)
                 {
                     if (ib.IsStatusUnknown)
                     {

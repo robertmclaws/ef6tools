@@ -1,26 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using Ole = Microsoft.VisualStudio.OLE.Interop;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
 
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.InteropServices;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
-
     /// <summary>
     ///     Represents a dynamic, interoperable service provider.
     /// </summary>
     [ComVisible(true)]
     [StructLayout(LayoutKind.Sequential)] // because it is COM visible
-    [SuppressMessage("Embeddable Types Rule", "NoPIATypeEq03:FlagServiceProviders",
-        MessageId = "Microsoft.VisualStudio.Data.Tools.Package.SharedUtilities.ServiceProviderHelper")]
     internal sealed class ServiceProviderHelper : IServiceContainer, IServiceProvider, Ole.IServiceProvider
     {
         #region Public Constructors
@@ -269,8 +266,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                         service = Services[serviceType];
 
                         // If the service is a ServiceCreatorCallback, then we need to create it
-                        var serviceCallback = service as ServiceCreatorCallback;
-                        if (serviceCallback != null)
+                        if (service is ServiceCreatorCallback serviceCallback)
                         {
                             // Save the created object as the service object
                             service = Services[serviceType] = serviceCallback(this, serviceType);
@@ -334,8 +330,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             }
 
             // If parent is an OLE service provider, delegate to it
-            var parentOleProvider = _parentProvider as Ole.IServiceProvider;
-            if (parentOleProvider != null)
+            if (_parentProvider is Ole.IServiceProvider parentOleProvider)
             {
                 return parentOleProvider.QueryService(ref guidService, ref riid, out ppvObject);
             }
@@ -364,10 +359,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                 {
                     lock (this)
                     {
-                        if (_services == null)
-                        {
-                            _services = new TypeKeyedDictionary<object>();
-                        }
+                        _services ??= new TypeKeyedDictionary<object>();
                     }
                 }
                 return _services;
@@ -380,11 +372,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
             {
                 // The parent container may be implemented directly by the parent
                 // or it may be supplied as a service off the parent; try both
-                var parentContainer = _parentProvider as IServiceContainer;
+                IServiceContainer parentContainer = _parentProvider as IServiceContainer;
                 if (parentContainer == null)
                 {
-                    var serviceProvider = _parentProvider as IServiceProvider;
-                    if (serviceProvider != null)
+                    if (_parentProvider is IServiceProvider serviceProvider)
                     {
                         parentContainer = serviceProvider.GetService(typeof(IServiceContainer)) as IServiceContainer;
                     }
@@ -424,11 +415,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 
                     // To get the parent provider, we look at both the parent
                     // provider instance and the parent container instance
-                    var nextProvider = currentProvider._parentProvider as ServiceProviderHelper;
-                    if (nextProvider == null)
-                    {
-                        nextProvider = currentProvider.ParentContainer as ServiceProviderHelper;
-                    }
+                    ServiceProviderHelper nextProvider = currentProvider._parentProvider as ServiceProviderHelper;
+                    nextProvider ??= currentProvider.ParentContainer as ServiceProviderHelper;
                     currentProvider = nextProvider;
                 }
                 while (currentProvider != null);
@@ -439,7 +427,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 
         private object QueryService(Guid serviceGuid)
         {
-            var parentOleProvider = _parentProvider as Ole.IServiceProvider;
+            Ole.IServiceProvider parentOleProvider = _parentProvider as Ole.IServiceProvider;
             Debug.Assert(parentOleProvider != null);
 
             object service = null;

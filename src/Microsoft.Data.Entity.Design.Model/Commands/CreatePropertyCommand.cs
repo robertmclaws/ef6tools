@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     This command creates a new property and lets you define the name, type and nullability of
     ///     the property.  Other related commands are:
@@ -98,8 +98,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (EntityType == null)
             {
-                var prereq = GetPreReqCommand(CreateEntityTypeCommand.PrereqId) as CreateEntityTypeCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateEntityTypeCommand.PrereqId) is CreateEntityTypeCommand prereq)
                 {
                     EntityType = prereq.EntityType;
                     CommandValidation.ValidateEntityType(EntityType);
@@ -109,8 +108,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "EntityType")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit
@@ -141,7 +138,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         }
 
         // internal for testing
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal Property CreateProperty()
         {
             var isNullable =
@@ -157,12 +153,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             return property;
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static Property CreateProperty(
             EntityType parentEntity, string name, string type, BoolOrNone isNullable, InsertPropertyPosition insertPosition)
         {
-            var conceptualEntity = parentEntity as ConceptualEntityType;
+            ConceptualEntityType conceptualEntity = parentEntity as ConceptualEntityType;
             Debug.Assert(conceptualEntity != null || parentEntity is StorageEntityType, "unexpected entity type");
             var property = conceptualEntity != null
                                ? CreateConceptualProperty(conceptualEntity, name, type, insertPosition)
@@ -176,19 +170,17 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             return property;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static Property CreateConceptualProperty(ConceptualEntityType parentEntity, string name, string type, InsertPropertyPosition insertPosition)
         {
-            var property = new ConceptualProperty(parentEntity, null, insertPosition);
+            ConceptualProperty property = new ConceptualProperty(parentEntity, null, insertPosition);
             property.LocalName.Value = name;
             property.ChangePropertyType(type);
             return property;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static Property CreateStorageProperty(StorageEntityType parentEntity, string name, string type)
         {
-            var property = new StorageProperty(parentEntity, null);
+            StorageProperty property = new StorageProperty(parentEntity, null);
             property.LocalName.Value = name;
             property.Type.Value = type;
             return property;
@@ -205,11 +197,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// <returns>The new Property</returns>
         internal static Property CreateDefaultProperty(CommandProcessorContext cpc, string name, EntityType entityType)
         {
-            var cpcd = new CreatePropertyCommand(
+            CreatePropertyCommand cpcd = new CreatePropertyCommand(
                 name, entityType, ModelConstants.DefaultPropertyType, ModelConstants.DefaultPropertyNullability);
             cpcd._createWithDefaultName = true;
 
-            var cp = new CommandProcessor(cpc, cpcd);
+            CommandProcessor cp = new CommandProcessor(cpc, cpcd);
             cp.Invoke();
 
             return cpcd.CreatedProperty;
@@ -240,14 +232,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             CommandValidation.ValidateConceptualEntityType(entityType);
 
-            var cpcd = new CreatePropertyCommand(name, entityType, type, nullable, insertPosition);
-            var scp = new SetConceptualPropertyFacetsCommand(
+            CreatePropertyCommand cpcd = new CreatePropertyCommand(name, entityType, type, nullable, insertPosition);
+            SetConceptualPropertyFacetsCommand scp = new SetConceptualPropertyFacetsCommand(
                 cpcd, theDefault, concurrencyMode, getterAccessModifier, setterAccessModifier,
                 maxLength, DefaultableValueBoolOrNone.GetFromNullableBool(fixedLength), precision, scale,
                 DefaultableValueBoolOrNone.GetFromNullableBool(unicode), collation);
-            var scpac = new SetConceptualPropertyAnnotationsCommand(cpcd, storeGeneratedPattern);
+            SetConceptualPropertyAnnotationsCommand scpac = new SetConceptualPropertyAnnotationsCommand(cpcd, storeGeneratedPattern);
 
-            var cp = new CommandProcessor(cpc, cpcd, scp, scpac);
+            CommandProcessor cp = new CommandProcessor(cpc, cpcd, scp, scpac);
             cp.Invoke();
 
             return cpcd.CreatedProperty;
@@ -281,11 +273,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             CommandValidation.ValidateStorageEntityType(entityType);
 
-            var cpcd = new CreatePropertyCommand(name, entityType, type, nullable);
-            var ssp = new SetPropertyFacetsCommand(
+            CreatePropertyCommand cpcd = new CreatePropertyCommand(name, entityType, type, nullable);
+            SetPropertyFacetsCommand ssp = new SetPropertyFacetsCommand(
                 cpcd, theDefault, maxLength, fixedLength, precision, scale, unicode, collation, concurrencyMode);
 
-            var cp = new CommandProcessor(cpc, cpcd, ssp);
+            CommandProcessor cp = new CommandProcessor(cpc, cpcd, ssp);
             cp.Invoke();
 
             return cpcd.CreatedProperty;

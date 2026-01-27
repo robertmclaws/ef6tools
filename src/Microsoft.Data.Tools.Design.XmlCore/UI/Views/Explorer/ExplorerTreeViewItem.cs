@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using Microsoft.Data.Entity.Design.UI.Commands;
+using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Text;
-    using System.Windows;
-    using System.Windows.Automation.Peers;
-    using System.Windows.Controls;
-    using System.Windows.Controls.Primitives;
-    using System.Windows.Input;
-    using Microsoft.Data.Entity.Design.UI.Commands;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -27,9 +27,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         public static readonly DependencyProperty IndentProperty = DependencyProperty.Register(
             "Indent", typeof(double), typeof(ExplorerTreeViewItem));
 
-        [SuppressMessage("Microsoft.Performance",
-            "CA1810:InitializeReferenceTypeStaticFieldsInline",
-            Justification = "The static constructor is required to register the mouse and key gestures")]
         static ExplorerTreeViewItem()
         {
             CommandManager.RegisterClassInputBinding(
@@ -45,7 +42,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 new MouseBinding(WorkspaceCommands.PutInRenameMode, new MouseGesture(MouseAction.LeftClick)));
         }
 
-        private static readonly Dictionary<string, object> _iconCache = new Dictionary<string, object>();
+        private static readonly Dictionary<string, object> _iconCache = [];
 
         // Automation (and accessibility) clients call this method
         /// <summary>
@@ -113,7 +110,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
         protected override DependencyObject GetContainerForItemOverride()
         {
-            var treeViewItem = new ExplorerTreeViewItem();
+            ExplorerTreeViewItem treeViewItem = new ExplorerTreeViewItem();
             treeViewItem.Indent = Indent + 19;
             return treeViewItem;
         }
@@ -143,7 +140,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                     // There is no guarantee that the Child UI Elements have been created yet; so we check the item container generator status.
                     if (ItemContainerGenerator.Status == GeneratorStatus.ContainersGenerated)
                     {
-                        var item = ItemContainerGenerator.ContainerFromIndex(e.OldStartingIndex - 1) as TreeViewItem;
+                        TreeViewItem item = ItemContainerGenerator.ContainerFromIndex(e.OldStartingIndex - 1) as TreeViewItem;
                         Debug.Assert(item != null, "Could not get previous sibling of the deleted item");
                         if (item != null)
                         {
@@ -177,15 +174,14 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         /// <returns></returns>
         protected override string GetAutomationIdCore()
         {
-            var owner = Owner as ExplorerTreeViewItem;
+            ExplorerTreeViewItem owner = Owner as ExplorerTreeViewItem;
             Debug.Assert(owner != null, "Where is the ExplorerTreeViewItem for the automation peer?");
 
             if (owner != null)
             {
                 // sometimes the label is stored as a string "Model2.edmx" or as an ExplorerEFElement
-                var element = owner.Header as ExplorerEFElement;
                 var elementstr = owner.Header as string;
-                if (element != null)
+                if (owner.Header is ExplorerEFElement element)
                 {
                     return element.Name;
                 }
@@ -205,17 +201,16 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         /// <returns></returns>
         protected override string GetNameCore()
         {
-            var owner = Owner as ExplorerTreeViewItem;
+            ExplorerTreeViewItem owner = Owner as ExplorerTreeViewItem;
             Debug.Assert(owner != null, "Where is the ExplorerTreeViewItem for the automation peer?");
 
             if (owner != null)
             {
                 // sometimes the label is stored as a string "Model2.edmx" or as an ExplorerEFElement
-                var element = owner.Header as ExplorerEFElement;
                 var elementstr = owner.Header as string;
-                if (element != null)
+                if (owner.Header is ExplorerEFElement element)
                 {
-                    var sb = new StringBuilder();
+                    StringBuilder sb = new StringBuilder();
 
                     // if the currently selected node is not a 'ghost node' (e.g. Entity Sets), we'll also tack on the name
                     if (element.ModelItem != null)
@@ -242,13 +237,12 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         /// <returns></returns>
         protected override string GetItemStatusCore()
         {
-            var owner = Owner as ExplorerTreeViewItem;
+            ExplorerTreeViewItem owner = Owner as ExplorerTreeViewItem;
             Debug.Assert(owner != null, "Where is the ExplorerTreeViewItem for the automation peer?");
 
             if (owner != null)
             {
-                var element = owner.Header as ExplorerEFElement;
-                if (element != null)
+                if (owner.Header is ExplorerEFElement element)
                 {
                     return element.ItemStatus;
                 }
@@ -264,7 +258,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         /// <returns></returns>
         protected override List<AutomationPeer> GetChildrenCore()
         {
-            var owner = Owner as ExplorerTreeViewItem;
+            ExplorerTreeViewItem owner = Owner as ExplorerTreeViewItem;
             Debug.Assert(owner != null, "Where is the ExplorerTreeViewItem for the automation peer?");
             if (owner != null)
             {
@@ -281,12 +275,11 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         /// <returns></returns>
         private static List<AutomationPeer> GetAutomationChildren(ExplorerTreeViewItem parent)
         {
-            var automationChildren = new List<AutomationPeer>();
+            List<AutomationPeer> automationChildren = new List<AutomationPeer>();
             foreach (ExplorerEFElement element in parent.Items)
             {
                 // get the TreeViewItem from the explorer element.
-                var treeViewItem = parent.ItemContainerGenerator.ContainerFromItem(element) as ExplorerTreeViewItem;
-                if (treeViewItem != null)
+                if (parent.ItemContainerGenerator.ContainerFromItem(element) is ExplorerTreeViewItem treeViewItem)
                 {
                     // create an AutomationPeer for this TreeViewItem (will call OnCreateAutomationPeer) and add that to the list to return
                     var automationChild = CreatePeerForElement(treeViewItem);

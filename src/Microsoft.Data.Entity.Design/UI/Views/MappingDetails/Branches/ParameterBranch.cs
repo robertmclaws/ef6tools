@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 {
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     // <summary>
     //     This branch shows the scalar property mappings.
     // </summary>
@@ -33,8 +33,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                 return false;
             }
 
-            var mappingFunctionScalarProperties = component as MappingFunctionScalarProperties;
-            if (mappingFunctionScalarProperties != null)
+            if (component is MappingFunctionScalarProperties mappingFunctionScalarProperties)
             {
                 _mappingFunctionScalarProperties = mappingFunctionScalarProperties;
             }
@@ -78,8 +77,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
             Parameter param = null;
             if (row < ElementCount)
             {
-                var mfsp = GetElement(row) as MappingFunctionScalarProperty;
-                if (null != mfsp)
+                if (GetElement(row) is MappingFunctionScalarProperty mfsp)
                 {
                     param = mfsp.StoreParameter;
                 }

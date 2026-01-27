@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateStorageAssociationCommand : Command
     {
         internal static readonly string PrereqId = "CreateStorageAssociationCommand";
@@ -42,7 +42,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             UniquifyNames = uniquifyNames;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             var service = cpc.EditingContext.GetEFArtifactService();
@@ -62,8 +61,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             else
             {
                 // check for uniqueness of the association name
-                string msg = null;
-                if (ModelHelper.IsUniqueName(typeof(Association), model, assocName, false, out msg) == false)
+                if (ModelHelper.IsUniqueName(typeof(Association), model, assocName, false, out string msg) == false)
                 {
                     throw new InvalidOperationException(msg);
                 }
@@ -76,13 +74,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // create the new item in our model
-            var association = new Association(model, null);
+            Association association = new Association(model, null);
             association.LocalName.Value = assocName;
             model.AddAssociation(association);
             XmlModelHelper.NormalizeAndResolve(association);
 
             // create the ends of the association
-            var fkEnd = new AssociationEnd(association, null);
+            AssociationEnd fkEnd = new AssociationEnd(association, null);
             fkEnd.Type.SetRefName(FkTable);
             fkEnd.Role.Value = FkRoleNameOverride ?? ModelHelper.CreateFKAssociationEndName(FkTable.LocalName.Value);
             if (FkMultiplicityOverride != null)
@@ -96,7 +94,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             association.AddAssociationEnd(fkEnd);
             XmlModelHelper.NormalizeAndResolve(fkEnd);
 
-            var pkEnd = new AssociationEnd(association, null);
+            AssociationEnd pkEnd = new AssociationEnd(association, null);
             pkEnd.Type.SetRefName(PkTable);
             pkEnd.Role.Value = PkRoleNameOverride ?? ModelHelper.CreatePKAssociationEndName(PkTable.LocalName.Value);
             if (PkMultiplicityOverride != null)
@@ -110,7 +108,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             association.AddAssociationEnd(pkEnd);
             XmlModelHelper.NormalizeAndResolve(pkEnd);
 
-            var cmd = new CreateAssociationSetCommand(assocSetName, association, ModelSpace.Storage);
+            CreateAssociationSetCommand cmd = new CreateAssociationSetCommand(assocSetName, association, ModelSpace.Storage);
             CommandProcessor.InvokeSingleCommand(cpc, cmd);
             var set = cmd.AssociationSet;
             Debug.Assert(set != null, "failed to create an AssociationSet");

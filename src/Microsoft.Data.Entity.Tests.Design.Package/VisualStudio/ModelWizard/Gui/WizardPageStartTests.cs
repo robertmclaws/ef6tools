@@ -1,27 +1,26 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Moq;
+using Moq.Protected;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using VSLangProj;
+using VsWebSite;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
 {
-    using System;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Moq;
-    using Moq.Protected;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Xml;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using VSLangProj;
-    using VsWebSite;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class WizardPageStartTests
     {
@@ -71,7 +70,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
         private static void Run_OnDeactivate_creates_and_verifies_model_path(
             ModelGenerationOption generationOption, LangEnum language, bool isWebSite, string expectedExtension)
         {
-            var mockDte =
+            MockDTE mockDte =
                 new MockDTE(
                     ".NETFramework, Version=v4.5",
                     isWebSite
@@ -85,7 +84,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
                             kind: language == LangEnum.CSharp ? MockDTE.CSharpProjectKind : MockDTE.VBProjectKind,
                             assemblyReferences: new Reference[0]));
 
-            var modelBuilderSettings = new ModelBuilderSettings
+            ModelBuilderSettings modelBuilderSettings = new ModelBuilderSettings
             {
                 NewItemFolder = @"C:\temp",
                 ModelName = "myModel",
@@ -93,7 +92,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
                 GenerationOption = generationOption
             };
 
-            var mockWizardPageStart =
+            Mock<WizardPageStart> mockWizardPageStart =
                 new Mock<WizardPageStart>(ModelBuilderWizardFormHelper.CreateWizard(modelBuilderSettings, mockDte.ServiceProvider), null)
                 { CallBase = true };
 
@@ -112,9 +111,9 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
         [TestMethod]
         public void OnDeactivate_does_not_update_settings_if_model_file_already_exists()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
 
-            var modelBuilderSettings = new ModelBuilderSettings
+            ModelBuilderSettings modelBuilderSettings = new ModelBuilderSettings
             {
                 NewItemFolder = @"C:\temp",
                 ModelName = "myModel",
@@ -122,7 +121,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
             };
 
             var wizard = ModelBuilderWizardFormHelper.CreateWizard(modelBuilderSettings, mockDte.ServiceProvider);
-            var mockWizardPageStart = new Mock<WizardPageStart>(wizard, null) { CallBase = true };
+            Mock<WizardPageStart> mockWizardPageStart = new Mock<WizardPageStart>(wizard, null) { CallBase = true };
             mockWizardPageStart
                 .Protected()
                 .Setup<bool>("VerifyModelFilePath", ItExpr.IsAny<string>())
@@ -181,7 +180,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
         [TestMethod]
         public void OnDeactivate_updates_model_settings_if_model_file_does_not_exist_for_CodeFirst_empty_model()
         {
-            var configXml = new XmlDocument();
+            XmlDocument configXml = new XmlDocument();
             // MSSQLLocalDB is the standard LocalDB instance name for VS2015+ (VS14 and later)
             configXml.LoadXml(
 @"<configuration>
@@ -190,7 +189,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
   </connectionStrings>
 </configuration>");
 
-            var mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, Mock.Of<IVsUtils>(), null);
+            Mock<ConfigFileUtils> mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, Mock.Of<IVsUtils>(), null);
             mockConfig.Setup(u => u.LoadConfig()).Returns(configXml);
 
             var wizard = CreateModelBuilderWizardForm(ModelGenerationOption.EmptyModelCodeFirst);
@@ -229,9 +228,9 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
 
         private static ModelBuilderWizardForm CreateModelBuilderWizardForm(ModelGenerationOption modelGenerationOption)
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
 
-            var modelBuilderSettings = new ModelBuilderSettings
+            ModelBuilderSettings modelBuilderSettings = new ModelBuilderSettings
             {
                 NewItemFolder = @"C:\temp",
                 ModelName = "myModel",
@@ -249,11 +248,11 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
         [TestMethod]
         public void OnActivate_result_depends_on_FileAlreadyExistsError()
         {
-            var mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
+            MockDTE mockDte = new MockDTE(".NETFramework, Version=v4.5", references: new Reference[0]);
 
             var wizard =
                 ModelBuilderWizardFormHelper.CreateWizard(project : mockDte.Project, serviceProvider: mockDte.ServiceProvider);
-            var wizardPageStart = new WizardPageStart(wizard);
+            WizardPageStart wizardPageStart = new WizardPageStart(wizard);
 
             wizard.FileAlreadyExistsError = true;
             wizardPageStart.OnActivate().Should().BeFalse();
@@ -265,11 +264,11 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
         [TestMethod]
         public void listViewModelContents_DoubleClick_calls_OnFinish_if_EmptyModel_selected()
         {
-            var mockDte = new MockDTE(
+            MockDTE mockDte = new MockDTE(
                 ".NETFramework, Version=v4.5",
                 references: new[] { MockDTE.CreateReference("EntityFramework", "5.0.0.0") });
 
-            var mockWizard =
+            Mock<ModelBuilderWizardForm> mockWizard =
                 Mock.Get(
                     ModelBuilderWizardFormHelper.CreateWizard(
                         ModelGenerationOption.EmptyModel,
@@ -298,7 +297,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
 
             foreach (var mockDte in mockDtes)
             {
-                var mockWizard =
+                Mock<ModelBuilderWizardForm> mockWizard =
                     Mock.Get(
                         ModelBuilderWizardFormHelper.CreateWizard(
                             ModelGenerationOption.EmptyModelCodeFirst,
@@ -319,12 +318,12 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
         [TestMethod]
         public void listViewModelContents_DoubleClick_wont_call_OnFinish_if_EmptyModelCodeFirst_selected_and_EF5_referenced()
         {
-            var mockDte =
+            MockDTE mockDte =
                 new MockDTE(
                     ".NETFramework, Version=v4.5",
                     references: new[] { MockDTE.CreateReference("EntityFramework", "5.0.0.0") });
 
-            var mockWizard =
+            Mock<ModelBuilderWizardForm> mockWizard =
                     Mock.Get(
                         ModelBuilderWizardFormHelper.CreateWizard(
                             ModelGenerationOption.EmptyModelCodeFirst,
@@ -344,7 +343,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
         private static Mock<WizardPageStart> CreateMockWizardPageStart(ModelBuilderWizardForm mockWizard, int itemIndex,
             ConfigFileUtils configFileUtils = null)
         {
-            var mockWizardPageStart = new Mock<WizardPageStart>(mockWizard, configFileUtils) { CallBase = true };
+            Mock<WizardPageStart> mockWizardPageStart = new Mock<WizardPageStart>(mockWizard, configFileUtils) { CallBase = true };
             mockWizardPageStart
                 .Protected()
                 .Setup<bool>("AnyItemSelected")

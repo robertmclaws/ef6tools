@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
-
     internal abstract class EFAttribute : EFObject
     {
         protected XNamespace _namespace = null;
@@ -38,7 +38,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal static string GetXAttributeValue(XAttribute attribute)
         {
-            var attr = ModelItemAnnotation.GetModelItem(attribute) as EFAttribute;
+            EFAttribute attr = ModelItemAnnotation.GetModelItem(attribute) as EFAttribute;
             Debug.Assert(attr != null);
             if (attr != null)
             {
@@ -76,12 +76,9 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal static void SetXAttributeValue(XAttribute attribute, string newValue)
         {
-            var attr = ModelItemAnnotation.GetModelItem(attribute) as EFAttribute;
+            EFAttribute attr = ModelItemAnnotation.GetModelItem(attribute) as EFAttribute;
             Debug.Assert(attr != null);
-            if (attr != null)
-            {
-                attr.SetXAttributeValue(newValue);
-            }
+            attr?.SetXAttributeValue(newValue);
         }
 
         /// <summary>

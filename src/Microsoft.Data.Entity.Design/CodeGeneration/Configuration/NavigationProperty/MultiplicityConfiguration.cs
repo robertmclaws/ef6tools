@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Text;
-
     /// <summary>
     /// Represents a model configuration to set the multiplicity of an association.
     /// </summary>
@@ -35,7 +35,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
             Debug.Assert(LeftNavigationProperty != null, "LeftNavigationProperty is null.");
             Debug.Assert(RightNavigationProperty != null, "RightNavigationProperty is null.");
 
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             builder.Append(".Entity");
             builder.Append(code.TypeArgument(code.Type(LeftEntityType)));
             builder.AppendLine("()");

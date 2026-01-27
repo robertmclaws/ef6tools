@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 {
-    using System;
-    using System.Globalization;
-    using System.IO;
-    using System.Text;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     /// <summary>
     /// Exports an EntityDesignerDiagram to SVG format.
     /// </summary>
@@ -109,7 +109,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             // Reset icon tracking for this export
             _iconManager.ResetUsedIcons();
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             // Calculate diagram bounds
             double minX = double.MaxValue;
@@ -119,8 +119,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 
             foreach (ShapeElement shape in diagram.NestedChildShapes)
             {
-                var nodeShape = shape as NodeShape;
-                if (nodeShape != null)
+                if (shape is NodeShape nodeShape)
                 {
                     var bounds = nodeShape.AbsoluteBounds;
                     // Convert inches to pixels (96 DPI)
@@ -170,7 +169,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                 SvgStylesheetManager.EscapeXml(diagramTitle));
 
             // Pre-render all content to track which icons are used
-            var contentBuilder = new StringBuilder();
+            StringBuilder contentBuilder = new StringBuilder();
 
             // Render all connectors first (so they appear behind shapes)
             foreach (ShapeElement shape in diagram.NestedChildShapes)
@@ -245,7 +244,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             // Reset icon tracking for this export
             _iconManager.ResetUsedIcons();
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             // Calculate diagram bounds
             double minX = double.MaxValue;
@@ -305,7 +304,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                 SvgStylesheetManager.EscapeXml(diagramTitle));
 
             // Pre-render all content to track which icons are used
-            var contentBuilder = new StringBuilder();
+            StringBuilder contentBuilder = new StringBuilder();
 
             // Render all connectors first (so they appear behind shapes)
             foreach (ShapeElement shape in diagram.NestedChildShapes)

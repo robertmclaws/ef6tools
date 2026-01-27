@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-
     internal class DesignerProperty : EFNameableItem
     {
         internal static readonly string ElementName = "DesignerProperty";
@@ -22,10 +22,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_valueAttr == null)
-                {
-                    _valueAttr = new AttributeValueDefaultableValue(this);
-                }
+                _valueAttr ??= new AttributeValueDefaultableValue(this);
                 return _valueAttr;
             }
         }

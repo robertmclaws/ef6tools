@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
 {
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using System;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
-
     [TestClass]
     public class EntityDesignDocumentFrameMgrTests
     {
@@ -21,14 +20,14 @@ using FluentAssertions;
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var mockVsArtifact =
+            Mock<VSArtifact> mockVsArtifact =
                 new Mock<VSArtifact>(modelManager, new Uri("c:\\artifact.edmx"), modelProvider) { CallBase = true };
 
-            var mockLayerManager = new Mock<LayerManager>(mockVsArtifact.Object);
+            Mock<LayerManager> mockLayerManager = new Mock<LayerManager>(mockVsArtifact.Object);
 
             mockVsArtifact.Setup(m => m.LayerManager).Returns(mockLayerManager.Object);
 
-            using (var frameMgrMock = new EntityDesignDocumentFrameMgrTestDouble { Artifact = mockVsArtifact.Object })
+            using (EntityDesignDocumentFrameMgrTestDouble frameMgrMock = new EntityDesignDocumentFrameMgrTestDouble { Artifact = mockVsArtifact.Object })
             {
                 frameMgrMock.OnBeforeLastDocumentUnlockInvoker(new Uri("urn:dummy"));
             }
@@ -39,18 +38,18 @@ using FluentAssertions;
         [TestMethod]
         public void OnBeforeLastDesignerDocumentUnlock_unloads_artifact_it_owns()
         {
-            var artifactUri = new Uri("c:\\artifact.edmx");
+            Uri artifactUri = new Uri("c:\\artifact.edmx");
 
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var mockVsArtifact =
+            Mock<VSArtifact> mockVsArtifact =
                 new Mock<VSArtifact>(modelManager, artifactUri, modelProvider) { CallBase = true };
 
-            var mockLayerManager = new Mock<LayerManager>(mockVsArtifact.Object);
+            Mock<LayerManager> mockLayerManager = new Mock<LayerManager>(mockVsArtifact.Object);
 
             mockVsArtifact.Setup(m => m.LayerManager).Returns(mockLayerManager.Object);
 
-            using (var frameMgrMock = new EntityDesignDocumentFrameMgrTestDouble { Artifact = mockVsArtifact.Object })
+            using (EntityDesignDocumentFrameMgrTestDouble frameMgrMock = new EntityDesignDocumentFrameMgrTestDouble { Artifact = mockVsArtifact.Object })
             {
                 frameMgrMock.OnBeforeLastDocumentUnlockInvoker(artifactUri);
             }

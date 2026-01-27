@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-
     /// <summary>
     /// Helper methods for analyzing a model.
     /// </summary>
@@ -79,8 +79,6 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
         /// <param name="navigationProperty">The navigation property.</param>
         /// <param name="isDefault">A value indicating whether the configuration will be applied by default.</param>
         /// <returns>The configuration.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
         public IFluentConfiguration GetMultiplicityConfiguration(
             NavigationProperty navigationProperty,
             out bool isDefault)
@@ -94,7 +92,6 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
         /// <param name="navigationProperty">The navigation property.</param>
         /// <param name="model">The model.</param>
         /// <returns>The configurations.</returns>
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
         public IEnumerable<IFluentConfiguration> GetConfigurations(
             NavigationProperty navigationProperty,
             DbModel model)

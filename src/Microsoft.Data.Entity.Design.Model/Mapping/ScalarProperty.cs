@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class ScalarProperty : PropertyMappingBase
     {
         internal static readonly string ElementName = "ScalarProperty";
@@ -30,7 +30,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as EndProperty;
+                EndProperty parent = Parent as EndProperty;
                 return parent;
             }
         }
@@ -98,9 +98,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         /// <returns></returns>
         internal List<Property> GetMappedPropertiesList()
         {
-            var properties = new List<Property>();
-            properties.Add(Name.Target);
-            var complexProperty = Parent as ComplexProperty;
+            List<Property> properties = new List<Property>
+            {
+                Name.Target
+            };
+            ComplexProperty complexProperty = Parent as ComplexProperty;
             while (complexProperty != null)
             {
                 properties.Insert(0, complexProperty.Name.Target);
@@ -117,8 +119,8 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         /// <returns></returns>
         internal List<ComplexProperty> GetParentComplexProperties(bool orderDescending = true)
         {
-            var properties = new List<ComplexProperty>();
-            var complexProperty = Parent as ComplexProperty;
+            List<ComplexProperty> properties = new List<ComplexProperty>();
+            ComplexProperty complexProperty = Parent as ComplexProperty;
             while (complexProperty != null)
             {
                 if (orderDescending)

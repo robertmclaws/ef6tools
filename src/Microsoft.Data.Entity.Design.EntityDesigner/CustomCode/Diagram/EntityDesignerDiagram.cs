@@ -1,55 +1,54 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.EntityDesigner.CustomCode.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Util;
+using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
+using Microsoft.Data.Entity.Design.UI.Views.Explorer;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Microsoft.VisualStudio.Modeling.Diagrams.GraphObject;
+using Microsoft.VisualStudio.Modeling.Immutability;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Globalization;
+using System.Linq;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+using ModelAssociation = Microsoft.Data.Entity.Design.Model.Entity.Association;
+using ModelDiagram = Microsoft.Data.Entity.Design.Model.Designer.Diagram;
+using ViewModelEntityType = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.EntityType;
+using ViewModelNavigationProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.NavigationProperty;
+using ViewModelProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.Property;
+using ViewModelPropertyBase = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.PropertyBase;
+using VSPackage = Microsoft.VisualStudio.Shell.Package;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 {
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.EntityDesigner.CustomCode.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Util;
-    using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
-    using Microsoft.Data.Entity.Design.UI.Views.Explorer;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Microsoft.VisualStudio.Modeling.Diagrams.GraphObject;
-    using Microsoft.VisualStudio.Modeling.Immutability;
-    using Microsoft.VisualStudio.PlatformUI;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Globalization;
-    using System.Linq;
-    using System.Windows.Forms;
-    using System.Windows.Forms.Design;
-    using EntityDesignerResources = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
-    using ModelAssociation = Microsoft.Data.Entity.Design.Model.Entity.Association;
-    using ModelDiagram = Microsoft.Data.Entity.Design.Model.Designer.Diagram;
-    using ViewModelEntityType = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.EntityType;
-    using ViewModelNavigationProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.NavigationProperty;
-    using ViewModelProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.Property;
-    using ViewModelPropertyBase = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.PropertyBase;
-
     partial class EntityDesignerDiagram : IViewDiagram
     {
         private const int undefinedZoomLevel = -1;
@@ -74,7 +73,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
         internal event EventHandler OnDiagramTitleChanged;
 
-        private readonly EmphasizedShapes _emphasizedShapes = new EmphasizedShapes();
+        private readonly EmphasizedShapes _emphasizedShapes = [];
 
         internal bool DisableFixUpDiagramSelection
         {
@@ -110,7 +109,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
         public void AddOrShowEFElementInDiagram(EFElement efElement)
         {
-            var modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
+            ModelDiagram modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
             if (modelDiagram.IsEFObjectRepresentedInDiagram(efElement))
             {
                 /// Navigate to the "most-appropriate" DSL node for the given EFObject in the diagram.
@@ -118,12 +117,14 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             }
             else
             {
-                var efElementList = new List<EFElement>();
-                efElementList.Add(efElement);
-                var cpc = new CommandProcessorContext(
+                List<EFElement> efElementList = new List<EFElement>
+                {
+                    efElement
+                };
+                CommandProcessorContext cpc = new CommandProcessorContext(
                     ModelElement.EditingContext,
                     EfiTransactionOriginator.EntityDesignerOriginatorId,
-                    EntityDesignerResources.Tx_DropItems);
+                    EntityDesignerRes.Tx_DropItems);
                 CommandProcessor.InvokeSingleCommand(cpc, new CreateDiagramItemForEFElementsCommand(efElementList, modelDiagram, false));
             }
             EnsureSelectionVisible();
@@ -145,9 +146,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                 Arranger.Start(e.IsDropLocationUserSpecified ? e.MousePosition : PointD.Empty);
                 if (_clipboardObjects != null)
                 {
-                    var modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
-                    var cpc = new CommandProcessorContext(
-                        ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerResources.Tx_DropItems);
+                    ModelDiagram modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
+                    CommandProcessorContext cpc = new CommandProcessorContext(
+                        ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerRes.Tx_DropItems);
                     CommandProcessor.InvokeSingleCommand(
                         cpc, 
                         new CreateDiagramItemForEFElementsCommand(
@@ -253,10 +254,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// <returns></returns>
         private IList<EFElement> GetEFElementNotInDiagramFromClipboardObject(EntitiesClipboardFormat clipboardObjects)
         {
-            var modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
+            ModelDiagram modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
             var artifactSet = modelDiagram.Artifact.ArtifactSet;
 
-            IList<EFElement> efElements = new List<EFElement>();
+            IList<EFElement> efElements = [];
 
             // We are only interested in entity-types all the associations will be automatically created when entity-types are added to diagram.
             foreach (var clipboardObject in clipboardObjects.ClipboardEntities)
@@ -280,11 +281,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 if (disposing)
                 {
-                    if (_deferredInitialSelection != null)
-                    {
-                        _deferredInitialSelection.Dispose();
-                        _deferredInitialSelection = null;
-                    }
+                    _deferredInitialSelection?.Dispose();
+                    _deferredInitialSelection = null;
                 }
             }
             finally
@@ -343,10 +341,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             base.OnInitialize();
 
             // select the shape that is closest to the origin, but defer until after the view is fully rendered
-            if (_deferredInitialSelection != null)
-            {
-                _deferredInitialSelection.Dispose();
-            }
+            _deferredInitialSelection?.Dispose();
 
             _deferredInitialSelection = new DeferredRequest(SetInitialSelectionCallback);
             _deferredInitialSelection.Request();
@@ -367,8 +362,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                     EntityTypeShape upperLeft = null;
                     foreach (var shape in NestedChildShapes)
                     {
-                        var entityShape = shape as EntityTypeShape;
-                        if (entityShape != null)
+                        if (shape is EntityTypeShape entityShape)
                         {
                             // calculate the distance from 0,0 to the shape's upper left corner
                             // (we don't need to Sqrt on the result since we are just comparing them, not interested in actual length)
@@ -388,7 +382,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                     if (upperLeft != null)
                     {
                         ActiveDiagramView.Focus();
-                        var selectMe = new DiagramItem(upperLeft);
+                        DiagramItem selectMe = new DiagramItem(upperLeft);
                         ActiveDiagramView.Selection.Set(selectMe);
                         EnsureSelectionVisible();
                     }
@@ -480,14 +474,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             // Put up an hourglass because this may take a while
             using (new VsUtils.HourglassHelper())
             {
-                using (var t = Store.TransactionManager.BeginTransaction(EntityDesignerResources.Tx_SetEntityTypeIsExpandedProperty))
+                using (var t = Store.TransactionManager.BeginTransaction(EntityDesignerRes.Tx_SetEntityTypeIsExpandedProperty))
                 {
                     t.Context.Add(EfiTransactionOriginator.TransactionOriginatorDiagramId, DiagramId);
 
                     foreach (var shape in shapeElements)
                     {
-                        var entityShape = shape as EntityTypeShape;
-                        if (entityShape != null)
+                        if (shape is EntityTypeShape entityShape)
                         {
                             if (isExpanded != entityShape.IsExpanded)
                             {
@@ -517,8 +510,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                     && GetModel().EditingContext != null
                     && GetModel().EditingContext.GetEFArtifactService() != null)
                 {
-                    var artifact = GetModel().EditingContext.GetEFArtifactService().Artifact as VSArtifact;
-                    if (artifact != null)
+                    if (GetModel().EditingContext.GetEFArtifactService().Artifact is VSArtifact artifact)
                     {
                         var project = VSHelpers.GetProjectForDocument(artifact.Uri.LocalPath, PackageManager.Package);
                         Debug.Assert(project != null);
@@ -528,34 +520,34 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                         {
                             return string.Format(
                                 CultureInfo.CurrentCulture,
-                                EntityDesignerResources.DesignerWatermark_EDMNotSupported,
-                                EntityDesignerResources.DesignerWatermarkXmlEditorLink).Replace(@"\n", "\n");
+                                EntityDesignerRes.DesignerWatermark_EDMNotSupported,
+                                EntityDesignerRes.DesignerWatermarkXmlEditorLink).Replace(@"\n", "\n");
                         }
 
                         if (!artifact.IsStructurallySafe)
                         {
                             return string.Format(
                                 CultureInfo.CurrentCulture,
-                                EntityDesignerResources.DesignerWatermarkSafeModeErrorText,
-                                EntityDesignerResources.DesignerWatermarkXmlEditorLink).Replace(@"\n", "\n");
+                                EntityDesignerRes.DesignerWatermarkSafeModeErrorText,
+                                EntityDesignerRes.DesignerWatermarkXmlEditorLink).Replace(@"\n", "\n");
                         }
                         // if the schema version in the document is not valid for the current target framework.
                         if (!artifact.IsVersionSafe)
                         {
                             return string.Format(
                                 CultureInfo.CurrentCulture,
-                                EntityDesignerResources.DesignerWatermarkUpgradeErrorText,
-                                EntityDesignerResources.DesignerWatermarkXmlEditorLink,
-                                EntityDesignerResources.DesignerWatermarkUpgradeLink).Replace(@"\n", "\n");
+                                EntityDesignerRes.DesignerWatermarkUpgradeErrorText,
+                                EntityDesignerRes.DesignerWatermarkXmlEditorLink,
+                                EntityDesignerRes.DesignerWatermarkUpgradeLink).Replace(@"\n", "\n");
                         }
                     }
                 }
 
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    EntityDesignerResources.DesignerWatermarkText,
-                    EntityDesignerResources.DesignerWatermarkToolboxLink,
-                    EntityDesignerResources.DesignerWatermarkModelBrowserLink).Replace(@"\n", "\n");
+                    EntityDesignerRes.DesignerWatermarkText,
+                    EntityDesignerRes.DesignerWatermarkToolboxLink,
+                    EntityDesignerRes.DesignerWatermarkModelBrowserLink).Replace(@"\n", "\n");
             }
         }
 
@@ -576,10 +568,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                 }
 
                 Debug.Assert(e.DiagramView.Selection != null, "Why DiagramView's Selection property is null?");
-                if (e.DiagramView.Selection != null)
-                {
-                    e.DiagramView.Selection.ShapeSelectionChanged += diagramView_OnShapeSelectionChanged;
-                }
+                e.DiagramView.Selection?.ShapeSelectionChanged += diagramView_OnShapeSelectionChanged;
             }
         }
 
@@ -606,7 +595,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             if (ActiveDiagramView != null
                 && ActiveDiagramView.Selection != null)
             {
-                var shapesToBeEmphasized = new DiagramItemCollection();
+                DiagramItemCollection shapesToBeEmphasized = new DiagramItemCollection();
                 var selectedShapes = ActiveDiagramView.Selection;
 
                 // For each DiagramItem in the Selection
@@ -640,17 +629,14 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
                             // if ModelElement is a Property, we could not just instantiate a DiagramItem and pass in the property's PresentationElement to the constructor
                             // since property's PresentationElement is not a ShapeElement.
-                            var propertyBase = emphasizedModelElement as ViewModelPropertyBase;
-                            if (propertyBase != null)
+                            if (emphasizedModelElement is ViewModelPropertyBase propertyBase)
                             {
                                 ViewModelEntityType et = null;
-                                var navigationProperty = propertyBase as ViewModelNavigationProperty;
-                                var property = propertyBase as ViewModelProperty;
-                                if (navigationProperty != null)
+                                if (propertyBase is ViewModelNavigationProperty navigationProperty)
                                 {
                                     et = navigationProperty.EntityType;
                                 }
-                                else if (property != null)
+                                else if (propertyBase is ViewModelProperty property)
                                 {
                                     et = property.EntityType;
                                 }
@@ -665,7 +651,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                                     Debug.Assert(
                                         PresentationViewsSubject.GetPresentation(et).Count() <= 1,
                                         "There should be at most 1 EntityTypeShape for EntityType:" + et.Name);
-                                    var ets = PresentationViewsSubject.GetPresentation(et).FirstOrDefault() as EntityTypeShape;
+                                    EntityTypeShape ets = PresentationViewsSubject.GetPresentation(et).FirstOrDefault() as EntityTypeShape;
                                     emphasizedDiagramItem = ets.GetDiagramItemForProperty(propertyBase);
                                 }
                             }
@@ -675,9 +661,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                                     PresentationViewsSubject.GetPresentation(emphasizedModelElement).FirstOrDefault();
                                 if (relatedPresentationElementToEmphasize != null)
                                 {
-                                    var relatedShapeElementToEmphasize = relatedPresentationElementToEmphasize as ShapeElement;
-
-                                    if (relatedShapeElementToEmphasize != null)
+                                    if (relatedPresentationElementToEmphasize is ShapeElement relatedShapeElementToEmphasize)
                                     {
                                         emphasizedDiagramItem = new DiagramItem(relatedShapeElementToEmphasize);
                                     }
@@ -725,28 +709,24 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             diagramView.Watermark.LinkClicked += diagramWatermark_LinkClicked;
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "link")]
         private static void AddToolboxWatermarkLink(DiagramView diagramView)
         {
-            var link = AddLink(diagramView, EntityDesignerResources.DesignerWatermarkToolboxLink, StandardToolWindows.Toolbox);
+            var link = AddLink(diagramView, EntityDesignerRes.DesignerWatermarkToolboxLink, StandardToolWindows.Toolbox);
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "link")]
         private static void AddXmlEditorWatermarkLink(DiagramView diagramView)
         {
-            var link = AddLink(diagramView, EntityDesignerResources.DesignerWatermarkXmlEditorLink, LinkAction.XmlEditor);
+            var link = AddLink(diagramView, EntityDesignerRes.DesignerWatermarkXmlEditorLink, LinkAction.XmlEditor);
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "link")]
         private static void AddUpgradeDocumentWatermarkLink(DiagramView diagramView)
         {
-            var link = AddLink(diagramView, EntityDesignerResources.DesignerWatermarkUpgradeLink, LinkAction.Upgrade);
+            var link = AddLink(diagramView, EntityDesignerRes.DesignerWatermarkUpgradeLink, LinkAction.Upgrade);
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "link")]
         private static void AddModelBrowserWatermarkLink(DiagramView diagramView)
         {
-            var link = AddLink(diagramView, EntityDesignerResources.DesignerWatermarkModelBrowserLink, LinkAction.ShowModelBrowser);
+            var link = AddLink(diagramView, EntityDesignerRes.DesignerWatermarkModelBrowserLink, LinkAction.ShowModelBrowser);
         }
 
         private static LinkLabel.Link AddLink(DiagramView diagramView, string linkText, object linkData)
@@ -807,19 +787,15 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// <param name="e">LinkLabelLinkClickedEventArgs</param>
         private void diagramWatermark_ToolboxLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            var linkLabel = sender as LinkLabel;
-            if (linkLabel != null)
+            if (sender is LinkLabel linkLabel)
             {
                 if (e.Link.LinkData is Guid)
                 {
-                    var toolWindow = (Guid)e.Link.LinkData;
+                    Guid toolWindow = (Guid)e.Link.LinkData;
                     if (toolWindow != Guid.Empty)
                     {
-                        var uiService = Services.ServiceProvider.GetService(typeof(IUIService)) as IUIService;
-                        if (uiService != null)
-                        {
-                            uiService.ShowToolWindow(toolWindow);
-                        }
+                        IUIService uiService = Services.ServiceProvider.GetService(typeof(IUIService)) as IUIService;
+                        uiService?.ShowToolWindow(toolWindow);
                     }
                 }
             }
@@ -833,8 +809,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// <param name="e">LinkLabelLinkClickedEventArgs</param>
         private void diagramWatermark_OpenInXmlEditorLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            var linkLabel = sender as LinkLabel;
-            if (linkLabel != null)
+            if (sender is LinkLabel linkLabel)
             {
                 var a = GetModel().EditingContext.GetEFArtifactService().Artifact;
 
@@ -842,12 +817,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                 if (sp != null)
                 {
                     // Open the referenced document using our editor.
-                    IVsWindowFrame frame;
-                    IVsUIHierarchy hierarchy;
-                    uint itemid;
                     VsShellUtilities.OpenDocumentWithSpecificEditor(
-                        sp, a.Uri.LocalPath, CommonPackageConstants.xmlEditorGuid, VSConstants.LOGVIEWID_Primary, out hierarchy, out itemid,
-                        out frame);
+                        sp, a.Uri.LocalPath, CommonPackageConstants.xmlEditorGuid, VSConstants.LOGVIEWID_Primary, out IVsUIHierarchy hierarchy, out uint itemid,
+                        out IVsWindowFrame frame);
                     if (frame != null)
                     {
                         NativeMethods.ThrowOnFailure(frame.Show());
@@ -862,7 +834,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             using (new VsUtils.HourglassHelper())
             {
                 var editingContext = GetModel().EditingContext;
-                var entityDesignArtifact = editingContext.GetEFArtifactService().Artifact as EntityDesignArtifact;
+                EntityDesignArtifact entityDesignArtifact = editingContext.GetEFArtifactService().Artifact as EntityDesignArtifact;
                 Debug.Assert(entityDesignArtifact != null, "EFArtifact is not an instance of EntityDesignArtifact");
                 if (entityDesignArtifact != null)
                 {
@@ -879,18 +851,15 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         internal static void ReversionModel(
             IEdmPackage package, EditingContext editingContext, EntityDesignArtifact entityDesignArtifact, Version targetSchemaVersion)
         {
-            var cpc = new CommandProcessorContext(
+            CommandProcessorContext cpc = new CommandProcessorContext(
                 editingContext, EfiTransactionOriginator.EntityDesignerOriginatorId,
-                EntityDesignerResources.RetargetDocumentFromWatermarkTransactionName, entityDesignArtifact);
+                EntityDesignerRes.RetargetDocumentFromWatermarkTransactionName, entityDesignArtifact);
 
             RetargetXmlNamespaceCommand.RetargetArtifactXmlNamespaces(cpc, entityDesignArtifact, targetSchemaVersion);
 
             // The code below ensure that our mapping window works property after the command is executed.
             Debug.Assert(package.DocumentFrameMgr != null, "Could not find the DocumentFrameMgr for this package");
-            if (package.DocumentFrameMgr != null)
-            {
-                package.DocumentFrameMgr.SetCurrentContext(editingContext);
-            }
+            package.DocumentFrameMgr?.SetCurrentContext(editingContext);
         }
 
         private void diagramWatermark_ShowModelBrowserLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -899,10 +868,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             if (PackageManager.Package != null)
             {
                 Debug.Assert(PackageManager.Package.ExplorerWindow != null, "Unable to get instance of Model Browser window from package.");
-                if (PackageManager.Package.ExplorerWindow != null)
-                {
-                    PackageManager.Package.ExplorerWindow.Show();
-                }
+                PackageManager.Package.ExplorerWindow?.Show();
             }
         }
 
@@ -961,9 +927,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 // Inheritance lines need to be placed using a different styling
                 // so that the lines join at the same point. Sort out which shapes we have
-                var inheritanceLinks = new List<ShapeElement>();
-                var inheritanceShapes = new List<ShapeElement>();
-                var otherShapes = new List<ShapeElement>();
+                List<ShapeElement> inheritanceLinks = new List<ShapeElement>();
+                List<ShapeElement> inheritanceShapes = new List<ShapeElement>();
+                List<ShapeElement> otherShapes = new List<ShapeElement>();
 
                 foreach (ShapeElement shape in shapes)
                 {
@@ -971,11 +937,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                     // The fix is to include both base class and derived class in the inheritance shapes list; before the fix we only includes the derived class in the list.
                     var isInheritanceClass = false;
 
-                    var entityTypeShape = shape as EntityTypeShape;
                     // get a list of all lines leading to/from the shape
-                    if (entityTypeShape != null)
+                    if (shape is EntityTypeShape entityTypeShape)
                     {
-                        var allLinks = new ArrayList(entityTypeShape.FromRoleLinkShapes);
+                        ArrayList allLinks = new ArrayList(entityTypeShape.FromRoleLinkShapes);
                         allLinks.AddRange(entityTypeShape.ToRoleLinkShapes);
 
                         foreach (LinkShape link in allLinks)
@@ -1012,7 +977,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                 const VGNodeFixedStates noMoveShapeFlags = VGNodeFixedStates.FixedPlace;
 
                 // Perform the auto layout
-                using (var t = Store.TransactionManager.BeginTransaction(EntityDesignerResources.Tx_LayoutDiagram))
+                using (var t = Store.TransactionManager.BeginTransaction(EntityDesignerRes.Tx_LayoutDiagram))
                 {
                     t.Context.Add(EfiTransactionOriginator.TransactionOriginatorDiagramId, DiagramId);
 
@@ -1090,11 +1055,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 for (var i = 0; i < _elements.Count; i++)
                 {
-                    var node = _elements[i] as NodeShape;
-                    if (node != null)
-                    {
-                        node.LayoutObjectFixedFlags = flags;
-                    }
+                    NodeShape node = _elements[i] as NodeShape;
+                    node?.LayoutObjectFixedFlags = flags;
                 }
             }
 
@@ -1104,8 +1066,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                 _savedFlags = new VGNodeFixedStates[_elements.Count];
                 for (var i = 0; i < _elements.Count; i++)
                 {
-                    var node = _elements[i] as NodeShape;
-                    if (node != null)
+                    if (_elements[i] is NodeShape node)
                     {
                         _savedFlags[i] = node.LayoutObjectFixedFlags;
                     }
@@ -1117,11 +1078,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 for (var i = 0; i < _elements.Count; i++)
                 {
-                    var node = _elements[i] as NodeShape;
-                    if (node != null)
-                    {
-                        node.LayoutObjectFixedFlags = _savedFlags[i];
-                    }
+                    NodeShape node = _elements[i] as NodeShape;
+                    node?.LayoutObjectFixedFlags = _savedFlags[i];
                 }
             }
         }
@@ -1168,10 +1126,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             }
             set
             {
-                if (ActiveDiagramView != null)
-                {
-                    ActiveDiagramView.ZoomAtViewCenter((float)value / 100);
-                }
+                ActiveDiagramView?.ZoomAtViewCenter((float)value / 100);
             }
         }
 
@@ -1197,7 +1152,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    EntityDesignerResources.AccDesc_EntityDesignerViewModel,
+                    EntityDesignerRes.AccDesc_EntityDesignerViewModel,
                     ModelElement.GetType().Name);
             }
         }
@@ -1209,10 +1164,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                 return;
             }
 
-            var model = ModelElement.ModelXRef.GetExisting(ModelElement) as ConceptualEntityModel;
+            ConceptualEntityModel model = ModelElement.ModelXRef.GetExisting(ModelElement) as ConceptualEntityModel;
             Debug.Assert(model != null);
 
-            using (var dialog = new NewEntityDialog(model))
+            using (NewEntityDialog dialog = new NewEntityDialog(model))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
@@ -1221,7 +1176,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                         Arranger.Start(dropPoint);
                         Store.RuleManager.DisableRule(typeof(EntityType_AddRule));
 
-                        using (var t = Store.TransactionManager.BeginTransaction(EntityDesignerResources.Tx_AddEntityType))
+                        using (var t = Store.TransactionManager.BeginTransaction(EntityDesignerRes.Tx_AddEntityType))
                         {
                             t.Context.Add(EfiTransactionOriginator.TransactionOriginatorDiagramId, DiagramId);
                             ViewModelChangeContext.GetNewOrExistingContext(t).ViewModelChanges.Add(new EntityType_AddFromDialog(dialog));
@@ -1241,7 +1196,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// <summary>
         ///     Creates new association for given EntityTypeShape
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal void AddNewAssociation(EntityTypeShape entityShape)
         {
             if ((Partition.GetLocks() & Locks.Add) == Locks.Add)
@@ -1256,10 +1210,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 end1 = entityShape.ModelElement as ViewModelEntityType;
             }
-            if (end1 == null)
-            {
-                end1 = ModelElement.EntityTypes[0];
-            }
+            end1 ??= ModelElement.EntityTypes[0];
 
             // Pick something for the second end (defaulting to the next EntityType in the model)
             ViewModelEntityType end2 = null;
@@ -1270,20 +1221,20 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             }
             end2 = ModelElement.EntityTypes[index];
 
-            var modelEnd1Entity = ModelElement.ModelXRef.GetExisting(end1) as Model.Entity.EntityType;
-            var modelEnd2Entity = ModelElement.ModelXRef.GetExisting(end2) as Model.Entity.EntityType;
+            Model.Entity.EntityType modelEnd1Entity = ModelElement.ModelXRef.GetExisting(end1) as Model.Entity.EntityType;
+            Model.Entity.EntityType modelEnd2Entity = ModelElement.ModelXRef.GetExisting(end2) as Model.Entity.EntityType;
             Debug.Assert(modelEnd1Entity != null && modelEnd2Entity != null);
-            var model = modelEnd1Entity.Parent as ConceptualEntityModel;
+            ConceptualEntityModel model = modelEnd1Entity.Parent as ConceptualEntityModel;
             Debug.Assert(model != null);
 
-            using (var dialog = new NewAssociationDialog(model.EntityTypes(), modelEnd1Entity, modelEnd2Entity))
+            using (NewAssociationDialog dialog = new NewAssociationDialog(model.EntityTypes(), modelEnd1Entity, modelEnd2Entity))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     try
                     {
                         Store.RuleManager.DisableRule(typeof(Association_AddRule));
-                        using (var t = Store.TransactionManager.BeginTransaction(EntityDesignerResources.Tx_AddAssociation))
+                        using (var t = Store.TransactionManager.BeginTransaction(EntityDesignerRes.Tx_AddAssociation))
                         {
                             t.Context.Add(EfiTransactionOriginator.TransactionOriginatorDiagramId, DiagramId);
                             ViewModelChangeContext.GetNewOrExistingContext(t).ViewModelChanges.Add(new Association_AddFromDialog(dialog));
@@ -1303,7 +1254,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// </summary>
         /// <param name="entityShape"></param>
         /// <returns></returns>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults")]
         internal void AddNewInheritance(EntityTypeShape entityShape)
         {
             if ((Partition.GetLocks() & Locks.Add) == Locks.Add)
@@ -1322,16 +1272,16 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                 Debug.Assert(modelEntity != null);
             }
 
-            var model = ModelElement.ModelXRef.GetExisting(ModelElement) as ConceptualEntityModel;
+            ConceptualEntityModel model = ModelElement.ModelXRef.GetExisting(ModelElement) as ConceptualEntityModel;
             Debug.Assert(model != null);
 
-            var cets = new List<ConceptualEntityType>(model.EntityTypes().Cast<ConceptualEntityType>());
+            List<ConceptualEntityType> cets = new List<ConceptualEntityType>(model.EntityTypes().Cast<ConceptualEntityType>());
 
-            using (var dialog = new NewInheritanceDialog(modelEntity, cets))
+            using (NewInheritanceDialog dialog = new NewInheritanceDialog(modelEntity, cets))
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    using (var t = Store.TransactionManager.BeginTransaction(EntityDesignerResources.Tx_AddInheritance))
+                    using (var t = Store.TransactionManager.BeginTransaction(EntityDesignerRes.Tx_AddInheritance))
                     {
                         t.Context.Add(EfiTransactionOriginator.TransactionOriginatorDiagramId, DiagramId);
                         ViewModelChangeContext.GetNewOrExistingContext(t).ViewModelChanges.Add(new Inheritance_AddFromDialog(dialog));
@@ -1344,7 +1294,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// <summary>
         ///     Creates a function import; if there is a selected entity type, it will use that for the return type.
         /// </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public void AddNewFunctionImport(EntityTypeShape entityShape)
         {
             if ((Partition.GetLocks() & Locks.Add) == Locks.Add)
@@ -1363,7 +1312,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             }
 
             // get the necessary conceptual model elements
-            var cModel = ModelElement.ModelXRef.GetExisting(ModelElement) as ConceptualEntityModel;
+            ConceptualEntityModel cModel = ModelElement.ModelXRef.GetExisting(ModelElement) as ConceptualEntityModel;
             Debug.Assert(cModel != null, "Could not find a conceptual entity model associated with this artifact");
             ConceptualEntityContainer cContainer = null;
             if (cModel != null)
@@ -1428,16 +1377,16 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             if (ActiveDiagramView != null
                 && !ModelUtils.IsSerializing(Store))
             {
-                var modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
+                ModelDiagram modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
                 Debug.Assert(modelDiagram != null, "Model Diagram should be present");
                 if (modelDiagram != null)
                 {
                     if (undefinedZoomLevel != ZoomLevel
                         && modelDiagram.ZoomLevel.Value != ZoomLevel)
                     {
-                        var cpc = new CommandProcessorContext(
-                            ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerResources.Tx_SetZoom);
-                        var cmd = new UpdateDefaultableValueCommand<int>(modelDiagram.ZoomLevel, ZoomLevel);
+                        CommandProcessorContext cpc = new CommandProcessorContext(
+                            ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerRes.Tx_SetZoom);
+                        UpdateDefaultableValueCommand<int> cmd = new UpdateDefaultableValueCommand<int>(modelDiagram.ZoomLevel, ZoomLevel);
                         CommandProcessor.InvokeSingleCommand(cpc, cmd);
                     }
                 }
@@ -1446,15 +1395,15 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
         internal void PersistShowGrid()
         {
-            var modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
+            ModelDiagram modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
             Debug.Assert(modelDiagram != null, "Model Diagram should be present");
             if (modelDiagram != null)
             {
                 if (modelDiagram.ShowGrid.Value != ShowGrid)
                 {
-                    var cpc = new CommandProcessorContext(
-                        ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerResources.Tx_SetGridVisibility);
-                    var cmd = new UpdateDefaultableValueCommand<bool>(modelDiagram.ShowGrid, ShowGrid);
+                    CommandProcessorContext cpc = new CommandProcessorContext(
+                        ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerRes.Tx_SetGridVisibility);
+                    UpdateDefaultableValueCommand<bool> cmd = new UpdateDefaultableValueCommand<bool>(modelDiagram.ShowGrid, ShowGrid);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }
             }
@@ -1462,15 +1411,15 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
         internal void PersistSnapToGrid()
         {
-            var modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
+            ModelDiagram modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
             Debug.Assert(modelDiagram != null, "Model Diagram should be present");
             if (modelDiagram != null)
             {
                 if (modelDiagram.SnapToGrid.Value != SnapToGrid)
                 {
-                    var cpc = new CommandProcessorContext(
-                        ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerResources.Tx_SetSnapToGrid);
-                    var cmd = new UpdateDefaultableValueCommand<bool>(modelDiagram.SnapToGrid, SnapToGrid);
+                    CommandProcessorContext cpc = new CommandProcessorContext(
+                        ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerRes.Tx_SetSnapToGrid);
+                    UpdateDefaultableValueCommand<bool> cmd = new UpdateDefaultableValueCommand<bool>(modelDiagram.SnapToGrid, SnapToGrid);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }
             }
@@ -1478,15 +1427,15 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
         internal void PersistDisplayType()
         {
-            var modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
+            ModelDiagram modelDiagram = ModelElement.ModelXRef.GetExisting(this) as ModelDiagram;
             Debug.Assert(modelDiagram != null, "Model Diagram should be present");
             if (modelDiagram != null)
             {
                 if (modelDiagram.DisplayType.Value != DisplayNameAndType)
                 {
-                    var cpc = new CommandProcessorContext(
-                        ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerResources.Tx_SetMemberFormatValue);
-                    var cmd = new UpdateDefaultableValueCommand<bool>(modelDiagram.DisplayType, DisplayNameAndType);
+                    CommandProcessorContext cpc = new CommandProcessorContext(
+                        ModelElement.EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerRes.Tx_SetMemberFormatValue);
+                    UpdateDefaultableValueCommand<bool> cmd = new UpdateDefaultableValueCommand<bool>(modelDiagram.DisplayType, DisplayNameAndType);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }
             }
@@ -1531,7 +1480,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 base.GetCompliantSelection(currentSelection, proposedItemsToAdd, proposedItemsToRemove, primaryItem);
 
-                var originalProposedItemsToAdd = new DiagramItem[proposedItemsToAdd.Count];
+                DiagramItem[] originalProposedItemsToAdd = new DiagramItem[proposedItemsToAdd.Count];
                 proposedItemsToAdd.CopyTo(originalProposedItemsToAdd, 0);
 
                 // we only perform this with selection rectangles, in which case the focused item will be the diagram 
@@ -1546,7 +1495,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                         {
                             // only perform this if we have selected the "Scalar Properties" ListCompartment or
                             // the "Navigation Properties" ListCompartment
-                            var elListCompartment = item.Shape as ElementListCompartment;
+                            ElementListCompartment elListCompartment = item.Shape as ElementListCompartment;
                             if (elListCompartment.DefaultCreationDomainClass.Id == ViewModelProperty.DomainClassId
                                 || elListCompartment.DefaultCreationDomainClass.Id == ViewModelNavigationProperty.DomainClassId)
                             {
@@ -1556,10 +1505,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                                     && representedShapeElements.Contains(item.Shape))
                                 {
                                     // find the parent EntityTypeShape that houses this ListCompartment
-                                    var entityTypeShape = elListCompartment.ParentShape as EntityTypeShape;
+                                    EntityTypeShape entityTypeShape = elListCompartment.ParentShape as EntityTypeShape;
                                     Debug.Assert(
                                         entityTypeShape != null, "Why isn't the parent of the list compartment an EntityTypeShape?");
-                                    var entityTypeShapeDiagramItem = new DiagramItem(entityTypeShape);
+                                    DiagramItem entityTypeShapeDiagramItem = new DiagramItem(entityTypeShape);
 
                                     // add the parent EntityTypeShape if it doesn't already exist in the collection
                                     if (!currentSelection.Contains(entityTypeShapeDiagramItem)
@@ -1637,7 +1586,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             DiagramItemCollection proposedShapesToRemove)
         {
             // Temporary list that stores what the selections will look like.
-            var actualSelection = new DiagramItemCollection();
+            DiagramItemCollection actualSelection = new DiagramItemCollection();
 
             // Add current selection items to the list.
             foreach (DiagramItem item in currentSelection)
@@ -1713,7 +1662,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             // show dialog giving user the choice to (a) delete only the 
             // C-side objects selected, (b) to also delete any StorageEntitySets
             // which will end up unmapped, or (c) cancel the whole operation
-            using (var dialog =
+            using (DeleteStorageEntitySetsDialog dialog =
                 new DeleteStorageEntitySetsDialog(unmappedStorageEntitySets))
             {
                 var result = dialog.ShowDialog();
@@ -1735,7 +1684,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
                         if (unmappedMasterList == null)
                         {
-                            unmappedMasterList = new List<ICollection<StorageEntitySet>>();
+                            unmappedMasterList = [];
                             viewModel.Store.PropertyBag[EntityDesignerViewModel.DeleteUnmappedStorageEntitySetsProperty] =
                                 unmappedMasterList;
                         }
@@ -1755,18 +1704,16 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             if (efArtifact != null)
             {
                 // Now, for all entitytypes, ensure that an entitytype shape is created.
-                var dslDiagram = Diagram as EntityDesignerDiagram;
                 if (efArtifact.ConceptualModel() != null
-                    && dslDiagram != null)
+                    && Diagram is EntityDesignerDiagram dslDiagram)
                 {
-                    var entityTypesMaterializedAsShapes = new HashSet<Model.Entity.EntityType>();
+                    HashSet<Model.Entity.EntityType> entityTypesMaterializedAsShapes = new HashSet<Model.Entity.EntityType>();
                     foreach (
                         var designerEntityTypeShape in
                             efArtifact.DesignerInfo.Diagrams.Items.Where(d => d.Id.Value == DiagramId).SelectMany(d => d.EntityTypeShapes))
                     {
                         // First check if there's a ModelElement for this.
-                        var entityTypeShape = dslDiagram.ModelElement.ModelXRef.GetExisting(designerEntityTypeShape) as EntityTypeShape;
-                        if (entityTypeShape != null
+                        if (dslDiagram.ModelElement.ModelXRef.GetExisting(designerEntityTypeShape) is EntityTypeShape entityTypeShape
                             && designerEntityTypeShape.EntityType.Target != null
                             && !entityTypesMaterializedAsShapes.Contains(designerEntityTypeShape.EntityType.Target))
                         {
@@ -1774,18 +1721,17 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                         }
                     }
 
-                    var cpc = new CommandProcessorContext(
+                    CommandProcessorContext cpc = new CommandProcessorContext(
                         efArtifact.EditingContext,
                         EfiTransactionOriginator.EntityDesignerOriginatorId,
                         "Restore Excluded Elements");
-                    var cp = new CommandProcessor(cpc, shouldNotifyObservers: true);
+                    CommandProcessor cp = new CommandProcessor(cpc, shouldNotifyObservers: true);
 
                     foreach (var entityType in efArtifact.ConceptualModel().EntityTypes())
                     {
                         if (!entityTypesMaterializedAsShapes.Contains(entityType))
                         {
-                            var modelDiagram = dslDiagram.ModelElement.ModelXRef.GetExisting(dslDiagram) as ModelDiagram;
-                            if (modelDiagram != null)
+                            if (dslDiagram.ModelElement.ModelXRef.GetExisting(dslDiagram) is ModelDiagram modelDiagram)
                             {
                                 cp.EnqueueCommand(new CreateEntityTypeShapeCommand(modelDiagram, entityType));
                             }
@@ -1801,8 +1747,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         internal void AddMissingAssociationConnectors(EntityDesignArtifact efArtifact, out bool addedMissingShapes)
         {
             addedMissingShapes = false;
@@ -1810,19 +1754,17 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             if (efArtifact != null)
             {
                 // Now, for all associations, ensure that an association connector is created.
-                var dslDiagram = Diagram as EntityDesignerDiagram;
                 if (efArtifact.ConceptualModel() != null
-                    && dslDiagram != null)
+                    && Diagram is EntityDesignerDiagram dslDiagram)
                 {
-                    var associationsMaterializedAsConnectors = new HashSet<ModelAssociation>();
+                    HashSet<ModelAssociation> associationsMaterializedAsConnectors = new HashSet<ModelAssociation>();
                     foreach (
                         var connector in
                             efArtifact.DesignerInfo.Diagrams.Items.Where(d => d.Id.Value == DiagramId)
                                 .SelectMany(d => d.AssociationConnectors))
                     {
                         // First check if there's a ModelElement for this.
-                        var associationConnector = dslDiagram.ModelElement.ModelXRef.GetExisting(connector) as AssociationConnector;
-                        if (associationConnector != null
+                        if (dslDiagram.ModelElement.ModelXRef.GetExisting(connector) is AssociationConnector associationConnector
                             && connector.Association.Target != null
                             && !associationsMaterializedAsConnectors.Contains(connector.Association.Target))
                         {
@@ -1830,11 +1772,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                         }
                     }
 
-                    var cpc = new CommandProcessorContext(
+                    CommandProcessorContext cpc = new CommandProcessorContext(
                         efArtifact.EditingContext,
                         EfiTransactionOriginator.EntityDesignerOriginatorId,
                         "Restore Excluded Elements");
-                    var cp = new CommandProcessor(cpc, shouldNotifyObservers: true);
+                    CommandProcessor cp = new CommandProcessor(cpc, shouldNotifyObservers: true);
 
                     foreach (var association in efArtifact.ConceptualModel().Associations())
                     {
@@ -1855,8 +1797,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 
                             if (shouldAddConnector)
                             {
-                                var modelDiagram = dslDiagram.ModelElement.ModelXRef.GetExisting(dslDiagram) as ModelDiagram;
-                                if (modelDiagram != null)
+                                if (dslDiagram.ModelElement.ModelXRef.GetExisting(dslDiagram) is ModelDiagram modelDiagram)
                                 {
                                     cp.EnqueueCommand(new CreateAssociationConnectorCommand(modelDiagram, association));
                                 }
@@ -1929,7 +1870,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// </summary>
         private static bool IsThemeServiceAvailable()
         {
-            return null != Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell5;
+            return null != VSPackage.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell5;
         }
     }
 }

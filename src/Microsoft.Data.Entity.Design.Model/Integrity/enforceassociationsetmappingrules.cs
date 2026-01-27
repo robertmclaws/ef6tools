@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Integrity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     This class enforces rules about how we should generate MSL for AssociationSetMappings.  Currently, this
     ///     is focused on ensuring that mappings who need conditions have them added correctly.
@@ -29,8 +29,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
         public bool IsEqual(IIntegrityCheck otherCheck)
         {
-            var typedOtherCheck = otherCheck as EnforceAssociationSetMappingRules;
-            if (typedOtherCheck != null
+            if (otherCheck is EnforceAssociationSetMappingRules typedOtherCheck
                 && typedOtherCheck._associationSetMapping == _associationSetMapping)
             {
                 return true;
@@ -91,7 +90,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             var needsConditionEnd2 = DoesEndNeedCondition(end2, end1, ses.EntityType.Target);
 
             // clear out existing conditions
-            var existingConditions = new List<Condition>();
+            List<Condition> existingConditions = new List<Condition>();
             existingConditions.AddRange(_associationSetMapping.Conditions());
             for (var i = existingConditions.Count - 1; i >= 0; i--)
             {
@@ -102,7 +101,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             if (needsConditionEnd1 || needsConditionEnd2)
             {
                 // now see which conditions we need to add, looking at each EndProperty for the AssociationSetMapping
-                var conditionCreateForColumn = new HashSet<Property>();
+                HashSet<Property> conditionCreateForColumn = new HashSet<Property>();
                 foreach (var endProperty in _associationSetMapping.EndProperties())
                 {
                     if (endProperty.Name.Target != null)
@@ -115,7 +114,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                                 && sp.ColumnName.Target.IsKeyProperty == false
                                 && conditionCreateForColumn.Contains(sp.ColumnName.Target) == false)
                             {
-                                var createCond = new CreateEndConditionCommand(_associationSetMapping, sp.ColumnName.Target, false, null);
+                                CreateEndConditionCommand createCond = new CreateEndConditionCommand(_associationSetMapping, sp.ColumnName.Target, false, null);
                                 CommandProcessor.InvokeSingleCommand(_cpc, createCond);
 
                                 conditionCreateForColumn.Add(sp.ColumnName.Target);
@@ -141,15 +140,14 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                 return true;
             }
 
-            var cet = end.Type.Target as ConceptualEntityType;
+            ConceptualEntityType cet = end.Type.Target as ConceptualEntityType;
             Debug.Assert(end.Type.Target != null ? cet != null : true, "EntityType is not a ConceptualEntityType");
 
             if (cet != null
                 && cet.HasResolvableBaseType)
             {
                 // the subtype is mapped using TPH
-                EntityType tphTable = null;
-                if (IsMappedUsingTph(cet, out tphTable))
+                if (IsMappedUsingTph(cet, out EntityType tphTable))
                 {
                     // the association is not *:*
                     if (!(end.Multiplicity.Value == ModelConstants.Multiplicity_Many

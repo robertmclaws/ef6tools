@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     /// <summary>
     ///     Converts a list of file change nodes into preview nodes to be displayed in the preview dialog. Different implementers of
     ///     the RefactoringOperation can
@@ -30,7 +30,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         /// <returns></returns>
         internal virtual IList<PreviewChangesNode> Build(IList<FileChange> fileChanges)
         {
-            var previews = new List<PreviewChangesNode>();
+            List<PreviewChangesNode> previews = new List<PreviewChangesNode>();
 
             // Loop through all file changes, create related preview group nodes under different projects.
             if (fileChanges != null)
@@ -42,13 +42,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             return previews;
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         protected static List<PreviewChangesNode> CreatePreviewNodesForVsLang(
             IList<FileChange> fileChanges, bool placeNodesUnderSingleRoot = false)
         {
-            var vsLangObjectNodes = new List<PreviewChangesNode>();
-            var rootToFileToChangesMap = new Dictionary<string, Dictionary<string, List<PreviewChangesNode>>>();
+            List<PreviewChangesNode> vsLangObjectNodes = new List<PreviewChangesNode>();
+            Dictionary<string, Dictionary<string, List<PreviewChangesNode>>> rootToFileToChangesMap = new Dictionary<string, Dictionary<string, List<PreviewChangesNode>>>();
             var isCSharpChange = true;
 
             foreach (var fileChange in fileChanges)
@@ -57,7 +55,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                 {
                     if (fileChange.ChangeList.Count > 0)
                     {
-                        using (var textBuffer = VsTextLinesFromFile.Load(fileChange.FileName))
+                        using (VsTextLinesFromFile textBuffer = VsTextLinesFromFile.Load(fileChange.FileName))
                         {
                             if (textBuffer != null)
                             {
@@ -68,11 +66,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                                     if (vsLangTextChange.IsRootChange)
                                     {
                                         // Create object definition node                                        
-                                        var rootNode = new PreviewChangesNode(
+                                        PreviewChangesNode rootNode = new PreviewChangesNode(
                                             vsLangTextChange.ObjectDefinitionFullName
                                             , new VSTREEDISPLAYDATA()
                                             , vsLangTextChange.ObjectDefinitionFullName
-                                            , new List<PreviewChangesNode>()
+                                            , []
                                             , vsLangTextChange);
 
                                         rootNode.CheckState = vsLangTextChange.Included
@@ -86,16 +84,15 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                                         {
                                             rootToFileToChangesMap.Add(
                                                 vsLangTextChange.ObjectDefinitionFullName,
-                                                new Dictionary<string, List<PreviewChangesNode>>());
+                                                []);
                                         }
                                     }
                                     else
                                     {
                                         // Get display text, trim the leading space of the text for display purpose.
                                         var displayText = string.Empty;
-                                        int lineLength;
 
-                                        if (ErrorHandler.Succeeded(textBuffer.GetLengthOfLine(vsLangTextChange.StartLine, out lineLength)))
+                                        if (ErrorHandler.Succeeded(textBuffer.GetLengthOfLine(vsLangTextChange.StartLine, out int lineLength)))
                                         {
                                             if (
                                                 ErrorHandler.Succeeded(
@@ -113,13 +110,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 
                                                 if (spaceLength <= vsLangTextChange.StartColumn)
                                                 {
-                                                    var changeNodeDisplayData = new VSTREEDISPLAYDATA();
+                                                    VSTREEDISPLAYDATA changeNodeDisplayData = new VSTREEDISPLAYDATA();
                                                     changeNodeDisplayData.State = (uint)_VSTREEDISPLAYSTATE.TDS_FORCESELECT;
                                                     changeNodeDisplayData.ForceSelectStart =
                                                         (ushort)(vsLangTextChange.StartColumn - spaceLength);
                                                     changeNodeDisplayData.ForceSelectLength = (ushort)(vsLangTextChange.Length);
 
-                                                    var changeNode = new PreviewChangesNode(
+                                                    PreviewChangesNode changeNode = new PreviewChangesNode(
                                                         displayText, changeNodeDisplayData, displayText, null, vsLangTextChange);
 
                                                     // Add checked checkbox
@@ -129,23 +126,20 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                                                                                 : __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked;
 
                                                     // Apply the language service to this change.
-                                                    Guid languageServiceId;
-                                                    textBuffer.GetLanguageServiceID(out languageServiceId);
+                                                    textBuffer.GetLanguageServiceID(out Guid languageServiceId);
                                                     changeNode.LanguageServiceID = languageServiceId;
 
-                                                    Dictionary<string, List<PreviewChangesNode>> fileToChangesMap;
                                                     if (rootToFileToChangesMap.TryGetValue(
-                                                        vsLangTextChange.ObjectDefinitionFullName, out fileToChangesMap))
+                                                        vsLangTextChange.ObjectDefinitionFullName, out Dictionary<string, List<PreviewChangesNode>> fileToChangesMap))
                                                     {
-                                                        List<PreviewChangesNode> changeNodes;
-                                                        if (fileToChangesMap.TryGetValue(fileChange.FileName, out changeNodes))
+                                                        if (fileToChangesMap.TryGetValue(fileChange.FileName, out List<PreviewChangesNode> changeNodes))
                                                         {
                                                             changeNodes.Add(changeNode);
                                                         }
                                                         else
                                                         {
                                                             // There are no changes for the file listed under this root node, so we need to create it
-                                                            changeNodes = new List<PreviewChangesNode> { changeNode };
+                                                            changeNodes = [changeNode];
                                                             fileToChangesMap.Add(fileChange.FileName, changeNodes);
                                                         }
                                                     }
@@ -153,9 +147,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                                                     {
                                                         // There are no changes processed yet for this object name, so we need to update our dictionary with
                                                         // markers for creating a new root node, a new file node, and a new change node.
-                                                        fileToChangesMap = new Dictionary<string, List<PreviewChangesNode>>();
-                                                        fileToChangesMap.Add(
-                                                            fileChange.FileName, new List<PreviewChangesNode> { changeNode });
+                                                        fileToChangesMap = new Dictionary<string, List<PreviewChangesNode>>
+                                                        {
+                                                            { fileChange.FileName, [changeNode] }
+                                                        };
                                                         rootToFileToChangesMap.Add(
                                                             vsLangTextChange.ObjectDefinitionFullName, fileToChangesMap);
                                                     }
@@ -174,14 +169,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             // the root nodes to the change nodes.
             foreach (var rootNode in vsLangObjectNodes)
             {
-                Dictionary<string, List<PreviewChangesNode>> fileToChangesMap;
-                if (rootToFileToChangesMap.TryGetValue(rootNode.DisplayText, out fileToChangesMap))
+                if (rootToFileToChangesMap.TryGetValue(rootNode.DisplayText, out Dictionary<string, List<PreviewChangesNode>> fileToChangesMap))
                 {
                     if (fileToChangesMap != null)
                     {
                         foreach (var fileName in fileToChangesMap.Keys)
                         {
-                            var fileNodeDisplayData = new VSTREEDISPLAYDATA();
+                            VSTREEDISPLAYDATA fileNodeDisplayData = new VSTREEDISPLAYDATA();
 
                             if (FileExtensions.VbExt.Equals(Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase))
                             {
@@ -195,7 +189,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 
                             var shortFileName = Path.GetFileName(fileName);
                             var checkState = DetermineCheckState(fileToChangesMap[fileName]);
-                            var fileNode = new PreviewChangesNode(shortFileName, fileNodeDisplayData, shortFileName, null, null);
+                            PreviewChangesNode fileNode = new PreviewChangesNode(shortFileName, fileNodeDisplayData, shortFileName, null, null);
                             fileNode.AddChildNodes(fileToChangesMap[fileName]);
 
                             // Add checked checkbox
@@ -241,7 +235,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             if (placeNodesUnderSingleRoot)
             {
                 PreviewChangesNode rootNode;
-                var fileNodeDisplayData = new VSTREEDISPLAYDATA();
+                VSTREEDISPLAYDATA fileNodeDisplayData = new VSTREEDISPLAYDATA();
 
                 if (isCSharpChange)
                 {
@@ -257,7 +251,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                 rootNode.ShowCheckBox = true;
                 rootNode.CheckState = DetermineCheckState(vsLangObjectNodes);
                 rootNode.AddChildNodes(vsLangObjectNodes);
-                return new List<PreviewChangesNode> { rootNode };
+                return [rootNode];
             }
             else
             {
@@ -280,7 +274,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             bool enableChangeUncheck,
             bool isChecked)
         {
-            var displayData = new VSTREEDISPLAYDATA();
+            VSTREEDISPLAYDATA displayData = new VSTREEDISPLAYDATA();
 
             if (forceSelection)
             {
@@ -303,7 +297,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 
             displayData.Image = displayData.SelectedImage = icon;
 
-            var node = new PreviewChangesNode(displayText, displayData, displayText, null, proposal);
+            PreviewChangesNode node = new PreviewChangesNode(displayText, displayData, displayText, null, proposal);
 
             if (enableChangeUncheck)
             {

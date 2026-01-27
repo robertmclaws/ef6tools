@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class ReplaceSsdlAndMslCommand : Command
     {
         private readonly XmlReader _newSsdlReader;
@@ -28,8 +28,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             // check that we have an existing artifact
             var service = cpc.EditingContext.GetEFArtifactService();
-            var existingArtifact = service.Artifact as EntityDesignArtifact;
-            if (null == existingArtifact)
+            if (service.Artifact is not EntityDesignArtifact existingArtifact)
             {
                 Debug.Fail("Null Artifact in ReplaceSsdlCommand.InvokeInternal()");
                 return;
@@ -92,10 +91,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             CommandProcessorContext cpc, EFRuntimeModelRoot existingModelRoot, XmlReader newSchemaReader,
             CreateModelRootCallback createModelRootCallback)
         {
-            var newModelRootNode = XElement.Load(newSchemaReader);
+            XElement newModelRootNode = XElement.Load(newSchemaReader);
 
             // find the XObject representing the existing EFRuntimeModelRoot EFObject
-            var existingModelRootNode = existingModelRoot.XObject as XElement;
+            XElement existingModelRootNode = existingModelRoot.XObject as XElement;
             Debug.Assert(existingModelRootNode != null, "existingRootXElement is null in ReplaceModelRoot()");
 
             // find the parent of the existing XObject tied to the EFRuntimeModelRoot
@@ -104,7 +103,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // delete the old EFRuntimeModelRoot EFObject but do not delete its anti-dependencies
             if (null != existingModelRoot)
             {
-                var deleteStorageModelCommand = new DeleteEFElementCommand(existingModelRoot, true, false);
+                DeleteEFElementCommand deleteStorageModelCommand = new DeleteEFElementCommand(existingModelRoot, true, false);
                 DeleteEFElementCommand.DeleteInTransaction(cpc, deleteStorageModelCommand);
             }
 

@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-
     internal abstract class EntitySet : NameableAnnotatableElement
     {
         internal static readonly string ElementName = "EntitySet";
@@ -25,13 +25,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_entityTypeBinding == null)
-                {
-                    _entityTypeBinding = new SingleItemBinding<EntityType>(
+                _entityTypeBinding ??= new SingleItemBinding<EntityType>(
                         this,
                         AttributeEntityType,
                         EntityTypeNameNormalizer.NameNormalizer);
-                }
 
                 return _entityTypeBinding;
             }
@@ -124,7 +121,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 if (Parent != null
                     && Parent.Parent != null)
                 {
-                    var baseType = Parent.Parent as BaseEntityModel;
+                    BaseEntityModel baseType = Parent.Parent as BaseEntityModel;
                     Debug.Assert(baseType != null, "this.Parent.Parent should be a BaseEntityModel");
                     return baseType;
                 }
@@ -139,15 +136,14 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         /// <returns></returns>
         internal List<EntityType> GetEntityTypesInTheSet()
         {
-            var entityTypes = new List<EntityType>();
+            List<EntityType> entityTypes = new List<EntityType>();
             Debug.Assert(EntityType != null, "Entity type is null.");
             if (EntityType != null
                 && EntityType.Status == BindingStatus.Known)
             {
                 entityTypes.Add(EntityType.Target);
                 // If the EntityType is a conceptual entity type, we also need to add all derived types as well.
-                var conceptualEntityType = EntityType.Target as ConceptualEntityType;
-                if (conceptualEntityType != null)
+                if (EntityType.Target is ConceptualEntityType conceptualEntityType)
                 {
                     entityTypes.AddRange(conceptualEntityType.ResolvableAllDerivedTypes);
                 }

@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     #region ColumnSelectionTransfer enum
 
     /// <summary>
@@ -204,7 +204,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "hWnd")]
         private void SetSelectionColumn_Clear(bool fireEvents)
         {
             var hWnd = Handle; // forces evaluation of Handle
@@ -220,7 +219,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "hWnd")]
         private void SetSelectionColumn_PreserveBasic(
             int oldColumn, ColumnPermutation oldPermutation, int newColumn, bool allowAnchoredBlanks, bool fireEvents)
         {
@@ -290,7 +288,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         }
 
         // Similar to the PreserveBasic routine, but we do column validation as well as validating the blanks
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "hWnd")]
         private void SetSelectionColumn_PreserveAnchors(
             int oldColumn, ColumnPermutation oldPermutation, int newColumn, bool sharedAnchorsOnly, bool fireEvents)
         {

@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class PropertyMappingBase : EFElement
     {
         internal static readonly string AttributeName = "Name";
@@ -39,14 +39,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_property == null)
-                {
-                    _property = new SingleItemBinding<Property>(
+                _property ??= new SingleItemBinding<Property>(
                         this,
                         AttributeName,
                         ProperyMappingNameNormalizer.NameNormalizer
                         );
-                }
                 return _property;
             }
         }
@@ -58,14 +55,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_column == null)
-                {
-                    _column = new SingleItemBinding<Property>(
+                _column ??= new SingleItemBinding<Property>(
                         this,
                         AttributeColumnName,
                         PropertyMappingColumnNameNormalizer.NameNormalizer
                         );
-                }
                 return _column;
             }
         }
@@ -139,7 +133,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                     return null;
                 }
 
-                var etm = frag.Parent as EntityTypeMapping;
+                EntityTypeMapping etm = frag.Parent as EntityTypeMapping;
                 Debug.Assert(etm != null, "frag.Parent should be an EntityTypeMapping");
 
                 return etm.FirstBoundConceptualEntityType;
@@ -157,8 +151,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                     return null;
                 }
 
-                var ses = frag.StoreEntitySet.Target as StorageEntitySet;
-                if (ses != null)
+                if (frag.StoreEntitySet.Target is StorageEntitySet ses)
                 {
                     return ses.EntityType.Target;
                 }

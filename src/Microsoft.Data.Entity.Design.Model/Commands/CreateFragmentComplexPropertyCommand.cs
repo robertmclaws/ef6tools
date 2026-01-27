@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to create a ComplexProperty that lives in a MappingFragment.apping.
     /// </summary>
@@ -119,8 +119,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             if (_mode == Mode.ComplexProperty
                 && _parentComplexProperty == null)
             {
-                var prereq = GetPreReqCommand(PrereqId) as CreateFragmentComplexPropertyCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(PrereqId) is CreateFragmentComplexPropertyCommand prereq)
                 {
                     _parentComplexProperty = prereq.ComplexProperty;
                     CommandValidation.ValidateComplexProperty(_parentComplexProperty);
@@ -137,7 +136,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2208:InstantiateArgumentExceptionsCorrectly")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(
@@ -221,7 +219,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             CommandProcessorContext cpc, EntityType conceptualEntityType, ComplexConceptualProperty property, Property tableColumn)
         {
             // the S-Side entity
-            var storageEntityType = tableColumn.Parent as EntityType;
+            EntityType storageEntityType = tableColumn.Parent as EntityType;
             Debug.Assert(storageEntityType != null, "tableColumn.Parent should be an EntityType");
 
             // get the fragment to use
@@ -238,7 +236,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             return cp;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static ComplexProperty CreateComplexPropertyUsingFragment(
             MappingFragment mappingFragment, ComplexConceptualProperty property)
         {
@@ -252,7 +249,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             return cp;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static ComplexProperty CreateComplexPropertyUsingComplexProperty(
             ComplexProperty parentComplexProperty, ComplexConceptualProperty property)
         {
@@ -266,11 +262,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             return cp;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static ComplexProperty CreateNewComplexProperty(EFElement parent, ComplexConceptualProperty property)
         {
             // actually create it in the XLinq tree
-            var cp = new ComplexProperty(parent, null);
+            ComplexProperty cp = new ComplexProperty(parent, null);
             cp.Name.SetRefName(property);
 
             XmlModelHelper.NormalizeAndResolve(cp);

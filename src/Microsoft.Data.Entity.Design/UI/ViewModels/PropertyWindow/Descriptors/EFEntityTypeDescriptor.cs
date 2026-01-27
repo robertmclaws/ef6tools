@@ -1,24 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Core.Controls;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+using Microsoft.Data.Entity.Design.UI.Views;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Core.Controls;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-    using Microsoft.Data.Entity.Design.UI.Views;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class EFEntityTypeDescriptor :
         EFAnnotatableElementDescriptor<EntityType>,
         IAnnotatableDocumentableDescriptor
@@ -40,7 +39,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             get
             {
-                var cet = TypedEFElement as ConceptualEntityType;
+                ConceptualEntityType cet = TypedEFElement as ConceptualEntityType;
                 Debug.Assert(cet != null, "EntityType is not ConceptualEntityType");
                 var baseType = cet.BaseType.Target;
                 if (baseType == null)
@@ -65,7 +64,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 }
 
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                var cet = TypedEFElement as ConceptualEntityType;
+                ConceptualEntityType cet = TypedEFElement as ConceptualEntityType;
                 Debug.Assert(cet != null, "EntityType is not ConceptualEntityType");
                 ViewUtils.SetBaseEntityType(cpc, cet, value);
             }
@@ -94,7 +93,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                     Command c = new EntityDesignRenameCommand(es, value, true);
-                    var cp = new CommandProcessor(cpc, c);
+                    CommandProcessor cp = new CommandProcessor(cpc, c);
                     cp.Invoke();
                 }
             }
@@ -112,8 +111,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
         public bool IsReadOnlyEntitySetName()
         {
-            var cet = TypedEFElement as ConceptualEntityType;
-            if (cet != null)
+            if (TypedEFElement is ConceptualEntityType cet)
             {
                 return cet.HasResolvableBaseType || IsReadOnly;
             }
@@ -166,8 +164,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             get
             {
-                var cet = TypedEFElement as ConceptualEntityType;
-                if (cet != null)
+                if (TypedEFElement is ConceptualEntityType cet)
                 {
                     return cet.Abstract.Value;
                 }
@@ -178,9 +175,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                var cet = TypedEFElement as ConceptualEntityType;
-
-                if (cet != null)
+                if (TypedEFElement is ConceptualEntityType cet)
                 {
                     if (value)
                     {
@@ -202,7 +197,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                         }
                     }
 
-                    var cmd = new ChangeEntityTypeAbstractCommand(cet, value);
+                    ChangeEntityTypeAbstractCommand cmd = new ChangeEntityTypeAbstractCommand(cet, value);
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }
@@ -217,8 +212,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             get
             {
-                var conc = TypedEFElement as ConceptualEntityType;
-                if (conc != null)
+                if (TypedEFElement is ConceptualEntityType conc)
                 {
                     return conc.TypeAccess.Value;
                 }
@@ -229,11 +223,10 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                var conc = TypedEFElement as ConceptualEntityType;
-                if (conc != null)
+                if (TypedEFElement is ConceptualEntityType conc)
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                    var cmd = new UpdateEntityTypeTypeAccessCommand(conc.TypeAccess, value);
+                    UpdateEntityTypeTypeAccessCommand cmd = new UpdateEntityTypeTypeAccessCommand(conc.TypeAccess, value);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }
             }
@@ -263,8 +256,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             get
             {
-                var ses = TypedEFElement.EntitySet as StorageEntitySet;
-                if (null != ses)
+                if (TypedEFElement.EntitySet is StorageEntitySet ses)
                 {
                     return ses.DatabaseTableName;
                 }
@@ -291,8 +283,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             get
             {
-                var ses = TypedEFElement.EntitySet as StorageEntitySet;
-                if (null != ses)
+                if (TypedEFElement.EntitySet is StorageEntitySet ses)
                 {
                     return ses.DatabaseSchemaName;
                 }
@@ -305,8 +296,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             if (propertyDescriptorMethodName.Equals("TypeAccess"))
             {
-                var conc = TypedEFElement as ConceptualEntityType;
-                if (conc != null)
+                if (TypedEFElement is ConceptualEntityType conc)
                 {
                     return conc.TypeAccess.DefaultValue;
                 }

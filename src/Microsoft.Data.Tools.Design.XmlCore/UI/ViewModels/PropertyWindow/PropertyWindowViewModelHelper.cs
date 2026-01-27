@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-
     /// <summary>
     ///     class with definition of miscellaneous helper methods for the property window ViewModel
     /// </summary>
@@ -46,8 +46,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow
         internal static IEnumerable<TSelectedObj> GetObjectsFromSelection<TSelectedObj>(object selection) where TSelectedObj : class
         {
             // single selection
-            var selectedObj = selection as TSelectedObj;
-            if (selectedObj != null)
+            if (selection is TSelectedObj selectedObj)
             {
                 yield return selectedObj;
             }
@@ -81,7 +80,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow
         {
             // the IsBrowsable verification is not done as part of the caching in GetProperties because 
             // the IsBrowsable state can change when the values of other properties change.
-            var browsableProperties = new PropertyDescriptorCollection(null);
+            PropertyDescriptorCollection browsableProperties = new PropertyDescriptorCollection(null);
             foreach (PropertyDescriptor propDescriptor in properties)
             {
                 if (propDescriptor.IsBrowsable)
@@ -99,7 +98,6 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow
             var props = TypeDescriptor.GetProperties(component, attributes, true);
 
             // determine if the component can provide defaults and/or help keyword for its contained properties
-            var defaultsProvider = component as IPropertyDescriptorDefaultsProvider;
 
             foreach (PropertyDescriptor prop in props)
             {
@@ -108,16 +106,16 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow
                 // if the component can provide a default value for this property, then get it at runtime,
                 // create a DefaultValueAttribute, create a copy of the property descriptor, attach the
                 // attribute to it, and use this new descriptor
-                if (defaultsProvider != null)
+                if (component is IPropertyDescriptorDefaultsProvider defaultsProvider)
                 {
                     var defaultValue = defaultsProvider.GetDescriptorDefaultValue(prop.Name);
 
-                    var defaultValueAttribute = new DefaultValueAttribute(defaultValue);
+                    DefaultValueAttribute defaultValueAttribute = new DefaultValueAttribute(defaultValue);
                     wrappedPropDescriptor = TypeDescriptor.CreateProperty(
                         prop.ComponentType, prop, new Attribute[] { defaultValueAttribute });
                 }
 
-                var reflectedPropertyDescriptor = new ReflectedPropertyDescriptor(editingContext, wrappedPropDescriptor, component);
+                ReflectedPropertyDescriptor reflectedPropertyDescriptor = new ReflectedPropertyDescriptor(editingContext, wrappedPropDescriptor, component);
                 properties.Add(reflectedPropertyDescriptor);
             }
         }

@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class Association : DocumentableAnnotatableElement
     {
         internal static readonly string ElementName = "Association";
 
-        private readonly List<AssociationEnd> _ends = new List<AssociationEnd>();
+        private readonly List<AssociationEnd> _ends = [];
         private ReferentialConstraint _referentialConstraint;
 
         internal Association(EFElement parent, XElement element)
@@ -118,8 +118,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child = efContainer as AssociationEnd;
-            if (child != null)
+            if (efContainer is AssociationEnd child)
             {
                 _ends.Remove(child);
                 return;
@@ -159,7 +158,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             if (elem.Name.LocalName == AssociationEnd.ElementName)
             {
-                var assocEnd = new AssociationEnd(this, elem);
+                AssociationEnd assocEnd = new AssociationEnd(this, elem);
                 _ends.Add(assocEnd);
                 assocEnd.Parse(unprocessedElements);
             }
@@ -200,7 +199,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var baseModel = Parent as BaseEntityModel;
+                BaseEntityModel baseModel = Parent as BaseEntityModel;
                 Debug.Assert(baseModel != null, "EntityType.EntityModel: this.Parent should be a BaseEntityModel");
                 return baseModel;
             }
@@ -313,12 +312,11 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         internal static HashSet<Association> GetAssociationsForEntityType(EntityType entityType)
         {
             // Add association connectors
-            var participatingAssociations = new HashSet<Association>();
+            HashSet<Association> participatingAssociations = new HashSet<Association>();
             // First we find all the associations which the entitytype participates.
             foreach (var associationEnd in entityType.GetAntiDependenciesOfType<AssociationEnd>())
             {
-                var association = associationEnd.Parent as Association;
-                if (association != null
+                if (associationEnd.Parent is Association association
                     && participatingAssociations.Contains(association) == false)
                 {
                     participatingAssociations.Add(association);
@@ -361,7 +359,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         internal override DeleteEFElementCommand GetDeleteCommand()
         {
-            var cmd = new DeleteAssociationCommand(this);
+            DeleteAssociationCommand cmd = new DeleteAssociationCommand(this);
             Debug.Assert(cmd != null, "Could not create DeleteAssociationCommand, falling back to base class delete.");
             if (cmd == null)
             {

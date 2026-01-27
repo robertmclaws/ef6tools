@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Visitor;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
-
     internal static class XmlModelHelper
     {
         internal static void NormalizeAndResolve(EFContainer efContainer)
@@ -20,9 +20,9 @@ namespace Microsoft.Data.Entity.Design.Model
             // revert this item and its children to the Parsed State, if we don't do this
             // then they will be skipped by the other visitors. Also Unbind so resolving will
             // rebind any references.
-            var stateChangingVisitor = new StateChangingVisitor(EFElementState.Parsed);
+            StateChangingVisitor stateChangingVisitor = new StateChangingVisitor(EFElementState.Parsed);
             stateChangingVisitor.Traverse(efContainer);
-            var unbindingVisitor = new UnbindingVisitor();
+            UnbindingVisitor unbindingVisitor = new UnbindingVisitor();
             unbindingVisitor.Traverse(efContainer);
 
             ModelManager.NormalizeItem(efContainer);
@@ -108,8 +108,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 uniquenessIsCaseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
             foreach (var child in container.Children)
             {
-                var nameableChild = child as EFNameableItem;
-                if (nameableChild != null
+                if (child is EFNameableItem nameableChild
                     &&
                     (childEFObjectsToIgnore != null ? !childEFObjectsToIgnore.Contains(nameableChild) : true))
                 {
@@ -134,7 +133,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns></returns>
         internal static EFNameableItem FindNameableItemViaIdentifier(EFContainer excludedAncestor, string delimitedNameIdentifier)
         {
-            var ids = new Queue<string>(delimitedNameIdentifier.Split('.'));
+            Queue<string> ids = new Queue<string>(delimitedNameIdentifier.Split('.'));
             return FindNameableItemViaIdentifierInternal(excludedAncestor, ids);
         }
 
@@ -145,8 +144,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 var namePart = nameQueue.Dequeue();
                 foreach (var childObject in currentContainer.Children.OfType<EFObject>())
                 {
-                    var nameableItem = childObject as EFNameableItem;
-                    var itemBinding = childObject as ItemBinding;
+                    EFNameableItem nameableItem = childObject as EFNameableItem;
                     var foundNamePartMatch = false;
 
                     // first examine the name. We can use the name as the type or the actual name.
@@ -154,7 +152,7 @@ namespace Microsoft.Data.Entity.Design.Model
                         && namePart.EndsWith("*", StringComparison.Ordinal))
                     {
                         var trimmedNamePart = namePart.Trim('*');
-                        if (itemBinding != null
+                        if (childObject is ItemBinding itemBinding
                             && itemBinding.ResolvedTargets.FirstOrDefault() != null
                             &&
                             itemBinding.ResolvedTargets.FirstOrDefault().GetType().Name == trimmedNamePart)

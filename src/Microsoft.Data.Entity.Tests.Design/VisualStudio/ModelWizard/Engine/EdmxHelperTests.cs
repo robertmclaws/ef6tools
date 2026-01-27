@@ -1,21 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using System.Xml.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity;
-    using System.Data.Entity.Core.Mapping;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using System.Xml.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
     [TestClass]
     public class EdmxHelperTests
     {
@@ -314,7 +308,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
         [TestMethod]
         public void UpdateDesignerOptionProperty_updates_existing_property()
         {
-            var edmx = XDocument.Parse(EdmxTemplate);
+            XDocument edmx = XDocument.Parse(EdmxTemplate);
             var edmxNs = edmx.Root.Name.Namespace;
 
             var designerElement = edmx.Root.Element(edmxNs + "Designer");
@@ -328,7 +322,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
                             new XAttribute("Name", "TestProperty"),
                             new XAttribute("Value", Guid.NewGuid().ToString())))));
 
-            var newValue = Guid.NewGuid();
+            Guid newValue = Guid.NewGuid();
 
             new EdmxHelper(edmx).UpdateDesignerOptionProperty("TestProperty", newValue);
 
@@ -339,14 +333,14 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
         [TestMethod]
         public void UpdateDesignerOptionProperty_creates_property_if_not_exists()
         {
-            var edmx = XDocument.Parse(EdmxTemplate);
+            XDocument edmx = XDocument.Parse(EdmxTemplate);
             var edmxNs = edmx.Root.Name.Namespace;
 
             var designerElement = edmx.Root.Element(edmxNs + "Designer");
             designerElement.Add(
                 new XElement(edmxNs + "Options"));
 
-            var newValue = Guid.NewGuid();
+            Guid newValue = Guid.NewGuid();
 
             new EdmxHelper(edmx).UpdateDesignerOptionProperty("TestProperty", newValue);
 

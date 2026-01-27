@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Input;
 using System.Windows.Controls;
+using Microsoft.Data.Entity.Design;
 using Microsoft.Data.Entity.Design.UI.ViewModels;
 using Microsoft.VisualStudio.PlatformUI;
 using EntityDesignerResources = Microsoft.Data.Entity.Design.Resources;
@@ -115,10 +116,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         {
             TextBox textBox = control as TextBox;
             Debug.Assert(textBox != null, "parameter control is not a TextBox type");
-            if (textBox != null)
-            {
-                textBox.GetBindingExpression(TextBox.TextProperty).UpdateSource();
-            }
+            textBox?.GetBindingExpression(TextBox.TextProperty).UpdateSource();
         }
 
         private void CommitDialogControlsManually()

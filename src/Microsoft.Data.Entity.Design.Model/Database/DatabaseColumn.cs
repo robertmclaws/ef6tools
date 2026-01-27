@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Database
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     Represents the full name of a column on a table on a database
     ///     including the schema
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Entity.Design.Model.Database
             {
                 return false;
             }
-            var objAsDatabaseColumn = (DatabaseColumn)obj;
+            DatabaseColumn objAsDatabaseColumn = (DatabaseColumn)obj;
 
             return (Table.Equals(objAsDatabaseColumn.Table)
                     && Column == objAsDatabaseColumn.Column);
@@ -47,11 +47,11 @@ namespace Microsoft.Data.Entity.Design.Model.Database
 
         internal static DatabaseColumn CreateFromProperty(Property prop)
         {
-            var ses = prop.EntityType.EntitySet as StorageEntitySet;
+            StorageEntitySet ses = prop.EntityType.EntitySet as StorageEntitySet;
             Debug.Assert(ses != null, "Property " + prop.ToPrettyString() + " does not have S-side EntitySet");
-            var tableOrView = DatabaseObject.CreateFromEntitySet(ses);
+            DatabaseObject tableOrView = DatabaseObject.CreateFromEntitySet(ses);
 
-            var column = new DatabaseColumn();
+            DatabaseColumn column = new DatabaseColumn();
             column.Table = tableOrView;
 
             Debug.Assert(prop.LocalName.Value != null, "Property " + prop.ToPrettyString() + " does not have Name");

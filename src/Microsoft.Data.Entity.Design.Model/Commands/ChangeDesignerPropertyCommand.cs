@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Designer;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-
     /// <summary>
     ///     This command will change a DesignerProperty under a DesignerInfoPropertySet inside a generic
     ///     DesignerInfo, for example, "Options", "Connection", etc. We are guaranteed to have a
@@ -45,18 +45,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _designerInfo = designerInfo;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // if the DesignerInfoPropertySet doesn't exist then we need to create it.
-            if (_designerInfo.PropertySet == null)
-            {
-                _designerInfo.PropertySet = new DesignerInfoPropertySet(_designerInfo, null);
-            }
+            _designerInfo.PropertySet ??= new DesignerInfoPropertySet(_designerInfo, null);
 
             // if the DesignerProperty doesn't exist then we need to create it.
-            DesignerProperty designerProperty;
-            if (!_designerInfo.PropertySet.TryGetDesignerProperty(_name, out designerProperty))
+            if (!_designerInfo.PropertySet.TryGetDesignerProperty(_name, out DesignerProperty designerProperty))
             {
                 designerProperty = new DesignerProperty(_designerInfo.PropertySet, null);
                 designerProperty.LocalName.Value = _name;
@@ -71,7 +66,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // now we update the value of the designer property
-            var cmdUpdateDefaultableValue = new UpdateDefaultableValueCommand<string>(designerProperty.ValueAttr, _value);
+            UpdateDefaultableValueCommand<string> cmdUpdateDefaultableValue = new UpdateDefaultableValueCommand<string>(designerProperty.ValueAttr, _value);
             CommandProcessor.InvokeSingleCommand(cpc, cmdUpdateDefaultableValue);
 
             // normalize and resolve the entire DesignerInfo

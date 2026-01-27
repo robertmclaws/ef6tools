@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data;
+using System.Globalization;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Data;
-    using System.Globalization;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-
     [TestClass]
     public class TableDetailsRowTests
     {
         [TestMethod]
         public void Table_returns_owning_table()
         {
-            var tableDetailsCollection = new TableDetailsCollection();
+            TableDetailsCollection tableDetailsCollection = new TableDetailsCollection();
             tableDetailsCollection.NewRow().Table.Should().BeSameAs(tableDetailsCollection);
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void CatalogName_IsDbNull_returns_true_for_null_CatalogName_value()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
             row.IsCatalogNull().Should().BeTrue();
             row["CatalogName"] = DBNull.Value;
             row.IsCatalogNull().Should().BeTrue();
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void CatalogName_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.Catalog; };
             act.Should().Throw<StrongTypingException>()
@@ -78,7 +78,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void SchemaName_IsDbNull_returns_true_for_null_SchemaName_value()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
             row.IsSchemaNull().Should().BeTrue();
             row["SchemaName"] = DBNull.Value;
             row.IsSchemaNull().Should().BeTrue();
@@ -87,7 +87,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void SchemaName_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.Schema; };
             act.Should().Throw<StrongTypingException>()
@@ -117,7 +117,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void TableName_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.TableName; };
             act.Should().Throw<StrongTypingException>()
@@ -147,7 +147,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void ColumnName_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.ColumnName; };
             act.Should().Throw<StrongTypingException>()
@@ -177,7 +177,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void IsNullable_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.IsNullable; };
             act.Should().Throw<StrongTypingException>()
@@ -207,7 +207,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void DataType_IsDbNull_returns_true_for_null_DataType_value()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
             row.IsDataTypeNull().Should().BeTrue();
             row["DataType"] = DBNull.Value;
             row.IsDataTypeNull().Should().BeTrue();
@@ -216,7 +216,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void DataType_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.DataType; };
             act.Should().Throw<StrongTypingException>()
@@ -246,7 +246,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void MaximumLength_IsDbNull_returns_true_for_null_MaximumLength_value()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
             row.IsMaximumLengthNull().Should().BeTrue();
             row["MaximumLength"] = DBNull.Value;
             row.IsMaximumLengthNull().Should().BeTrue();
@@ -255,7 +255,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void MaximumLength_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.MaximumLength; };
             act.Should().Throw<StrongTypingException>()
@@ -285,7 +285,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void DateTimePrecision_IsDbNull_returns_true_for_null_DateTimePrecision_value()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
             row.IsDateTimePrecisionNull().Should().BeTrue();
             row["DateTimePrecision"] = DBNull.Value;
             row.IsDateTimePrecisionNull().Should().BeTrue();
@@ -294,7 +294,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void DateTimePrecision_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.DateTimePrecision; };
             act.Should().Throw<StrongTypingException>()
@@ -324,7 +324,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void Precision_IsDbNull_returns_true_for_null_Precision_value()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
             row.IsPrecisionNull().Should().BeTrue();
             row["Precision"] = DBNull.Value;
             row.IsPrecisionNull().Should().BeTrue();
@@ -333,7 +333,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void Precision_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.Precision; };
             act.Should().Throw<StrongTypingException>()
@@ -363,7 +363,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void Scale_IsDbNull_returns_true_for_null_Scale_value()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
             row.IsScaleNull().Should().BeTrue();
             row["Scale"] = DBNull.Value;
             row.IsScaleNull().Should().BeTrue();
@@ -372,7 +372,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void Scale_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.Scale; };
             act.Should().Throw<StrongTypingException>()
@@ -402,7 +402,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void IsIdentity_IsDbNull_returns_true_for_null_IsIdentity_value()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
             row.IsIsIdentityNull().Should().BeTrue();
             row["IsIdentity"] = DBNull.Value;
             row.IsIsIdentityNull().Should().BeTrue();
@@ -411,7 +411,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void IsIdentity_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.IsIdentity; };
             act.Should().Throw<StrongTypingException>()
@@ -441,7 +441,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void IsServerGenerated_IsDbNull_returns_true_for_null_IsServerGenerated_value()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
             row.IsIsServerGeneratedNull().Should().BeTrue();
             row["IsServerGenerated"] = DBNull.Value;
             row.IsIsServerGeneratedNull().Should().BeTrue();
@@ -450,7 +450,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void IsServerGenerated_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.IsServerGenerated; };
             act.Should().Throw<StrongTypingException>()
@@ -480,7 +480,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void IsPrimaryKey_throws_StrongTypingException_for_null_vale()
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
 
             Action act = () => { var _ = row.IsPrimaryKey; };
             act.Should().Throw<StrongTypingException>()
@@ -506,7 +506,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
 
         private TableDetailsRow CreateTableDetailsRow(string catalog, string schema, string table)
         {
-            var row = (TableDetailsRow)new TableDetailsCollection().NewRow();
+            TableDetailsRow row = (TableDetailsRow)new TableDetailsCollection().NewRow();
             row.Catalog = catalog;
             row.Schema = schema;
             row.TableName = table;

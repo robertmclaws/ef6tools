@@ -1,25 +1,25 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal partial class ReferentialConstraintDialog : Form
     {
@@ -32,19 +32,19 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         private AssociationEnd _principal;
         private AssociationEnd _dependent;
 
-        private readonly Dictionary<AssociationEnd, RoleListItem> _roleListItems = new Dictionary<AssociationEnd, RoleListItem>();
+        private readonly Dictionary<AssociationEnd, RoleListItem> _roleListItems = [];
         private readonly RoleListItem _blankRoleListItem = new RoleListItem(null, false);
 
-        private readonly Dictionary<Symbol, MappingListItem> _mappingListItems = new Dictionary<Symbol, MappingListItem>();
+        private readonly Dictionary<Symbol, MappingListItem> _mappingListItems = [];
 
-        private readonly Dictionary<Symbol, KeyListItem> _dependentListItems = new Dictionary<Symbol, KeyListItem>();
+        private readonly Dictionary<Symbol, KeyListItem> _dependentListItems = [];
         private readonly KeyListItem _blankDependentKeyListItem = new KeyListItem(null);
 
         private bool _handlingSelection;
 
         internal static IEnumerable<Command> LaunchReferentialConstraintDialog(Association association)
         {
-            var commands = new List<Command>();
+            List<Command> commands = new List<Command>();
             if (association != null)
             {
                 if (association.ReferentialConstraint == null
@@ -59,7 +59,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                     )
                     )
                 {
-                    using (var dlg = new ReferentialConstraintDialog(association))
+                    using (ReferentialConstraintDialog dlg = new ReferentialConstraintDialog(association))
                     {
                         var result = dlg.ShowDialog();
                         if (result != DialogResult.Cancel
@@ -74,8 +74,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 
                             if (dlg.ShouldDeleteOnly == false)
                             {
-                                var principalProps = new List<Property>();
-                                var dependentProps = new List<Property>();
+                                List<Property> principalProps = new List<Property>();
+                                List<Property> dependentProps = new List<Property>();
 
                                 var keys = GetKeysForType(dlg.Principal.Type.Target);
 
@@ -254,7 +254,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         {
             get
             {
-                var props = new List<Symbol>();
+                List<Symbol> props = new List<Symbol>();
                 if (_principal != null)
                 {
                     foreach (var item in _mappingListItems)
@@ -273,7 +273,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         {
             get
             {
-                var props = new List<Symbol>();
+                List<Symbol> props = new List<Symbol>();
                 if (_dependent != null)
                 {
                     foreach (var item in _mappingListItems)
@@ -348,7 +348,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 
                     foreach (var key in GetMappableDependentProperties())
                     {
-                        var item = new KeyListItem(key.NormalizedName);
+                        KeyListItem item = new KeyListItem(key.NormalizedName);
                         _dependentListItems.Add(key.NormalizedName, item);
 
                         cmbDependentKey.Items.Add(item);
@@ -364,7 +364,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                                 continue;
                             }
 
-                            var item = new KeyListItem(prop.NormalizedName);
+                            KeyListItem item = new KeyListItem(prop.NormalizedName);
                             _dependentListItems.Add(prop.NormalizedName, item);
 
                             cmbDependentKey.Items.Add(item);
@@ -406,8 +406,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             else if (EdmFeatureManager.GetForeignKeysInModelFeatureState(_association.Artifact.SchemaVersion).IsEnabled())
             {
                 // targeting netfx 4.0 or greater, so allow all properties on the dependent end
-                var l = new List<Property>();
-                var t = _dependent.Type.Target as ConceptualEntityType;
+                List<Property> l = new List<Property>();
+                ConceptualEntityType t = _dependent.Type.Target as ConceptualEntityType;
                 Debug.Assert(_dependent.Type.Target == null || t != null, "EntityType is not ConceptualEntityType");
                 while (t != null)
                 {
@@ -427,7 +427,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 // targeting netfx 3.5, so allow only allow keys on the dependent end
                 if (_dependent.Type.Target != null)
                 {
-                    var cet = _dependent.Type.Target as ConceptualEntityType;
+                    ConceptualEntityType cet = _dependent.Type.Target as ConceptualEntityType;
                     Debug.Assert(cet != null, "entity type is not a conceptual entity type");
                     rtrn = cet.ResolvableTopMostBaseType.ResolvableKeys;
                 }
@@ -495,8 +495,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 
         private void ShowDependencyKeyComboBox(ListViewItem lvItem)
         {
-            var mli = lvItem.Tag as MappingListItem;
-            if (mli != null)
+            if (lvItem.Tag is MappingListItem mli)
             {
                 if (mli.IsValidPrincipalKey == false)
                 {
@@ -663,8 +662,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 if (cmbDependentKey.SelectedItem != _blankDependentKeyListItem)
                 {
                     // user chose nothing, or else they chose the existing one - just return
-                    var keyListItem = cmbDependentKey.SelectedItem as KeyListItem;
-                    if (keyListItem == null
+                    if (cmbDependentKey.SelectedItem is not KeyListItem keyListItem
                         ||
                         keyListItem.Key.Equals(mappingListItem.DependentProperty))
                     {
@@ -724,8 +722,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         // <returns>whether all dependent properties are used at most once</returns>
         private bool CheckDepPropMappedOnlyOnce()
         {
-            var depPropsAlreadyUsed = new HashSet<Symbol>();
-            var dupeProps = new HashSet<Symbol>(); // used to identify duplicated properties in error message
+            HashSet<Symbol> depPropsAlreadyUsed = new HashSet<Symbol>();
+            HashSet<Symbol> dupeProps = new HashSet<Symbol>(); // used to identify duplicated properties in error message
 
             foreach (var mli in MappingList)
             {
@@ -760,7 +758,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 // if dupeProps contains any properties display them in the warning and return false
 
                 // construct list of duplicated Properties
-                var listOfDupeProps = new StringBuilder();
+                StringBuilder listOfDupeProps = new StringBuilder();
                 var isFirst = true;
                 foreach (var prop in dupeProps)
                 {
@@ -853,20 +851,20 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                         dsym = dnum.Current.Name.NormalizedName();
                     }
 
-                    var item = new MappingListItem(psym, dsym, IsValidPrincipalKey(psym, principalKeys));
+                    MappingListItem item = new MappingListItem(psym, dsym, IsValidPrincipalKey(psym, principalKeys));
                     _mappingListItems.Add(item.PrincipalKey, item);
                 }
             }
 
             // add any remaining principal keys that aren't mapped yet in a 
             // ref constraint (which means all if no ref constraint exists)
-            var principalEntityType = _principal.Type.Target as ConceptualEntityType;
+            ConceptualEntityType principalEntityType = _principal.Type.Target as ConceptualEntityType;
             Debug.Assert(principalEntityType != null, "EntityType is not ConceptualEntityType");
             foreach (var key in principalEntityType.ResolvableTopMostBaseType.ResolvableKeys)
             {
                 if (_mappingListItems.ContainsKey(key.NormalizedName) == false)
                 {
-                    var item = new MappingListItem(key.NormalizedName, null, true);
+                    MappingListItem item = new MappingListItem(key.NormalizedName, null, true);
                     _mappingListItems.Add(item.PrincipalKey, item);
                 }
             }
@@ -879,7 +877,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 _dependent.Type.Target != null)
             {
                 // load a list of dependent properties
-                var dependentProperties = new List<Symbol>();
+                List<Symbol> dependentProperties = new List<Symbol>();
 
                 foreach (var dprop in GetMappableDependentProperties())
                 {
@@ -946,8 +944,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 if (item.DependentProperty != null)
                 {
                     ListViewItem.ListViewSubItem subItem = null;
-                    var depProperty = _dependent.Artifact.ArtifactSet.LookupSymbol(item.DependentProperty) as Property;
-                    if (depProperty != null)
+                    if (_dependent.Artifact.ArtifactSet.LookupSymbol(item.DependentProperty) is Property depProperty)
                     {
                         subItem = new ListViewItem.ListViewSubItem(lvi, item.DependentProperty.GetLocalName());
                     }
@@ -974,8 +971,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             IEnumerable<EFElement> symbols = _association.Artifact.ArtifactSet.GetSymbolList(key);
             foreach (var el in symbols)
             {
-                var p = el as Property;
-                if (p != null)
+                if (el is Property p)
                 {
                     if (principalKeys.Contains(p))
                     {
@@ -1006,7 +1002,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 
             if (selected.Count == 1)
             {
-                var mappingListItem = selected[0].Tag as MappingListItem;
+                MappingListItem mappingListItem = selected[0].Tag as MappingListItem;
                 mappingListItem.CurrentIndex = selected[0].Index;
                 return mappingListItem;
             }
@@ -1020,7 +1016,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             IEnumerable<EFElement> elements = entityType.Artifact.ArtifactSet.GetSymbolList(symbol);
             foreach (var e in elements)
             {
-                var p = e as Property;
+                Property p = e as Property;
                 if (keys.Contains(p))
                 {
                     return p;
@@ -1031,11 +1027,10 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 
         private static HashSet<Property> GetKeysForType(EntityType entityType)
         {
-            var principalKeys = new HashSet<Property>();
+            HashSet<Property> principalKeys = new HashSet<Property>();
             if (entityType != null)
             {
-                var cet = entityType as ConceptualEntityType;
-                if (cet != null)
+                if (entityType is ConceptualEntityType cet)
                 {
                     foreach (var c in cet.SafeSelfAndBaseTypes)
                     {

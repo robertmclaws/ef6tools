@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class ResultBinding : EFElement
     {
         internal static readonly string ElementName = "ResultBinding";
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as ModificationFunction;
+                ModificationFunction parent = Parent as ModificationFunction;
                 Debug.Assert(parent != null, "this.Parent should be a ModificationFunction");
                 return parent;
             }
@@ -41,14 +41,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_property == null)
-                {
-                    _property = new SingleItemBinding<Property>(
+                _property ??= new SingleItemBinding<Property>(
                         this,
                         AttributeName,
                         ProperyMappingNameNormalizer.NameNormalizer
                         );
-                }
                 return _property;
             }
         }
@@ -62,10 +59,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_columnNameAttr == null)
-                {
-                    _columnNameAttr = new ColumnNameDefaultableValue(this);
-                }
+                _columnNameAttr ??= new ColumnNameDefaultableValue(this);
                 return _columnNameAttr;
             }
         }

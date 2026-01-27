@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Diagnostics;
-    using System.Text;
-
     /// <summary>
     /// Represents a model configuration to set the table for an entity.
     /// </summary>
@@ -43,7 +43,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
         {
             Debug.Assert(!string.IsNullOrEmpty(Table), "Table is null or empty.");
 
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
 
             if (!string.IsNullOrEmpty(Schema))
             {
@@ -60,7 +60,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
         {
             Debug.Assert(!string.IsNullOrEmpty(name), "name is null or empty.");
 
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
 
             var hasDot = name.Contains(".");
 

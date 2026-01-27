@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Runtime.InteropServices;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Runtime.InteropServices;
-
     // This class is shared between assemblies
-    [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
     internal static class NativeMethods
     {
         // used in a function that expects a ref parameter - cannot be readonly
@@ -64,47 +62,36 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         #region SendMessage overloads
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, out Rectangle rect);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, IntPtr lParam);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int[] lParam);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, out RECT rect);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "SendMessage")]
         internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, ref TOOLINFO info);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, ref MSG passMsg);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, ref HDITEM passMsg);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, ref HDHITTESTINFO hitInfo);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         internal static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, ref HDLAYOUT layoutInfo);
 
@@ -436,7 +423,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 nTrackPos = 0;
             }
 
-            [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "dummy")]
             public SCROLLINFO(int dummy)
             {
                 cbSize = 28; //ndirect.DllLib.sizeOf(this);
@@ -543,7 +529,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 #endif
             CharSet = CharSet.Unicode)
         ]
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         internal static extern IntPtr GetWindowLong(IntPtr hWnd, int nIndex);
 
         internal static IntPtr GetWindowStyle(IntPtr hWnd)
@@ -701,7 +686,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, SetWindowPosFlags flags);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool AdjustWindowRectEx(ref RECT lpRect, IntPtr dwStyle, [MarshalAs(UnmanagedType.Bool)] bool bMenu, IntPtr dwExStyle);
@@ -1139,7 +1123,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
         internal static extern int DeleteDC(IntPtr hDC);
 
-        [SuppressMessage("Microsoft.Portability", "CA1901:PInvokeDeclarationsShouldBePortable")]
         [DllImport("gdi32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr DeleteObject(IntPtr hObject);
 
@@ -1159,7 +1142,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             get
             {
                 var ver = Environment.OSVersion.Version;
-                var xp = new Version(5, 1);
+                Version xp = new Version(5, 1);
                 return (ver >= xp);
             }
         }
@@ -1171,7 +1154,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             get
             {
                 var ver = Environment.OSVersion.Version;
-                var xp = new Version(6, 0);
+                Version xp = new Version(6, 0);
                 return (ver >= xp);
             }
         }

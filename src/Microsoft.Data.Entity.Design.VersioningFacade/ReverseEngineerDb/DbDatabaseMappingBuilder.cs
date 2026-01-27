@@ -1,23 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Core.Mapping;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity;
-    using System.Data.Entity.Core.Mapping;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Diagnostics;
-    using System.Linq;
-
     internal class DbDatabaseMappingBuilder
     {
         public static DbModel Build(SimpleMappingContext mappingContext)
         {
             Debug.Assert(mappingContext != null, "mappingContext != null");
 
-            var databaseMapping =
+            DbDatabaseMapping databaseMapping =
                 new DbDatabaseMapping
                     {
                         Database = mappingContext.StoreModel,
@@ -32,7 +32,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         private static EdmModel BuildEntityModel(SimpleMappingContext mappingContext)
         {
             var conceptualModelContainer = mappingContext[mappingContext.StoreModel.Containers.Single()];
-            var entityModel = EdmModel.CreateConceptualModel(conceptualModelContainer, mappingContext.StoreModel.SchemaVersion);
+            EdmModel entityModel = EdmModel.CreateConceptualModel(conceptualModelContainer, mappingContext.StoreModel.SchemaVersion);
 
             foreach (var entityType in mappingContext.ConceptualEntityTypes())
             {
@@ -58,7 +58,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         private static EntityContainerMapping BuildEntityContainerMapping(SimpleMappingContext mappingContext)
         {
             var storeEntityContainer = mappingContext.StoreModel.Containers.Single();
-            var entityContainerMapping =
+            EntityContainerMapping entityContainerMapping =
                 new EntityContainerMapping(
                     mappingContext[storeEntityContainer],
                     storeEntityContainer,
@@ -94,7 +94,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             foreach (var storeEntitySet in mappingContext.StoreEntitySets())
             {
-                var entitySetMapping = new EntitySetMapping(mappingContext[storeEntitySet], entityContainerMapping);
+                EntitySetMapping entitySetMapping = new EntitySetMapping(mappingContext[storeEntitySet], entityContainerMapping);
                 entitySetMapping.AddTypeMapping(BuildEntityTypeMapping(entitySetMapping, mappingContext, storeEntitySet));
                 yield return entitySetMapping;
             }
@@ -109,10 +109,10 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             var entityType = storeEntitySetMapping.EntitySet.ElementType;
 
-            var entityTypeMapping = new EntityTypeMapping(storeEntitySetMapping);
+            EntityTypeMapping entityTypeMapping = new EntityTypeMapping(storeEntitySetMapping);
             entityTypeMapping.AddType(entityType);
 
-            var mappingFragment = new MappingFragment(storeEntitySet, entityTypeMapping, false);
+            MappingFragment mappingFragment = new MappingFragment(storeEntitySet, entityTypeMapping, false);
             entityTypeMapping.AddFragment(mappingFragment);
 
             foreach (var propertyMapping in BuildPropertyMapping(storeEntitySet.ElementType, mappingContext))
@@ -137,10 +137,9 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 .Select(
                     storeProperty => new ColumnMappingBuilder(
                                          storeProperty,
-                                         new List<EdmProperty>
-                                             {
+                                         [
                                                  mappingContext[storeProperty]
-                                             }));
+                                             ]));
         }
 
         // internal for testing
@@ -152,7 +151,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(entityContainerMapping != null, "entityContainerMapping != null");
             Debug.Assert(mappingContext != null, "mappingContext != null");
 
-            var associationSetMappings = new List<AssociationSetMapping>();
+            List<AssociationSetMapping> associationSetMappings = new List<AssociationSetMapping>();
 
             foreach (var associationSet in mappingContext.StoreAssociationSets())
             {
@@ -191,7 +190,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             }
 
             var foreignKeyTableEnd = GetAssociationSetEndForForeignKeyTable(storeAssociationSet);
-            var associationSetMapping = new AssociationSetMapping(
+            AssociationSetMapping associationSetMapping = new AssociationSetMapping(
                 modelAssociationSet, foreignKeyTableEnd.EntitySet, entityContainerMapping);
 
             var count = storeAssociationSet.AssociationSetEnds.Count;
@@ -234,7 +233,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 return null;
             }
 
-            var associationSetMapping = new AssociationSetMapping(
+            AssociationSetMapping associationSetMapping = new AssociationSetMapping(
                 modelAssociationSet, collapsibleItem.EntitySet, entityContainerMapping);
 
             var count = collapsibleItem.AssociationSets.Count;
@@ -259,7 +258,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(storeSetEnd != null, "storeSetEnd != null");
             Debug.Assert(mappingContext != null, "mappingContext != null");
 
-            var endPropertyMapping =
+            EndPropertyMapping endPropertyMapping =
                 new EndPropertyMapping
                     {
                         AssociationEnd = mappingContext[storeSetEnd].CorrespondingAssociationEndMember
@@ -323,12 +322,12 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 ((CollectionType)functionImport.ReturnParameter.TypeUsage.EdmType).TypeUsage.EdmType is ComplexType,
                 "Return type should be collection of complex types");
 
-            var returnComplexType =
+            ComplexType returnComplexType =
                 (ComplexType)((CollectionType)functionImport.ReturnParameter.TypeUsage.EdmType).TypeUsage.EdmType;
 
-            var structuralTypeMapping =
+            Tuple<StructuralType, List<ConditionPropertyMapping>, List<PropertyMapping>> structuralTypeMapping =
                 new Tuple<StructuralType, List<ConditionPropertyMapping>, List<PropertyMapping>>(
-                    returnComplexType, new List<ConditionPropertyMapping>(), new List<PropertyMapping>());
+                    returnComplexType, [], []);
 
             foreach (
                 var storeProperty in
@@ -341,10 +340,9 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
                 new FunctionImportMappingComposable(
                     functionImport,
                     storeFunction,
-                    new List<Tuple<StructuralType, List<ConditionPropertyMapping>, List<PropertyMapping>>>
-                        {
+                    [
                             structuralTypeMapping
-                        });
+                        ]);
         }
     }
 }

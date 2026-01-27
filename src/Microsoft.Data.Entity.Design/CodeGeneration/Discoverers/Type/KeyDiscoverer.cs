@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
-
     internal class KeyDiscoverer : ITypeConfigurationDiscoverer
     {
         public IConfiguration Discover(EntitySet entitySet, DbModel model)
@@ -25,7 +25,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
                 return null;
             }
 
-            var configuration = new KeyConfiguration();
+            KeyConfiguration configuration = new KeyConfiguration();
 
             foreach (var keyProperty in keyProperties)
             {

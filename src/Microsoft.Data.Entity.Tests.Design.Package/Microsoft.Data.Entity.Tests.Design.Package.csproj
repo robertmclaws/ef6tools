@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>Microsoft.Data.Entity.Tests.Design.Package</RootNamespace>
     <AssemblyName>Microsoft.Data.Entity.Tests.Design.Package</AssemblyName>
+    <NoWarn>$(NoWarn);VSTHRD010</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

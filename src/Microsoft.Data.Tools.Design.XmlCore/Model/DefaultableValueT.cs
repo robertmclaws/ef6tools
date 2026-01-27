@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     Represents a field in an EFElement for which the EF XSD defines a default value
     ///     if a value is not provided.
@@ -52,7 +52,6 @@ namespace Microsoft.Data.Entity.Design.Model
         internal abstract string AttributeName { get; }
         public abstract T DefaultValue { get; }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal virtual bool IsValidValue(T value)
         {
             if (value != null)

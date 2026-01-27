@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Diagnostics;
-
     #region ColumnPermutation class
 
     /// <summary>
@@ -414,7 +414,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <returns>A copy of the current object</returns>
         public ColumnPermutation Clone()
         {
-            var copy = MemberwiseClone() as ColumnPermutation;
+            ColumnPermutation copy = MemberwiseClone() as ColumnPermutation;
             copy.myColumns = copy.myColumns.Clone() as int[];
             copy.myVisibleColumns = copy.myVisibleColumns.Clone() as int[];
             return copy;

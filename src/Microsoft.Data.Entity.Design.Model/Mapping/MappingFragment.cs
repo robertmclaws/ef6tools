@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class MappingFragment : EFElement
     {
         internal static readonly string ElementName = "MappingFragment";
         internal static readonly string AttributeStoreEntitySet = "StoreEntitySet";
 
-        private readonly List<ScalarProperty> _scalarProperties = new List<ScalarProperty>();
-        private readonly List<ComplexProperty> _complexProperties = new List<ComplexProperty>();
-        private readonly List<Condition> _conditions = new List<Condition>();
+        private readonly List<ScalarProperty> _scalarProperties = [];
+        private readonly List<ComplexProperty> _complexProperties = [];
+        private readonly List<Condition> _conditions = [];
         private SingleItemBinding<EntitySet> _tableName;
 
         internal MappingFragment(EFElement parent, XElement element)
@@ -30,7 +30,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as EntityTypeMapping;
+                EntityTypeMapping parent = Parent as EntityTypeMapping;
                 Debug.Assert(parent != null, "this.Parent should be an EntityTypeMapping");
                 return parent;
             }
@@ -43,13 +43,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_tableName == null)
-                {
-                    _tableName = new SingleItemBinding<EntitySet>(
+                _tableName ??= new SingleItemBinding<EntitySet>(
                         this,
                         AttributeStoreEntitySet,
                         EntitySetNameNormalizer.NameNormalizer);
-                }
                 return _tableName;
             }
         }
@@ -183,22 +180,19 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var sp = efContainer as ScalarProperty;
-            if (sp != null)
+            if (efContainer is ScalarProperty sp)
             {
                 _scalarProperties.Remove(sp);
                 return;
             }
 
-            var cp = efContainer as ComplexProperty;
-            if (cp != null)
+            if (efContainer is ComplexProperty cp)
             {
                 _complexProperties.Remove(cp);
                 return;
             }
 
-            var cond = efContainer as Condition;
-            if (cond != null)
+            if (efContainer is Condition cond)
             {
                 _conditions.Remove(cond);
                 return;
@@ -245,19 +239,19 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == ScalarProperty.ElementName)
             {
-                var prop = new ScalarProperty(this, elem);
+                ScalarProperty prop = new ScalarProperty(this, elem);
                 _scalarProperties.Add(prop);
                 prop.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == ComplexProperty.ElementName)
             {
-                var prop = new ComplexProperty(this, elem);
+                ComplexProperty prop = new ComplexProperty(this, elem);
                 _complexProperties.Add(prop);
                 prop.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == Condition.ElementName)
             {
-                var cond = new Condition(this, elem);
+                Condition cond = new Condition(this, elem);
                 _conditions.Add(cond);
                 cond.Parse(unprocessedElements);
             }
@@ -281,8 +275,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (StoreEntitySet.Status == BindingStatus.Known)
             {
-                var etm = Parent as EntityTypeMapping;
-                if (etm != null
+                if (Parent is EntityTypeMapping etm
                     && etm.TypeName.Status == (int)BindingStatus.Known)
                 {
                     return string.Format(

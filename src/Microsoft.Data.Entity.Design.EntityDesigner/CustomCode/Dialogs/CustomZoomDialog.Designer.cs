@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Dialogs
 {
     partial class CustomZoomDialog
@@ -50,7 +52,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Dialogs
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(93, 13);
             this.label1.TabIndex = 0;
-            this.label1.Text = Properties.Resources.CustomZoom_ZoomLevel;
+            this.label1.Text = EntityDesignerRes.CustomZoom_ZoomLevel;
             // 
             // buttonCancel
             // 
@@ -62,7 +64,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Dialogs
             this.buttonCancel.MinimumSize = new System.Drawing.Size(75, 23);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.TabIndex = 3;
-            this.buttonCancel.Text = Properties.Resources.CustomDialog_CancelButton;
+            this.buttonCancel.Text = EntityDesignerRes.CustomDialog_CancelButton;
             // 
             // buttonOK
             // 
@@ -74,7 +76,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Dialogs
             this.buttonOK.Name = "buttonOK";
             this.buttonOK.MinimumSize = new System.Drawing.Size(75, 23);
             this.buttonOK.TabIndex = 2;
-            this.buttonOK.Text = Properties.Resources.CustomDialog_OKButton;
+            this.buttonOK.Text = EntityDesignerRes.CustomDialog_OKButton;
             // 
             // numericUpDownZoom
             // 
@@ -145,7 +147,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Dialogs
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = Properties.Resources.CustomZoom_DialogTitle;
+            this.Text = EntityDesignerRes.CustomZoom_DialogTitle;
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZoom)).EndInit();
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();

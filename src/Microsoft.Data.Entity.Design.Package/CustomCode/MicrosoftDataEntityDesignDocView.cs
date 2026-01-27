@@ -3,36 +3,35 @@
 using DesignerModel = Microsoft.Data.Entity.Design.Model.Designer;
 using DslDiagrams = Microsoft.VisualStudio.Modeling.Diagrams;
 using DslModeling = Microsoft.VisualStudio.Modeling;
-using SystemObjectModel = System.Collections.ObjectModel;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.EntityDesigner;
+using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+using Microsoft.Data.Entity.Design.UI.Views.EntityDesigner;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Modeling.Shell;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell.Interop;
+using PropertyBase = Microsoft.Data.Entity.Design.Model.Entity.PropertyBase;
+using Microsoft.VisualStudio.Modeling.Diagrams;
 
 namespace Microsoft.Data.Entity.Design.Package
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.EntityDesigner;
-    using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-    using Microsoft.Data.Entity.Design.UI.Views.EntityDesigner;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Microsoft.VisualStudio.PlatformUI;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using PropertyBase = Microsoft.Data.Entity.Design.Model.Entity.PropertyBase;
-
     /// <summary>
     ///     This file is adding support for our common selection model to the stock DocView that the DSL
     ///     Project Wizard gave us.  It's job is basically to interject itself inbetween DSL and the property window,
@@ -46,7 +45,6 @@ namespace Microsoft.Data.Entity.Design.Package
         private readonly string _diagramId;
         private ModelToDesignerModelXRefItem _xRef;
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public MicrosoftDataEntityDesignDocView(ModelingDocData docData, IServiceProvider serviceProvider, string diagramId)
             : base(docData, serviceProvider)
         {
@@ -77,7 +75,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// This method also update the xref link between DSL Diagram and Model Diagram.
         private void ApplyLayoutInformationFromModelDiagram()
         {
-            var artifact = Context.GetEFArtifactService().Artifact as EntityDesignArtifact;
+            EntityDesignArtifact artifact = Context.GetEFArtifactService().Artifact as EntityDesignArtifact;
             Debug.Assert(artifact != null, "Could not get the instance of EntityDesignArtifact from EditingContext.");
 
             if (artifact != null
@@ -93,17 +91,14 @@ namespace Microsoft.Data.Entity.Design.Package
                 }
 
                 // At this point DSL diagram should have been set.
-                var diagram = Diagram as EntityDesignerDiagram;
+                EntityDesignerDiagram diagram = Diagram as EntityDesignerDiagram;
                 Debug.Assert(diagram != null, "Why does the DSL diagram is null?");
 
                 if (modelDiagram != null
                     && diagram != null)
                 {
                     EntityModelToDslModelTranslatorStrategy.TranslateDiagram(diagram, modelDiagram);
-                    if (CurrentDesigner != null)
-                    {
-                        CurrentDesigner.ZoomAtViewCenter((float)modelDiagram.ZoomLevel.Value / 100);
-                    }
+                    CurrentDesigner?.ZoomAtViewCenter((float)modelDiagram.ZoomLevel.Value / 100);
                 }
             }
         }
@@ -111,20 +106,19 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <summary>
         ///     Helper method to retrieve/create DSL Diagram for the view.
         /// </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private EntityDesignerDiagram GetNewOrExistingViewDiagram()
         {
             EntityDesignerDiagram diagram = null;
 
             // Check whether the EntityDesignerDiagram exists.
-            var docData = DocData as MicrosoftDataEntityDesignDocDataBase;
+            MicrosoftDataEntityDesignDocDataBase docData = DocData as MicrosoftDataEntityDesignDocDataBase;
             diagram = GetExistingViewDiagram(docData, _diagramId);
 
             // Create DSL diagram if the diagram has not been created yet.
             if (diagram == null
                 && String.IsNullOrEmpty(_diagramId) == false)
             {
-                var artifact = Context.GetEFArtifactService().Artifact as EntityDesignArtifact;
+                EntityDesignArtifact artifact = Context.GetEFArtifactService().Artifact as EntityDesignArtifact;
                 Debug.Assert(artifact != null, "Could not find instance of EntityDesignArtifact in EditingContext.");
                 if (artifact != null)
                 {
@@ -138,7 +132,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         {
                             using (var transaction = docData.Store.TransactionManager.BeginTransaction("OpenView", true))
                             {
-                                var evm =
+                                EntityDesignerViewModel evm =
                                     ModelTranslatorContextItem.GetEntityModelTranslator(Context)
                                         .TranslateModelToDslModel(modelDiagram, new DslModeling.Partition(docData.Store)) as
                                     EntityDesignerViewModel;
@@ -151,7 +145,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     {
                         using (var transaction = docData.Store.TransactionManager.BeginTransaction("OpenView", true))
                         {
-                            var evm =
+                            EntityDesignerViewModel evm =
                                 ModelTranslatorContextItem.GetEntityModelTranslator(Context)
                                     .TranslateModelToDslModel(null, new DslModeling.Partition(docData.Store)) as EntityDesignerViewModel;
                             diagram = CreateDslDiagram(evm);
@@ -184,7 +178,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         private EntityDesignerDiagram CreateDslDiagram(EntityDesignerViewModel evm)
         {
-            var docData = DocData as MicrosoftDataEntityDesignDocDataBase;
+            MicrosoftDataEntityDesignDocDataBase docData = DocData as MicrosoftDataEntityDesignDocDataBase;
             EntityDesignerDiagram diagram = null;
             Debug.Assert(docData != null, "DocData is not a type of MicrosoftDataEntityDesignDocDataBase");
             if (docData != null)
@@ -202,10 +196,9 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             var ret = false;
 
-            var isDocDataDirty = 0;
             // Save IsDocDataDirty flag here to be set back later. 
             // This is because loading-view can cause the flag to be set since a new diagram could potentially created.
-            DocData.IsDocDataDirty(out isDocDataDirty);
+            DocData.IsDocDataDirty(out int isDocDataDirty);
             IsLoading = true;
             try
             {
@@ -257,8 +250,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     // in certain circumstances we may switch the mode of our designer (normal/safe-mode/etc)
                     // when the window is already active. This is an expensive operation so we only need it when
                     // we reload the active document.
-                    var escherDocData = DocData as MicrosoftDataEntityDesignDocData;
-                    if (escherDocData != null
+                    if (DocData is MicrosoftDataEntityDesignDocData escherDocData
                         && escherDocData.IsHandlingDocumentReloaded)
                     {
                         ToolboxService.Refresh();
@@ -267,12 +259,9 @@ namespace Microsoft.Data.Entity.Design.Package
                 }
 
                 // Listen to Diagram Title change event so we can update our window caption with the information.
-                var entityDesignerDiagram = Diagram as EntityDesignerDiagram;
+                EntityDesignerDiagram entityDesignerDiagram = Diagram as EntityDesignerDiagram;
                 Debug.Assert(entityDesignerDiagram != null, "The diagram is not the type of EntityDesignerDiagram");
-                if (entityDesignerDiagram != null)
-                {
-                    entityDesignerDiagram.OnDiagramTitleChanged += OnDiagramTitleChanged;
-                }
+                entityDesignerDiagram?.OnDiagramTitleChanged += OnDiagramTitleChanged;
                 UpdateWindowFrameCaption();
             }
             finally
@@ -296,11 +285,9 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <summary>
         ///     Tack Diagram title information in Window caption.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsWindowFrame.SetProperty(System.Int32,System.Object)")]
         private void UpdateWindowFrameCaption()
         {
-            var entityDesignerDiagram = Diagram as EntityDesignerDiagram;
-            if (entityDesignerDiagram != null)
+            if (Diagram is EntityDesignerDiagram entityDesignerDiagram)
             {
                 if (!String.IsNullOrEmpty(entityDesignerDiagram.Title))
                 {
@@ -424,12 +411,11 @@ namespace Microsoft.Data.Entity.Design.Package
                 {
                     if (Context != null)
                     {
-                        var artifact = EditingContextManager.GetArtifact(Context) as EntityDesignArtifact;
-                        if (artifact != null)
+                        if (EditingContextManager.GetArtifact(Context) is EntityDesignArtifact artifact)
                         {
                             // Show at least the EFEntityModelDescriptor so we can see the by-reference property extensions
                             // for the hydrated model
-                            var descriptor =
+                            ObjectDescriptor descriptor =
                                 (ObjectDescriptor)TypeDescriptor.CreateInstance(null, typeof(EFEntityModelDescriptor), null, null);
                             descriptor.Initialize(artifact.ConceptualModel, Context, true);
                             objects[0] = descriptor;
@@ -454,8 +440,8 @@ namespace Microsoft.Data.Entity.Design.Package
                 // This is so that property update can be done in 1 transaction.
                 if (selectedModelObjects.Count > 1)
                 {
-                    var tempSelectedModelObjects = new ArrayList();
-                    var contextItem = new LinkedDescriptorContextItem();
+                    ArrayList tempSelectedModelObjects = new ArrayList();
+                    LinkedDescriptorContextItem contextItem = new LinkedDescriptorContextItem();
                     foreach (var customTypeDescriptor in selectedModelObjects.ToArray().OfType<ICustomTypeDescriptor>())
                     {
                         tempSelectedModelObjects.Add(new LinkedPropertyTypeDescriptor(customTypeDescriptor, contextItem));
@@ -520,14 +506,13 @@ namespace Microsoft.Data.Entity.Design.Package
             var selectedDesignerObjects = objects;
 
             // create a new array to hold the item descriptors
-            var selectedModelObjects = new List<EFObject>();
-            var selectedModelObjectDescriptors = new ArrayList();
+            List<EFObject> selectedModelObjects = new List<EFObject>();
+            ArrayList selectedModelObjectDescriptors = new ArrayList();
             foreach (var o in selectedDesignerObjects)
             {
                 DslModeling.ModelElement dslElem = null;
-                var elemList = o as DslDiagrams.ElementListCompartment;
-                var presElem = o as DslDiagrams.PresentationElement;
-                if (elemList != null)
+                PresentationElement presElem = o as DslDiagrams.PresentationElement;
+                if (o is DslDiagrams.ElementListCompartment elemList)
                 {
                     // if the user selects a compartment element, we want to display the entity-type and the shape property.
                     if (elemList.IsNestedChild
@@ -605,14 +590,14 @@ namespace Microsoft.Data.Entity.Design.Package
             // We have to reverse the logic of the GetSelectX fn above; that is, convert the
             // array of our ItemDescriptors back into an array of Dsl ModelElements before 
             // calling the base impl; the base impl will then select the shape
-            var objectsSelected = new ArrayList();
-            var selectedModelObjects = new List<EFObject>();
+            ArrayList objectsSelected = new ArrayList();
+            List<EFObject> selectedModelObjects = new List<EFObject>();
             uint nonPropertyObjectsCount = 0;
             if (count > 0)
             {
                 foreach (var o in objects)
                 {
-                    var typeDesc = o as ObjectDescriptor;
+                    ObjectDescriptor typeDesc = o as ObjectDescriptor;
                     Debug.Assert(typeDesc != null, "Something unexpected was selected");
                     if (typeDesc != null)
                     {
@@ -631,7 +616,7 @@ namespace Microsoft.Data.Entity.Design.Package
                             // For all other EFObjects, we can attempt to get a ShapeElement
                             nonPropertyObjectsCount++;
                             var dslElem = XRef.GetExisting(typeDesc.WrappedItem);
-                            var presElem = dslElem as DslDiagrams.PresentationElement;
+                            PresentationElement presElem = dslElem as DslDiagrams.PresentationElement;
                             if (presElem == null)
                             {
                                 var shapes =
@@ -710,8 +695,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         private bool IsArtifactDesignerAndEditSafe()
         {
-            var artifact = EditingContextManager.GetArtifact(Context) as EntityDesignArtifact;
-            if (artifact != null)
+            if (EditingContextManager.GetArtifact(Context) is EntityDesignArtifact artifact)
             {
                 return IsArtifactDesignerSafe(artifact) && artifact.IsDesignerSafeAndEditSafe();
             }

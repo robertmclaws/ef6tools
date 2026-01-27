@@ -1,17 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 {
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Diagram = Microsoft.Data.Entity.Design.Model.Designer.Diagram;
-    using Resources = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
-
     [DomainObjectId("53d36908-9892-4495-8754-da5f4d7969d4")]
     internal class EntityTypeElementListCompartment : ElementListCompartment
     {
@@ -25,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         public EntityTypeElementListCompartment(Store store,
              bool isScalarPropertiesCompartment,
              params PropertyAssignment[] propertyAssignments)
-            : this(store != null ? store.DefaultPartitionForClass(DomainClassId) : null,
+            : this(store?.DefaultPartitionForClass(DomainClassId),
                   isScalarPropertiesCompartment,
                   propertyAssignments)
         {
@@ -86,7 +82,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             Debug.Assert(ParentShape != null, "ElementListCompartment should be contained in another shape.");
             if (ParentShape != null)
             {
-                var ets = ParentShape as EntityTypeShape;
+                EntityTypeShape ets = ParentShape as EntityTypeShape;
                 Debug.Assert(
                     ets != null, "Expected ElementListCompartment's parent type:EntityTypeShape , Actual:" + ParentShape.GetType().Name);
 
@@ -111,14 +107,14 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                 {
                     return string.Format(
                         CultureInfo.CurrentCulture,
-                        Resources.AccHelp_EntityTypeScalarPropertyCompartment,
-                        IsExpanded ? Resources.ExpandedStateExpanded : Resources.ExpandedStateCollapsed);
+                        EntityDesignerRes.AccHelp_EntityTypeScalarPropertyCompartment,
+                        IsExpanded ? EntityDesignerRes.ExpandedStateExpanded : EntityDesignerRes.ExpandedStateCollapsed);
                 }
 
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.AccHelp_EntityTypeNavigationPropertyCompartment,
-                    IsExpanded ? Resources.ExpandedStateExpanded : Resources.ExpandedStateCollapsed);
+                    EntityDesignerRes.AccHelp_EntityTypeNavigationPropertyCompartment,
+                    IsExpanded ? EntityDesignerRes.ExpandedStateExpanded : EntityDesignerRes.ExpandedStateCollapsed);
             }
         }
     }

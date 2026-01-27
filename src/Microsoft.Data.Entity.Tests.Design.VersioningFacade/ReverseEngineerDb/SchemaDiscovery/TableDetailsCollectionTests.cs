@@ -1,21 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Data;
-    using System.Linq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-
     [TestClass]
     public class TableDetailsCollectionTests
     {
         [TestMethod]
         public void Verify_TableDetailsCollection_columns()
         {
-            var tableDetailsCollection = new TableDetailsCollection();
+            TableDetailsCollection tableDetailsCollection = new TableDetailsCollection();
             tableDetailsCollection.Columns.Count.Should().Be(14);
             VerifyColumn(tableDetailsCollection.CatalogColumn, "CatalogName", typeof(string));
             VerifyColumn(tableDetailsCollection.SchemaColumn, "SchemaName", typeof(string));

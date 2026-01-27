@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Xml;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System.Xml;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class MetadataConverterDriverTests
     {
         [TestMethod]
         public void Convert_returns_null_for_non_SqlCE()
         {
-            var xmlDoc = new XmlDocument();
+            XmlDocument xmlDoc = new XmlDocument();
 
             foreach (var edmxNs in SchemaManager.GetEDMXNamespaceNames())
             {
@@ -26,7 +26,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         [TestMethod]
         public void Convert_returns_converted_xml_for_SqlCE()
         {
-            var xmlDoc = new XmlDocument();
+            XmlDocument xmlDoc = new XmlDocument();
 
             foreach (var edmxNs in SchemaManager.GetEDMXNamespaceNames())
             {

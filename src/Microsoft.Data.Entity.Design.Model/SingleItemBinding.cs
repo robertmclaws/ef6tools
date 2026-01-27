@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-
     /// <summary>
     ///     Represents information about an EFElement whose corresponding XElement
     ///     node defining it may not have been parsed yet or may not exist.	 If it
@@ -37,10 +37,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             if (disposing)
             {
-                if (_binding != null)
-                {
-                    _binding.Dispose();
-                }
+                _binding?.Dispose();
             }
         }
 
@@ -80,17 +77,17 @@ namespace Microsoft.Data.Entity.Design.Model
 
         protected override List<NormalizedName> GetRefNameAsNormalizedNames()
         {
-            var normalizedNamesList = new List<NormalizedName>();
+            List<NormalizedName> normalizedNamesList = new List<NormalizedName>();
             if (RefName == null)
             {
-                var symbol = new Symbol(String.Empty);
+                Symbol symbol = new Symbol(String.Empty);
                 normalizedNamesList.Add(new NormalizedName(symbol, null, null, String.Empty));
             }
             else
             {
                 if (_nameNormalizer == null)
                 {
-                    var symbol = new Symbol(RefName);
+                    Symbol symbol = new Symbol(RefName);
                     normalizedNamesList.Add(new NormalizedName(symbol, null, null, RefName));
                 }
                 else
@@ -243,11 +240,8 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal override void Unbind()
         {
-            if (_binding != null)
-            {
-                _binding.Dispose();
-                _binding = null;
-            }
+            _binding?.Dispose();
+            _binding = null;
         }
 
         internal override void UpdateRefNameNamespaces(string oldNamespace, string newNamespace)

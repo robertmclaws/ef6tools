@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Windows.Forms;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.Package
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Windows.Forms;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     /// <summary>
     ///     A thumbnail form class to host a pan/zoom control.
     /// </summary>
@@ -20,7 +20,6 @@ namespace Microsoft.Data.Entity.Design.Package
         // control itself
         private readonly PanZoomPanel _panZoomPanel;
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal ThumbnailViewForm(Control baseControl, DiagramClientView diagramClientView)
         {
             if (baseControl == null)
@@ -57,7 +56,7 @@ namespace Microsoft.Data.Entity.Design.Package
             }
 
             // Initialize a panel to host pan/zoom control.
-            var panel1 = new Panel();
+            Panel panel1 = new Panel();
             panel1.Dock = DockStyle.Fill;
             panel1.BorderStyle = BorderStyle.FixedSingle;
             Controls.Add(panel1);

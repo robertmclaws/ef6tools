@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel.Composition;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.ComponentModel.Composition;
-
     /// <summary>Specifies a custom file extension that can be loaded or saved by the Entity Data Model Designer.</summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]

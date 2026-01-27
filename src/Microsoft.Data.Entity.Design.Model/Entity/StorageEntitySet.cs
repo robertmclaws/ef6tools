@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class StorageEntitySet : EntitySet
     {
         internal StorageEntitySet(EFElement parent, XElement element)
@@ -44,7 +44,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             {
                 Debug.Assert(!ModelHelper.GetBaseModelRoot(this).IsCSDL, "Expected SSDL model");
 
-                return _schemaAttr ?? (_schemaAttr = new SchemaDefaultableValue(this));
+                return _schemaAttr ??= new SchemaDefaultableValue(this);
             }
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             {
                 Debug.Assert(!ModelHelper.GetBaseModelRoot(this).IsCSDL, "Expected SSDL model");
 
-                return _tableAttr ?? (_tableAttr = new TableDefaultableValue(this));
+                return _tableAttr ??= new TableDefaultableValue(this);
             }
         }
 
@@ -109,10 +109,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_storeSchemaGenTypeAttr == null)
-                {
-                    _storeSchemaGenTypeAttr = new StoreSchemaGeneratorTypeDefaultableValue(this);
-                }
+                _storeSchemaGenTypeAttr ??= new StoreSchemaGeneratorTypeDefaultableValue(this);
 
                 return _storeSchemaGenTypeAttr;
             }
@@ -149,10 +146,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_storeSchemaGenSchemaAttr == null)
-                {
-                    _storeSchemaGenSchemaAttr = new StoreSchemaGeneratorSchemaDefaultableValue(this);
-                }
+                _storeSchemaGenSchemaAttr ??= new StoreSchemaGeneratorSchemaDefaultableValue(this);
 
                 return _storeSchemaGenSchemaAttr;
             }
@@ -189,10 +183,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_storeSchemaGenNameAttr == null)
-                {
-                    _storeSchemaGenNameAttr = new StoreSchemaGeneratorNameDefaultableValue(this);
-                }
+                _storeSchemaGenNameAttr ??= new StoreSchemaGeneratorNameDefaultableValue(this);
 
                 return _storeSchemaGenNameAttr;
             }
@@ -228,10 +219,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             {
                 var antiDeps = Artifact.ArtifactSet.GetAntiDependencies(this);
 
-                var fragments = new List<MappingFragment>();
+                List<MappingFragment> fragments = new List<MappingFragment>();
                 foreach (var antiDep in antiDeps)
                 {
-                    var frag = antiDep as MappingFragment;
+                    MappingFragment frag = antiDep as MappingFragment;
                     if (frag == null
                         && antiDep.Parent != null)
                     {
@@ -347,8 +338,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child = efContainer as DefiningQuery;
-            if (child != null)
+            if (efContainer is DefiningQuery child)
             {
                 _definingQuery = null;
                 return;
@@ -387,7 +377,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                     {
                         // if neither of the above attributes are present then the schema name is
                         // defined by the name of the containing EntityContainer
-                        var sec = Parent as StorageEntityContainer;
+                        StorageEntityContainer sec = Parent as StorageEntityContainer;
                         Debug.Assert(
                             sec != null,
                             "Parent of StorageEntitySet should be a StorageEntityContainer. Actual parent has type "

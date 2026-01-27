@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Integrity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateForeignKeyProperties : IIntegrityCheck
     {
         private readonly CommandProcessorContext _context;
@@ -22,8 +22,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
         public bool IsEqual(IIntegrityCheck otherCheck)
         {
-            var typedOtherCheck = otherCheck as CreateForeignKeyProperties;
-            if (typedOtherCheck != null
+            if (otherCheck is CreateForeignKeyProperties typedOtherCheck
                 && typedOtherCheck._association == _association)
             {
                 return true;
@@ -36,7 +35,6 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
         ///     This method will first determine the principal and dependent ends of the passed in Association.
         ///     It will create a property on the dependent end for each principal key property.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         public void Invoke()
         {
             Debug.Assert(_association != null, "The Association reference is null");
@@ -69,10 +67,8 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             }
 
             // figure out the principal and dependent ends
-            AssociationEnd principal = null;
-            AssociationEnd dependent = null;
             ModelHelper.DeterminePrincipalDependentAssociationEnds(
-                _association, out principal, out dependent,
+                _association, out AssociationEnd principal, out AssociationEnd dependent,
                 ModelHelper.DeterminePrincipalDependentAssociationEndsScenario.CreateForeignKeyProperties);
 
             if (principal != null
@@ -87,14 +83,13 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     return;
                 }
 
-                var principalPropertyRefs = new HashSet<Property>();
-                var dependentPropertyRefs = new HashSet<Property>();
+                HashSet<Property> principalPropertyRefs = new HashSet<Property>();
+                HashSet<Property> dependentPropertyRefs = new HashSet<Property>();
 
                 // add properties to the dependent side
 
                 IEnumerable<Property> pkeys;
-                var cet = principal.Type.Target as ConceptualEntityType;
-                if (cet != null)
+                if (principal.Type.Target is ConceptualEntityType cet)
                 {
                     // the principal is a c-side entity
                     pkeys = cet.ResolvableTopMostBaseType.ResolvableKeys;
@@ -122,7 +117,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
                     // tweak the properties; we are using the copy/paste process since we have to 
                     // copy all facets of the pk and that code does this already
-                    var pcf = new PropertyClipboardFormat(pkey);
+                    PropertyClipboardFormat pcf = new PropertyClipboardFormat(pkey);
                     pcf.PropertyName = fkeyName;
                     pcf.IsKeyProperty = false;
                     pcf.IsNullable = (principal.Multiplicity.Value == ModelConstants.Multiplicity_ZeroOrOne ? true : false);
@@ -131,7 +126,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     pcf.SetterAccessModifier = string.Empty;
 
                     // create the new property
-                    var cmd = new CopyPropertyCommand(pcf, dependent.Type.Target);
+                    CopyPropertyCommand cmd = new CopyPropertyCommand(pcf, dependent.Type.Target);
                     CommandProcessor.InvokeSingleCommand(_context, cmd);
                     var fkey = cmd.Property;
 
@@ -152,7 +147,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     && dependentPropertyRefs.Count > 0
                     && principalPropertyRefs.Count == dependentPropertyRefs.Count)
                 {
-                    var cmd = new CreateReferentialConstraintCommand(principal, dependent, principalPropertyRefs, dependentPropertyRefs);
+                    CreateReferentialConstraintCommand cmd = new CreateReferentialConstraintCommand(principal, dependent, principalPropertyRefs, dependentPropertyRefs);
                     CommandProcessor.InvokeSingleCommand(_context, cmd);
                 }
             }

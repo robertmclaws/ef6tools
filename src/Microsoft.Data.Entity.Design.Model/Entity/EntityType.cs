@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal abstract class EntityType : DocumentableAnnotatableElement
     {
         internal static readonly string ElementName = "EntityType";
 
         private Key _key;
-        private readonly List<Property> _properties = new List<Property>();
+        private readonly List<Property> _properties = [];
 
         internal EntityType(BaseEntityModel model, XElement element)
             : base(model, element)
@@ -39,7 +39,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var keys = new List<Property>();
+                List<Property> keys = new List<Property>();
 
                 if (_key != null)
                 {
@@ -125,7 +125,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var baseModel = Parent as BaseEntityModel;
+                BaseEntityModel baseModel = Parent as BaseEntityModel;
                 Debug.Assert(baseModel != null, "this.Parent should be a BaseEntityModel");
                 return baseModel;
             }
@@ -155,7 +155,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                var entitySets = new HashSet<EntitySet>();
+                HashSet<EntitySet> entitySets = new HashSet<EntitySet>();
 
                 foreach (var es in GetAntiDependenciesOfType<EntitySet>())
                 {
@@ -198,15 +198,13 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as Property;
-            if (child1 != null)
+            if (efContainer is Property child1)
             {
                 _properties.Remove(child1);
                 return;
             }
 
-            var child3 = efContainer as Key;
-            if (child3 != null)
+            if (efContainer is Key child3)
             {
                 _key = null;
                 return;
@@ -289,8 +287,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         /// <returns></returns>
         internal override string GetRefNameForBinding(ItemBinding binding)
         {
-            var etm = binding.Parent as EntityTypeMapping;
-            if (etm != null
+            if (binding.Parent is EntityTypeMapping etm
                 && etm.Kind == EntityTypeMappingKind.IsTypeOf)
             {
                 return string.Format(
@@ -299,8 +296,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                     NormalizedNameExternal);
             }
 
-            var fi = binding.Parent as FunctionImport;
-            if (fi != null)
+            if (binding.Parent is FunctionImport fi)
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
@@ -311,13 +307,11 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             return base.GetRefNameForBinding(binding);
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         internal override void GetXLinqInsertPosition(EFElement child, out XNode insertAt, out bool insertBefore)
         {
             // If the child is a property, check its InsertPosition value.
             // If the value is not null, retrieve the insertAt and insertBefore values from the property.
-            var childProperty = child as PropertyBase;
-            if (childProperty != null
+            if (child is PropertyBase childProperty
                 && childProperty.InsertPosition != null
                 && childProperty.InsertPosition.InsertAtProperty != null)
             {
@@ -347,7 +341,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                             else
                             {
                                 // Check if the reference property (the property that will be the sibling of the to-be-created property) is one of the entity-type's property.
-                                var parentOfInsertAtProperty = insertAtProperty.GetParentOfType(GetType()) as EntityType;
+                                EntityType parentOfInsertAtProperty = insertAtProperty.GetParentOfType(GetType()) as EntityType;
                                 Debug.Assert(
                                     parentOfInsertAtProperty == this,
                                     "Expected sibling property's entityType: " + DisplayName + " , actual:" + parentOfInsertAtProperty

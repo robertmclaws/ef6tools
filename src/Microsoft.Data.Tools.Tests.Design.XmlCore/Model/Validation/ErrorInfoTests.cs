@@ -1,25 +1,25 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Tools.XmlDesignerBase;
+using Moq;
+using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Design.Model.Validation
 {
-    using Microsoft.Data.Tools.XmlDesignerBase;
-    using Moq;
-    using System;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class ErrorInfoTests
     {
         [TestMethod]
         public void Edmx_ErrorInfo_initialized_correctly()
         {
-            var mockEFObject = new Mock<EFObject>();
+            Mock<EFObject> mockEFObject = new Mock<EFObject>();
             mockEFObject.Setup(o => o.GetLineNumber()).Returns(76);
             mockEFObject.Setup(o => o.GetColumnNumber()).Returns(12);
             mockEFObject.Setup(o => o.Uri).Returns(new Uri(@"c:\project\model.edmx"));
 
-            var edmxErrorInfo =
+            ErrorInfo edmxErrorInfo =
                 new ErrorInfo(ErrorInfo.Severity.ERROR, "test", mockEFObject.Object, 42, ErrorClass.Runtime_CSDL);
 
             edmxErrorInfo.GetLineNumber().Should().Be(76);
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         [TestMethod]
         public void Code_first_ErrorInfo_initialized_correctly()
         {
-            var edmxErrorInfo =
+            ErrorInfo edmxErrorInfo =
                 new ErrorInfo(ErrorInfo.Severity.WARNING, "test", @"c:\project\model.edmx" , 17, ErrorClass.None);
 
             edmxErrorInfo.GetLineNumber().Should().Be(0);

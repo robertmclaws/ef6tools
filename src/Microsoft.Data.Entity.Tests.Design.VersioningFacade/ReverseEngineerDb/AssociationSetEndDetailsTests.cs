@@ -1,28 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class AssociationSetEndDetailsTests
     {
         [TestMethod]
         public void Can_set_get_association_set_end_details()
         {
-            var entity = EntityType.Create("E", "ns", DataSpace.CSpace, new string[0], new EdmMember[0], null);
-            var entitySet = EntitySet.Create("es1", null, null, null, entity, null);
-            var endMember = AssociationEndMember.Create(
+            EntityType entity = EntityType.Create("E", "ns", DataSpace.CSpace, new string[0], new EdmMember[0], null);
+            EntitySet entitySet = EntitySet.Create("es1", null, null, null, entity, null);
+            AssociationEndMember endMember = AssociationEndMember.Create(
                 "aem1", entity.GetReferenceType(), RelationshipMultiplicity.One, OperationAction.None, null);
-            var associationType = AssociationType.Create("at1", "ns", false, DataSpace.CSpace, endMember, null, null, null);
-            var assocationSet = AssociationSet.Create("as1", associationType, entitySet, null, null);
+            AssociationType associationType = AssociationType.Create("at1", "ns", false, DataSpace.CSpace, endMember, null, null, null);
+            AssociationSet assocationSet = AssociationSet.Create("as1", associationType, entitySet, null, null);
 
             var associationSetEnd = assocationSet.AssociationSetEnds[0];
 
-            var associationSetEndDetails =
+            AssociationSetEndDetails associationSetEndDetails =
                 new AssociationSetEndDetails(
                     associationSetEnd,
                     (RelationshipMultiplicity)(-42),

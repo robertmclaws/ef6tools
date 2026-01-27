@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Globalization;
+using System.Text.RegularExpressions;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration.Generators;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Generators
 {
-    using System.Globalization;
-    using System.Text.RegularExpressions;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.Data.Entity.Design.CodeGeneration.Generators;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class CSharpCodeFirstEmptyModelGeneratorTests
     {

@@ -1,17 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+
 namespace Microsoft.Data.Entity.Design.Model.Visitor
 {
-    using System;
-    using System.Globalization;
-
     internal class NormalizingVisitor : MissedItemCollectingVisitor
     {
         internal override void Visit(IVisitable visitable)
         {
-            var item = visitable as EFContainer;
-
-            if (item == null)
+            if (visitable is not EFContainer item)
             {
                 return;
             }
@@ -42,8 +40,7 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
             if (item.State != EFElementState.Normalized)
             {
                 // only do this for elements
-                var efElement = item as EFElement;
-                if (efElement != null)
+                if (item is EFElement efElement)
                 {
                     _missedCount++;
                     if (!_missed.Contains(efElement))

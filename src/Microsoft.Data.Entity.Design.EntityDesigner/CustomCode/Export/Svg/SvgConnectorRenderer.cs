@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Globalization;
+using System.Text;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Globalization;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     /// <summary>
     /// Renders Association and Inheritance connectors to SVG format.
     /// </summary>
@@ -54,13 +54,12 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                 return string.Empty;
             }
 
-            var association = connector.ModelElement as Association;
-            if (association == null)
+            if (connector.ModelElement is not Association association)
             {
                 return string.Empty;
             }
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             var connectorId = string.Format(
                 CultureInfo.InvariantCulture,
                 "assoc_{0}_{1}",
@@ -100,13 +99,12 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                 return string.Empty;
             }
 
-            var inheritance = connector.ModelElement as Inheritance;
-            if (inheritance == null)
+            if (connector.ModelElement is not Inheritance inheritance)
             {
                 return string.Empty;
             }
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             var connectorId = string.Format(
                 CultureInfo.InvariantCulture,
                 "inherit_{0}_{1}",
@@ -138,7 +136,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
         /// </summary>
         internal string GetMarkerDefinitions()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.AppendLine("  <defs>");
             sb.Append(GetMarkerDefinitionsContent());
             sb.AppendLine("  </defs>");
@@ -150,7 +148,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
         /// </summary>
         internal string GetMarkerDefinitionsContent()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             // Diamond marker for associations (using CSS class)
             sb.AppendFormat(
@@ -187,7 +185,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
         /// <param name="endpointPullback">Distance to pull endpoints away from entities (to show markers).</param>
         internal string GetConnectorPathWithOffset(BinaryLinkShape connector, double offsetX, double offsetY, double endpointPullback)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             var edgePoints = connector.EdgePoints;
             if (edgePoints == null || edgePoints.Count < 2)
@@ -211,7 +209,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             }
 
             // Convert edge points to pixel coordinates
-            var points = new List<PointD>();
+            List<PointD> points = new List<PointD>();
             foreach (EdgePoint point in edgePoints)
             {
                 var x = (point.Point.X * 96) - offsetX;

@@ -1,31 +1,30 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Text;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal abstract class PropertyRefContainer : EFElement
     {
-        protected List<PropertyRef> _propertyRefs = new List<PropertyRef>();
+        protected List<PropertyRef> _propertyRefs = [];
 
         internal PropertyRefContainer(EFContainer parent, XElement element)
             : base(parent, element)
         {
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal void AddPropertyRef(Property property)
         {
             Debug.Assert(property != null, "property should not be null");
             if (property != null)
             {
-                var propRef = new PropertyRef(this, null, GetNameNormalizerForPropertyRef());
+                PropertyRef propRef = new PropertyRef(this, null, GetNameNormalizerForPropertyRef());
                 propRef.Name.SetRefName(property);
                 propRef.Normalize();
                 propRef.Resolve(Artifact.ModelManager.GetArtifactSet(Artifact.Uri));
@@ -39,12 +38,9 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             if (property != null)
             {
                 var propRef = GetPropertyRef(property);
-                if (propRef != null)
-                {
-                    // TODO: Overload Delete on PropertyRef to Remove itself from Container
-                    //_propertyRefs.Remove(propRef);
-                    propRef.Delete();
-                }
+                // TODO: Overload Delete on PropertyRef to Remove itself from Container
+                //_propertyRefs.Remove(propRef);
+                propRef?.Delete();
             }
         }
 
@@ -108,8 +104,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as PropertyRef;
-            if (child1 != null)
+            if (efContainer is PropertyRef child1)
             {
                 _propertyRefs.Remove(child1);
                 return;
@@ -135,12 +130,11 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == PropertyRef.ElementName)
             {
-                var prop = new PropertyRef(this, elem, GetNameNormalizerForPropertyRef());
+                PropertyRef prop = new PropertyRef(this, elem, GetNameNormalizerForPropertyRef());
                 prop.Parse(unprocessedElements);
                 _propertyRefs.Add(prop);
             }
@@ -159,7 +153,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             }
             else
             {
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
 
                 foreach (var pr in _propertyRefs)
                 {

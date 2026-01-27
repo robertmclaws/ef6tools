@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class DiagramArtifactTests
     {
@@ -19,7 +19,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
 
-            using (var diagramArtifact = new DiagramArtifact(modelManager, new Uri("urn:dummy"), modelProvider))
+            using (DiagramArtifact diagramArtifact = new DiagramArtifact(modelManager, new Uri("urn:dummy"), modelProvider))
             {
                 diagramArtifact.SetXObject(
                     XDocument.Parse("<Edmx Version=\"3.0\" xmlns=\"http://schemas.microsoft.com/ado/2009/11/edmx\" />"));
@@ -35,7 +35,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
 
-            using (var diagramArtifact = new DiagramArtifact(modelManager, new Uri("urn:dummy"), modelProvider))
+            using (DiagramArtifact diagramArtifact = new DiagramArtifact(modelManager, new Uri("urn:dummy"), modelProvider))
             {
                 //missing Version attribute makes the Xml below invalid accoring to the edmx schema
                 diagramArtifact.SetXObject(
@@ -52,7 +52,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
 
-            using (var diagramArtifact = new DiagramArtifact(modelManager, new Uri("urn:dummy"), modelProvider))
+            using (DiagramArtifact diagramArtifact = new DiagramArtifact(modelManager, new Uri("urn:dummy"), modelProvider))
             {
                 diagramArtifact.SetXObject(
                     XDocument.Parse("<Edmx xmlns=\"bar\" />"));

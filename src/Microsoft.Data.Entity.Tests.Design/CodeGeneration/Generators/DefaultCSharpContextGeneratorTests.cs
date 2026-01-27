@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Text.RegularExpressions;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Text.RegularExpressions;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class DefaultCSharpContextGeneratorTests : GeneratorTestBase
     {
@@ -16,7 +16,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Generate_returns_code()
         {
-            var generator = new DefaultCSharpContextGenerator();
+            DefaultCSharpContextGenerator generator = new DefaultCSharpContextGenerator();
             var result = NormalizeCode(generator.Generate(Model, "WebApplication1.Models", "MyContext", "MyContextConnString"));
 
             result.Should().Be(NormalizeCode(

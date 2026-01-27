@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     internal static class DomainClassExtension
     {
         /// <summary>
@@ -18,8 +18,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         internal static EntityDesignerViewModel GetRootViewModel(this ModelElement modelElement)
         {
             // if model element is a shape element, we should be able to find root view model from the shape element's diagram.
-            var shapeElement = modelElement as ShapeElement;
-            if (shapeElement != null)
+            if (modelElement is ShapeElement shapeElement)
             {
                 Debug.Assert(
                     shapeElement.Diagram != null,

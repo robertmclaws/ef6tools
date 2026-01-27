@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.EntityDesigner;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.VisualStudio.Modeling;
+
 namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
 {
-    using Microsoft.Data.Entity.Design.EntityDesigner;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.VisualStudio.Modeling;
-
     /// <summary>
     /// Helper class for creating DSL model elements in unit tests.
     /// Creates a minimal but complete model hierarchy to satisfy DSL rules.

@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
- // using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+
+// using System.Text.RegularExpressions;
 
 namespace Microsoft.Data.Entity.Design.Model.Visitor
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-
     internal class SearchVisitor : Visitor
     {
         // delegate defining which property of the EFElement to search
@@ -15,7 +15,7 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
 
         private readonly string _targetString;
         private readonly EFElementTextToSearch _elementTextToSearch;
-        private readonly HashSet<EFElement> _objectsSatisfyingSearch = new HashSet<EFElement>();
+        private readonly HashSet<EFElement> _objectsSatisfyingSearch = [];
 
         internal SearchVisitor(string targetString, EFElementTextToSearch elementTextToSearch)
         {
@@ -28,10 +28,8 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
 
         internal override void Visit(IVisitable visitable)
         {
-            var efElement = visitable as EFElement;
-
             // search all EFElements
-            if (null != efElement)
+            if (visitable is EFElement efElement)
             {
                 var stringToSearch = _elementTextToSearch(efElement);
                 if (StringToSearchContainsTargetString(stringToSearch, _targetString))

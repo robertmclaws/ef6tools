@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class CreateEntityContainerMappingCommand : Command
     {
         private readonly EFArtifact _artifact;
@@ -27,8 +27,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _artifact = artifact;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             if (_artifact == null)
@@ -36,7 +34,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 throw new InvalidOperationException("InvokeInternal is called when _artifact is null");
             }
 
-            var ecm = new EntityContainerMapping(_artifact.MappingModel(), null);
+            EntityContainerMapping ecm = new EntityContainerMapping(_artifact.MappingModel(), null);
             ecm.CdmEntityContainer.SetRefName(_artifact.ConceptualModel().FirstEntityContainer);
             ecm.StorageEntityContainer.SetRefName(_artifact.StorageModel().FirstEntityContainer);
             _artifact.MappingModel().AddEntityContainerMapping(ecm);

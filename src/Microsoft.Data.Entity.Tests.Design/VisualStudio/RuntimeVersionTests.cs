@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Resources = Microsoft.Data.Entity.Design.Resources;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
-    using System;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [TestClass]
     public class RuntimeVersionTests
     {
@@ -19,27 +19,19 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         }
 
         [TestMethod]
-        public void Version5_returns_net40()
+        public void Version5_always_returns_net45()
         {
-            var entityFrameworkVersion =
-                RuntimeVersion.Version5(targetNetFrameworkVersion: NetFrameworkVersioningHelper.NetFrameworkVersion4);
-
-            entityFrameworkVersion.Should().Be(RuntimeVersion.Version5Net40);
-        }
-
-        [TestMethod]
-        public void Version5_returns_net45()
-        {
-            var entityFrameworkVersion =
-                RuntimeVersion.Version5(targetNetFrameworkVersion: NetFrameworkVersioningHelper.NetFrameworkVersion4_5);
-
-            entityFrameworkVersion.Should().Be(RuntimeVersion.Version5Net45);
+            // Version5 always returns Version5Net45 (legacy .NET 4.0 support removed)
+            RuntimeVersion.Version5(targetNetFrameworkVersion: NetFrameworkVersioningHelper.NetFrameworkVersion4_7_2)
+                .Should().Be(RuntimeVersion.Version5Net45);
+            RuntimeVersion.Version5(targetNetFrameworkVersion: NetFrameworkVersioningHelper.NetFrameworkVersion4_7_2)
+                .Should().Be(RuntimeVersion.Version5Net45);
         }
 
         [TestMethod]
         public void GetName_returns_formatted_name()
         {
-            var entityFrameworkVersion = new Version(1, 2, 3, 4);
+            Version entityFrameworkVersion = new Version(1, 2, 3, 4);
 
             var entityFrameworkVersionName = RuntimeVersion.GetName(entityFrameworkVersion, null);
 
@@ -50,9 +42,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         }
 
         [TestMethod]
-        public void GetName_fixes_up_net40_ef5()
+        public void GetName_fixes_up_net45_ef5()
         {
-            var entityFrameworkVersion = RuntimeVersion.Version5Net40;
+            // Version5Net40 has been removed - only Version5Net45 is supported
+            var entityFrameworkVersion = RuntimeVersion.Version5Net45;
 
             var entityFrameworkVersionName = RuntimeVersion.GetName(entityFrameworkVersion, null);
 
@@ -61,17 +54,19 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         }
 
         [TestMethod]
-        public void GetName_fixes_up_SDE_only_ef5()
+        public void GetName_returns_raw_version_for_pre_ef6()
         {
+            // Legacy EF5/System.Data.Entity version fixup has been removed
+            // Now we just return the version as-is for pre-EF6 versions
             var netFrameworkVersions =
                 new[]
                     {
-                        new Version(4, 5), // .NET Framework 4.5
-                        new Version(4, 5, 1), // .NET Framework 4.5.1
+                        new Version(4, 7, 2), // .NET Framework 4.7.2
+                        new Version(4, 8), // .NET Framework 4.8
                         new Version(42, 0, 0, 0) // a future version of .NET Framework
                     };
 
-            var entityFrameworkVersion = new Version(4, 0, 0, 0);
+            Version entityFrameworkVersion = new Version(4, 0, 0, 0);
 
             foreach (var targetNetFrameworkVersion in netFrameworkVersions)
             {
@@ -79,213 +74,51 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
                     RuntimeVersion.GetName(entityFrameworkVersion, targetNetFrameworkVersion);
 
                 entityFrameworkVersionName.Should().Be(
-                    string.Format(Resources.EntityFrameworkVersionName, new Version(5, 0)));
+                    string.Format(Resources.EntityFrameworkVersionName, new Version(4, 0)));
             }
         }
 
         [TestMethod]
-        public void RequiresLegacyProvider_returns_true_when_under_six()
+        public void RequiresLegacyProvider_always_returns_false()
         {
-            var entityFrameworkVersion = new Version(4, 0, 0, 0);
-
-            var legacyProviderRequired = RuntimeVersion.RequiresLegacyProvider(entityFrameworkVersion);
-
-            legacyProviderRequired.Should().BeTrue();
+            // Legacy provider support removed - always returns false
+            RuntimeVersion.RequiresLegacyProvider(new Version(4, 0, 0, 0)).Should().BeFalse();
+            RuntimeVersion.RequiresLegacyProvider(RuntimeVersion.Version6).Should().BeFalse();
+            RuntimeVersion.RequiresLegacyProvider(new Version(7, 0, 0, 0)).Should().BeFalse();
         }
 
         [TestMethod]
-        public void RequiresLegacyProvider_returns_false_when_six()
+        public void GetTargetSchemaVersion_always_returns_Version3()
         {
-            var entityFrameworkVersion = RuntimeVersion.Version6;
-
-            var legacyProviderRequired = RuntimeVersion.RequiresLegacyProvider(entityFrameworkVersion);
-
-            legacyProviderRequired.Should().BeFalse();
+            // GetTargetSchemaVersion always returns Version3 for modern development
+            RuntimeVersion.GetTargetSchemaVersion(null, NetFrameworkVersioningHelper.NetFrameworkVersion4_7_2)
+                .Should().Be(EntityFrameworkVersion.Version3);
+            RuntimeVersion.GetTargetSchemaVersion(null, new Version(4, 8))
+                .Should().Be(EntityFrameworkVersion.Version3);
+            RuntimeVersion.GetTargetSchemaVersion(RuntimeVersion.Version5Net45, NetFrameworkVersioningHelper.NetFrameworkVersion4_7_2)
+                .Should().Be(EntityFrameworkVersion.Version3);
+            RuntimeVersion.GetTargetSchemaVersion(RuntimeVersion.Version6, NetFrameworkVersioningHelper.NetFrameworkVersion4_7_2)
+                .Should().Be(EntityFrameworkVersion.Version3);
         }
 
         [TestMethod]
-        public void RequiresLegacyProvider_returns_false_when_over_six()
+        public void IsSchemaVersionLatestForAssemblyVersion_returns_true_only_for_Version3()
         {
-            var entityFrameworkVersion = new Version(7, 0, 0, 0);
-
-            var legacyProviderRequired = RuntimeVersion.RequiresLegacyProvider(entityFrameworkVersion);
-
-            legacyProviderRequired.Should().BeFalse();
+            // For modern development, Version3 is always the latest schema version
+            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
+                EntityFrameworkVersion.Version3, new Version(6, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4_7_2).Should().BeTrue();
+            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
+                EntityFrameworkVersion.Version3, new Version(6, 0, 0, 0), new Version(4, 8)).Should().BeTrue();
         }
 
         [TestMethod]
-        public void GetTargetSchemaVersion_returns_three_when_null_on_NetFramework_3_5()
+        public void GetSchemaVersionForNetFrameworkVersion_always_returns_Version3()
         {
-            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.NetFrameworkVersion3_5;
-            var targetSchemaVersion =
-                RuntimeVersion.GetTargetSchemaVersion(null, targetNetFrameworkVersion);
-
-            targetSchemaVersion.Should().Be(EntityFrameworkVersion.Version1);
-        }
-
-        [TestMethod]
-        public void GetTargetSchemaVersion_returns_three_when_null_on_NetFramework_4_or_newer()
-        {
-            var netFrameworkVersions =
-                new[]
-                    {
-                        new Version(4, 0, 0, 0),
-                        new Version(4, 5, 0, 0),
-                        new Version(4, 5, 1, 0),
-                        new Version(42, 0, 0, 0)
-                    };
-
-            foreach (var targetNetFrameworkVersion in netFrameworkVersions)
-            {
-                var targetSchemaVersion =
-                    RuntimeVersion.GetTargetSchemaVersion(null, targetNetFrameworkVersion);
-
-                targetSchemaVersion.Should().Be(EntityFrameworkVersion.Version3);
-            }
-        }
-
-        [TestMethod]
-        public void GetTargetSchemaVersion_returns_three_when_null_on_NetFramework_4_5()
-        {
-            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.NetFrameworkVersion4_5;
-            var targetSchemaVersion =
-                RuntimeVersion.GetTargetSchemaVersion(null, targetNetFrameworkVersion);
-
-            targetSchemaVersion.Should().Be(EntityFrameworkVersion.Version3);
-        }
-
-        [TestMethod]
-        public void GetTargetSchemaVersion_returns_three_when_five()
-        {
-            var entityFrameworkVersion = RuntimeVersion.Version5Net45;
-            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.NetFrameworkVersion4_5;
-            var targetSchemaVersion =
-                RuntimeVersion.GetTargetSchemaVersion(entityFrameworkVersion, targetNetFrameworkVersion);
-
-            targetSchemaVersion.Should().Be(EntityFrameworkVersion.Version3);
-        }
-
-        [TestMethod]
-        public void GetTargetSchemaVersion_returns_three_when_over_five()
-        {
-            var entityFrameworkVersion = RuntimeVersion.Version6;
-            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.NetFrameworkVersion4;
-
-            var targetSchemaVersion =
-                RuntimeVersion.GetTargetSchemaVersion(entityFrameworkVersion, targetNetFrameworkVersion);
-
-            targetSchemaVersion.Should().Be(EntityFrameworkVersion.Version3);
-        }
-
-        [TestMethod]
-        public void GetTargetSchemaVersion_returns_two_when_four_on_NetFramework_4()
-        {
-            var entityFrameworkVersion = new Version(4, 0, 0, 0);
-            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.NetFrameworkVersion4;
-
-            var targetSchemaVersion =
-                RuntimeVersion.GetTargetSchemaVersion(entityFrameworkVersion, targetNetFrameworkVersion);
-
-            targetSchemaVersion.Should().Be(EntityFrameworkVersion.Version2);
-        }
-
-        [TestMethod]
-        public void GetTargetSchemaVersion_returns_three_when_four_on_NetFramework_4_5()
-        {
-            var entityFrameworkVersion = new Version(4, 0, 0, 0);
-            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.NetFrameworkVersion4_5;
-
-            var targetSchemaVersion =
-                RuntimeVersion.GetTargetSchemaVersion(entityFrameworkVersion, targetNetFrameworkVersion);
-
-            targetSchemaVersion.Should().Be(EntityFrameworkVersion.Version3);
-        }
-
-        [TestMethod]
-        public void GetTargetSchemaVersion_returns_one_when_less_than_four()
-        {
-            var entityFrameworkVersion = RuntimeVersion.Version1;
-            var targetNetFrameworkVersion = NetFrameworkVersioningHelper.NetFrameworkVersion3_5;
-
-            var targetSchemaVersion =
-                RuntimeVersion.GetTargetSchemaVersion(entityFrameworkVersion, targetNetFrameworkVersion);
-
-            targetSchemaVersion.Should().Be(EntityFrameworkVersion.Version1);
-        }
-
-        [TestMethod]
-        public void SchemaVersionLatestForAssemblyVersion_returns_correct_values_for_v1()
-        {
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version1, new Version(3, 5, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion3_5).Should().BeTrue();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version1, new Version(4, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version1, new Version(4, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4_5).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version1, new Version(4, 1, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version1, new Version(4, 4, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version1, new Version(5, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4_5).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version1, new Version(6, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version1, new Version(6, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4_5).Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void SchemaVersionLatestForAssemblyVersion_returns_correct_values_for_v2()
-        {
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version2, new Version(3, 5, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion3_5).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version2, new Version(4, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeTrue();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version2, new Version(4, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4_5).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version2, new Version(4, 1, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeTrue();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version2, new Version(4, 4, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeTrue();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version2, new Version(5, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4_5).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version2, new Version(6, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version2, new Version(6, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4_5).Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void SchemaVersionLatestForAssemblyVersion_returns_correct_values_for_v3()
-        {
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version3, new Version(3, 5, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion3_5).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version3, new Version(4, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version3, new Version(4, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4_5).Should().BeTrue();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version3, new Version(4, 1, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version3, new Version(4, 4, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeFalse();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version3, new Version(5, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4_5).Should().BeTrue();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version3, new Version(6, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4).Should().BeTrue();
-            RuntimeVersion.IsSchemaVersionLatestForAssemblyVersion(
-                EntityFrameworkVersion.Version3, new Version(6, 0, 0, 0), NetFrameworkVersioningHelper.NetFrameworkVersion4_5).Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void GetSchemaVersionForNetFrameworkVersion_returns_correct_schema_version_for_NetFramework_version()
-        {
+            // For modern development, always returns Version3
             RuntimeVersion.GetSchemaVersionForNetFrameworkVersion(new Version(4, 5, 1)).Should().Be(EntityFrameworkVersion.Version3);
-
             RuntimeVersion.GetSchemaVersionForNetFrameworkVersion(new Version(4, 5)).Should().Be(EntityFrameworkVersion.Version3);
-
-            RuntimeVersion.GetSchemaVersionForNetFrameworkVersion(new Version(4, 0)).Should().Be(EntityFrameworkVersion.Version2);
-
-            RuntimeVersion.GetSchemaVersionForNetFrameworkVersion(new Version(3, 5)).Should().Be(EntityFrameworkVersion.Version1);
+            RuntimeVersion.GetSchemaVersionForNetFrameworkVersion(new Version(4, 0)).Should().Be(EntityFrameworkVersion.Version3);
+            RuntimeVersion.GetSchemaVersionForNetFrameworkVersion(new Version(3, 5)).Should().Be(EntityFrameworkVersion.Version3);
         }
     }
 }

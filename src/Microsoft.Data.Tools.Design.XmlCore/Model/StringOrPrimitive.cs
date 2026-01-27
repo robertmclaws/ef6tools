@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-
     /// <summary>
     ///     Class that allows string values or primitive values.  Convert to and from these using StringOrPrimitiveConverter class.
     /// </summary>
@@ -36,8 +36,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         public override bool Equals(object obj)
         {
-            var other = obj as StringOrPrimitive<T>;
-            if (null == other)
+            if (obj is not StringOrPrimitive<T> other)
             {
                 return false;
             }

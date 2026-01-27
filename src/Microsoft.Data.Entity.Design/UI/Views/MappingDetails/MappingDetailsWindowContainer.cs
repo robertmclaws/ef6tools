@@ -1,29 +1,30 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.EntityDesigner;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Utilities;
+using Package = Microsoft.VisualStudio.Shell.Package;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Linq;
-    using System.Windows.Forms;
-    using System.Windows.Forms.Design;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.EntityDesigner;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.VisualStudio.PlatformUI;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Utilities;
-
     [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal partial class MappingDetailsWindowContainer : UserControl, ITreeGridDesignerToolWindowContainer
     {
@@ -96,17 +97,12 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
 
         private static ToolStripRenderer GetToolbarRenderer()
         {
-            var uiService = Package.GetGlobalService(typeof(IUIService)) as IUIService;
-            if ((uiService != null))
+            if ((Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(IUIService)) is IUIService uiService))
             {
-                var renderer = uiService.Styles["VsRenderer"] as ToolStripRenderer;
-                if ((renderer != null))
+                if ((uiService.Styles["VsRenderer"] is ToolStripRenderer renderer))
                 {
-                    var toolStripProfessionalRenderer = renderer as ToolStripProfessionalRenderer;
-                    if (toolStripProfessionalRenderer != null)
-                    {
-                        toolStripProfessionalRenderer.RoundedEdges = false;
-                    }
+                    ToolStripProfessionalRenderer toolStripProfessionalRenderer = renderer as ToolStripProfessionalRenderer;
+                    toolStripProfessionalRenderer?.RoundedEdges = false;
                     return renderer;
                 }
             }
@@ -202,8 +198,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
         private void watermarkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             // Link data could be an event handler
-            var handler = e.Link.LinkData as LinkLabelLinkClickedEventHandler;
-            if (handler == null)
+            if (e.Link.LinkData is not LinkLabelLinkClickedEventHandler handler)
             {
                 Debug.Fail("didn't find link-clicked handler as link data!");
                 return;
@@ -232,11 +227,11 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
             }
             else
             {
-                var cpc = new CommandProcessorContext(
+                CommandProcessorContext cpc = new CommandProcessorContext(
                     _hostContext,
                     EfiTransactionOriginator.MappingDetailsOriginatorId,
                     Resources.Tx_DeleteAssociationSetMapping);
-                var cp = new CommandProcessor(cpc);
+                CommandProcessor cp = new CommandProcessor(cpc);
                 foreach (var associationSetMapping in associationSetMappings)
                 {
                     cp.EnqueueCommand(new DeleteEFElementCommand(associationSetMapping));
@@ -274,7 +269,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
         protected override void OnPaint(PaintEventArgs e)
         {
             // Draw a bounding rect to make it look better...
-            var rectangle = new Rectangle(Border + 1, Border, Width - Border * 2 - 1, Height - Border * 2);
+            Rectangle rectangle = new Rectangle(Border + 1, Border, Width - Border * 2 - 1, Height - Border * 2);
             e.Graphics.DrawRectangle(SystemPens.ControlDark, rectangle);
 
             base.OnPaint(e);
@@ -346,7 +341,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
                 return;
             }
 
-            var entity = mappingDetailsInfo.ViewModel.RootNode.ModelItem as ConceptualEntityType;
+            ConceptualEntityType entity = mappingDetailsInfo.ViewModel.RootNode.ModelItem as ConceptualEntityType;
             Debug.Assert(
                 !(mappingDetailsInfo.ViewModel.RootNode.ModelItem is EntityType) || entity != null, "EntityType is not ConceptualEntityType");
 
@@ -383,8 +378,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
             var selection = editingContext.Items.GetValue<EntityDesignerSelection>();
             if (selection != null)
             {
-                var entityShape = selection.PrimarySelection as EntityTypeShape;
-                if (entityShape != null)
+                if (selection.PrimarySelection is EntityTypeShape entityShape)
                 {
                     return entityShape.FillColor.Value;
                 }

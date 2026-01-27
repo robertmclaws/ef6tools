@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Database;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Database;
-
     internal abstract class AssociationIdentity
     {
         /// <summary>
@@ -26,36 +26,35 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         ///     whereas the other is an AssociationIdentityForReferentialConstraint and allowing for mapping of
         ///     multiple S-side properties to a single C-side property)
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         internal bool IsCoveredBy(AssociationIdentity id2)
         {
             var id1 = this;
             if (id1 is AssociationIdentityForAssociationSetMapping
                 && id2 is AssociationIdentityForAssociationSetMapping)
             {
-                var id1AsAIFASM = id1 as AssociationIdentityForAssociationSetMapping;
-                var id2AsAIFASM = id2 as AssociationIdentityForAssociationSetMapping;
+                AssociationIdentityForAssociationSetMapping id1AsAIFASM = id1 as AssociationIdentityForAssociationSetMapping;
+                AssociationIdentityForAssociationSetMapping id2AsAIFASM = id2 as AssociationIdentityForAssociationSetMapping;
                 return id1AsAIFASM.IsCoveredBy(id2AsAIFASM);
             }
             else if (id1 is AssociationIdentityForReferentialConstraint
                      && id2 is AssociationIdentityForReferentialConstraint)
             {
-                var id1AsAIFRC = id1 as AssociationIdentityForReferentialConstraint;
-                var id2AsAIFRC = id2 as AssociationIdentityForReferentialConstraint;
+                AssociationIdentityForReferentialConstraint id1AsAIFRC = id1 as AssociationIdentityForReferentialConstraint;
+                AssociationIdentityForReferentialConstraint id2AsAIFRC = id2 as AssociationIdentityForReferentialConstraint;
                 return id1AsAIFRC.IsCoveredBy(id2AsAIFRC);
             }
             else if (id1 is AssociationIdentityForAssociationSetMapping
                      && id2 is AssociationIdentityForReferentialConstraint)
             {
-                var rcid = id2 as AssociationIdentityForReferentialConstraint;
-                var asmid = id1 as AssociationIdentityForAssociationSetMapping;
+                AssociationIdentityForReferentialConstraint rcid = id2 as AssociationIdentityForReferentialConstraint;
+                AssociationIdentityForAssociationSetMapping asmid = id1 as AssociationIdentityForAssociationSetMapping;
                 return IsCoveredBy(rcid, asmid);
             }
             else if (id1 is AssociationIdentityForReferentialConstraint
                      && id2 is AssociationIdentityForAssociationSetMapping)
             {
-                var rcid = id1 as AssociationIdentityForReferentialConstraint;
-                var asmid = id2 as AssociationIdentityForAssociationSetMapping;
+                AssociationIdentityForReferentialConstraint rcid = id1 as AssociationIdentityForReferentialConstraint;
+                AssociationIdentityForAssociationSetMapping asmid = id2 as AssociationIdentityForAssociationSetMapping;
                 return IsCoveredBy(rcid, asmid);
             }
             else

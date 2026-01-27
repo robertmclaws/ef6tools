@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class FunctionImportMapping : EFElement
     {
         internal static readonly string ElementName = "FunctionImportMapping";
@@ -31,13 +31,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_functionName == null)
-                {
-                    _functionName = new SingleItemBinding<Function>(
+                _functionName ??= new SingleItemBinding<Function>(
                         this,
                         AttributeFunctionName,
                         FunctionNameNormalizer);
-                }
                 return _functionName;
             }
         }
@@ -46,13 +43,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_functionImportName == null)
-                {
-                    _functionImportName = new SingleItemBinding<FunctionImport>(
+                _functionImportName ??= new SingleItemBinding<FunctionImport>(
                         this,
                         AttributeFunctionImportName,
                         FunctionImportNameNormalizer.NameNormalizer);
-                }
                 return _functionImportName;
             }
         }
@@ -133,7 +127,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         internal override DeleteEFElementCommand GetDeleteCommand()
         {
-            var cmd = new DeleteFunctionImportMappingCommand(this);
+            DeleteFunctionImportMappingCommand cmd = new DeleteFunctionImportMappingCommand(this);
             if (cmd == null)
             {
                 // shouldn't happen, just to be safe
@@ -145,7 +139,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         internal static ICollection<DeleteEFElementCommand> GetDeleteCommand(FunctionImport functionImport)
         {
             // try to locate a FunctionImportMapping for this import
-            var commands = new List<DeleteEFElementCommand>();
+            List<DeleteEFElementCommand> commands = new List<DeleteEFElementCommand>();
             var functionImportMappings = functionImport.GetAntiDependenciesOfType<FunctionImportMapping>();
             foreach (var fim in functionImportMappings)
             {
@@ -191,8 +185,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var rm = efContainer as ResultMapping;
-            if (rm != null)
+            if (efContainer is ResultMapping rm)
             {
                 Debug.Assert(_resultMapping == rm, "Unknown ResultMapping in OnChildDeleted");
                 ClearEFObject(_resultMapping);

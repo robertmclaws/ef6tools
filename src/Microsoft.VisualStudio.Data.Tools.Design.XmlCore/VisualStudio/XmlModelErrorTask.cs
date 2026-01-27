@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using System;
+using System.Diagnostics;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     /// <summary>
     ///     This is the error task we use when a document is not opened.
     /// </summary>
@@ -25,8 +24,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             HierarchyItem = hierarchy;
             _itemID = itemID;
 
-            IOleServiceProvider oleSP = null;
-            var hr = hierarchy.GetSite(out oleSP);
+            var hr = hierarchy.GetSite(out IOleServiceProvider oleSP);
             if (NativeMethods.Succeeded(hr))
             {
                 _serviceProvider = new ServiceProvider(oleSP);
@@ -57,11 +55,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         {
             if (disposing)
             {
-                if (_serviceProvider != null)
-                {
-                    _serviceProvider.Dispose();
-                    _serviceProvider = null;
-                }
+                _serviceProvider?.Dispose();
+                _serviceProvider = null;
             }
         }
 

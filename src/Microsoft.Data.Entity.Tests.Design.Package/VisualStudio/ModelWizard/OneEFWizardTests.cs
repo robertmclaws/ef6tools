@@ -1,38 +1,37 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Infrastructure;
+using System.IO;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.XmlDesignerBase;
+using Microsoft.VisualStudio.Shell.Interop;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Linq;
+using System.Xml;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using System.Reflection;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard
 {
-    using System.Data.Entity.Infrastructure;
-    using System.IO;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Moq;
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Linq;
-    using System.Xml;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
-    using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
-    using System.Reflection;
-
     [TestClass]
     public class OneEFWizardTests
     {
         [TestMethod]
         public void RunFinished_should_not_add_connection_string_to_config_file_if_SaveConnectionStringInAppConfig_false()
         {
-            var mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), 
+            Mock<ConfigFileUtils> mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), 
                 VisualStudioProjectSystem.WindowsApplication, null, null);
 
             new OneEFWizard(mockConfig.Object, Mock.Of<IVsUtils>())
@@ -46,10 +45,10 @@ using FluentAssertions;
         [TestMethod]
         public void RunFinished_should_not_add_connection_string_to_config_file_if_config_file_already_contains_same_connection()
         {
-            var mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(),
+            Mock<ConfigFileUtils> mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(),
                 VisualStudioProjectSystem.WindowsApplication, null, null);
 
-            var configXml = new XmlDocument();
+            XmlDocument configXml = new XmlDocument();
             configXml.LoadXml(
                 @"<configuration>" + Environment.NewLine +
                 @"  <connectionStrings>" + Environment.NewLine +
@@ -59,7 +58,7 @@ using FluentAssertions;
             );
             mockConfig.Setup(u => u.LoadConfig()).Returns(configXml);
 
-            var mockSettings = new Mock<ModelBuilderSettings> { CallBase = true };
+            Mock<ModelBuilderSettings> mockSettings = new Mock<ModelBuilderSettings> { CallBase = true };
             mockSettings
                 .Setup(s => s.AppConfigConnectionString)
                 .Returns(@"data source=(localdb)\v11.0;initial catalog=App.MyContext;integrated security=True");
@@ -80,14 +79,14 @@ using FluentAssertions;
         [TestMethod]
         public void RunFinished_adds_EF_attributes_and_saves_connection_string_to_config_file()
         {
-            var mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(),
+            Mock<ConfigFileUtils> mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(),
                 VisualStudioProjectSystem.WindowsApplication, null, null);
 
-            var configXml = new XmlDocument();
+            XmlDocument configXml = new XmlDocument();
             configXml.LoadXml("<configuration />");
             mockConfig.Setup(u => u.LoadConfig()).Returns(configXml);
 
-            var mockSettings = new Mock<ModelBuilderSettings> { CallBase = true };
+            Mock<ModelBuilderSettings> mockSettings = new Mock<ModelBuilderSettings> { CallBase = true };
             mockSettings
                 .Setup(s => s.AppConfigConnectionString)
                 .Returns(@"data source=(localdb)\v11.0;initial catalog=App.MyContext;integrated security=True");
@@ -111,16 +110,16 @@ using FluentAssertions;
         [TestMethod]
         public void RunFinished_checks_out_files_and_creates_project_items()
         {
-            var mockProjectItems = new Mock<ProjectItems>();
-            var mockProject = new Mock<Project>();
+            Mock<ProjectItems> mockProjectItems = new Mock<ProjectItems>();
+            Mock<Project> mockProject = new Mock<Project>();
             mockProject.Setup(p => p.ProjectItems).Returns(mockProjectItems.Object);
 
-            var mockVsUtils = new Mock<IVsUtils>();
-            var settings = new ModelBuilderSettings {Project = mockProject.Object };
-            var mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(),
+            Mock<IVsUtils> mockVsUtils = new Mock<IVsUtils>();
+            ModelBuilderSettings settings = new ModelBuilderSettings {Project = mockProject.Object };
+            Mock<ConfigFileUtils> mockConfig = new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(),
                 VisualStudioProjectSystem.WindowsApplication, null, null);
 
-            var generatedCode = new List<KeyValuePair<string, string>>
+            List<KeyValuePair<string, string>> generatedCode = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("context", string.Empty),
                 new KeyValuePair<string, string>(Path.GetFileName(Assembly.GetExecutingAssembly().Location), string.Empty),
@@ -147,15 +146,15 @@ using FluentAssertions;
         [TestMethod]
         public void RunStarted_saves_context_generated_code_replacementsDictionary_as_contextfilecontents()
         {
-            var mockCodeGenerator = new Mock<CodeFirstModelGenerator>(MockDTE.CreateProject());
+            Mock<CodeFirstModelGenerator> mockCodeGenerator = new Mock<CodeFirstModelGenerator>(MockDTE.CreateProject());
             mockCodeGenerator
                 .Setup(g => g.Generate(It.IsAny<DbModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new[] { new KeyValuePair<string, string>("MyContext", "context code") });
 
-            var modelBuilderSettings =
+            ModelBuilderSettings modelBuilderSettings =
                 new ModelBuilderSettings { SaveConnectionStringInAppConfig = true, AppConfigConnectionPropertyName = "ConnString" };
 
-            var replacementsDictionary =
+            Dictionary<string, string> replacementsDictionary =
                 new Dictionary<string, string>
                 {
                     { "$safeitemname$", "MyContext" },
@@ -171,15 +170,15 @@ using FluentAssertions;
         [TestMethod]
         public void RunStarted_uses_AppConfigConnectionPropertyName_if_SaveConnectionStringInAppConfig_true()
         {
-            var mockCodeGenerator = new Mock<CodeFirstModelGenerator>(MockDTE.CreateProject());
+            Mock<CodeFirstModelGenerator> mockCodeGenerator = new Mock<CodeFirstModelGenerator>(MockDTE.CreateProject());
             mockCodeGenerator
                 .Setup(g => g.Generate(It.IsAny<DbModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new[] { new KeyValuePair<string, string>() });
 
-            var modelBuilderSettings = 
+            ModelBuilderSettings modelBuilderSettings = 
                 new ModelBuilderSettings { SaveConnectionStringInAppConfig = true, AppConfigConnectionPropertyName = "ConnString"};
 
-            var replacementsDictionary =
+            Dictionary<string, string> replacementsDictionary =
                 new Dictionary<string, string>
                 {
                     { "$safeitemname$", "MyContext" },
@@ -195,15 +194,15 @@ using FluentAssertions;
         [TestMethod]
         public void RunStarted_uses_context_class_name_if_SaveConnectionStringInAppConfig_false()
         {
-            var mockCodeGenerator = new Mock<CodeFirstModelGenerator>(MockDTE.CreateProject());
+            Mock<CodeFirstModelGenerator> mockCodeGenerator = new Mock<CodeFirstModelGenerator>(MockDTE.CreateProject());
             mockCodeGenerator
                 .Setup(g => g.Generate(It.IsAny<DbModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new[] { new KeyValuePair<string, string>() });
 
-            var modelBuilderSettings =
+            ModelBuilderSettings modelBuilderSettings =
                 new ModelBuilderSettings { SaveConnectionStringInAppConfig = false, AppConfigConnectionPropertyName = "ConnString" };
 
-            var replacementsDictionary =
+            Dictionary<string, string> replacementsDictionary =
                 new Dictionary<string, string>
                 {
                     { "$safeitemname$", "MyContext" },
@@ -219,8 +218,6 @@ using FluentAssertions;
         [TestMethod]
         public void ProjectItemFinishedGenerating_adds_errors_to_error_pane_if_any()
         {
-            Mock<IErrorListHelper> mockErrorListHelper;
-            Mock<ProjectItem> mockProjectItem;
 
             const string itemPath = @"C:\Project\MyContext.cs";
 
@@ -231,8 +228,8 @@ using FluentAssertions;
                     new EdmSchemaError("error", 20, EdmSchemaErrorSeverity.Error),
                     new EdmSchemaError("warning", 10, EdmSchemaErrorSeverity.Warning)
                 },
-                out mockErrorListHelper, 
-                out mockProjectItem)
+                out Mock<IErrorListHelper> mockErrorListHelper, 
+                out Mock<ProjectItem> mockProjectItem)
                     .ProjectItemFinishedGenerating(mockProjectItem.Object);
 
             Func<ICollection<ErrorInfo>, bool> errorInfoCollectionVerification = c =>
@@ -264,10 +261,8 @@ using FluentAssertions;
         {
             const string itemPath = @"C:\Project\MyContext.cs";
 
-            Mock<IErrorListHelper> mockErrorListHelper;
-            Mock<ProjectItem> mockProjectItem;
 
-            CreateOneEFWizard(itemPath, null, out mockErrorListHelper, out mockProjectItem)
+            CreateOneEFWizard(itemPath, null, out Mock<IErrorListHelper> mockErrorListHelper, out Mock<ProjectItem> mockProjectItem)
                 .ProjectItemFinishedGenerating(mockProjectItem.Object);
 
             mockErrorListHelper.Verify(
@@ -281,14 +276,14 @@ using FluentAssertions;
 
         private static OneEFWizard CreateOneEFWizard(string itemPath, IEnumerable<EdmSchemaError> edmSchemaErrors, out Mock<IErrorListHelper> mockErrorListHelper, out Mock<ProjectItem> mockProjectItem)
         {
-            var mockDte = new Mock<DTE>();
+            Mock<DTE> mockDte = new Mock<DTE>();
             mockDte.As<IOleServiceProvider>();
-            var mockProject = new Mock<Project>();
+            Mock<Project> mockProject = new Mock<Project>();
             mockProject.Setup(p => p.DTE).Returns(mockDte.Object);
 
-            var mockVsUtils = new Mock<IVsUtils>();
+            Mock<IVsUtils> mockVsUtils = new Mock<IVsUtils>();
             mockErrorListHelper = new Mock<IErrorListHelper>();
-            var errorCache = new ModelGenErrorCache();
+            ModelGenErrorCache errorCache = new ModelGenErrorCache();
 
             if (edmSchemaErrors != null)
             {
@@ -309,17 +304,17 @@ using FluentAssertions;
         public void RunStarted_handles_CodeFirstModelGenerationException_and_shows_error_dialog()
         {
             var project = MockDTE.CreateProject();
-            var mockCodeGenerator = new Mock<CodeFirstModelGenerator>(project);
+            Mock<CodeFirstModelGenerator> mockCodeGenerator = new Mock<CodeFirstModelGenerator>(project);
 
-            var innerException = new Exception("InnerException", new InvalidOperationException("nested InnerException"));
+            Exception innerException = new Exception("InnerException", new InvalidOperationException("nested InnerException"));
 
             mockCodeGenerator
                 .Setup(g => g.Generate(It.IsAny<DbModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Throws(new CodeFirstModelGenerationException("Failed generating code.", innerException));
 
-            var mockVsUtils = new Mock<IVsUtils>();
+            Mock<IVsUtils> mockVsUtils = new Mock<IVsUtils>();
 
-            var replacementsDictionary = new Dictionary<string, string>
+            Dictionary<string, string> replacementsDictionary = new Dictionary<string, string>
             {
                 { "$safeitemname$", "context.cs" },
                 { "$rootnamespace$", "My.Namespace" }
@@ -337,7 +332,7 @@ using FluentAssertions;
             new OneEFWizard(vsUtils: Mock.Of<IVsUtils>(), generatedCode: null)
                     .ShouldAddProjectItem(string.Empty).Should().BeFalse();
 
-            new OneEFWizard(vsUtils: Mock.Of<IVsUtils>(), generatedCode: new List<KeyValuePair<string, string>>())
+            new OneEFWizard(vsUtils: Mock.Of<IVsUtils>(), generatedCode: [])
                     .ShouldAddProjectItem(string.Empty).Should().BeFalse();
         }
 
@@ -346,7 +341,7 @@ using FluentAssertions;
         {
             new OneEFWizard(
                     vsUtils: Mock.Of<IVsUtils>(),
-                    generatedCode: new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>(string.Empty, string.Empty) })
+                    generatedCode: [new KeyValuePair<string, string>(string.Empty, string.Empty)])
                     .ShouldAddProjectItem(string.Empty).Should().BeTrue();
         }
 
@@ -355,16 +350,16 @@ using FluentAssertions;
         {
             const string contextName = "MyContext";
 
-            var mockVsUtils = new Mock<IVsUtils>();
-            var wizard = new OneEFWizard(vsUtils: mockVsUtils.Object);
+            Mock<IVsUtils> mockVsUtils = new Mock<IVsUtils>();
+            OneEFWizard wizard = new OneEFWizard(vsUtils: mockVsUtils.Object);
 
-            var mockCodeGenerator = new Mock<CodeFirstModelGenerator>(MockDTE.CreateProject());
+            Mock<CodeFirstModelGenerator> mockCodeGenerator = new Mock<CodeFirstModelGenerator>(MockDTE.CreateProject());
             mockCodeGenerator
                 .Setup(g => g.Generate(It.IsAny<DbModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new[] { new KeyValuePair<string, string>(string.Empty, string.Empty) });
 
-            var settings = new ModelBuilderSettings { VSApplicationType = VisualStudioProjectSystem.WebApplication };
-            var replacenentsDictionary = new Dictionary<string, string>
+            ModelBuilderSettings settings = new ModelBuilderSettings { VSApplicationType = VisualStudioProjectSystem.WebApplication };
+            Dictionary<string, string> replacenentsDictionary = new Dictionary<string, string>
             {
                 { "$safeitemname$", contextName },
                 { "$rootnamespace$", "Project" }
@@ -384,16 +379,16 @@ using FluentAssertions;
         [TestMethod]
         public void RunStarted_creates_valid_context_name_if_safeitemname_is_not_valid_identifier()
         {
-            var mockVsUtils = new Mock<IVsUtils>();
-            var wizard = new OneEFWizard(vsUtils: mockVsUtils.Object);
+            Mock<IVsUtils> mockVsUtils = new Mock<IVsUtils>();
+            OneEFWizard wizard = new OneEFWizard(vsUtils: mockVsUtils.Object);
 
-            var mockCodeGenerator = new Mock<CodeFirstModelGenerator>(MockDTE.CreateProject());
+            Mock<CodeFirstModelGenerator> mockCodeGenerator = new Mock<CodeFirstModelGenerator>(MockDTE.CreateProject());
             mockCodeGenerator
                 .Setup(g => g.Generate(It.IsAny<DbModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new[] { new KeyValuePair<string, string>(string.Empty, string.Empty) });
 
-            var settings = new ModelBuilderSettings { VSApplicationType = VisualStudioProjectSystem.WebApplication };
-            var replacenentsDictionary = new Dictionary<string, string>
+            ModelBuilderSettings settings = new ModelBuilderSettings { VSApplicationType = VisualStudioProjectSystem.WebApplication };
+            Dictionary<string, string> replacenentsDictionary = new Dictionary<string, string>
             {
                 { "$safeitemname$", "3My.Con text" },
                 { "$rootnamespace$", "Project" }

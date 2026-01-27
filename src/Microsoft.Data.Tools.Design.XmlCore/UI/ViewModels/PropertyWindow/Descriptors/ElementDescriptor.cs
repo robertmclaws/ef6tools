@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     /// <summary>
     ///     base class for a ICustomTypeDescriptor that describes the collection of properties of an EFElement
     /// </summary>
@@ -36,8 +36,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             get
             {
-                var efNameable = _element as EFNameableItem;
-                if (efNameable != null)
+                if (_element is EFNameableItem efNameable)
                 {
                     return efNameable.LocalName.Value;
                 }
@@ -48,7 +47,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
 
                 Command c = _element.Artifact.ModelManager.CreateRenameCommand(_element as EFNameableItem, value, true);
-                var cp = new CommandProcessor(cpc, c);
+                CommandProcessor cp = new CommandProcessor(cpc, c);
                 cp.Invoke();
             }
         }
@@ -202,8 +201,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
         public virtual object GetPropertyOwner(PropertyDescriptor pd)
         {
-            var efPropDesc = pd as CustomPropertyDescriptor;
-            return (efPropDesc != null) ? efPropDesc.Component : this;
+            return (pd is CustomPropertyDescriptor efPropDesc) ? efPropDesc.Component : this;
         }
 
         #endregion
@@ -213,8 +211,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             // we are comparing method names here so we have to be strict...
             if (propertyDescriptorMethodName.Equals("Name"))
             {
-                var efNameable = _element as EFNameableItem;
-                if (efNameable != null)
+                if (_element is EFNameableItem efNameable)
                 {
                     return efNameable.LocalName.DefaultValue;
                 }

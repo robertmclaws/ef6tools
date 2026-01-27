@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+
 namespace Microsoft.Data.Entity.Design.Model.Database
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-
     /// <summary>
     ///     Represents the full name of an object (e.g. a table) on a database
     ///     Consists of the name of the object plus the name of the schema
@@ -29,7 +29,7 @@ namespace Microsoft.Data.Entity.Design.Model.Database
             {
                 return false;
             }
-            var objAsDatabaseObject = (DatabaseObject)obj;
+            DatabaseObject objAsDatabaseObject = (DatabaseObject)obj;
 
             return (Schema == objAsDatabaseObject.Schema && Name == objAsDatabaseObject.Name);
         }
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Design.Model.Database
 
         internal static DatabaseObject CreateFromEntitySet(StorageEntitySet ses)
         {
-            var dbObj = new DatabaseObject();
+            DatabaseObject dbObj = new DatabaseObject();
             dbObj.Schema = ses.DatabaseSchemaName;
             dbObj.Name = ses.DatabaseTableName;
             return dbObj;
@@ -56,7 +56,7 @@ namespace Microsoft.Data.Entity.Design.Model.Database
 
         internal static DatabaseObject CreateFromFunction(Function func)
         {
-            var dbObj = new DatabaseObject();
+            DatabaseObject dbObj = new DatabaseObject();
             dbObj.Schema = func.DatabaseSchemaName;
             dbObj.Name = func.DatabaseFunctionName;
             return dbObj;
@@ -64,7 +64,7 @@ namespace Microsoft.Data.Entity.Design.Model.Database
 
         internal static DatabaseObject CreateFromEntityStoreSchemaFilterEntry(EntityStoreSchemaFilterEntry entry, string defaultSchemaName)
         {
-            var dbObj = new DatabaseObject();
+            DatabaseObject dbObj = new DatabaseObject();
             dbObj.Name = entry.Name;
             dbObj.Schema = entry.Schema;
 
@@ -81,7 +81,7 @@ namespace Microsoft.Data.Entity.Design.Model.Database
 
         internal static DatabaseObject CreateFromSchemaProcedure(IRawDataSchemaProcedure schemaProcedure)
         {
-            var dbObj = new DatabaseObject();
+            DatabaseObject dbObj = new DatabaseObject();
             dbObj.Name = schemaProcedure.Name;
             dbObj.Schema = schemaProcedure.Schema;
             return dbObj;

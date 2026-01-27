@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class DeleteFunctionImportCommand : DeleteEFElementCommand
     {
         internal string DeletedFunctionImportName { get; private set; }
@@ -14,7 +14,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             get
             {
-                var elem = EFElement as FunctionImport;
+                FunctionImport elem = EFElement as FunctionImport;
                 Debug.Assert(elem != null, "EFElement is null");
                 if (elem == null)
                 {

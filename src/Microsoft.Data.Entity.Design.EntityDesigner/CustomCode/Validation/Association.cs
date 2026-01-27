@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.VisualStudio.Modeling.Validation;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using System;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Properties;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.VisualStudio.Modeling.Validation;
-
     [ValidationState(ValidationState.Disabled)]
     internal partial class Association
     {
@@ -20,8 +20,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         {
             if (!EscherAttributeContentValidator.IsValidCsdlAssociationName(Name))
             {
-                var message = String.Format(CultureInfo.CurrentCulture, Resources.Error_AssociationNameInvalid, Name);
-                context.LogError(message, Resources.ErrorCode_AssociationNameInvalid, this);
+                var message = String.Format(CultureInfo.CurrentCulture, EntityDesignerRes.Error_AssociationNameInvalid, Name);
+                context.LogError(message, EntityDesignerRes.ErrorCode_AssociationNameInvalid, this);
             }
         }
     }

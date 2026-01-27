@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Xml;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System.Diagnostics;
-    using System.Xml;
-
     /// <summary>
     ///     Base class of Metadata converter
     /// </summary>

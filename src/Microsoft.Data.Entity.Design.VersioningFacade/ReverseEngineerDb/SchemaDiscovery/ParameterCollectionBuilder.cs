@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.EntityClient;
+using System.Globalization;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Globalization;
-
     // Abstracts building collections of parameters for schema queries 
     // with or without parameter value de-duplication
     internal class ParameterCollectionBuilder
@@ -49,15 +49,11 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
 
         public string GetOrAdd(string parameterValue)
         {
-            string parameterName = null;
-            if (_map == null || !_map.TryGetValue(parameterValue, out parameterName))
+            if (_map == null || !_map.TryGetValue(parameterValue, out string parameterName))
             {
                 parameterName = GetNextParameterName();
                 _collection.AddWithValue(parameterName, parameterValue);
-                if (_map != null)
-                {
-                    _map.Add(parameterValue, parameterName);
-                }
+                _map?.Add(parameterValue, parameterName);
             }
             return parameterName;
         }

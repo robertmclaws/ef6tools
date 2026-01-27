@@ -2,39 +2,37 @@
 
 using DesignerModel = Microsoft.Data.Entity.Design.Model.Designer;
 using DslModeling = Microsoft.VisualStudio.Modeling;
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
 using ModelDiagram = Microsoft.Data.Tools.Model.Diagram;
 using ViewModelDiagram = Microsoft.VisualStudio.Modeling.Diagrams;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Tools.Dsl.ModelTranslator;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Microsoft.VisualStudio.Modeling.Diagrams.GraphObject;
+using EntityDesignerResources = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+using ModelAssociation = Microsoft.Data.Entity.Design.Model.Entity.Association;
+using ModelEntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
+using ModelNavigationProperty = Microsoft.Data.Entity.Design.Model.Entity.NavigationProperty;
+using ModelProperty = Microsoft.Data.Entity.Design.Model.Entity.Property;
+using ViewModelAssociation = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.Association;
+using ViewModelEntityType = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.EntityType;
+using ViewModelNavigationProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.NavigationProperty;
+using ViewModelProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.Property;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Tools.Dsl.ModelTranslator;
-    using Microsoft.VisualStudio.Modeling.Diagrams.GraphObject;
-    using EntityDesignerResources = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
-    using ModelAssociation = Microsoft.Data.Entity.Design.Model.Entity.Association;
-    using ModelEntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
-    using ModelNavigationProperty = Microsoft.Data.Entity.Design.Model.Entity.NavigationProperty;
-    using ModelProperty = Microsoft.Data.Entity.Design.Model.Entity.Property;
-    using ViewModelAssociation = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.Association;
-    using ViewModelEntityType = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.EntityType;
-    using ViewModelNavigationProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.NavigationProperty;
-    using ViewModelProperty = Microsoft.Data.Entity.Design.EntityDesigner.ViewModel.Property;
-
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal class EntityModelToDslModelTranslatorStrategy : BaseTranslatorStrategy
     {
         internal EntityModelToDslModelTranslatorStrategy(EditingContext context)
@@ -44,7 +42,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 
         #region Override methods
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override DslModeling.ModelElement TranslateModelToDslModel(EFObject modelElement, DslModeling.Partition partition)
         {
             DesignerModel.Diagram diagram = null;
@@ -67,7 +64,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 
             EntityDesignerViewModel entityViewModel = null;
 
-            var entityDesignArtifact = service.Artifact as EntityDesignArtifact;
+            EntityDesignArtifact entityDesignArtifact = service.Artifact as EntityDesignArtifact;
             Debug.Assert(entityDesignArtifact != null, "Artifact is not type of EntityDesignArtifact");
 
             if (entityDesignArtifact != null)
@@ -120,7 +117,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             return entityViewModel;
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         internal override DslModeling.ModelElement SynchronizeSingleDslModelElement(
             DslModeling.ModelElement parentViewModel, EFObject modelElement)
         {
@@ -168,7 +164,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             // create each entity type and add its properties
             foreach (var et in entityTypes)
             {
-                var cet = et as ConceptualEntityType;
+                ConceptualEntityType cet = et as ConceptualEntityType;
                 Debug.Assert(cet != null, "EntityType is not ConceptualEntityType");
                 var viewET = TranslateEntityType(entityViewModel, cet);
                 entityViewModel.EntityTypes.Add(viewET);
@@ -178,7 +174,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             // create any inheritance relationships
             foreach (var et in entityTypes)
             {
-                var cet = et as ConceptualEntityType;
+                ConceptualEntityType cet = et as ConceptualEntityType;
                 Debug.Assert(cet != null, "EntityType is not ConceptualEntityType");
                 TranslateBaseType(entityViewModel, cet);
             }
@@ -192,7 +188,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             // add navigation properties to the entities
             foreach (var et in entityTypes)
             {
-                var viewET =
+                ViewModelEntityType viewET =
                     ModelToDesignerModelXRef.GetNewOrExisting(entityViewModel.EditingContext, et, entityViewModel.Partition) as
                     ViewModelEntityType;
                 Debug.Assert(viewET != null, "Why wasn't the entity shape added already?");
@@ -209,7 +205,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
         /// <returns></returns>
         private static ViewModelEntityType TranslateEntityType(EntityDesignerViewModel viewModel, ConceptualEntityType entityType)
         {
-            var viewET =
+            ViewModelEntityType viewET =
                 ModelToDesignerModelXRef.GetNewOrExisting(viewModel.EditingContext, entityType, viewModel.Partition) as ViewModelEntityType;
             viewET.Name = entityType.LocalName.Value;
             return viewET;
@@ -232,9 +228,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
         private void TranslateNavigationPropertiesOfEntityType(
             ModelEntityType entityType, ViewModelEntityType viewET)
         {
-            var cet = entityType as ConceptualEntityType;
-
-            if (cet != null)
+            if (entityType is ConceptualEntityType cet)
             {
                 foreach (var navProp in cet.NavigationProperties())
                 {
@@ -255,14 +249,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
         /// <returns></returns>
         private ViewModelProperty TranslateProperty(ViewModelEntityType viewEntityType, ModelProperty property)
         {
-            var viewProperty =
+            ViewModelProperty viewProperty =
                 ModelToDesignerModelXRef.GetNewOrExisting(EditingContext, property, viewEntityType.Partition) as ViewModelProperty;
-            var scalarProperty = viewProperty as ScalarProperty;
-            if (scalarProperty != null)
-            {
-                // flag if we are part of the key
-                scalarProperty.EntityKey = property.IsKeyProperty;
-            }
+            ScalarProperty scalarProperty = viewProperty as ScalarProperty;
+            // flag if we are part of the key
+            scalarProperty?.EntityKey = property.IsKeyProperty;
 
             // set the other properties if they aren't null
             if (property.LocalName.Value != null)
@@ -285,15 +276,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
         {
             if (entityType.BaseType.Status == BindingStatus.Known)
             {
-                var baseType =
-                    ModelToDesignerModelXRef.GetExisting(viewModel.EditingContext, entityType.BaseType.Target, viewModel.Partition) as
-                    ViewModelEntityType;
-                var derivedType =
-                    ModelToDesignerModelXRef.GetExisting(viewModel.EditingContext, entityType, viewModel.Partition) as ViewModelEntityType;
-
                 // in Multiple diagram scenario, baseType and derivedType might not exist in the diagram.
-                if (baseType != null
-                    && derivedType != null)
+                if (ModelToDesignerModelXRef.GetExisting(viewModel.EditingContext, entityType.BaseType.Target, viewModel.Partition) is ViewModelEntityType baseType
+                    && ModelToDesignerModelXRef.GetExisting(viewModel.EditingContext, entityType, viewModel.Partition) is ViewModelEntityType derivedType)
                 {
                     return
                         ModelToDesignerModelXRef.GetNewOrExisting(viewModel.EditingContext, entityType.BaseType, baseType, derivedType) as
@@ -322,18 +307,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             if (end1.Type.Status == BindingStatus.Known
                 && end2.Type.Status == BindingStatus.Known)
             {
-                var viewEnd1 =
-                    ModelToDesignerModelXRef.GetExisting(viewModel.EditingContext, end1.Type.Target, viewModel.Partition) as
-                    ViewModelEntityType;
-                var viewEnd2 =
-                    ModelToDesignerModelXRef.GetExisting(viewModel.EditingContext, end2.Type.Target, viewModel.Partition) as
-                    ViewModelEntityType;
-
                 // Only create association if both entityType exist.
-                if (viewEnd1 != null
-                    && viewEnd2 != null)
+                if (ModelToDesignerModelXRef.GetExisting(viewModel.EditingContext, end1.Type.Target, viewModel.Partition) is ViewModelEntityType viewEnd1
+                    && ModelToDesignerModelXRef.GetExisting(viewModel.EditingContext, end2.Type.Target, viewModel.Partition) is ViewModelEntityType viewEnd2)
                 {
-                    var viewAssoc =
+                    ViewModelAssociation viewAssoc =
                         ModelToDesignerModelXRef.GetNewOrExisting(viewModel.EditingContext, association, viewEnd1, viewEnd2) as
                         ViewModelAssociation;
                     viewAssoc.Name = association.LocalName.Value;
@@ -352,11 +330,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
                             ModelHelper.FindNavigationPropertyForAssociationEnd(end1.Type.Target as ConceptualEntityType, end1);
                         if (modelSourceNavigationProperty != null)
                         {
-                            var viewSourceNavigationProperty =
-                                ModelToDesignerModelXRef.GetExisting(
-                                    viewModel.EditingContext, modelSourceNavigationProperty, viewModel.Partition) as
-                                ViewModelNavigationProperty;
-                            if (viewSourceNavigationProperty != null)
+                            if (ModelToDesignerModelXRef.GetExisting(
+                                    viewModel.EditingContext, modelSourceNavigationProperty, viewModel.Partition) is ViewModelNavigationProperty viewSourceNavigationProperty)
                             {
                                 viewAssoc.SourceNavigationProperty = viewSourceNavigationProperty;
                                 viewSourceNavigationProperty.Association = viewAssoc;
@@ -372,11 +347,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
                             ModelHelper.FindNavigationPropertyForAssociationEnd(end2.Type.Target as ConceptualEntityType, end2);
                         if (modelTargetNavigatioNProperty != null)
                         {
-                            var viewTargetNavigationProperty =
-                                ModelToDesignerModelXRef.GetExisting(
-                                    viewModel.EditingContext, modelTargetNavigatioNProperty, viewModel.Partition) as
-                                ViewModelNavigationProperty;
-                            if (viewTargetNavigationProperty != null)
+                            if (ModelToDesignerModelXRef.GetExisting(
+                                    viewModel.EditingContext, modelTargetNavigatioNProperty, viewModel.Partition) is ViewModelNavigationProperty viewTargetNavigationProperty)
                             {
                                 viewAssoc.TargetNavigationProperty = viewTargetNavigationProperty;
                                 viewTargetNavigationProperty.Association = viewAssoc;
@@ -395,7 +367,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
         /// </summary>
         private ViewModelNavigationProperty TranslateNavigationProperty(ViewModelEntityType viewEntityType, ModelNavigationProperty navProp)
         {
-            var viewNavProp =
+            ViewModelNavigationProperty viewNavProp =
                 ModelToDesignerModelXRef.GetNewOrExisting(EditingContext, navProp, viewEntityType.Partition) as ViewModelNavigationProperty;
 
             Debug.Assert(viewNavProp != null, "Expected non-null navigation property");
@@ -403,12 +375,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 
             if (navProp.Relationship.Status == BindingStatus.Known)
             {
-                var association =
-                    ModelToDesignerModelXRef.GetExisting(EditingContext, navProp.Relationship.Target, viewEntityType.Partition) as
-                    ViewModelAssociation;
                 // Association might be null here if the related entity does not exist in the current diagram.
 
-                if (association != null)
+                if (ModelToDesignerModelXRef.GetExisting(EditingContext, navProp.Relationship.Target, viewEntityType.Partition) is ViewModelAssociation association)
                 {
                     viewNavProp.Association = association;
 
@@ -463,18 +432,15 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
         ///     This method assumes that the ShapeElement as well as the Designer EFObject already exist but they haven't been pushed
         ///     into the view model's XRef yet.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         internal static void TranslateDiagramObject(
             EntityDesignerViewModel viewModel, ModelDiagram.BaseDiagramObject modelDiagramObject,
             bool updateShapeElements, IList<ViewModelDiagram.ShapeElement> shapesToAutoLayout)
         {
             Debug.Assert(modelDiagramObject is EFObject, "Why did you define a DiagramEFObject that is not an EFObject?");
 
-            var modelEntityTypeShape = modelDiagramObject as DesignerModel.EntityTypeShape;
 
             // the view model could have gotten deleted as a result of OnEFObjectDeleted() so don't attempt to translate the diagram EFObject.
-            if (modelEntityTypeShape != null
+            if (modelDiagramObject is DesignerModel.EntityTypeShape modelEntityTypeShape
                 && modelEntityTypeShape.IsDisposed != true
                 && modelEntityTypeShape.EntityType.Target != null
                 && modelEntityTypeShape.EntityType.Target.IsDisposed != true)
@@ -483,8 +449,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
                     viewModel, modelDiagramObject, modelEntityTypeShape.EntityType.Target, updateShapeElements,
                     shapeElement =>
                         {
-                            var viewEntityTypeShape = shapeElement as EntityTypeShape;
-                            var rectangle = new ViewModelDiagram.RectangleD(
+                            EntityTypeShape viewEntityTypeShape = shapeElement as EntityTypeShape;
+                            RectangleD rectangle = new ViewModelDiagram.RectangleD(
                                 modelEntityTypeShape.PointX.Value
                                 , modelEntityTypeShape.PointY.Value, modelEntityTypeShape.Width.Value, 0.0);
                             viewEntityTypeShape.AbsoluteBounds = rectangle;
@@ -505,16 +471,12 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
                             }
                         });
 
-                var dslEntityTypeShape = viewModel.ModelXRef.GetExisting(modelEntityTypeShape) as EntityTypeShape;
+                EntityTypeShape dslEntityTypeShape = viewModel.ModelXRef.GetExisting(modelEntityTypeShape) as EntityTypeShape;
                 // dslEntityTypeShape is null if the entity-type is deleted, in that case skip sync FillColor property.
-                if (dslEntityTypeShape != null)
-                {
-                    dslEntityTypeShape.FillColor = modelEntityTypeShape.FillColor.Value;
-                }
+                dslEntityTypeShape?.FillColor = modelEntityTypeShape.FillColor.Value;
             }
             // the view model could have gotten deleted as a result of OnEFObjectDeleted() so don't attempt to translate the diagram EFObject.
-            var modelAssociationConnectorShape = modelDiagramObject as DesignerModel.AssociationConnector;
-            if (modelAssociationConnectorShape != null
+            if (modelDiagramObject is DesignerModel.AssociationConnector modelAssociationConnectorShape
                 && modelAssociationConnectorShape.IsDisposed != true
                 && modelAssociationConnectorShape.Association.Target != null
                 && modelAssociationConnectorShape.Association.Target.IsDisposed != true)
@@ -526,14 +488,12 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             }
 
             // the view model could have gotten deleted as a result of OnEFObjectDeleted() so don't attempt to translate the diagram EFObject.
-            var modelInheritanceConnectorShape = modelDiagramObject as DesignerModel.InheritanceConnector;
-            if (modelInheritanceConnectorShape != null
+            if (modelDiagramObject is DesignerModel.InheritanceConnector modelInheritanceConnectorShape
                 && modelInheritanceConnectorShape.IsDisposed != true
                 && modelInheritanceConnectorShape.EntityType.Target != null
                 && modelInheritanceConnectorShape.EntityType.Target.IsDisposed != true)
             {
-                var cet = modelInheritanceConnectorShape.EntityType.Target as ConceptualEntityType;
-                if (cet != null
+                if (modelInheritanceConnectorShape.EntityType.Target is ConceptualEntityType cet
                     && cet.BaseType != null
                     && cet.BaseType.RefName != null)
                 {
@@ -557,7 +517,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             if (diagram != null
                 && diagramEFObject != null)
             {
-                var shapeElement = viewModel.ModelXRef.GetExisting(diagramEFObject) as ViewModelDiagram.ShapeElement;
+                ShapeElement shapeElement = viewModel.ModelXRef.GetExisting(diagramEFObject) as ViewModelDiagram.ShapeElement;
                 if (shapeElement == null)
                 {
                     // find the view model associated with the model EFObject
@@ -598,7 +558,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
         ///     Note that we don't assert if we didn't find the corresponding model diagram element.
         ///     In this case, we let DSL to auto layout the shape.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal static void TranslateDiagram(EntityDesignerDiagram diagram, DesignerModel.Diagram modelDiagram)
         {
             var viewModel = diagram.ModelElement;
@@ -607,24 +566,22 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             using (var t = diagram.Store.TransactionManager.BeginTransaction("Translate diagram", true))
             {
                 // list of shapes that don't have corresponding element in model and require auto-layout
-                var shapesToAutoLayout = new List<ViewModelDiagram.ShapeElement>();
+                List<ShapeElement> shapesToAutoLayout = new List<ViewModelDiagram.ShapeElement>();
 
                 // try to find object in model for each shape on a diagram
                 foreach (var shapeElement in diagram.NestedChildShapes)
                 {
-                    var entityShape = shapeElement as EntityTypeShape;
-                    if (entityShape != null
+                    if (shapeElement is EntityTypeShape entityShape
                         && entityShape.ModelElement != null)
                     {
-                        var modelEntity = viewModel.ModelXRef.GetExisting(entityShape.ModelElement) as ModelEntityType;
-                        if (modelEntity != null)
+                        if (viewModel.ModelXRef.GetExisting(entityShape.ModelElement) is ModelEntityType modelEntity)
                         {
                             var modelEntityTypeShape =
                                 modelDiagram.EntityTypeShapes.FirstOrDefault(ets => ets.EntityType.Target == modelEntity);
                             if (modelEntityTypeShape != null)
                             {
                                 viewModel.ModelXRef.Add(modelEntityTypeShape, entityShape, viewModel.EditingContext);
-                                var rectangle = new ViewModelDiagram.RectangleD(
+                                RectangleD rectangle = new ViewModelDiagram.RectangleD(
                                     modelEntityTypeShape.PointX.Value, modelEntityTypeShape.PointY.Value
                                     , modelEntityTypeShape.Width.Value, 0.0);
                                 entityShape.AbsoluteBounds = rectangle;
@@ -639,12 +596,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
                         continue;
                     }
 
-                    var associationConnector = shapeElement as AssociationConnector;
-                    if (associationConnector != null
+                    if (shapeElement is AssociationConnector associationConnector
                         && associationConnector.ModelElement != null)
                     {
-                        var modelAssociation = viewModel.ModelXRef.GetExisting(associationConnector.ModelElement) as ModelAssociation;
-                        if (modelAssociation != null)
+                        if (viewModel.ModelXRef.GetExisting(associationConnector.ModelElement) is ModelAssociation modelAssociation)
                         {
                             var modelAssociationConnector =
                                 modelDiagram.AssociationConnectors.FirstOrDefault(ac => ac.Association.Target == modelAssociation);
@@ -657,13 +612,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
                         continue;
                     }
 
-                    var inheritanceConnector = shapeElement as InheritanceConnector;
-                    if (inheritanceConnector != null
+                    if (shapeElement is InheritanceConnector inheritanceConnector
                         && inheritanceConnector.ModelElement != null)
                     {
-                        var entityTypeBase = viewModel.ModelXRef.GetExisting(inheritanceConnector.ModelElement) as EntityTypeBaseType;
-                        var modelEntity = entityTypeBase.Parent as ModelEntityType;
-                        if (modelEntity != null)
+                        EntityTypeBaseType entityTypeBase = viewModel.ModelXRef.GetExisting(inheritanceConnector.ModelElement) as EntityTypeBaseType;
+                        if (entityTypeBase.Parent is ModelEntityType modelEntity)
                         {
                             var modelInheritanceConnector =
                                 modelDiagram.InheritanceConnectors.FirstOrDefault(ic => ic.EntityType.Target == modelEntity);
@@ -697,17 +650,16 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             var artifact = service.Artifact;
             Debug.Assert(artifact != null, "Artifact is null");
 
-            var cpc = new CommandProcessorContext(
+            CommandProcessorContext cpc = new CommandProcessorContext(
                 context, EfiTransactionOriginator.EntityDesignerOriginatorId, EntityDesignerResources.Tx_CreateDiagram);
-            var cmd = new DelegateCommand(
+            DelegateCommand cmd = new DelegateCommand(
                 () =>
                     {
                         EntityDesignerDiagramAdd.StaticInvoke(cpc, diagram);
 
                         foreach (var shapeElement in diagram.NestedChildShapes)
                         {
-                            var entityShape = shapeElement as EntityTypeShape;
-                            if (entityShape != null)
+                            if (shapeElement is EntityTypeShape entityShape)
                             {
                                 EntityTypeShapeAdd.StaticInvoke(cpc, entityShape);
                                 EntityTypeShapeChange.StaticInvoke(
@@ -716,8 +668,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
                                 continue;
                             }
 
-                            var associationConnector = shapeElement as AssociationConnector;
-                            if (associationConnector != null)
+                            if (shapeElement is AssociationConnector associationConnector)
                             {
                                 AssociationConnectorAdd.StaticInvoke(cpc, associationConnector);
                                 AssociationConnectorChange.StaticInvoke(
@@ -727,8 +678,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
                                 continue;
                             }
 
-                            var inheritanceConnector = shapeElement as InheritanceConnector;
-                            if (inheritanceConnector != null)
+                            if (shapeElement is InheritanceConnector inheritanceConnector)
                             {
                                 InheritanceConnectorAdd.StaticInvoke(cpc, inheritanceConnector);
                                 InheritanceConnectorChange.StaticInvoke(
@@ -747,9 +697,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             out IList<ModelEntityType> entityTypes,
             out IList<ModelAssociation> associations)
         {
-            entityTypes = new List<ModelEntityType>();
-            associations = new List<ModelAssociation>();
-            var elementsToDelete = new List<EFElement>();
+            entityTypes = [];
+            associations = [];
+            List<EFElement> elementsToDelete = new List<EFElement>();
 
             foreach (var entityTypeShape in diagram.EntityTypeShapes)
             {
@@ -829,7 +779,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             }
             else
             {
-                var collection = new ViewModelDiagram.EdgePointCollection();
+                EdgePointCollection collection = new ViewModelDiagram.EdgePointCollection();
                 foreach (var connectorPoint in modelInheritanceConnector.ConnectorPoints)
                 {
                     collection.Add(
@@ -858,7 +808,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
             }
             else
             {
-                var collection = new ViewModelDiagram.EdgePointCollection();
+                EdgePointCollection collection = new ViewModelDiagram.EdgePointCollection();
                 foreach (var connectorPoint in modelAssociationConnector.ConnectorPoints)
                 {
                     collection.Add(

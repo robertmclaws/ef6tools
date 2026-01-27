@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-
     [Serializable]
     internal abstract class AnnotatableElementClipboardFormat : EFElementClipboardFormat
     {
-        private readonly List<String> _additionalElements = new List<String>();
-        private readonly List<Tuple<String, String>> _additionalAttributes = new List<Tuple<String, String>>();
+        private readonly List<String> _additionalElements = [];
+        private readonly List<Tuple<String, String>> _additionalAttributes = [];
 
         internal AnnotatableElementClipboardFormat(EFElement efElement)
             : base(efElement)
@@ -19,14 +19,12 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             // scan through the XML and identify any "extra" attributes we want to include in the copy
             foreach (var xo in ModelHelper.GetStructuredAnnotationsForElement(efElement))
             {
-                var xa = xo as XAttribute;
-                var xe = xo as XElement;
-                if (xa != null)
+                if (xo is XAttribute xa)
                 {
-                    var t = new Tuple<string, string>(xa.Name.ToString(), xa.Value);
+                    Tuple<string, string> t = new Tuple<string, string>(xa.Name.ToString(), xa.Value);
                     _additionalAttributes.Add(t);
                 }
-                else if (xe != null)
+                else if (xo is XElement xe)
                 {
                     _additionalElements.Add(xe.ToString(SaveOptions.None));
                 }

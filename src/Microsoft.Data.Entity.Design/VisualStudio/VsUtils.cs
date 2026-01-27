@@ -1,50 +1,49 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data.Common;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Data.Entity.Infrastructure.Design;
+using System.Data.SqlClient;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using System.Xml;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Design;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.Win32;
+using VSLangProj;
+using VSLangProj80;
+using VsWebSite;
+using VsWebSite90;
+using ConfigurationManager = System.Configuration.ConfigurationManager;
+using Constants = EnvDTE.Constants;
+using PrjKind = VSLangProj.PrjKind;
+using VSErrorHandler = Microsoft.VisualStudio.ErrorHandler;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Configuration;
-    using System.Data.Common;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Data.Entity.Infrastructure.Design;
-    using System.Data.SqlClient;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.InteropServices;
-    using System.Security;
-    using System.Text;
-    using System.Text.RegularExpressions;
-    using System.Windows.Forms;
-    using System.Xml;
-    using EnvDTE;
-    using EnvDTE80;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Design;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-    using Microsoft.Win32;
-    using VSLangProj;
-    using VSLangProj80;
-    using VsWebSite;
-    using VsWebSite90;
-    using ConfigurationManager = System.Configuration.ConfigurationManager;
-    using Constants = EnvDTE.Constants;
-    using PrjKind = VSLangProj.PrjKind;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-    using VSErrorHandler = Microsoft.VisualStudio.ErrorHandler;
-
     internal enum VisualStudioProjectSystem
     {
         WindowsApplication = 0,
@@ -55,7 +54,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
     // <summary>
     //     Helper class to work with the VS DTE
     // </summary>
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal static class VsUtils
     {
         private const string EntityFrameworkAssemblyName = "EntityFramework";
@@ -97,7 +95,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Project project = null;
             try
             {
-                var activeSolutionProjects = (Array)dte.ActiveSolutionProjects;
+                Array activeSolutionProjects = (Array)dte.ActiveSolutionProjects;
                 if (activeSolutionProjects.Length > 0)
                 {
                     project = (Project)activeSolutionProjects.GetValue(0);
@@ -135,7 +133,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             var macroMatch = MacroRegex.Match(path);
             if (macroMatch.Success)
             {
-                var resolvedPathBuilder = new StringBuilder();
+                StringBuilder resolvedPathBuilder = new StringBuilder();
                 var previousMacroEndIndex = 0;
 
                 // we only want to match the 'macroMatch'
@@ -192,7 +190,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         //     Used to resolve a single macro, such as "DevEnvDir", "ProjectDir", or "TargetDir". A dictionary of custom macros can also be passed in
         //     as a 'backup'.
         // </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsBuildPropertyStorage.GetPropertyValue(System.String,System.String,System.UInt32,System.String@)")]
         internal static string ResolveMacro(Project project, string macroName, Dictionary<string, string> customMacros)
         {
             var macroValue = String.Empty;
@@ -200,16 +197,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             if (project != null)
             {
                 var hierarchy = GetVsHierarchy(project, Services.ServiceProvider);
-                var vsProject = hierarchy as IVsProject;
+                IVsProject vsProject = hierarchy as IVsProject;
                 Debug.Assert(vsProject != null, "IVsHierarchy should be an IVsProject");
                 if (vsProject != null)
                 {
-                    var buildPropertyStorage = vsProject as IVsBuildPropertyStorage;
-                    if (buildPropertyStorage != null)
-                    {
-                        buildPropertyStorage.GetPropertyValue(
+                    IVsBuildPropertyStorage buildPropertyStorage = vsProject as IVsBuildPropertyStorage;
+                    buildPropertyStorage?.GetPropertyValue(
                             macroName, String.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, out macroValue);
-                    }
                 }
             }
 
@@ -218,10 +212,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 && customMacros != null)
             {
                 customMacros.TryGetValue(macroName, out macroValue);
-                if (macroValue == null)
-                {
-                    macroValue = String.Empty;
-                }
+                macroValue ??= String.Empty;
             }
 
             if (String.IsNullOrEmpty(macroValue))
@@ -265,7 +256,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         private static void UpdateConfig(Project project, Action<XmlDocument> updateAction)
         {
-            var configFileUtils = new ConfigFileUtils(project, PackageManager.Package);
+            ConfigFileUtils configFileUtils = new ConfigFileUtils(project, PackageManager.Package);
             configFileUtils.GetOrCreateConfigFile();
             var configXml = configFileUtils.LoadConfig();
             if (null == configXml)
@@ -284,7 +275,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         // <param name="parentNode"></param>
         // <param name="elementPath">full path to element separated by '/'</param>
         // <param name="prependChild"></param>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         private static XmlNode FindOrCreateXmlElement(XmlNode parentNode, string elementPath, bool prependChild = false)
         {
             Debug.Assert(parentNode != null, "parentNode != null");
@@ -335,7 +325,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     var attribute = xmlNode.Attributes[attributeName];
                     if (null != attribute)
                     {
-                        var elem = xmlNode as XmlElement;
+                        XmlElement elem = xmlNode as XmlElement;
                         if (null == attributeValue)
                         {
                             // if attribute value doesn't matter
@@ -422,10 +412,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             }
 
             var outputWindowPane = GetOutputWindowPane(project, activateWindow);
-            if (null != outputWindowPane)
-            {
-                outputWindowPane.OutputString(message + Environment.NewLine);
-            }
+            outputWindowPane?.OutputString(message + Environment.NewLine);
         }
 
         // <summary>
@@ -453,8 +440,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 window.Visible = true;
             }
 
-            var outputWindow = window.Object as OutputWindow;
-            if (null == outputWindow)
+            if (window.Object is not OutputWindow outputWindow)
             {
                 return null;
             }
@@ -500,13 +486,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             DirectoryInfo projectRootDirectoryInfo = null;
             if (IsMiscellaneousProject(project))
             {
-                var solution = serviceProvider.GetService(typeof(IVsSolution)) as IVsSolution;
-                if (solution != null)
+                if (serviceProvider.GetService(typeof(IVsSolution)) is IVsSolution solution)
                 {
-                    string solutionDirectory;
-                    string solutionFile;
-                    string userOptionsFile;
-                    var hr = solution.GetSolutionInfo(out solutionDirectory, out solutionFile, out userOptionsFile);
+                    var hr = solution.GetSolutionInfo(out string solutionDirectory, out string solutionFile, out string userOptionsFile);
                     if (NativeMethods.Succeeded(hr) && !String.IsNullOrEmpty(solutionDirectory))
                     {
                         projectRootDirectoryInfo = new DirectoryInfo(solutionDirectory);
@@ -666,26 +648,21 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                    || applicationType == VisualStudioProjectSystem.Website;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsAggregatableProject.GetAggregateProjectTypeGuids(System.String@)")]
         internal static string GetAggregateProjectTypeGuids(IServiceProvider serviceProvider, Project project)
         {
             var guidsString = PackageManager.Package.AggregateProjectTypeGuidCache.GetGuids(project);
 
             if (guidsString == null)
             {
-                var solution = serviceProvider.GetService(typeof(IVsSolution)) as IVsSolution;
+                IVsSolution solution = serviceProvider.GetService(typeof(IVsSolution)) as IVsSolution;
                 Debug.Assert(null != solution, "solution should not be null");
 
-                IVsHierarchy hierarchy;
-                var hr = solution.GetProjectOfUniqueName(project.UniqueName, out hierarchy);
+                var hr = solution.GetProjectOfUniqueName(project.UniqueName, out IVsHierarchy hierarchy);
                 if (NativeMethods.Succeeded(hr))
                 {
-                    var aggregatableProject = hierarchy as IVsAggregatableProject;
-                    if (null != aggregatableProject)
-                    {
-                        // The project guids string looks like "{Guid 1};{Guid 2};...{Guid n}" with Guid n the inner most
-                        aggregatableProject.GetAggregateProjectTypeGuids(out guidsString);
-                    }
+                    IVsAggregatableProject aggregatableProject = hierarchy as IVsAggregatableProject;
+                    // The project guids string looks like "{Guid 1};{Guid 2};...{Guid n}" with Guid n the inner most
+                    aggregatableProject?.GetAggregateProjectTypeGuids(out guidsString);
                 }
 
                 if (!string.IsNullOrEmpty(guidsString))
@@ -699,7 +676,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         public static void UnlockRunningDocument(IServiceProvider site, uint docCookie, _VSRDTFLAGS unlockFlags)
         {
-            var rdt = new RunningDocumentTable(site);
+            RunningDocumentTable rdt = new RunningDocumentTable(site);
             rdt.UnlockDocument(unlockFlags, docCookie);
         }
 
@@ -710,14 +687,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         internal static uint GetProjectItemId(IVsHierarchy hierarchy, ProjectItem projectItem)
         {
-            int iFound;
-            uint itemId;
-            var project = hierarchy as IVsProject;
-            var pdwPriority = new VSDOCUMENTPRIORITY[1];
+            IVsProject project = hierarchy as IVsProject;
+            VSDOCUMENTPRIORITY[] pdwPriority = new VSDOCUMENTPRIORITY[1];
 
             // pass 1 to get_FileNames because it asserts if we pass 0
             Debug.Assert(project != null, "project != null");
-            NativeMethods.ThrowOnFailure(project.IsDocumentInProject(projectItem.FileNames[1], out iFound, pdwPriority, out itemId));
+            NativeMethods.ThrowOnFailure(project.IsDocumentInProject(projectItem.FileNames[1], out int iFound, pdwPriority, out uint itemId));
 
             // in some cases IsDocumentInProject could return S_OK but still not find the document we're looking for.
             // this way we make sure to return a 0 itemId in those cases.
@@ -726,8 +701,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         internal static void SetTextForVsTextLines(IVsTextLines vsTextLines, string text)
         {
-            int endLine, endCol;
-            VSErrorHandler.ThrowOnFailure(vsTextLines.GetLastLineIndex(out endLine, out endCol));
+            VSErrorHandler.ThrowOnFailure(vsTextLines.GetLastLineIndex(out int endLine, out int endCol));
             var length = (text == null) ? 0 : text.Length;
 
             var textPtr = IntPtr.Zero;
@@ -789,7 +763,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         // <param name="defaultButton">Default button (invoked when user presses return).</param>
         // <param name="messageIcon">Icon (warning, error, informational, etc.) to display</param>
         // <returns>result corresponding to the button clicked by the user.</returns>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         public static DialogResult ShowMessageBox(
             IServiceProvider serviceProvider, string messageText, OLEMSGBUTTON messageButtons, OLEMSGDEFBUTTON defaultButton,
             OLEMSGICON messageIcon)
@@ -807,7 +780,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         // <param name="defaultButton">Default button (invoked when user presses return).</param>
         // <param name="messageIcon">Icon (warning, error, informational, etc.) to display</param>
         // <returns>result corresponding to the button clicked by the user.</returns>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         public static DialogResult ShowMessageBox(
             IServiceProvider serviceProvider, string messageText, string f1Keyword, OLEMSGBUTTON messageButtons,
             OLEMSGDEFBUTTON defaultButton, OLEMSGICON messageIcon)
@@ -817,7 +789,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Debug.Assert(serviceProvider != null, "ServiceProvider was null");
             if (serviceProvider != null)
             {
-                var uiShell = (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell));
+                IVsUIShell uiShell = (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell));
 
                 Debug.Assert(uiShell != null, "ServiceProvider returned null for SVsUIShell");
                 if (uiShell != null)
@@ -888,8 +860,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 var prop = project.Properties.Item("CurrentWebsiteLanguage");
                 if (prop != null)
                 {
-                    var currentWebsiteLanguage = prop.Value as string;
-                    if (currentWebsiteLanguage != null)
+                    if (prop.Value is string currentWebsiteLanguage)
                     {
                         if (currentWebsiteLanguage.Equals("C#", StringComparison.OrdinalIgnoreCase)
                             || currentWebsiteLanguage.Equals("Visual C#", StringComparison.OrdinalIgnoreCase))
@@ -915,8 +886,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 return false;
             }
 
-            var currentWebsiteLanguage = prop.Value as string;
-            if (currentWebsiteLanguage == null)
+            if (prop.Value is not string currentWebsiteLanguage)
             {
                 return false;
             }
@@ -960,8 +930,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 return null;
             }
 
-            object o;
-            var hr = hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ExtObject, out o);
+            var hr = hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ExtObject, out object o);
             if (NativeMethods.Succeeded(hr))
             {
                 return o as ProjectItem;
@@ -971,22 +940,18 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         internal static IEnumerable<IVsHierarchy> GetAllHierarchiesInSolution(IServiceProvider serviceProvider)
         {
-            var solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
-
-            if (solution != null)
+            if (serviceProvider.GetService(typeof(SVsSolution)) is IVsSolution solution)
             {
                 var guid = Guid.Empty;
-                IEnumHierarchies hierarchyEnum = null;
 
-                solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_ALLPROJECTS, ref guid, out hierarchyEnum);
+                solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_ALLPROJECTS, ref guid, out IEnumHierarchies hierarchyEnum);
                 if (hierarchyEnum != null)
                 {
                     hierarchyEnum.Reset();
 
-                    uint numFetched = 1;
-                    var item = new IVsHierarchy[1];
+                    IVsHierarchy[] item = new IVsHierarchy[1];
 
-                    hierarchyEnum.Next(1, item, out numFetched);
+                    hierarchyEnum.Next(1, item, out uint numFetched);
                     while (numFetched == 1)
                     {
                         yield return item[0];
@@ -1009,21 +974,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         internal static ProjectItem GetProjectItemForDocument(string projectItemFileName, IServiceProvider serviceProvider)
         {
-            IVsHierarchy hier;
-            Project proj;
-            uint itemId;
-            bool isDocInProj;
-            object o;
 
-            VSHelpers.GetProjectAndFileInfoForPath(projectItemFileName, serviceProvider, out hier, out proj, out itemId, out isDocInProj);
+            VSHelpers.GetProjectAndFileInfoForPath(projectItemFileName, serviceProvider, out IVsHierarchy hier, out Project proj, out uint itemId, out bool isDocInProj);
             if (null == hier)
             {
                 return null;
             }
 
-            if (VSErrorHandler.Succeeded(hier.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ExtObject, out o)))
+            if (VSErrorHandler.Succeeded(hier.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ExtObject, out object o)))
             {
-                var projectItem = o as ProjectItem;
+                ProjectItem projectItem = o as ProjectItem;
                 if (itemId != VSConstants.VSITEMID_ROOT)
                 {
                     // Don't bother tracing for VSITEMID_ROOT - it returns an EnvDTE.Project
@@ -1055,8 +1015,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Debug.Assert(project != null, "project is null.");
 
             // SDK-style projects don't expose VSProject2 or VSWebSite
-            var vsProject = project.Object as VSProject2;
-            var vsWebSite = project.Object as VSWebSite;
+            VSProject2 vsProject = project.Object as VSProject2;
+            VSWebSite vsWebSite = project.Object as VSWebSite;
 
             if (vsProject != null || vsWebSite != null)
             {
@@ -1108,8 +1068,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             // attempt to construct the text from the doc data if it is available
             var fileText = string.Empty;
             var docData = VSHelpers.GetDocData(Services.ServiceProvider, filePath);
-            var textLines = docData as IVsTextLines;
-            if (textLines != null)
+            if (docData is IVsTextLines textLines)
             {
                 // get the text from the VS buffer and construct an XML DOM object from it
                 fileText = VSHelpers.GetTextFromVsTextLines(textLines);
@@ -1125,7 +1084,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         // <summary>
         //     Return target framework moniker for given document.
         // </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         internal static string GetTargetFrameworkMonikerForDocument(Project project, uint itemId, IServiceProvider serviceProvider)
         {
             if (IsMiscellaneousProject(project))
@@ -1136,10 +1094,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             var hierarchy = VSHelpers.GetVsHierarchy(project, serviceProvider);
             Debug.Assert(hierarchy != null, "Hierarchy should not be null");
 
-            object moniker;
 
             if (NativeMethods.Succeeded(
-                hierarchy.GetProperty(itemId, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out moniker)))
+                hierarchy.GetProperty(itemId, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out object moniker)))
             {
                 return moniker as string;
             }
@@ -1182,7 +1139,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         internal static string GetVisualStudioRegistryPath()
         {
-            var localRegistry = Services.ServiceProvider.GetService(typeof(ILocalRegistry)) as ILocalRegistry3;
+            ILocalRegistry3 localRegistry = Services.ServiceProvider.GetService(typeof(ILocalRegistry)) as ILocalRegistry3;
             Debug.Assert(localRegistry != null, "ILocalRegistry3 could not be obtained");
             var root = String.Empty;
             if (localRegistry != null)
@@ -1247,8 +1204,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 fileDataObject => ((XmlDocument)fileDataObject).InnerXml,
                 (fileDataObject, filePath) =>
                 {
-                    var xmlWriterSettings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
-                    using (var writer = XmlWriter.Create(filePath, xmlWriterSettings))
+                    XmlWriterSettings xmlWriterSettings = new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = true };
+                    using (XmlWriter writer = XmlWriter.Create(filePath, xmlWriterSettings))
                     {
                         ((XmlDocument)fileDataObject).Save(writer);
                     }
@@ -1278,15 +1235,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         //     temporary collection and do bulk checkout for the files and update.
         //     We are currently using this method to write build provider information in web.config as well as to update namespaces in the edmx files.
         // </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsPersistDocData2.SetDocDataDirty(System.Int32)")]
         internal static void WriteCheckoutFilesInProject(
             IServiceProvider serviceProvider,
             IDictionary<string, object> filesMap,
             GetObjectDataDelegate getObjectDataCallback,
             PersistObjectDataDelegate persistObjectDataCallback)
         {
-            var filesToQueryEdit = new Dictionary<string, object>();
-            var filesToQuerySave = new Dictionary<string, object>();
+            Dictionary<string, object> filesToQueryEdit = new Dictionary<string, object>();
+            Dictionary<string, object> filesToQuerySave = new Dictionary<string, object>();
             foreach (var filePath in filesMap.Keys)
             {
                 var fileDataObject = filesMap[filePath];
@@ -1335,8 +1291,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                         if (textLines != null)
                         {
                             SetTextForVsTextLines(textLines, getObjectDataCallback(fileDataObject));
-                            var persistDocData = docData as IVsPersistDocData2;
-                            if (persistDocData != null)
+                            if (docData is IVsPersistDocData2 persistDocData)
                             {
                                 persistDocData.SetDocDataDirty(1);
                                 persistObjectDataCallback(fileDataObject, filePath);
@@ -1459,8 +1414,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                 }
                 else
                 {
-                    bool projectHasFilename;
-                    var projectFullPath = GetProjectPathWithName(projectItem.ContainingProject, out projectHasFilename);
+                    var projectFullPath = GetProjectPathWithName(projectItem.ContainingProject, out bool projectHasFilename);
                     if (projectHasFilename)
                     {
                         canEdit = VSHelpers.CheckOutFilesIfEditable(Services.ServiceProvider, new[] { projectFullPath });
@@ -1475,15 +1429,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             if (canEdit)
             {
                 var piObj = GetProjectItemObject(projectItem);
-                var vsProjectItem = piObj as VSProjectItem;
-                var vsWebProjectItem2 = piObj as VSWebProjectItem2;
-                if (vsProjectItem != null)
+                VSWebProjectItem2 vsWebProjectItem2 = piObj as VSWebProjectItem2;
+                if (piObj is VSProjectItem vsProjectItem)
                 {
                     vsProjectItem.RunCustomTool();
                 }
-                else if (vsWebProjectItem2 != null)
+                else
                 {
-                    vsWebProjectItem2.RunCustomTool();
+                    vsWebProjectItem2?.RunCustomTool();
                 }
             }
         }
@@ -1558,7 +1511,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             return targetPath;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal static ProjectItem BringDatabaseFileIntoProject(
             IServiceProvider serviceProvider, Project project, ProjectItems targetCollection, string filePath)
         {
@@ -1606,12 +1558,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
             if (!useExistingFile)
             {
-                if (existingMDFItem != null)
-                {
-                    // This can throw for a number of reasons including the user canceling SCC checkout.
-                    // Let the exception bubble up.
-                    existingMDFItem.Delete();
-                }
+                // This can throw for a number of reasons including the user canceling SCC checkout.
+                // Let the exception bubble up.
+                existingMDFItem?.Delete();
 
                 // VSW 599624 - If the filePath == targetPath, skip the delete.
                 filePath = Path.GetFullPath(filePath);
@@ -1643,10 +1592,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
                     {
                     }
 
-                    if (existingLDFItem != null)
-                    {
-                        existingLDFItem.Delete();
-                    }
+                    existingLDFItem?.Delete();
 
                     if (string.Compare(filePath, targetPath, StringComparison.OrdinalIgnoreCase) != 0)
                     {
@@ -1741,7 +1687,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         {
             try
             {
-                using (var outWriter = new StreamWriter(filePath, false, encoding))
+                using (StreamWriter outWriter = new StreamWriter(filePath, false, encoding))
                 {
                     outWriter.Flush();
                 }
@@ -1770,21 +1716,17 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         //     context back to "unsuppressed" - so this action needs to be repeated
         //     every time we copy in a file.
         // </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection.SetCmdUIContext(System.UInt32,System.Int32)")]
         internal static void SetDataSourceWizardSuppressed(IServiceProvider serviceProvider)
         {
             Debug.Assert(null != serviceProvider, "Invalid null serviceProvider specified.");
 
             if (null != serviceProvider)
             {
-                var monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-                if (monitorSelection != null)
+                if (serviceProvider.GetService(typeof(SVsShellMonitorSelection)) is IVsMonitorSelection monitorSelection)
                 {
                     var guidCmdUI = VSConstants.UICONTEXT.DataSourceWizardSuppressed_guid;
-                    uint dwCmdUICookie;
-                    int fActive;
-                    if (NativeMethods.Succeeded(monitorSelection.GetCmdUIContextCookie(ref guidCmdUI, out dwCmdUICookie))
-                        && NativeMethods.Succeeded(monitorSelection.IsCmdUIContextActive(dwCmdUICookie, out fActive)))
+                    if (NativeMethods.Succeeded(monitorSelection.GetCmdUIContextCookie(ref guidCmdUI, out uint dwCmdUICookie))
+                        && NativeMethods.Succeeded(monitorSelection.IsCmdUIContextActive(dwCmdUICookie, out int fActive)))
                     {
                         var dataSetWizardIsSuppressed = (fActive != 0);
                         // If the context is not already active, activate it.
@@ -1813,7 +1755,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             }
 
             // construct the error message including inner exceptions
-            var sbErrMsg = new StringBuilder();
+            StringBuilder sbErrMsg = new StringBuilder();
             sbErrMsg.Append(e.Message);
             var innerException = e.InnerException;
             while (null != innerException)
@@ -1833,16 +1775,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         //     This will close the DbConnection (or SQLConnection or EntityConnection) safely, Trace and Debug if it can't.
         //     It will also call SqlConnection.ClearAllPools to release any read lock if the connection is pointing to a database file.
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal static void SafeCloseDbConnection(
             DbConnection dbConnection, string designTimeProviderName, string designTimeConnectionString)
         {
             try
             {
-                if (null != dbConnection)
-                {
-                    dbConnection.Close();
-                }
+                dbConnection?.Close();
             }
             catch
             {
@@ -1855,7 +1793,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         //     Checks to see if the connection string is pointing to a database file and if so, calls SqlConnection.ClearAllPools()
         //     to release any read lock on the database file.
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal static void SafeCloseDbConnectionOnFile(string designTimeProviderName, string designTimeConnectionString)
         {
             try
@@ -1871,27 +1808,24 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public static IEnumerable<KeyValuePair<string, Version>> GetProjectReferenceAssemblyNames(Project project)
         {
             Debug.Assert(project != null, "project is null.");
 
-            var vsProject = project.Object as VSProject2;
-            if (vsProject != null)
+            if (project.Object is VSProject2 vsProject)
             {
                 return from r in vsProject.References.Cast<Reference>()
                        select new KeyValuePair<string, Version>(r.Name, new Version(r.Version));
             }
 
-            var vsWebSite = project.Object as VSWebSite;
-            if (vsWebSite != null)
+            if (project.Object is VSWebSite vsWebSite)
             {
-                var references = new List<KeyValuePair<string, Version>>();
+                List<KeyValuePair<string, Version>> references = new List<KeyValuePair<string, Version>>();
                 foreach (var reference in vsWebSite.References.Cast<AssemblyReference>())
                 {
                     try
                     {
-                        var assemblyName = new AssemblyName(reference.StrongName);
+                        AssemblyName assemblyName = new AssemblyName(reference.StrongName);
                         references.Add(
                             new KeyValuePair<string, Version>(
                                 assemblyName.Name, assemblyName.Version));
@@ -1922,14 +1856,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Debug.Assert(project != null, "project is null.");
             Debug.Assert(!String.IsNullOrEmpty(assemblyName), "assemblyName is null or empty.");
 
-            var vsProject = project.Object as VSProject2;
-            var vsWebSite = project.Object as VSWebSite;
-
-            if (vsProject != null)
+            if (project.Object is VSProject2 vsProject)
             {
                 vsProject.References.Add(assemblyName);
             }
-            else if (vsWebSite != null)
+            else if (project.Object is VSWebSite vsWebSite)
             {
                 vsWebSite.References.AddFromGAC(assemblyName);
             }
@@ -2079,7 +2010,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             return GetProjectPropertyByName(project, "OutputFileName") as string;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static string GetFileName(string projectItemName, Project project, IServiceProvider serviceProvider)
         {
             Debug.Assert(project != null, "project is null.");
@@ -2109,7 +2039,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Debug.Assert(project != null, "project is null.");
             Debug.Assert(serviceProvider != null, "serviceProvider is null.");
 
-            var dynamicTypeService = serviceProvider.GetService(typeof(DynamicTypeService)) as DynamicTypeService;
+            DynamicTypeService dynamicTypeService = serviceProvider.GetService(typeof(DynamicTypeService)) as DynamicTypeService;
             var hierarchy = GetVsHierarchy(project, serviceProvider);
             var typeResolutionService = dynamicTypeService.GetTypeResolutionService(hierarchy);
 
@@ -2135,7 +2065,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         //     Gets the <see cref="DbProviderServices" /> type of the modern (or non-legacy) provider for the
         //     specified invariant name
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static Type GetModernProvider(string providerInvariantName, Project project, IServiceProvider serviceProvider)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(providerInvariantName), "providerInvariantName is null or empty.");
@@ -2200,13 +2129,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             if (artifact.StorageModel() != null)
             {
                 var providerInvariantName = artifact.StorageModel().Provider.Value;
-                var useLegacyProvider = ModelHelper.GetDesignerPropertyValueFromArtifactAsBool(
-                    OptionsDesignerInfo.ElementName,
-                    OptionsDesignerInfo.AttributeUseLegacyProvider,
-                    OptionsDesignerInfo.UseLegacyProviderDefault,
-                    artifact);
                 var project = VSHelpers.GetProjectForDocument(artifact.Uri.LocalPath);
-                EnsureProvider(providerInvariantName, useLegacyProvider, project, Services.ServiceProvider);
+                // Always use modern provider (legacy provider support removed)
+                EnsureProvider(providerInvariantName, false, project, Services.ServiceProvider);
             }
         }
 
@@ -2220,12 +2145,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             Debug.Assert(project != null, "project is null.");
             Debug.Assert(serviceProvider != null, "serviceProvider is null.");
 
-            Type modernProvider = null;
-            if (!useLegacyProvider)
-            {
-                modernProvider = GetModernProvider(providerInvariantName, project, serviceProvider);
-                Debug.Assert(modernProvider != null, "modernProvider is null.");
-            }
+            // Always use modern provider (legacy provider support removed)
+            var modernProvider = GetModernProvider(providerInvariantName, project, serviceProvider);
+            Debug.Assert(modernProvider != null, "modernProvider is null.");
 
             DependencyResolver.EnsureProvider(providerInvariantName, modernProvider);
         }
@@ -2243,7 +2165,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             return null;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static string GetModernProviderTypeNameFromProject(
             string invariantName,
             Project project,
@@ -2263,7 +2184,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             string providerServicesTypeName = null;
             try
             {
-                using (var context = new ProjectExecutionContext(project, serviceProvider))
+                using (ProjectExecutionContext context = new ProjectExecutionContext(project, serviceProvider))
                 {
                     providerServicesTypeName = context.Executor.GetProviderServices(invariantName);
                 }
@@ -2329,8 +2250,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             }
         }
 
-
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public static ProjectItem GetProjectItemByPath(Project project, string relativeItemPath)
         {
             Debug.Assert(project != null, "project is null.");

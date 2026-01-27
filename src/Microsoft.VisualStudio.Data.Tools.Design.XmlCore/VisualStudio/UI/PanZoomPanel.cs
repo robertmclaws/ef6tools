@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Reflection;
+using System.Windows.Forms;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Microsoft.VisualStudio.PlatformUI;
+
 namespace Microsoft.Data.Entity.Design.Package
 {
-    using System;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Drawing.Drawing2D;
-    using System.Reflection;
-    using System.Windows.Forms;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Microsoft.VisualStudio.PlatformUI;
-
     /// <summary>
     ///     Diagram thumbnail control to be used in pan/zoom window and thumbnail view features.
     /// </summary>
@@ -51,7 +51,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         private Diagram Diagram
         {
-            [DebuggerStepThrough] get { return _diagramClientView != null ? _diagramClientView.Diagram : null; }
+            [DebuggerStepThrough] get { return _diagramClientView?.Diagram; }
         }
 
         private Size MaximumImageSize
@@ -94,10 +94,7 @@ namespace Microsoft.Data.Entity.Design.Package
                         return;
                     }
                 }
-                if (_diagramImage == null)
-                {
-                    _diagramImage = new Bitmap(value.Width, value.Height);
-                }
+                _diagramImage ??= new Bitmap(value.Width, value.Height);
             }
         }
 
@@ -123,7 +120,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 if (Enabled)
                 {
                     var viewBounds = DiagramClientView.ViewBounds;
-                    var imageViewBounds = new Rectangle(DiagramToImage(viewBounds.Location), DiagramToImage(viewBounds.Size));
+                    Rectangle imageViewBounds = new Rectangle(DiagramToImage(viewBounds.Location), DiagramToImage(viewBounds.Size));
                     imageViewBounds.Offset(ImageLocation);
                     return imageViewBounds;
                 }
@@ -235,7 +232,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     (int)(deviceDiagramSize.Width * _imageScale),
                     (int)(deviceDiagramSize.Height * _imageScale));
 
-                using (var g = Graphics.FromImage(DiagramImage))
+                using (Graphics g = Graphics.FromImage(DiagramImage))
                 {
                     // Need to use background color from theme.
                     g.Clear(VSColorTheme.GetThemedColor(EnvironmentColors.DesignerBackgroundColorKey));
@@ -261,11 +258,8 @@ namespace Microsoft.Data.Entity.Design.Package
 
         protected override void OnHandleDestroyed(EventArgs e)
         {
-            if (_diagramImage != null)
-            {
-                _diagramImage.Dispose();
-                _diagramImage = null;
-            }
+            _diagramImage?.Dispose();
+            _diagramImage = null;
             _diagramClientView = null;
 
             base.OnHandleCreated(e);

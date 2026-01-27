@@ -1,23 +1,24 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VisualStudio.Data.Sql;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.UI;
+using Microsoft.VisualStudio.Data.Core;
+using Microsoft.VisualStudio.Data.Services;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VisualStudio.Data.Sql;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.UI;
-    using Microsoft.VisualStudio.Data.Core;
-    using Microsoft.VisualStudio.Data.Services;
-
     internal static class ProgressDialogHelper
     {
         // <summary>
@@ -29,8 +30,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         public static DialogResult ShowProgressDialog(
             IWin32Window owner, IList<EntityStoreSchemaFilterEntry> newFunctionEntries, ModelBuilderSettings modelBuilderSettings)
         {
-            var args = new GatherAndReturnSprocInfo(newFunctionEntries, modelBuilderSettings);
-            using (var pd = new ProgressDialog(
+            GatherAndReturnSprocInfo args = new GatherAndReturnSprocInfo(newFunctionEntries, modelBuilderSettings);
+            using (ProgressDialog pd = new ProgressDialog(
                 Design.Resources.RetrievingSprocReturnTypeProgressDialogTitle,
                 Design.Resources.RetrievingSprocReturnTypeProgressDialogDescription,
                 Design.Resources.RetrievingSprocReturnTypeProgressDialogInitialStatus, GatherAndStoreSchemaProcedureInformation, args))
@@ -53,8 +54,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                         CultureInfo.CurrentCulture, Design.Resources.RetrievingSprocReturnTypeErrorMessage, "null BackgroundWorker"));
             }
 
-            var arg = e.Argument as GatherAndReturnSprocInfo;
-            if (null == arg)
+            if (e.Argument is not GatherAndReturnSprocInfo arg)
             {
                 throw new ProgressDialogException(
                     string.Format(
@@ -120,10 +120,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             int amountOfProgressBarGiven = 100)
         {
             // set up database connection
-            var dataConnectionManager = Services.ServiceProvider.GetService(typeof(IVsDataConnectionManager)) as IVsDataConnectionManager;
+            IVsDataConnectionManager dataConnectionManager = Services.ServiceProvider.GetService(typeof(IVsDataConnectionManager)) as IVsDataConnectionManager;
             Debug.Assert(dataConnectionManager != null, "Could not find IVsDataConnectionManager");
 
-            var dataProviderManager = Services.ServiceProvider.GetService(typeof(IVsDataProviderManager)) as IVsDataProviderManager;
+            IVsDataProviderManager dataProviderManager = Services.ServiceProvider.GetService(typeof(IVsDataProviderManager)) as IVsDataProviderManager;
             Debug.Assert(dataProviderManager != null, "Could not find IVsDataProviderManager");
 
             IVsDataConnection dataConnection = null;
@@ -144,7 +144,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             try
             {
                 dataConnection.Open();
-                var dataSchemaServer = new DataSchemaServer(dataConnection);
+                DataSchemaServer dataSchemaServer = new DataSchemaServer(dataConnection);
 
                 // now loop over all entries adding return type information
                 var numFunctionFilterEntries = newFunctionSchemaProcedureMap.Count;
@@ -169,7 +169,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                                                    ((int)
                                                        (((numFunctionFilterEntryCurrent - 1) / (float)numFunctionFilterEntries)
                                                         * amountOfProgressBarGiven));
-                            var userState = new ProgressDialogUserState();
+                            ProgressDialogUserState userState = new ProgressDialogUserState();
                             userState.NumberIterations = numFunctionFilterEntries;
                             userState.CurrentIteration = numFunctionFilterEntryCurrent;
                             userState.CurrentStatusMessage = string.Format(
@@ -193,14 +193,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             }
             finally
             {
-                if (null != dataConnection)
-                {
-                    dataConnection.Close();
-                }
+                dataConnection?.Close();
             }
         }
 
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         internal static void ProcessStoredProcedureReturnTypeInformation(
             EFArtifact artifact,
             Dictionary<EntityStoreSchemaFilterEntry, IDataSchemaProcedure> newFunctionSchemaProceduresMap, IList<Command> commands,
@@ -239,7 +235,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 if (null == schemaProcedure)
                 {
                     // schemaProcedure information was not collected - so delete the Function
-                    var dbObj = DatabaseObject.CreateFromEntityStoreSchemaFilterEntry(entry, storageEntityContainerName);
+                    DatabaseObject dbObj = DatabaseObject.CreateFromEntityStoreSchemaFilterEntry(entry, storageEntityContainerName);
                     var func = ModelHelper.FindFunction(sem, dbObj);
                     Debug.Assert(func != null, "Could not find Function to delete matching Database Object " + dbObj.ToString());
                     if (null != func)

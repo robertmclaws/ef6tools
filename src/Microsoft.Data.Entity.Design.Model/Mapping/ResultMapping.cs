@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-
     internal class ResultMapping : EFElement
     {
         internal static readonly string ElementName = "ResultMapping";
 
-        private readonly List<FunctionImportTypeMapping> _typeMappings = new List<FunctionImportTypeMapping>();
+        private readonly List<FunctionImportTypeMapping> _typeMappings = [];
 
         internal ResultMapping(FunctionImportMapping parent, XElement element)
             : base(parent, element)
@@ -62,13 +62,13 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == FunctionImportEntityTypeMapping.ElementName)
             {
-                var etm = new FunctionImportEntityTypeMapping(this, elem);
+                FunctionImportEntityTypeMapping etm = new FunctionImportEntityTypeMapping(this, elem);
                 _typeMappings.Add(etm);
                 etm.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == FunctionImportComplexTypeMapping.ElementName)
             {
-                var ctm = new FunctionImportComplexTypeMapping(this, elem);
+                FunctionImportComplexTypeMapping ctm = new FunctionImportComplexTypeMapping(this, elem);
                 _typeMappings.Add(ctm);
                 ctm.Parse(unprocessedElements);
             }
@@ -106,8 +106,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var fitm = efContainer as FunctionImportTypeMapping;
-            if (fitm != null)
+            if (efContainer is FunctionImportTypeMapping fitm)
             {
                 _typeMappings.Remove(fitm);
                 return;

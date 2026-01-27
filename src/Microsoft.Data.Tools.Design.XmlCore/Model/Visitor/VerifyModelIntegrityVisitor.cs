@@ -2,11 +2,6 @@
 
 namespace Microsoft.Data.Entity.Design.Model.Visitor
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Text;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
 
 #if DEBUG
     // Verify the integrity of the model by checking:

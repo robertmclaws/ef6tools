@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.EntityClient;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Infrastructure.Pluralization;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Data.Entity.Infrastructure.Pluralization;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-
     internal class ModelGenerator
     {
         private readonly ModelBuilderSettings _settings;
@@ -63,7 +63,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         // internal virtual for testing
         internal virtual StoreSchemaDetails GetStoreSchemaDetails(StoreSchemaConnectionFactory connectionFactory)
         {
-            Version storeSchemaModelVersion;
             var connection =
                 connectionFactory
                     .Create(
@@ -71,7 +70,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                         _settings.RuntimeProviderInvariantName,
                         _settings.DesignTimeConnectionString,
                         _settings.TargetSchemaVersion,
-                        out storeSchemaModelVersion);
+                        out Version storeSchemaModelVersion);
 
             var facadeFilters =
                 _settings.DatabaseObjectFilters ?? Enumerable.Empty<EntityStoreSchemaFilterEntry>();
@@ -111,7 +110,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             Debug.Assert(model != null, "model != null");
 
-            var errors = new List<EdmSchemaError>();
+            List<EdmSchemaError> errors = new List<EdmSchemaError>();
 
             var rowTypeReturnTypes =
                 model.Functions

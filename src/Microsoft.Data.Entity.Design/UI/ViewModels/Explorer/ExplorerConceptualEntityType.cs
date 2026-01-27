@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     // ExplorerConceptualEntityType must be distinguished from 
     // ExplorerStorageEntityType in order to allow the XAML
     // to load different images for them
@@ -33,20 +33,17 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             base.OnModelPropertyChanged(modelPropName);
 
-            var xref = ModelToExplorerModelXRef.GetModelToBrowserModelXRef(_context);
+            ModelToExplorerModelXRef xref = ModelToExplorerModelXRef.GetModelToBrowserModelXRef(_context);
 
             if (modelPropName == EFNameableItem.AttributeName)
             {
                 // This code below makes sure that if ExplorerConceptualEntityType's name is changed we need to ensure the corresponding ExplorerEntityTypeShape's name is also updated.
                 // TODO: review the code below see if we can create a more generic code in ExplorerViewModelHelper's ProcessModelChangesCommitted.
-                var entityType = ModelItem as EntityType;
+                EntityType entityType = ModelItem as EntityType;
                 foreach (var ets in entityType.GetAntiDependenciesOfType<EntityTypeShape>())
                 {
                     var exploreEFElement = xref.GetExisting(ets);
-                    if (exploreEFElement != null)
-                    {
-                        exploreEFElement.OnModelPropertyChanged(modelPropName);
-                    }
+                    exploreEFElement?.OnModelPropertyChanged(modelPropName);
                 }
             }
         }

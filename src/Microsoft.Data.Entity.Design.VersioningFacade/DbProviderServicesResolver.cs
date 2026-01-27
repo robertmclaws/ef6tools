@@ -1,18 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Diagnostics;
+using System.Reflection;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Reflection;
-
     internal class DbProviderServicesResolver : IDbDependencyResolver
     {
-        private readonly Dictionary<string, Type> _providerServicesRegistrar = new Dictionary<string, Type>();
+        private readonly Dictionary<string, Type> _providerServicesRegistrar = [];
 
         public void Register(Type type, string invariantName)
         {

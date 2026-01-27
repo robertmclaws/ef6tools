@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Infrastructure;
+using System.Globalization;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration.Generators
 {
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
-    using System.Data.Entity.Infrastructure;
-    using System.Globalization;
-
     internal class CSharpCodeFirstEmptyModelGenerator : IContextGenerator
     {
         private const string CSharpCodeFileTemplate = 
@@ -40,7 +40,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration.Generators
             var ctorComment = 
                 string.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.CodeFirstCodeFile_CtorComment_CS,
+                    WizardResources.CodeFirstCodeFile_CtorComment_CS,
                     contextClassName,
                     codeNamespace);
 
@@ -52,7 +52,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration.Generators
                     contextClassName,
                     ctorComment,
                     connectionStringName,
-                    Resources.CodeFirstCodeFile_DbSetComment_CS);
+                    WizardResources.CodeFirstCodeFile_DbSetComment_CS);
         }
     }
 }

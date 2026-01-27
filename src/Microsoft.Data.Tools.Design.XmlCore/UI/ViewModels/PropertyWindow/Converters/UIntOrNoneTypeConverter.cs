@@ -1,22 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using System;
-    using System.ComponentModel;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal class UIntOrNoneTypeConverter : StringConverter
     {
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {
             if (destinationType == typeof(string))
             {
-                var v = value as StringOrPrimitive<UInt32>;
-                if (v != null)
+                if (value is StringOrPrimitive<UInt32> v)
                 {
                     return StringOrPrimitiveConverter<UInt32>.StringConverter(v);
                 }
@@ -27,8 +26,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
-            var stringValue = value as string;
-            if (stringValue != null)
+            if (value is string stringValue)
             {
                 try
                 {

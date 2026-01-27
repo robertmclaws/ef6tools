@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class DeleteReferentialConstraintCommand : DeleteEFElementCommand
     {
         private List<Property> _dependentProperties;
@@ -27,11 +27,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         protected override void PreInvoke(CommandProcessorContext cpc)
         {
-            _dependentProperties = new List<Property>();
-            var referentialConstraint = EFElement as ReferentialConstraint;
+            _dependentProperties = [];
             base.PreInvoke(cpc);
 
-            if (referentialConstraint != null
+            if (EFElement is ReferentialConstraint referentialConstraint
                 && referentialConstraint.Dependent != null)
             {
                 foreach (var property in referentialConstraint.Dependent.Properties)

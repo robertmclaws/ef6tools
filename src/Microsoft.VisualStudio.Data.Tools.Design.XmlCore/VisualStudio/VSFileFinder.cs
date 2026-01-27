@@ -2,16 +2,15 @@
 
 using VSErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using System;
+using Microsoft.VisualStudio.Shell.Interop;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio
 
 {
-    using System;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-
     /// <summary>
     ///     This class will find all  files in the specified VS project or VS solution with the specified input.
     ///     The input could be an extension, file name with extension, or file full-path name.
@@ -25,7 +24,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             internal IVsHierarchy Hierarchy;
         }
 
-        private readonly List<VSFileInfo> _paths = new List<VSFileInfo>();
+        private readonly List<VSFileInfo> _paths = [];
 
         private readonly string _input;
 
@@ -54,15 +53,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         internal List<VSFileInfo> FindInProject(IVsHierarchy projectHierarchy)
         {
-            var vsp4 = projectHierarchy as IVsProject4;
-            if (vsp4 != null)
+            if (projectHierarchy is IVsProject4 vsp4)
             {
                 // use IVsProject4 if available - it is much faster than the  other mechanism, but all projects may not implement it
                 FindInProjectFast(vsp4, projectHierarchy);
             }
             else
             {
-                var visitor = new HierarchyVisitor(AddMatchFileInfoToResult);
+                HierarchyVisitor visitor = new HierarchyVisitor(AddMatchFileInfoToResult);
                 visitor.VisitHierarchy(projectHierarchy);
             }
 
@@ -73,12 +71,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         {
             uint celt = 0;
             uint[] rgItemIds = null;
-            uint pcActual = 0;
 
             //
             // call this method twice, first time is to get the count, second time is to get the data.
             //
-            VSErrorHandler.ThrowOnFailure(vsp4.GetFilesEndingWith(_input, celt, rgItemIds, out pcActual));
+            VSErrorHandler.ThrowOnFailure(vsp4.GetFilesEndingWith(_input, celt, rgItemIds, out uint pcActual));
             if (pcActual > 0)
             {
                 // now we know the actual size of the array to allocate, so invoke again
@@ -89,12 +86,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
                 for (var i = 0; i < celt; i++)
                 {
-                    object pvar;
                     // NOTE:  in cpp, this property is not the full path.  It is the full path in c# & vb projects.
-                    var hr = projectHierarchy.GetProperty(rgItemIds[i], (int)__VSHPROPID.VSHPROPID_SaveName, out pvar);
-                    var path = pvar as string;
+                    var hr = projectHierarchy.GetProperty(rgItemIds[i], (int)__VSHPROPID.VSHPROPID_SaveName, out object pvar);
                     if (VSErrorHandler.Succeeded(hr)
-                        && path != null)
+                        && pvar is string path)
                     {
                         // Dev10 Bug 653879: Retrieving project item absolute URL is expensive so retrieve when we actually need it.
                         VSFileInfo fileInfo;
@@ -112,7 +107,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             if (DoItemNamesComparison(_input, projectItemPath))
             {
                 var path = projectItemPath.Path;
-                var fi = new FileInfo(path);
+                FileInfo fi = new FileInfo(path);
                 if (fi.Exists)
                 {
                     VSFileInfo vsFileInfo;

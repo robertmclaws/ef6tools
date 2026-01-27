@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Xml.Linq;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-
     internal class UpdateModelFromDBExtensionDispatcher : ModelGenerationExtensionDispatcher
     {
         private readonly ProjectItem _projectItem;
@@ -52,7 +52,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
         protected override void DispatchToSingleExtension(IModelGenerationExtension extension, ModelGenerationExtensionContext context)
         {
-            var umfdbContext = context as UpdateModelExtensionContext;
+            UpdateModelExtensionContext umfdbContext = context as UpdateModelExtensionContext;
             Debug.Assert(umfdbContext != null, "Unexpected type of context!");
             if (context != null)
             {
@@ -64,28 +64,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             base.PreDispatch();
 
-            if (_originalDocument != null)
-            {
-                _originalDocument.Changing += BeforeEventHandler;
-            }
+            _originalDocument?.Changing += BeforeEventHandler;
 
-            if (_updateModelDocument != null)
-            {
-                _updateModelDocument.Changing += BeforeEventHandler;
-            }
+            _updateModelDocument?.Changing += BeforeEventHandler;
         }
 
         protected override void PostDispatch()
         {
-            if (_originalDocument != null)
-            {
-                _originalDocument.Changing -= BeforeEventHandler;
-            }
+            _originalDocument?.Changing -= BeforeEventHandler;
 
-            if (_updateModelDocument != null)
-            {
-                _updateModelDocument.Changing -= BeforeEventHandler;
-            }
+            _updateModelDocument?.Changing -= BeforeEventHandler;
 
             base.PostDispatch();
         }

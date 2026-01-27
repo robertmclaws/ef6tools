@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel.Composition;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.ComponentModel.Composition;
-
     /// <summary>
     ///     Attribute used to specify that an Extension belongs to a particular layer
     /// </summary>

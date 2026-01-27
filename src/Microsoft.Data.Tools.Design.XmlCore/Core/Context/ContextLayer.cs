@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.Core.Context
 {
-    using System;
-
     /// <summary>
     ///     The items in the context item manager are divided into layers.
     ///     A layer may be isolated, in which it does not inherit context

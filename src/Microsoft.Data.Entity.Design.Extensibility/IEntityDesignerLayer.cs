@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-
     /// <summary>
     ///     This class allows the notion of a 'layer' in the Entity Designer.
     ///     Layers can be turned off and on; they are composed of:
@@ -44,15 +44,12 @@ namespace Microsoft.Data.Entity.Design.Extensibility
         ///     such as reloading an owning tool window.
         /// </summary>
         /// <param name="xmlChanges">A list of changes made during the transaction.</param>
-        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures",
-            Justification = "Backwards compatibility, it is already part of public API")]
         void OnAfterTransactionCommitted(IEnumerable<Tuple<XObject, XObjectChange>> xmlChanges);
 
         /// <summary>
         ///     Fired after the layer is loaded.
         /// </summary>
         /// <param name="xObject">the selected object in the active designer or conceptual model if nothing is selected.</param>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "x")]
         void OnAfterLayerLoaded(XObject xObject);
 
         /// <summary>

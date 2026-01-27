@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows.Forms;
-    using System.Windows.Forms.Design;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     // <summary>
     //     Displays a dialog that allows the user to choose to never see it again via a checkbox.
     // </summary>
@@ -46,17 +46,16 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         //     Returns a boolean indicating whether the dialog was cancelled or not.
         // </summary>
         // <param name="buttonMode">Either 'OKCancel' or 'YesNo'. If 'YesNo', 'Yes' will be associated with DialogResult.OK</param>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         internal static bool ShowWarningDialogAndSaveDismissOption(
             string formattedTitle, string formattedMessage, string regKeyName, ButtonMode buttonMode)
         {
             var cancelled = true;
 
-            var service = Services.ServiceProvider.GetService(typeof(IUIService)) as IUIService;
+            IUIService service = Services.ServiceProvider.GetService(typeof(IUIService)) as IUIService;
             Debug.Assert(service != null, "service should not be null");
             if (service != null)
             {
-                using (var dialog = new DismissableWarningDialog(formattedTitle, formattedMessage, buttonMode))
+                using (DismissableWarningDialog dialog = new DismissableWarningDialog(formattedTitle, formattedMessage, buttonMode))
                 {
                     if (service.ShowDialog(dialog) == DialogResult.OK)
                     {

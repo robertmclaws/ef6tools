@@ -1,15 +1,15 @@
+using System;
+using System.CodeDom.Compiler;
+using System.Text;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TextTemplating;
+using Microsoft.VisualStudio.TextTemplating.VSHost;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System;
-    using System.CodeDom.Compiler;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TextTemplating;
-    using Microsoft.VisualStudio.TextTemplating.VSHost;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class TextTemplatingHostTests
     {
@@ -34,17 +34,17 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void LogErrors_is_noop_when_no_callback()
         {
-            var host = new TextTemplatingHost();
+            TextTemplatingHost host = new TextTemplatingHost();
             host.LogErrors(Mock.Of<CompilerErrorCollection>());
         }
 
         [TestMethod]
         public void LogErrors_delegates_when_callback()
         {
-            var callback = new Mock<ITextTemplatingCallback>();
-            var host = new Mock<TextTemplatingHost>() { CallBase = true };
+            Mock<ITextTemplatingCallback> callback = new Mock<ITextTemplatingCallback>();
+            Mock<TextTemplatingHost> host = new Mock<TextTemplatingHost>() { CallBase = true };
             host.SetupGet(h => h.Callback).Returns(callback.Object);
-            var errors = new CompilerErrorCollection
+            CompilerErrorCollection errors = new CompilerErrorCollection
                 {
                     new CompilerError { IsWarning = true, ErrorText = "Error1", Line = 1, Column = 42 }
                 };
@@ -77,15 +77,15 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void SetFileExtension_is_noop_when_no_callback()
         {
-            var host = new TextTemplatingHost();
+            TextTemplatingHost host = new TextTemplatingHost();
             host.SetFileExtension(".out");
         }
 
         [TestMethod]
         public void SetFileExtension_delegates_when_callback()
         {
-            var callback = new Mock<ITextTemplatingCallback>();
-            var host = new Mock<TextTemplatingHost>() { CallBase = true };
+            Mock<ITextTemplatingCallback> callback = new Mock<ITextTemplatingCallback>();
+            Mock<TextTemplatingHost> host = new Mock<TextTemplatingHost>() { CallBase = true };
             host.SetupGet(h => h.Callback).Returns(callback.Object);
 
             host.Object.SetFileExtension(".out");
@@ -96,15 +96,15 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void SetOutputEncoding_is_noop_when_no_callback()
         {
-            var host = new TextTemplatingHost();
+            TextTemplatingHost host = new TextTemplatingHost();
             host.SetOutputEncoding(Encoding.ASCII, true);
         }
 
         [TestMethod]
         public void SetOutputEncoding_delegates_when_callback()
         {
-            var callback = new Mock<ITextTemplatingCallback>();
-            var host = new Mock<TextTemplatingHost>() { CallBase = true };
+            Mock<ITextTemplatingCallback> callback = new Mock<ITextTemplatingCallback>();
+            Mock<TextTemplatingHost> host = new Mock<TextTemplatingHost>() { CallBase = true };
             host.SetupGet(h => h.Callback).Returns(callback.Object);
 
             host.Object.SetOutputEncoding(Encoding.ASCII, true);

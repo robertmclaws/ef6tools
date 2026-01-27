@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-
     internal class UsingElement : EFNormalizableItem
     {
         internal static readonly string ElementName = "Using";
@@ -33,11 +33,8 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_aliasAttr == null)
-                {
-                    // we can safely create these here since we are the top node and don't need to be parsed first
-                    _aliasAttr = new AliasDefaultableValue(this);
-                }
+                // we can safely create these here since we are the top node and don't need to be parsed first
+                _aliasAttr ??= new AliasDefaultableValue(this);
                 return _aliasAttr;
             }
         }
@@ -67,11 +64,8 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_namespaceAttr == null)
-                {
-                    // we can safely create these here since we are the top node and don't need to be parsed first
-                    _namespaceAttr = new NamespaceDefaultableValue(this);
-                }
+                // we can safely create these here since we are the top node and don't need to be parsed first
+                _namespaceAttr ??= new NamespaceDefaultableValue(this);
                 return _namespaceAttr;
             }
         }

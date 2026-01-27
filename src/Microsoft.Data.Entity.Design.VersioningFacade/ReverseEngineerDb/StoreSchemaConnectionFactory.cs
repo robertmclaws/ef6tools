@@ -1,24 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using SystemDataCommon = System.Data.Common;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Data.Entity.Core;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.EntityClient;
+using System.Data.Entity.Core.Mapping;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Security;
+using System.Threading;
 
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Data.Entity.Core;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Data.Entity.Core.Mapping;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-    using System.Security;
-    using System.Threading;
-
     internal class StoreSchemaConnectionFactory
     {
         /// <summary>
@@ -51,37 +50,8 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             Debug.Assert(!string.IsNullOrWhiteSpace(connectionString), "connectionString cannot be null or empty");
             Debug.Assert(EntityFrameworkVersion.IsValidVersion(maxAllowedSchemaVersion), "invalid maxAllowedSchemaVersion");
 
-            // We are going to try loading all versions of the store schema model starting from the newest.
-            // The first version of the model that was shipped with EntityFrameworkVersions.Version1 and EntityFrameworkVersions.Version2 is the last one
-            // we try, if it fails to load let the exception to propagate up to the caller.
-            var versions =
-                EntityFrameworkVersion
-                    .GetAllVersions()
-                    .Where(v => v > EntityFrameworkVersion.Version2 && v <= maxAllowedSchemaVersion)
-                    .OrderByDescending(v => v);
-
-            foreach (var version in versions)
-            {
-                try
-                {
-                    storeSchemaModelVersion = version;
-                    return
-                        Create(
-                            resolver,
-                            providerInvariantName,
-                            connectionString,
-                            storeSchemaModelVersion);
-                }
-                catch (Exception e)
-                {
-                    // Ignore the exception with the current version and try the next one.
-                    if (!IsCatchableExceptionType(e))
-                    {
-                        throw;
-                    }
-                }
-            }
-            storeSchemaModelVersion = EntityFrameworkVersion.Version1;
+            // Only Version3 (EF6) is supported
+            storeSchemaModelVersion = EntityFrameworkVersion.Version3;
             return Create(resolver, providerInvariantName, connectionString, storeSchemaModelVersion);
         }
 
@@ -183,7 +153,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
             var edmItemCollection = LoadEdmItemCollection(csdlName);
             var storeItemCollection = LoadStoreItemCollection(providerManifest, ssdlName);
             var mappingItemCollection = LoadMappingItemCollection(providerManifest, mslName, edmItemCollection, storeItemCollection);
-            var workspace = new MetadataWorkspace(
+            MetadataWorkspace workspace = new MetadataWorkspace(
                 () => edmItemCollection,
                 () => storeItemCollection,
                 () => mappingItemCollection);
@@ -202,18 +172,16 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             using (var csdlReader = DbProviderServices.GetConceptualSchemaDefinition(csdlName))
             {
-                IList<EdmSchemaError> errors;
-                var edmItemCollection =
+                EdmItemCollection edmItemCollection =
                     EdmItemCollection.Create(
                         new[] { csdlReader },
                         new ReadOnlyCollection<string>(
-                            new List<string>
-                                {
+                            [
                                     GetProviderServicesInformationLocationPath(
                                         typeof(DbProviderServices).Assembly.FullName,
                                         csdlName)
-                                }),
-                        out errors);
+                                ]),
+                        out IList<EdmSchemaError> errors);
 
                 Debug.Assert(
                     errors == null || errors.Count == 0, "Unexpected errors conceptual schema definition csdl");
@@ -229,19 +197,17 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 
             using (var ssdlReader = providerManifest.GetInformation(ssdlName))
             {
-                IList<EdmSchemaError> errors;
-                var storeItemCollection =
+                StoreItemCollection storeItemCollection =
                     StoreItemCollection.Create(
                         new[] { ssdlReader },
                         new ReadOnlyCollection<string>(
-                            new List<string>
-                                {
+                            [
                                     GetProviderServicesInformationLocationPath(
                                         providerManifest.GetType().Assembly.FullName,
                                         ssdlName)
-                                }),
+                                ]),
                         DependencyResolver.Instance,
-                        out errors);
+                        out IList<EdmSchemaError> errors);
 
                 ThrowOnError(errors);
 
@@ -255,20 +221,18 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         {
             using (var mslReader = providerManifest.GetInformation(mslName))
             {
-                IList<EdmSchemaError> errors;
-                var mappingItemCollection =
+                StorageMappingItemCollection mappingItemCollection =
                     StorageMappingItemCollection.Create(
                         edmItemCollection,
                         storeItemCollection,
                         new[] { mslReader },
                         new ReadOnlyCollection<string>(
-                            new List<string>
-                                {
+                            [
                                     GetProviderServicesInformationLocationPath(
                                         providerManifest.GetType().Assembly.FullName,
                                         mslName)
-                                }),
-                        out errors);
+                                ]),
+                        out IList<EdmSchemaError> errors);
 
                 ThrowOnError(errors);
 

@@ -1,34 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
 using ModelDesigner = Microsoft.Data.Entity.Design.Model.Designer;
 using ModelDiagram = Microsoft.Data.Tools.Model.Diagram;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Microsoft.VisualStudio.Modeling.Shell;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Resources = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
-
     [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal partial class EntityDesignerViewModel : IDisposable
     {
@@ -131,9 +129,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         {
             get
             {
-                var artifacts = new HashSet<EFArtifact>();
+                HashSet<EFArtifact> artifacts = new HashSet<EFArtifact>();
                 var service = EditingContext.GetEFArtifactService();
-                var entityDesignArtifact = service.Artifact as EntityDesignArtifact;
+                EntityDesignArtifact entityDesignArtifact = service.Artifact as EntityDesignArtifact;
 
                 Debug.Assert(
                     entityDesignArtifact != null,
@@ -155,13 +153,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         {
             get
             {
-                var dslWindowPane = Services.IMonitorSelectionService.CurrentSelectionContainer as ModelingWindowPane;
-                if (dslWindowPane != null)
+                if (Services.IMonitorSelectionService.CurrentSelectionContainer is ModelingWindowPane dslWindowPane)
                 {
-                    var modelElement = dslWindowPane.PrimarySelection as ModelElement;
-                    if (modelElement == null)
+                    if (dslWindowPane.PrimarySelection is not ModelElement modelElement)
                     {
-                        var presentationElement = dslWindowPane.PrimarySelection as PresentationElement;
+                        PresentationElement presentationElement = dslWindowPane.PrimarySelection as PresentationElement;
                         modelElement = presentationElement.ModelElement;
                     }
                     return ModelXRef.GetExisting(modelElement);
@@ -202,7 +198,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 
         private void OnContextDisposing(object sender, EventArgs e)
         {
-            var context = (EditingContext)sender;
+            EditingContext context = (EditingContext)sender;
             Debug.Assert(_editingContext == context);
             SetContext(null);
         }
@@ -212,7 +208,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             ClearAndReloadDiagram();
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void ClearAndReloadDiagram()
         {
             var diagram = GetDiagram();
@@ -238,7 +233,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                     && !_loggedFatalError)
                 {
                     VsUtils.LogStandardError(
-                        string.Format(CultureInfo.CurrentCulture, Resources.Error_DiagramShouldBeReloaded, e.Message),
+                        string.Format(CultureInfo.CurrentCulture, EntityDesignerRes.Error_DiagramShouldBeReloaded, e.Message),
                         artifact.Uri.LocalPath, 0, 0);
 
                     _loggedFatalError = true;
@@ -259,7 +254,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         ///     This is our EventHandler which modifies the diagram view whenever the underlying Model changes.
         ///     Any undo/redo changes will be processed through this event.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void OnModelChangesCommitted(object sender, EfiChangedEventArgs e)
         {
             if (e.ChangeGroup.Transaction != null
@@ -306,8 +300,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         ///     2. The second step is to apply layout information from Diagram-Model to DSL PEL.
         ///     We also update Escher and DSL model Xref information.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void ProcessModelChanges(EfiChangeGroup changeGroup)
         {
             EntityDesignerDiagram diagram = null;
@@ -343,7 +335,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                 }
 
                 // sort changes and discover the artifact that has changed
-                var extraElementsToProcess = new HashSet<EFObject>();
+                HashSet<EFObject> extraElementsToProcess = new HashSet<EFObject>();
                 var changes = changeGroup.SortChangesForProcessing(new ChangeComparer());
 
                 var artifacts = CurrentArtifactsInView;
@@ -361,10 +353,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                     if (changeGroup.Transaction.OriginatorId != EfiTransactionOriginator.UndoRedoOriginatorId
                         && changeGroup.Transaction.OriginatorId != EfiTransactionOriginator.UpdateModelFromDatabaseId)
                     {
-                        if (diagram != null)
-                        {
-                            diagram.Arranger.Start(PointD.Empty);
-                        }
+                        diagram?.Arranger.Start(PointD.Empty);
                     }
 
                     var hasChangesForCurrentArtifactInView = false;
@@ -392,8 +381,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 
                     foreach (var efobject in extraElementsToProcess)
                     {
-                        var et = efobject as ConceptualEntityType;
-                        if (et != null)
+                        if (efobject is ConceptualEntityType et)
                         {
                             foreach (var p in et.Properties())
                             {
@@ -424,24 +412,18 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                         && changeGroup.Transaction.OriginatorId != EfiTransactionOriginator.UpdateModelFromDatabaseId)
                     {
                         Debug.Assert(diagram != null, "Should have discovered the diagram if autoArrange == true");
-                        if (diagram != null)
-                        {
-                            diagram.Arranger.End();
-                        }
+                        diagram?.Arranger.End();
                     }
 
                     if (ModelHasElements() == false)
                     {
                         var edd = GetDiagram();
-                        if (edd != null)
-                        {
-                            edd.ResetWatermark(edd.ActiveDiagramView);
-                        }
+                        edd?.ResetWatermark(edd.ActiveDiagramView);
                     }
                 }
 
                 // we need to keep track of the entity shapes that needed to be auto layout.
-                var shapesToAutoLayout = new List<ShapeElement>();
+                List<ShapeElement> shapesToAutoLayout = new List<ShapeElement>();
 
                 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // SECOND STEP: updating DSL Presentation Elements.
@@ -480,8 +462,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                                         var currentNode = change.Changed;
                                         while (currentNode != null)
                                         {
-                                            var baseDiagram = currentNode as ModelDiagram.BaseDiagramObject;
-                                            if (baseDiagram != null)
+                                            if (currentNode is ModelDiagram.BaseDiagramObject baseDiagram)
                                             {
                                                 modelDiagramObject = baseDiagram;
                                                 break;
@@ -522,10 +503,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             finally
             {
                 Store.PropertyBag["WorkaroundFixSerializationTransaction"] = false;
-                if (diagram != null)
-                {
-                    diagram.DisableFixUpDiagramSelection = disableFixUpDiagramSelection;
-                }
+                diagram?.DisableFixUpDiagramSelection = disableFixUpDiagramSelection;
             }
 
             if (_shouldClearAndReloadDiagram)
@@ -544,7 +522,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         /// <summary>
         ///     Return true if processing this change caused a reload of the entire doc, false otherwise.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private bool ProcessSingleModelChange(EfiChange change)
         {
             var xref = ModelXRef;
@@ -589,22 +566,17 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                     }
 
                     // If Entity-type's base type has changed, invalidate the shape so the base type name in the shape can be updated.
-                    var baseType = change.Changed as EntityTypeBaseType;
-                    if (baseType != null)
+                    if (change.Changed is EntityTypeBaseType baseType)
                     {
                         Debug.Assert(baseType.Parent != null, "EntityTypeBaseType's Parent should not be null.");
                         if (baseType.Parent != null)
                         {
-                            var entityType = ModelXRef.GetExisting(baseType.Parent) as EntityType;
                             // the entity type is null if it is not in the diagram.
-                            if (entityType != null)
+                            if (ModelXRef.GetExisting(baseType.Parent) is EntityType entityType)
                             {
-                                var ets = PresentationViewsSubject.GetPresentation(entityType).FirstOrDefault() as EntityTypeShape;
+                                EntityTypeShape ets = PresentationViewsSubject.GetPresentation(entityType).FirstOrDefault() as EntityTypeShape;
                                 Debug.Assert(ets != null, "The shape for entity-type : " + entityType.Name + " is not available.");
-                                if (ets != null)
-                                {
-                                    ets.Invalidate();
-                                }
+                                ets?.Invalidate();
                             }
                         }
                     }
@@ -626,11 +598,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         /// </summary>
         private void ProcessSingleDiagramModelChange(EfiChange change, HashSet<EFObject> extraElementsToProcess)
         {
-            var diagramObject = change.Changed as ModelDiagram.BaseDiagramObject;
             var xref = ModelXRef;
 
             // Ignore if the change is not model diagram object or diagram object does not below to this view model diagram.
-            if (diagramObject == null
+            if (change.Changed is not ModelDiagram.BaseDiagramObject diagramObject
                 || diagramObject.Diagram == null
                 || diagramObject.Diagram.Id != DiagramId)
             {
@@ -641,11 +612,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             {
                 EFObject efObject = null;
 
-                var entityTypeShape = change.Changed as ModelDesigner.EntityTypeShape;
-                var inheritanceConnector = change.Changed as ModelDesigner.InheritanceConnector;
-                var associationConnector = change.Changed as ModelDesigner.AssociationConnector;
-
-                if (entityTypeShape != null)
+                if (change.Changed is ModelDesigner.EntityTypeShape entityTypeShape)
                 {
                     // There is a code above that will Debug.Fail if the object in extraElementsToProcess is not ConceptualEntityType
                     Model.Entity.EntityType et = entityTypeShape.EntityType.Target as ConceptualEntityType;
@@ -655,15 +622,14 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                         efObject = et;
                     }
                 }
-                else if (inheritanceConnector != null)
+                else if (change.Changed is ModelDesigner.InheritanceConnector inheritanceConnector)
                 {
-                    var et = inheritanceConnector.EntityType.Target as ConceptualEntityType;
-                    if (et != null)
+                    if (inheritanceConnector.EntityType.Target is ConceptualEntityType et)
                     {
                         efObject = et.BaseType;
                     }
                 }
-                else if (associationConnector != null)
+                else if (change.Changed is ModelDesigner.AssociationConnector associationConnector)
                 {
                     efObject = associationConnector.Association.Target;
                 }
@@ -675,24 +641,19 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             }
             else if (change.Type == EfiChange.EfiChangeType.Delete)
             {
-                var entityTypeShape = change.Changed as ModelDesigner.EntityTypeShape;
-                var inheritanceConnector = change.Changed as ModelDesigner.InheritanceConnector;
-                var associationConnector = change.Changed as ModelDesigner.AssociationConnector;
-
                 EFObject efObject = null;
-                if (entityTypeShape != null)
+                if (change.Changed is ModelDesigner.EntityTypeShape entityTypeShape)
                 {
                     efObject = entityTypeShape.EntityType.Target;
                 }
-                else if (inheritanceConnector != null)
+                else if (change.Changed is ModelDesigner.InheritanceConnector inheritanceConnector)
                 {
-                    var et = inheritanceConnector.EntityType.Target as ConceptualEntityType;
-                    if (et != null)
+                    if (inheritanceConnector.EntityType.Target is ConceptualEntityType et)
                     {
                         efObject = et.BaseType;
                     }
                 }
-                else if (associationConnector != null)
+                else if (change.Changed is ModelDesigner.AssociationConnector associationConnector)
                 {
                     efObject = associationConnector.Association.Target;
                 }
@@ -721,50 +682,42 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                 {
                     Debug.Assert(change.Type == EfiChange.EfiChangeType.Create);
 
-                    var entityType = change.Changed as Model.Entity.EntityType;
-                    if (entityType != null)
+                    if (change.Changed is Model.Entity.EntityType entityType)
                     {
                         return 1;
                     }
 
-                    var association = change.Changed as Model.Entity.Association;
-                    if (association != null)
+                    if (change.Changed is Model.Entity.Association association)
                     {
                         return 2;
                     }
 
-                    var prop = change.Changed as Model.Entity.Property;
-                    if (prop != null)
+                    if (change.Changed is Model.Entity.Property prop)
                     {
                         return 3;
                     }
 
-                    var propertyRef = change.Changed as PropertyRef;
-                    if (propertyRef != null)
+                    if (change.Changed is PropertyRef propertyRef)
                     {
                         return 4;
                     }
 
-                    var key = change.Changed as Key;
-                    if (key != null)
+                    if (change.Changed is Key key)
                     {
                         return 5;
                     }
 
-                    var ets = change.Changed as ModelDesigner.EntityTypeShape;
-                    if (ets != null)
+                    if (change.Changed is ModelDesigner.EntityTypeShape ets)
                     {
                         return 6;
                     }
 
-                    var ac = change.Changed as ModelDesigner.AssociationConnector;
-                    if (ac != null)
+                    if (change.Changed is ModelDesigner.AssociationConnector ac)
                     {
                         return 7;
                     }
 
-                    var ic = change.Changed as ModelDesigner.InheritanceConnector;
-                    if (ic != null)
+                    if (change.Changed is ModelDesigner.InheritanceConnector ic)
                     {
                         return 8;
                     }
@@ -786,13 +739,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                 return;
             }
 
-            var changeContext = ViewModelChangeContext.GetExistingContext(e.Transaction);
+            ViewModelChangeContext changeContext = ViewModelChangeContext.GetExistingContext(e.Transaction);
             if (changeContext != null
                 && changeContext.ViewModelChanges.Count > 0)
             {
                 var context = EditingContext;
                 var service = context.GetEFArtifactService();
-                var viewModelChanges = changeContext.ViewModelChanges.OfType<ViewModelChange>().ToList();
+                List<ViewModelChange> viewModelChanges = changeContext.ViewModelChanges.OfType<ViewModelChange>().ToList();
 
                 Debug.Assert(
                     changeContext.ViewModelChanges.Count == viewModelChanges.Count,
@@ -825,28 +778,25 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 
             // This dictionary is used to quickly find changes based on type. This is important since there could be lots of view model
             // changes in one batch (i.e. select all, delete)
-            var changeType2ChangeMap = new Dictionary<Type, List<ViewModelChange>>();
+            Dictionary<Type, List<ViewModelChange>> changeType2ChangeMap = new Dictionary<Type, List<ViewModelChange>>();
 
-            var changesToRemove = new List<ViewModelChange>();
+            List<ViewModelChange> changesToRemove = new List<ViewModelChange>();
 
             foreach (var change in viewModelChangeList)
             {
                 // Insert the change into the hashset, keyed by type
-                List<ViewModelChange> listOfChangesForChangeType;
-                if (false == changeType2ChangeMap.TryGetValue(change.GetType(), out listOfChangesForChangeType))
+                if (false == changeType2ChangeMap.TryGetValue(change.GetType(), out List<ViewModelChange> listOfChangesForChangeType))
                 {
-                    listOfChangesForChangeType = new List<ViewModelChange>();
+                    listOfChangesForChangeType = [];
                     changeType2ChangeMap.Add(change.GetType(), listOfChangesForChangeType);
                 }
                 listOfChangesForChangeType.Add(change);
 
                 // Rule 1: If we have a delete of an EntityType, find all property deletes belonging to the
                 // EntityType earlier and remove them
-                var entityTypeDeleteChange = change as EntityTypeDelete;
-                if (entityTypeDeleteChange != null)
+                if (change is EntityTypeDelete entityTypeDeleteChange)
                 {
-                    List<ViewModelChange> propertyDeletes;
-                    if (changeType2ChangeMap.TryGetValue(typeof(PropertyDelete), out propertyDeletes))
+                    if (changeType2ChangeMap.TryGetValue(typeof(PropertyDelete), out List<ViewModelChange> propertyDeletes))
                     {
                         foreach (PropertyDelete propertyDelete in propertyDeletes)
                         {
@@ -872,36 +822,33 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         ///     DSL transaction. This will mutate our model composed of EFObjects and will also push changes
         ///     down to the XLinq tree in the XML Model.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         private void ProcessViewModelChanges(string name, IList<ViewModelChange> viewModelChanges)
         {
             if (viewModelChanges != null
                 && viewModelChanges.Count > 0)
             {
-                var context = new EfiTransactionContext();
+                EfiTransactionContext context = new EfiTransactionContext();
                 var containsDiagramChanges = viewModelChanges.Any(vmc => vmc.IsDiagramChange);
                 context.Add(
                     EfiTransactionOriginator.TransactionOriginatorDiagramId,
                     new ModelDesigner.DiagramContextItem(DiagramId, containsDiagramChanges));
 
-                var cpc = new CommandProcessorContext(
+                CommandProcessorContext cpc = new CommandProcessorContext(
                     EditingContext, EfiTransactionOriginator.EntityDesignerOriginatorId, name, null, context);
-                var cp = new CommandProcessor(cpc);
+                CommandProcessor cp = new CommandProcessor(cpc);
 
                 // check if the DeleteUnmappedStorageEntitySetsProperty property is set
                 if (Store.PropertyBag.ContainsKey(DeleteUnmappedStorageEntitySetsProperty))
                 {
                     // if the property is set then unset it and add a
                     // command to remove these for each item in the master list
-                    var unmappedMasterList =
-                        Store.PropertyBag[DeleteUnmappedStorageEntitySetsProperty] as List<ICollection<StorageEntitySet>>;
                     Store.PropertyBag.Remove(DeleteUnmappedStorageEntitySetsProperty);
 
-                    if (unmappedMasterList != null)
+                    if (Store.PropertyBag[DeleteUnmappedStorageEntitySetsProperty] is List<ICollection<StorageEntitySet>> unmappedMasterList)
                     {
                         foreach (var unmappedEntitySets in unmappedMasterList)
                         {
-                            var duse = new DeleteUnmappedStorageEntitySetsCommand(unmappedEntitySets);
+                            DeleteUnmappedStorageEntitySetsCommand duse = new DeleteUnmappedStorageEntitySetsCommand(unmappedEntitySets);
                             cp.EnqueueCommand(duse);
                         }
                     }
@@ -917,7 +864,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                         setParentUndoUnit = true;
                     }
 
-                    var cmd = new DelegateCommand(
+                    DelegateCommand cmd = new DelegateCommand(
                         () =>
                             {
                                 foreach (var change in viewModelChanges)
@@ -958,8 +905,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             var efObject = change.Changed;
 
             // Updating a base type is a special case, because it really means creating or deleting an inheritance connector
-            var baseType = efObject as EntityTypeBaseType;
-            if (baseType != null)
+            if (efObject is EntityTypeBaseType baseType)
             {
                 if (xref.ContainsKey(baseType.Parent))
                 {
@@ -974,8 +920,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             }
 
             // for AssociationEnd we want to update parent Association
-            var associationEnd = efObject as AssociationEnd;
-            if (associationEnd != null)
+            if (efObject is AssociationEnd associationEnd)
             {
                 efObject = associationEnd.Parent;
             }
@@ -989,8 +934,6 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         ///     For Property element: creates if the entity-type exists.
         ///     For Association element: creates if both types exists.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void OnEFObjectCreatedOrUpdated(EFObject efObject, ModelToDesignerModelXRefItem xref)
         {
             Debug.Assert(efObject != null);
@@ -1001,8 +944,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             }
 
             // special case for creating base type
-            var baseType = efObject as EntityTypeBaseType;
-            if (baseType != null)
+            if (efObject is EntityTypeBaseType baseType)
             {
                 if (xref.ContainsKey(baseType.Parent))
                 {
@@ -1011,33 +953,27 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                 return;
             }
 
-            var efElement = efObject as EFElement;
-            if (efElement == null)
-            {
-                efElement = efObject.Parent as EFElement;
-            }
+            EFElement efElement = efObject as EFElement;
+            efElement ??= efObject.Parent as EFElement;
 
             if (efElement != null)
             {
-                var modelRoot = efElement as ConceptualEntityModel;
-                if (modelRoot != null)
+                if (efElement is ConceptualEntityModel modelRoot)
                 {
                     Namespace = modelRoot.Namespace.Value;
                     return;
                 }
 
-                var modelEntityType = efElement as ConceptualEntityType;
-                if (modelEntityType != null)
+                if (efElement is ConceptualEntityType modelEntityType)
                 {
-                    var viewEntityType = xref.GetExisting(modelEntityType) as EntityType;
-                    if (viewEntityType != null)
+                    if (xref.GetExisting(modelEntityType) is EntityType viewEntityType)
                     {
                         //update only
                         ModelTranslatorContextItem.GetEntityModelTranslator(EditingContext)
                             .SynchronizeSingleDslModelElement(this, modelEntityType);
                     }
-                        // Check to see if EFObject is type of ConceptualEntityType.
-                        // This is to prevent that the scenario updating entity-type name causes a new entity-type to be created in different diagram.
+                    // Check to see if EFObject is type of ConceptualEntityType.
+                    // This is to prevent that the scenario updating entity-type name causes a new entity-type to be created in different diagram.
                     else if (efObject is ConceptualEntityType)
                     {
                         //create EntityType and add it to the view model
@@ -1050,18 +986,14 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                     return;
                 }
 
-                var modelProperty = efElement as Model.Entity.Property;
-                if (modelProperty != null)
+                if (efElement is Model.Entity.Property modelProperty)
                 {
-                    var entityType = modelProperty.Parent as Model.Entity.EntityType;
-                    if (entityType != null)
+                    if (modelProperty.Parent is Model.Entity.EntityType entityType)
                     {
-                        var viewEntityType = xref.GetExisting(entityType) as EntityType;
                         // If the view Entity Type does not exist skip, continue since nothing to update.
-                        if (viewEntityType != null)
+                        if (xref.GetExisting(entityType) is EntityType viewEntityType)
                         {
-                            var viewProperty = xref.GetExisting(modelProperty) as Property;
-                            if (viewProperty != null)
+                            if (xref.GetExisting(modelProperty) is Property viewProperty)
                             {
                                 //update only
                                 ModelTranslatorContextItem.GetEntityModelTranslator(EditingContext)
@@ -1077,8 +1009,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                                 if (viewProperty != null)
                                 {
                                     // Determine where we should insert the new property by getting the previous sibling.
-                                    var previousSibling = FindPreviousProperty(viewProperty) as Property;
-                                    if (previousSibling != null)
+                                    if (FindPreviousProperty(viewProperty) is Property previousSibling)
                                     {
                                         // Get the index of the previous sibling.
                                         var propertyIndex = viewEntityType.Properties.IndexOf(previousSibling);
@@ -1103,15 +1034,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                     return;
                 }
 
-                var modelAssociationEnd = efElement as AssociationEnd;
-                if (modelAssociationEnd != null)
+                if (efElement is AssociationEnd modelAssociationEnd)
                 {
                     // change focus to the association and it will be processed below
                     efElement = modelAssociationEnd.Parent as EFElement;
                 }
 
-                var modelAssociation = efElement as Model.Entity.Association;
-                if (modelAssociation != null)
+                if (efElement is Model.Entity.Association modelAssociation)
                 {
                     // this will create association if necessary (if not it's update only)
                     ModelTranslatorContextItem.GetEntityModelTranslator(EditingContext)
@@ -1119,18 +1048,15 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                     return;
                 }
 
-                var modelNavigationProperty = efElement as Model.Entity.NavigationProperty;
-                if (modelNavigationProperty != null)
+                if (efElement is Model.Entity.NavigationProperty modelNavigationProperty)
                 {
-                    var entityType = modelNavigationProperty.Parent as Model.Entity.EntityType;
+                    Model.Entity.EntityType entityType = modelNavigationProperty.Parent as Model.Entity.EntityType;
                     Debug.Assert(entityType != null);
 
-                    var viewEntityType = xref.GetExisting(entityType) as EntityType;
 
-                    if (viewEntityType != null)
+                    if (xref.GetExisting(entityType) is EntityType viewEntityType)
                     {
-                        var viewNavigationProperty = xref.GetExisting(modelNavigationProperty) as NavigationProperty;
-                        if (viewNavigationProperty != null)
+                        if (xref.GetExisting(modelNavigationProperty) is NavigationProperty viewNavigationProperty)
                         {
                             //update only
                             ModelTranslatorContextItem.GetEntityModelTranslator(EditingContext)
@@ -1145,8 +1071,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                             Debug.Assert(viewNavigationProperty != null, "Why DSL navigation property is null?");
                             if (viewNavigationProperty != null)
                             {
-                                var previousSibling = FindPreviousProperty(viewNavigationProperty) as NavigationProperty;
-                                if (previousSibling != null)
+                                if (FindPreviousProperty(viewNavigationProperty) is NavigationProperty previousSibling)
                                 {
                                     var propertyIndex = viewEntityType.NavigationProperties.IndexOf(previousSibling);
                                     Debug.Assert(
@@ -1170,10 +1095,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                 }
 
                 // see if we are creating the Key element or just a PropertyRef
-                var key = efElement as Key;
-                var propertyRefs = new List<PropertyRef>();
+                List<PropertyRef> propertyRefs = new List<PropertyRef>();
 
-                if (key != null)
+                if (efElement is Key key)
                 {
                     // if this is true, we are not necessarily creating the Key element with only one property ref element - 
                     // we may be handling an undo operation, and there may be more than one property ref element.
@@ -1184,8 +1108,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                 }
                 else
                 {
-                    var propertyRef = efElement as PropertyRef;
-                    if (propertyRef != null)
+                    if (efElement is PropertyRef propertyRef)
                     {
                         propertyRefs.Add(propertyRef);
                     }
@@ -1201,12 +1124,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                             var property = propRef.Name.Target;
                             if (property != null)
                             {
-                                var entityType = property.Parent as Model.Entity.EntityType;
+                                Model.Entity.EntityType entityType = property.Parent as Model.Entity.EntityType;
                                 Debug.Assert(entityType != null);
 
-                                var viewEntityType = xref.GetExisting(entityType) as EntityType;
 
-                                if (viewEntityType != null)
+                                if (xref.GetExisting(entityType) is EntityType viewEntityType)
                                 {
                                     ModelTranslatorContextItem.GetEntityModelTranslator(EditingContext)
                                         .SynchronizeSingleDslModelElement(viewEntityType, property);
@@ -1232,7 +1154,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         /// <returns></returns>
         private PropertyBase FindPreviousProperty(PropertyBase property)
         {
-            var modelProperty = ModelXRef.GetExisting(property) as Model.Entity.PropertyBase;
+            Model.Entity.PropertyBase modelProperty = ModelXRef.GetExisting(property) as Model.Entity.PropertyBase;
             Debug.Assert(modelProperty != null, "Unable to get Entity Designer Model for :" + property.Name + " from model xref.");
             if (modelProperty != null)
             {
@@ -1240,8 +1162,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 
                 while (previousModelProperty != null)
                 {
-                    var previousProperty = ModelXRef.GetExisting(previousModelProperty) as PropertyBase;
-                    if (previousProperty != null)
+                    if (ModelXRef.GetExisting(previousModelProperty) is PropertyBase previousProperty)
                     {
                         return previousProperty;
                     }
@@ -1254,23 +1175,18 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         /// <summary>
         ///     Deletes corresponding ModelItem (if exists in the view model)
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void OnEFObjectDeleted(EFObject efObject, ModelToDesignerModelXRefItem xref)
         {
             Debug.Assert(efObject != null);
 
             // deleting key means that we will have to re-translate the properties of the
             // EntityType because the propertyRefs were deleted
-            var key = efObject as Key;
-            if (key != null
+            if (efObject is Key key
                 && key.Parent != null)
             {
-                var entityType = key.Parent as Model.Entity.EntityType;
-                if (entityType != null)
+                if (key.Parent is Model.Entity.EntityType entityType)
                 {
-                    var viewEntityType = xref.GetExisting(entityType) as EntityType;
-                    if (viewEntityType != null)
+                    if (xref.GetExisting(entityType) is EntityType viewEntityType)
                     {
                         // Only translate properties that are in the view model
                         foreach (var property in entityType.Properties().Where(p => xref.GetExisting(p) != null))
@@ -1284,21 +1200,17 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             }
 
             // deleting key's propertyref means removing property from entity's key
-            var propertyRef = efObject as PropertyRef;
-            if (propertyRef != null
+            if (efObject is PropertyRef propertyRef
                 && propertyRef.Parent is Key)
             {
                 var property = propertyRef.Name.Target;
                 if (property != null)
                 {
-                    var entityType = property.Parent as Model.Entity.EntityType;
+                    Model.Entity.EntityType entityType = property.Parent as Model.Entity.EntityType;
                     Debug.Assert(entityType != null);
-
-                    var viewEntityType = xref.GetExisting(entityType) as EntityType;
-                    var viewProperty = xref.GetExisting(property) as Property;
                     // if we are deleting whole EntityType this will be null
-                    if (viewEntityType != null
-                        && viewProperty != null)
+                    if (xref.GetExisting(entityType) is EntityType viewEntityType
+                        && xref.GetExisting(property) is Property viewProperty)
                     {
                         ModelTranslatorContextItem.GetEntityModelTranslator(EditingContext)
                             .SynchronizeSingleDslModelElement(viewEntityType, property);
@@ -1307,14 +1219,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                 return;
             }
 
-            var modelProperty = efObject.Parent as ComplexConceptualProperty;
-            if (modelProperty != null)
+            if (efObject.Parent is ComplexConceptualProperty modelProperty)
             {
-                var entityType = modelProperty.Parent as Model.Entity.EntityType;
-                if (entityType != null)
+                if (modelProperty.Parent is Model.Entity.EntityType entityType)
                 {
-                    var viewEntityType = xref.GetExisting(entityType) as EntityType;
-                    if (viewEntityType != null)
+                    if (xref.GetExisting(entityType) is EntityType viewEntityType)
                     {
                         Debug.Assert(xref.ContainsKey(modelProperty), "view for modelProperty not found");
                         ModelTranslatorContextItem.GetEntityModelTranslator(EditingContext)
@@ -1326,8 +1235,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 
             ModelElement modelElement = null;
 
-            var et = efObject as ConceptualEntityType;
-            if (et != null)
+            if (efObject is ConceptualEntityType et)
             {
                 foreach (var prop in et.Properties())
                 {
@@ -1352,10 +1260,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
             // If a diagram is deleted and the diagram is the only diagram that is opened in VS, we need to open the first diagram.
             // The assumption is that there will be another diagram exists in the model because the user can't delete a diagram if the diagram is the only diagram in the model.
             // We need to do this to ensure Model-Browser window is not closed and there at least 1 active designer for the EDMX in VS.
-            var modelDiagram = efObject as ModelDesigner.Diagram;
             var currentDiagram = GetDiagram();
             if (null != currentDiagram
-                && null != modelDiagram
+                && efObject is ModelDesigner.Diagram modelDiagram
                 && currentDiagram.DiagramId == modelDiagram.Id.Value)
             {
                 var foundAnotherActiveDiagram = false;
@@ -1375,7 +1282,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
                 if (!foundAnotherActiveDiagram)
                 {
                     var service = EditingContext.GetEFArtifactService();
-                    var entityDesignArtifact = service.Artifact as EntityDesignArtifact;
+                    EntityDesignArtifact entityDesignArtifact = service.Artifact as EntityDesignArtifact;
                     Debug.Assert(entityDesignArtifact != null, "EFArtifactService's artifact is null.");
                     if (entityDesignArtifact != null)
                     {

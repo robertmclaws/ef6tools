@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Linq;
-
     internal class SimpleMappingContext
     {
         public readonly EdmModel StoreModel;
@@ -14,38 +14,38 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb
         public readonly bool IncludeForeignKeyProperties;
 
         private readonly Dictionary<EdmProperty, EdmProperty> _propertyMappings =
-            new Dictionary<EdmProperty, EdmProperty>();
+            [];
 
         private readonly Dictionary<EntityType, EntityType> _entityTypeMappings =
-            new Dictionary<EntityType, EntityType>();
+            [];
 
         private readonly Dictionary<EntitySet, EntitySet> _entitySetMappings =
-            new Dictionary<EntitySet, EntitySet>();
+            [];
 
         private readonly Dictionary<EntityContainer, EntityContainer> _entityContainerMappings =
-            new Dictionary<EntityContainer, EntityContainer>();
+            [];
 
         private readonly Dictionary<AssociationType, AssociationType> _associationTypeMappings =
-            new Dictionary<AssociationType, AssociationType>();
+            [];
 
         private readonly Dictionary<AssociationSet, AssociationSet> _associationSetMappings =
-            new Dictionary<AssociationSet, AssociationSet>();
+            [];
 
         private readonly Dictionary<CollapsibleEntityAssociationSets, AssociationSet> _collapsedAssociationSetMappings =
-            new Dictionary<CollapsibleEntityAssociationSets, AssociationSet>();
+            [];
 
         private readonly Dictionary<AssociationEndMember, AssociationEndMember> _associationEndMemberMappings =
-            new Dictionary<AssociationEndMember, AssociationEndMember>();
+            [];
 
         private readonly Dictionary<AssociationSetEnd, AssociationSetEnd> _associationSetEndMappings =
-            new Dictionary<AssociationSetEnd, AssociationSetEnd>();
+            [];
 
         private readonly Dictionary<EdmFunction, EdmFunction> _functionMappings =
-            new Dictionary<EdmFunction, EdmFunction>();
+            [];
 
-        public readonly List<EdmSchemaError> Errors = new List<EdmSchemaError>();
+        public readonly List<EdmSchemaError> Errors = [];
 
-        public readonly HashSet<EdmProperty> StoreForeignKeyProperties = new HashSet<EdmProperty>();
+        public readonly HashSet<EdmProperty> StoreForeignKeyProperties = [];
 
         public SimpleMappingContext(EdmModel storeModel, bool includeForeignKeyProperties)
         {

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Designer;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-
     internal class CreateDiagramCommand : Command
     {
         private readonly string _name;
@@ -22,17 +22,15 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _diagrams = diagrams;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // check to see if this name is unique
-            string msg = null;
-            if (!ModelHelper.IsUniqueName(typeof(Diagram), _diagrams, _name, true, out msg))
+            if (!ModelHelper.IsUniqueName(typeof(Diagram), _diagrams, _name, true, out string msg))
             {
                 throw new InvalidOperationException(msg);
             }
 
-            var diagram = new Diagram(_diagrams, null);
+            Diagram diagram = new Diagram(_diagrams, null);
             diagram.Id.Value = Guid.NewGuid().ToString("N");
             diagram.LocalName.Value = _name;
             _diagrams.AddDiagram(diagram);
@@ -61,9 +59,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             if (cpc != null)
             {
                 var service = cpc.EditingContext.GetEFArtifactService();
-                var entityDesignArtifact = service.Artifact as EntityDesignArtifact;
 
-                if (entityDesignArtifact == null
+                if (service.Artifact is not EntityDesignArtifact entityDesignArtifact
                     || entityDesignArtifact.DesignerInfo == null
                     || entityDesignArtifact.DesignerInfo.Diagrams == null)
                 {
@@ -74,8 +71,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     typeof(Diagram), entityDesignArtifact.DesignerInfo.Diagrams, Resources.Model_DefaultDiagramName);
 
                 // go create it
-                var cp = new CommandProcessor(cpc);
-                var cmd = new CreateDiagramCommand(diagramName, entityDesignArtifact.DesignerInfo.Diagrams);
+                CommandProcessor cp = new CommandProcessor(cpc);
+                CreateDiagramCommand cmd = new CreateDiagramCommand(diagramName, entityDesignArtifact.DesignerInfo.Diagrams);
                 cp.EnqueueCommand(cmd);
                 cp.Invoke();
                 return cmd.Diagram;

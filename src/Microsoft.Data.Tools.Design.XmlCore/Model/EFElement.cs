@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
-
     internal abstract class EFElement : EFContainer
     {
         internal const string AttributeMergeMode = "MergeMode";
@@ -61,15 +61,13 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             get
             {
-                var name = this as EFNameableItem;
-                if (name != null)
+                if (this is EFNameableItem name)
                 {
                     return name.LocalName.Value;
                 }
                 else
                 {
-                    var normal = this as EFNormalizableItem;
-                    if (normal != null)
+                    if (this is EFNormalizableItem normal)
                     {
                         return normal.NormalizedNameExternal;
                     }
@@ -145,8 +143,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             foreach (var o in Children)
             {
-                var e = o as EFElement;
-                if (e != null)
+                if (o is EFElement e)
                 {
                     if (e.IsGhostNode)
                     {
@@ -307,9 +304,6 @@ namespace Microsoft.Data.Entity.Design.Model
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "unprocessedElements")]
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         private void PopulateUnprocessedElementsCollection(ICollection<XName> unprocessedElements)
         {
 #if DEBUG
@@ -446,7 +440,7 @@ namespace Microsoft.Data.Entity.Design.Model
             Debug.Assert(Parent != null && Parent.XContainer != null, "Can't serialize this if the Parent or it's XContainer is missing");
 
             var ns = Artifact.ModelManager.GetRootNamespace(Parent);
-            var element = new XElement(ns == null ? EFTypeName : ns + EFTypeName);
+            XElement element = new XElement(ns == null ? EFTypeName : ns + EFTypeName);
 
             SetXObject(element);
             ModelItemAnnotation.SetModelItem(element, this);
@@ -479,7 +473,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal virtual DeleteEFElementCommand GetDeleteCommand()
         {
-            var cmd = new DeleteEFElementCommand(this);
+            DeleteEFElementCommand cmd = new DeleteEFElementCommand(this);
             if (cmd == null)
             {
                 // shouldn't happen, just to be safe
@@ -544,9 +538,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal void AddXElementToParent(XElement element)
         {
-            XNode insertPosition;
-            bool insertBefore;
-            Parent.GetXLinqInsertPosition(this, out insertPosition, out insertBefore);
+            Parent.GetXLinqInsertPosition(this, out XNode insertPosition, out bool insertBefore);
 
             if (insertPosition == null)
             {
@@ -585,7 +577,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 node.Parent != null && node.Parent.Elements().Count() > 0,
                 "Call EnsureFirstNodeWhitespaceSeparation when the added element is the first node");
 
-            var newLine = new XText(Environment.NewLine + new string(' ', GetIndentLevel() * 2));
+            XText newLine = new XText(Environment.NewLine + new string(' ', GetIndentLevel() * 2));
             node.AddBeforeSelf(newLine);
             return newLine;
         }
@@ -608,8 +600,8 @@ namespace Microsoft.Data.Entity.Design.Model
             }
 #endif
 
-            var precedingNewLine = new XText(Environment.NewLine + new string(' ', GetIndentLevel() * 2));
-            var trailingNewLine = new XText(Environment.NewLine + new string(' ', Parent.GetIndentLevel() * 2));
+            XText precedingNewLine = new XText(Environment.NewLine + new string(' ', GetIndentLevel() * 2));
+            XText trailingNewLine = new XText(Environment.NewLine + new string(' ', Parent.GetIndentLevel() * 2));
             element.AddBeforeSelf(precedingNewLine);
             element.AddAfterSelf(trailingNewLine);
         }

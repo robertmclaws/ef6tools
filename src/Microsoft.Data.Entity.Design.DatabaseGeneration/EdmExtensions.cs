@@ -1,30 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Mapping;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.Metadata;
+
 namespace Microsoft.Data.Entity.Design.DatabaseGeneration
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Mapping;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.Metadata;
-
     /// <summary>
     ///     Provides helper methods to classes in the Microsoft.Data.Entity.Design.DatabaseGeneration,
     ///     Microsoft.Data.Entity.Design.DatabaseGeneration.Activities, and Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
     ///     namespaces for generating and validating ItemCollections.
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Edm")]
     public static class EdmExtension
     {
         private const string SsdlErrorExDataKey = "ssdlErrors";
@@ -50,9 +49,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <returns>
         ///     CSDL as an <see cref="EdmItemCollection" />.
         /// </returns>
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Edm")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "csdl")]
         public static EdmItemCollection CreateAndValidateEdmItemCollection(string csdl, Version targetFrameworkVersion)
         {
             if (csdl == null)
@@ -74,9 +70,9 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
 
             IList<EdmSchemaError> schemaErrors;
             EdmItemCollection edmItemCollection;
-            using (var textReader = new StringReader(csdl))
+            using (StringReader textReader = new StringReader(csdl))
             {
-                using (var xmlReader = XmlReader.Create(textReader))
+                using (XmlReader xmlReader = XmlReader.Create(textReader))
                 {
                     edmItemCollection = EdmItemCollection.Create(new[] { xmlReader }, null, out schemaErrors);
                 }
@@ -114,10 +110,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <returns>
         ///     SSDL as a <see cref="StoreItemCollection" />.
         /// </returns>
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
-        [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "3#")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "ssdl")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "edm")]
         public static StoreItemCollection CreateStoreItemCollection(
             string ssdl, Version targetFrameworkVersion, IDbDependencyResolver resolver, out IList<EdmSchemaError> edmErrors)
         {
@@ -138,9 +130,9 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
                     "targetFrameworkVersion");
             }
 
-            using (var textReader = new StringReader(ssdl))
+            using (StringReader textReader = new StringReader(ssdl))
             {
-                using (var ssdlReader = XmlReader.Create(textReader))
+                using (XmlReader ssdlReader = XmlReader.Create(textReader))
                 {
                     return StoreItemCollection.Create(new[] { ssdlReader }, null, resolver, out edmErrors);
                 }
@@ -162,13 +154,11 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <returns>
         ///     SSDL as a <see cref="StoreItemCollection" />.
         /// </returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "ssdl")]
         public static StoreItemCollection CreateAndValidateStoreItemCollection(
             string ssdl, Version targetFrameworkVersion, IDbDependencyResolver resolver, bool catchThrowNamingConflicts)
         {
             // Make sure the StoreItemCollection was created (validate it) otherwise the next stage will not proceed
-            IList<EdmSchemaError> ssdlErrors;
-            var storeItemCollection = CreateStoreItemCollection(ssdl, targetFrameworkVersion, resolver, out ssdlErrors);
+            var storeItemCollection = CreateStoreItemCollection(ssdl, targetFrameworkVersion, resolver, out IList<EdmSchemaError> ssdlErrors);
             if (ssdlErrors != null
                 && ssdlErrors.Count > 0)
             {
@@ -179,7 +169,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
                     {
                         // having the caller catch, parse the SSDL errors, and rethrow an exception is expensive; 
                         // we'll just throw a special one here instead
-                        var namingErrorException =
+                        InvalidOperationException namingErrorException =
                             new InvalidOperationException(
                                 String.Format(CultureInfo.CurrentCulture, Resources.ErrorNameCollision, namingError.Message));
                         namingErrorException.Data.Add(SsdlErrorExDataKey, ssdlErrors);
@@ -188,7 +178,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
                     }
                 }
 
-                var invalidSsdlException =
+                InvalidOperationException invalidSsdlException =
                     new InvalidOperationException(
                         String.Format(
                             CultureInfo.CurrentCulture,
@@ -203,7 +193,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
             return storeItemCollection;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         internal static StorageMappingItemCollection CreateStorageMappingItemCollection(
             EdmItemCollection edm, StoreItemCollection store, string msl, out IList<EdmSchemaError> edmErrors)
         {
@@ -212,9 +201,9 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
             Debug.Assert(!string.IsNullOrWhiteSpace(msl), "msl cannot be null or whitespace");
 
             edmErrors = null;
-            using (var textReader = new StringReader(msl))
+            using (StringReader textReader = new StringReader(msl))
             {
-                using (var mslReader = XmlReader.Create(textReader))
+                using (XmlReader mslReader = XmlReader.Create(textReader))
                 {
                     return StorageMappingItemCollection.Create(edm, store, new[] { mslReader }, null, out edmErrors);
                 }
@@ -225,7 +214,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
 
         internal static string SerializeXElement(XElement xelement)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             using (TextWriter textWriter = new StringWriter(sb, CultureInfo.CurrentCulture))
             {
                 xelement.Save(textWriter);

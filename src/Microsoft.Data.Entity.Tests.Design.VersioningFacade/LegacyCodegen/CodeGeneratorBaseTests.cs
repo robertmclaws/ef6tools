@@ -1,30 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using LegacyMetadata = System.Data.Metadata.Edm;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
 
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.LegacyCodegen
 {
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class CodeGeneratorBaseTests
     {
         [TestMethod]
-        public void Create_returns_EntityClassGenerator_for_EF1()
+        public void Create_returns_EntityCodeGenerator_for_Version3()
         {
-            CodeGeneratorBase.Create(LanguageOption.GenerateCSharpCode, EntityFrameworkVersion.Version1)
-                .Should().BeOfType<EntityClassGenerator>();
-        }
-
-        [TestMethod]
-        public void Create_returns_EntityCodeGenerator_for_EF4_and_EF5()
-        {
-            CodeGeneratorBase.Create(LanguageOption.GenerateCSharpCode, EntityFrameworkVersion.Version2)
-                .Should().BeOfType<EntityCodeGenerator>();
-
             CodeGeneratorBase.Create(LanguageOption.GenerateCSharpCode, EntityFrameworkVersion.Version3)
                 .Should().BeOfType<EntityCodeGenerator>();
         }

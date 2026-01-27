@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Input;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -28,30 +28,19 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         internal void OnTreeViewItemCollapsed(object sender, RoutedEventArgs e)
         {
             var explorerFrame = GetExplorerFrame();
-            if (null != explorerFrame)
-            {
-                explorerFrame.OnTreeViewItemCollapsed();
-            }
+            explorerFrame?.OnTreeViewItemCollapsed();
         }
 
         internal void OnTreeViewItemExpanded(object sender, RoutedEventArgs e)
         {
             var explorerFrame = GetExplorerFrame();
-            if (null != explorerFrame)
-            {
-                explorerFrame.OnTreeViewItemExpanded();
-            }
+            explorerFrame?.OnTreeViewItemExpanded();
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "DownLoaded",
-            Justification = "It is DropDown Loaded, not Drop Downloaded")]
         internal void OnDropDownLoaded(object sender, RoutedEventArgs e)
         {
-            var searchTextBox = ExplorerUtility.GetTypeDescendents(SearchBox, typeof(TextBox)).FirstOrDefault() as TextBox;
-            if (searchTextBox != null)
-            {
-                searchTextBox.MaxLength = 1000;
-            }
+            TextBox searchTextBox = ExplorerUtility.GetTypeDescendents(SearchBox, typeof(TextBox)).FirstOrDefault() as TextBox;
+            searchTextBox?.MaxLength = 1000;
         }
 
         internal void OnDropDownOpened(object sender, EventArgs e)
@@ -130,10 +119,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         private ExplorerFrame GetExplorerFrame()
         {
-            if (_explorerFrame == null)
-            {
-                _explorerFrame = ExplorerUtility.FindLogicalAncestorOfType<ExplorerFrame>(this);
-            }
+            _explorerFrame ??= ExplorerUtility.FindLogicalAncestorOfType<ExplorerFrame>(this);
 
             return _explorerFrame;
         }

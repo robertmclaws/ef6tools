@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-
     /// <summary>
     ///     Create a copy of an EntityType
     ///     If the entities are copied to a diagram, the behavior as follow:
@@ -102,7 +102,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             foreach (var clipboardProperty in _clipboardEntity.Properties)
             {
-                var cmd = new CopyPropertyCommand(clipboardProperty, _createdEntity);
+                CopyPropertyCommand cmd = new CopyPropertyCommand(clipboardProperty, _createdEntity);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
 

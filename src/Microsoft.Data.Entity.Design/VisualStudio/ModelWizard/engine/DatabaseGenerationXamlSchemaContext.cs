@@ -1,11 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using System.Xaml;
+using Microsoft.Data.Entity.Design;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Globalization;
-    using System.Xaml;
-
     // <summary>
     //     This class helps the database generation workflow resolve assemblies that contain
     //     activities that are referenced in the owning project of the artifact.
@@ -30,8 +31,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             {
                 // if the XAML namespace is a CLR namespace then look through the project references for the assembly
                 // name and lazily load the assembly. Then attempt to get the XAML type.
-                string clrNamespace, assemblyName;
-                if (TrySplitXamlNamespace(xamlNamespace, out clrNamespace, out assemblyName))
+                if (TrySplitXamlNamespace(xamlNamespace, out string clrNamespace, out string assemblyName))
                 {
                     try
                     {

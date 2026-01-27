@@ -1,12 +1,12 @@
-﻿namespace Microsoft.Data.Entity.Design.CodeGeneration
-{
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.CodeGeneration.Generators;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VisualStudio;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.CodeGeneration.Generators;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VisualStudio;
 
+namespace Microsoft.Data.Entity.Design.CodeGeneration
+{
     internal class CodeGeneratorFactory : ICodeGeneratorFactory
     {
         private const string CSharpContextTemplatePath = @"CodeTemplates\EFModelFromDatabase\Context.cs.t4";

@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Collections.Generic;
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class JoinTableDiscovererTests
     {
         [TestMethod]
         public void Discover_returns_null_when_inapplicable()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasMany(e => e.Entity2s).WithOptional();
             modelBuilder.Entity<Entity2>().Ignore(e => e.Entity1s);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
@@ -29,7 +29,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_conventional()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasMany(e => e.Entity2s).WithMany(e => e.Entity1s);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First(t => t.Name == "Entity1");
@@ -38,7 +38,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             // NOTE: This makes the model readonly. Without it, assertions fail
             model.Compile();
 
-            var configuration = new JoinTableDiscoverer().Discover(navigationProperty, model) as JoinTableConfiguration;
+            JoinTableConfiguration configuration = new JoinTableDiscoverer().Discover(navigationProperty, model) as JoinTableConfiguration;
 
             configuration.Should().NotBeNull();
             configuration.Schema.Should().BeNull();
@@ -50,7 +50,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_conventional_from_other_end()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasMany(e => e.Entity2s).WithMany(e => e.Entity1s);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First(t => t.Name == "Entity2");
@@ -59,7 +59,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             // NOTE: This makes the model readonly. Without it, assertions fail
             model.Compile();
 
-            var configuration = new JoinTableDiscoverer().Discover(navigationProperty, model) as JoinTableConfiguration;
+            JoinTableConfiguration configuration = new JoinTableDiscoverer().Discover(navigationProperty, model) as JoinTableConfiguration;
 
             configuration.Should().NotBeNull();
             configuration.Schema.Should().BeNull();
@@ -71,7 +71,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_unconventional()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity1>().HasMany(e => e.Entity2s).WithMany(e => e.Entity1s).Map(
                 m => m.ToTable("Associations", "new").MapLeftKey("Entity1Id").MapRightKey("Entity2Id"));
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
@@ -81,7 +81,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             // NOTE: This makes the model readonly. Without it, assertions fail
             model.Compile();
 
-            var configuration = new JoinTableDiscoverer().Discover(navigationProperty, model) as JoinTableConfiguration;
+            JoinTableConfiguration configuration = new JoinTableDiscoverer().Discover(navigationProperty, model) as JoinTableConfiguration;
 
             configuration.Should().NotBeNull();
             configuration.Schema.Should().Be("new");

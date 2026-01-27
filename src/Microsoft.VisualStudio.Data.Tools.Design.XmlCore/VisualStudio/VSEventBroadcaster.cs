@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     /// <summary>
     ///     This class can be used to get notified about UI change events in Visual Studio such
     ///     as font changes.
@@ -25,8 +25,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         #region IDisposable
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsShell.UnadviseBroadcastMessages(System.UInt32)")]
         public void Dispose()
         {
             if (cookie != 0

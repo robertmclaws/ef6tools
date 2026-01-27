@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using System.Collections.Generic;
-    using System.Runtime.InteropServices;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-
     [Guid(RefactoringGuids.RefactoringPreviewChangesListString)]
     internal class PreviewChangesList : IVsPreviewChangesList, IVsLiteTreeList
     {
@@ -19,10 +19,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         public PreviewChangesList(IList<PreviewChangesNode> changeList, PreviewData previewData, PreviewBuffer previewBuffer)
         {
             _changeList = changeList;
-            if (_changeList == null)
-            {
-                _changeList = new List<PreviewChangesNode>();
-            }
+            _changeList ??= [];
             _previewData = previewData;
             _previewBuffer = previewBuffer;
         }
@@ -80,7 +77,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             }
             else
             {
-                var previewChangesList = new PreviewChangesList(_changeList[(int)index].ChildList, _previewData, _previewBuffer);
+                PreviewChangesList previewChangesList = new PreviewChangesList(_changeList[(int)index].ChildList, _previewData, _previewBuffer);
                 pptlNode = previewChangesList;
                 return VSConstants.S_OK;
             }
@@ -186,8 +183,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             ArgumentValidation.CheckForOutOfRangeException(index, 0, _changeList.Count - 1);
 
-            var vsTextView = pIUnknownTextView as IVsTextView;
-            if (vsTextView == null)
+            if (pIUnknownTextView is not IVsTextView vsTextView)
             {
                 return VSConstants.E_NOINTERFACE;
             }

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner
 {
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     internal partial class InheritanceToolConnectAction
     {
         /// <summary>
@@ -31,8 +31,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner
                 {
                     return shape.ParentShape;
                 }
-                var swimlane = shape as SwimlaneShape;
-                if (swimlane != null
+                if (shape is SwimlaneShape swimlane
                     && swimlane.ForwardDragDropToParent)
                 {
                     return shape.ParentShape;

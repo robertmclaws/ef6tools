@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Design.Serialization;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Design.Serialization;
-
     /// <summary>
     ///     The ArtifactManager keeps track of all EDM artifact files, a list
     ///     of frames that are loaded with artifacts file documents,
@@ -22,8 +22,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
     {
         // we need this hash table; we could do reverse-lookups on the EFArtifact for the EditingContext that holds it, but we don't want to have
         // any references to the designer inside the artifact. 
-        private Dictionary<EFArtifact, EditingContext> _mapArtifactToEditingContext = new Dictionary<EFArtifact, EditingContext>();
-        private Dictionary<FrameWrapper, EditingContext> _mapFrameToUri = new Dictionary<FrameWrapper, EditingContext>();
+        private Dictionary<EFArtifact, EditingContext> _mapArtifactToEditingContext = [];
+        private Dictionary<FrameWrapper, EditingContext> _mapFrameToUri = [];
         private readonly IXmlDesignerPackage _package;
 
         internal EditingContextManager(IXmlDesignerPackage package)
@@ -55,7 +55,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             return null;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected virtual EFArtifact GetNewOrExistingArtifact(Uri itemUri)
         {
             return _package.ModelManager.GetNewOrExistingArtifact(itemUri, new VSXmlModelProvider(_package, _package));
@@ -72,7 +71,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             return false;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal EditingContext GetNewOrExistingContext(Uri itemUri)
         {
             EditingContext itemContext = null;
@@ -92,9 +90,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                     && item != null
                     && !_mapArtifactToEditingContext.TryGetValue(item, out itemContext))
                 {
-                    var service = new EFArtifactService(item);
+                    EFArtifactService service = new EFArtifactService(item);
 
-                    var editingContext = new EditingContext();
+                    EditingContext editingContext = new EditingContext();
                     editingContext.SetEFArtifactService(service);
                     itemContext = editingContext;
                     _mapArtifactToEditingContext[item] = itemContext;
@@ -112,12 +110,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
                 if (null != closingFrame.Uri)
                 {
-                    var rdt = new RunningDocumentTable(_package);
+                    RunningDocumentTable rdt = new RunningDocumentTable(_package);
                     var doc = rdt.FindDocument(closingFrame.Uri.LocalPath);
                     if (doc != null)
                     {
                         var isModified = false;
-                        using (var docData = new DocData(doc))
+                        using (DocData docData = new DocData(doc))
                         {
                             isModified = docData.Modified;
                         }
@@ -139,10 +137,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         {
             Debug.Assert(uri != null, "uri != null");
 
-            EditingContext editingContext = null;
             var artifact = _package.ModelManager.GetArtifact(uri);
             if (artifact != null
-                && _mapArtifactToEditingContext.TryGetValue(artifact, out editingContext))
+                && _mapArtifactToEditingContext.TryGetValue(artifact, out EditingContext editingContext))
             {
                 _mapArtifactToEditingContext.Remove(artifact);
                 _package.ModelManager.ClearArtifact(artifact.Uri);
@@ -170,8 +167,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
         private Collection<Uri> GetAssociatedUris(Uri itemDocUri)
         {
-            var associated = new Collection<Uri>();
-            associated.Add(itemDocUri);
+            Collection<Uri> associated = new Collection<Uri>
+            {
+                itemDocUri
+            };
             foreach (var editingContext in GetOpenContexts())
             {
                 var item = GetArtifact(editingContext);
@@ -190,8 +189,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
         internal Uri GetCurrentUri(FrameWrapper frame)
         {
-            EditingContext context = null;
-            if (!_mapFrameToUri.TryGetValue(frame, out context))
+            if (!_mapFrameToUri.TryGetValue(frame, out EditingContext context))
             {
                 if (context == null)
                 {

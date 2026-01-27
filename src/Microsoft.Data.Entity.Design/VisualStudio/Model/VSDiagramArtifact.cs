@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Model
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.OLE.Interop;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-
     internal class VSDiagramArtifact : DiagramArtifact, IVsRunningDocTableEvents2
     {
         private bool _disabledBufferUndo;
@@ -29,7 +29,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
         {
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsRunningDocumentTable.AdviseRunningDocTableEvents(Microsoft.VisualStudio.Shell.Interop.IVsRunningDocTableEvents,System.UInt32@)")]
         internal override void Init()
         {
             base.Init();
@@ -37,7 +36,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
             Services.IVsRunningDocumentTable.AdviseRunningDocTableEvents(this, out _rdtCookie);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsRunningDocumentTable.UnadviseRunningDocTableEvents(System.UInt32)")]
         protected override void Dispose(bool disposing)
         {
             if (_rdtCookie != VSConstants.VSCOOKIE_NIL)
@@ -67,26 +65,24 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
                 if (!_disabledBufferUndo
                     && (grfAttribs & (uint)__VSRDTATTRIB.RDTA_DocDataReloaded) == (uint)__VSRDTATTRIB.RDTA_DocDataReloaded)
                 {
-                    var rdt = new RunningDocumentTable(Services.ServiceProvider);
+                    RunningDocumentTable rdt = new RunningDocumentTable(Services.ServiceProvider);
                     var rdi = rdt.GetDocumentInfo(docCookie);
                     if (rdi.Moniker.Equals(Uri.LocalPath, StringComparison.OrdinalIgnoreCase))
                     {
                         // DocData is XmlModelDocData
-                        var textBufferProvider = rdi.DocData as IVsTextBufferProvider;
+                        IVsTextBufferProvider textBufferProvider = rdi.DocData as IVsTextBufferProvider;
                         Debug.Assert(
                             textBufferProvider != null,
                             "The XML Model DocData over the diagram file is not IVsTextBufferProvider. Linked undo may not work correctly");
                         if (textBufferProvider != null)
                         {
-                            IVsTextLines textLines;
-                            var hr = textBufferProvider.GetTextBuffer(out textLines);
+                            var hr = textBufferProvider.GetTextBuffer(out IVsTextLines textLines);
                             Debug.Assert(
                                 textLines != null,
                                 "The IVsTextLines could not be found from the IVsTextBufferProvider. Linked undo may not work correctly");
                             if (NativeMethods.Succeeded(hr) && textLines != null)
                             {
-                                IOleUndoManager bufferUndoMgr;
-                                hr = textLines.GetUndoManager(out bufferUndoMgr);
+                                hr = textLines.GetUndoManager(out IOleUndoManager bufferUndoMgr);
 
                                 Debug.Assert(
                                     bufferUndoMgr != null, "Couldn't find the buffer undo manager. Linked undo may not work correctly");

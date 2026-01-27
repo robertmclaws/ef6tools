@@ -1,22 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.Activities;
+using System.Activities.Hosting;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Runtime.Remoting.Messaging;
+using System.Text.RegularExpressions;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.DatabaseGeneration;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.TextTemplating.VSHost;
+using Package = Microsoft.VisualStudio.Shell.Package;
+using Resources = Microsoft.Data.Entity.Design.Resources;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio.TextTemplating
 {
-    using System;
-    using System.Activities;
-    using System.Activities.Hosting;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Runtime.Remoting.Messaging;
-    using System.Text.RegularExpressions;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.TextTemplating.VSHost;
-
     /// <summary>
     ///     TemplateActivity that allows the transformation of a T4 template within a WF workflow.
     ///     NOTE that this class should avoid any dependencies on any instance types (especially types instantiated by the
@@ -54,11 +57,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.TextTemplating
         /// <param name="context">The state of the current activity.</param>
         protected override void Execute(NativeActivityContext context)
         {
-            var templateInputs = new Dictionary<string, object>();
+            Dictionary<string, object> templateInputs = new Dictionary<string, object>();
 
             var symbolResolver = context.GetExtension<SymbolResolver>();
-            var edmParameterBag = symbolResolver[typeof(EdmParameterBag).Name] as EdmParameterBag;
-            if (edmParameterBag == null)
+            if (symbolResolver[typeof(EdmParameterBag).Name] is not EdmParameterBag edmParameterBag)
             {
                 throw new InvalidOperationException(Resources.DatabaseCreation_ErrorNoEdmParameterBag);
             }
@@ -122,7 +124,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.TextTemplating
             }
 
             // Resolve and validate the template file path
-            var errorMessages = new DatabaseGenerationEngine.PathValidationErrorMessages
+            DatabaseGenerationEngine.PathValidationErrorMessages errorMessages = new DatabaseGenerationEngine.PathValidationErrorMessages
                 {
                     NullFile = String.Format(
                         CultureInfo.CurrentCulture, Resources.DatabaseCreation_ErrorTemplatePathNotSet, DisplayName),
@@ -176,7 +178,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.TextTemplating
                         return match.Value;
                     });
 
-            var textTemplatingService = Package.GetGlobalService(typeof(STextTemplating)) as ITextTemplating;
+            ITextTemplating textTemplatingService = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(STextTemplating)) as ITextTemplating;
             Debug.Assert(textTemplatingService != null, "ITextTemplating could not be found from the IServiceProvider");
             if (textTemplatingService == null)
             {
@@ -185,7 +187,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.TextTemplating
                         CultureInfo.CurrentCulture, Resources.DatabaseCreation_ErrorTextTemplatingServiceNotFound, resolvedTemplatePath));
             }
             // Process the template, keeping track of errors
-            var templateCallback = new TemplateCallback();
+            TemplateCallback templateCallback = new TemplateCallback();
             var templateOutput = String.Empty;
 
             textTemplatingService.BeginErrorSession();

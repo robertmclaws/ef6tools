@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 {
-    using System;
-    using System.Drawing;
-    using System.Drawing.Imaging;
-    using System.IO;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     /// <summary>
     /// Exports diagrams to raster image formats (PNG, JPEG, BMP, GIF, TIFF).
     /// </summary>
@@ -56,7 +56,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 
             try
             {
-                using (var fileStream = new FileStream(options.FilePath, FileMode.Create, FileAccess.ReadWrite))
+                using (FileStream fileStream = new FileStream(options.FilePath, FileMode.Create, FileAccess.ReadWrite))
                 {
                     bitmap.Save(fileStream, imageFormat);
                 }

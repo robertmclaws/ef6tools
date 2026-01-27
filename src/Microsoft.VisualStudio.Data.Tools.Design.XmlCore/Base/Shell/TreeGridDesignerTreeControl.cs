@@ -1,23 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing.Design;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Specialized;
-    using System.ComponentModel;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing.Design;
-    using System.Windows.Forms;
-    using System.Windows.Forms.Design;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     /// <summary>
     ///     Class derived from VirtualTreeControl containing TreeGrid designer-specific code
     ///     such as special key bindings
@@ -34,7 +34,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
         // used to batch up OnDrawItem calls
         private bool _batchDrawItem;
-        private readonly ArrayList _invalidItems = new ArrayList();
+        private readonly ArrayList _invalidItems = [];
 
         // used to ignore OnDrawItem calls completely
 
@@ -73,11 +73,8 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                     }
                 }
 
-                if (_columnTable != null)
-                {
-                    _columnTable.Clear();
-                    _columnTable = null;
-                }
+                _columnTable?.Clear();
+                _columnTable = null;
 
                 _columnHost = null;
             }
@@ -96,12 +93,9 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             var headerControl = base.CreateHeaderControl();
 
             // Theme the header control with shell colors
-            var uiShell5 = Site.GetService(typeof(SVsUIShell)) as IVsUIShell5;
+            IVsUIShell5 uiShell5 = Site.GetService(typeof(SVsUIShell)) as IVsUIShell5;
 
-            if (uiShell5 != null)
-            {
-                uiShell5.ThemeWindow(headerControl.Handle);
-            }
+            uiShell5?.ThemeWindow(headerControl.Handle);
 
             return headerControl;
         }
@@ -125,9 +119,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
             if (Site != null)
             {
-                var uiService = Site.GetService(typeof(IUIService)) as IUIService;
-
-                if (uiService != null)
+                if (Site.GetService(typeof(IUIService)) is IUIService uiService)
                 {
                     uiService.ShowError(ex.Message);
                     return true;
@@ -143,7 +135,6 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         ///     passed to PopulateTree, these default columns will be used.
         /// </summary>
         /// <param name="defaultColumns"></param>
-        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         internal ICollection DefaultColumns
         {
             get { return ArrayList.ReadOnly(_defaultColumns); }
@@ -219,7 +210,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             var defaultPercentageIncr = calculatedColumns == 0 ? 0 : calculatedPercentage / calculatedColumns;
 
             // create headers
-            var headers = new VirtualTreeColumnHeader[columns.Length];
+            VirtualTreeColumnHeader[] headers = new VirtualTreeColumnHeader[columns.Length];
 
             float percentage = 0;
             for (var i = 0; i < headers.Length - 1; ++i)
@@ -278,7 +269,6 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// <returns>True if the tree was populated.  False if the object passed in doesn't specify any branches.</returns>
         internal bool PopulateTree(object root)
         {
-            object attributeOwner;
             ArrayList rootBranches = null;
 
             var tree = Tree;
@@ -286,7 +276,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                 && root != null)
             {
                 // determine which columns should be shown
-                var attributes = FindAttributes(root, typeof(TreeGridDesignerColumnAttribute), out attributeOwner);
+                var attributes = FindAttributes(root, typeof(TreeGridDesignerColumnAttribute), out object attributeOwner);
                 TreeGridDesignerColumnDescriptor[] newColumns = null;
 
                 if (attributes != null
@@ -322,9 +312,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                             var branchType = attribute.BranchType;
 
                             // support types that implement IBranch with a default constructor
-                            var rootBranch = Activator.CreateInstance(branchType) 
-                                as ITreeGridDesignerInitializeBranch;
-                            if (rootBranch != null)
+                            if (Activator.CreateInstance(branchType) is ITreeGridDesignerInitializeBranch rootBranch)
                             {
                                 if (rootBranch.Initialize(attributeOwner, newColumns))
                                 {
@@ -352,7 +340,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                             {
                                 _currentColumns = newColumns;
 
-                                var variableColumnTree = tree as VariableColumnTree;
+                                VariableColumnTree variableColumnTree = tree as VariableColumnTree;
 
                                 Debug.Assert(variableColumnTree != null, "unable to change column count.");
                                 if (variableColumnTree != null)
@@ -383,8 +371,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
             if (attributes == null || attributes.Length == 0)
             {
-                var pe = root as PresentationElement;
-                if (pe != null)
+                if (root is PresentationElement pe)
                 {
                     // try the corresponding MEL if we have a PEL
                     if (pe.ModelElement != null)
@@ -410,7 +397,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         private TreeGridDesignerColumnDescriptor FindOrCreateColumn(Type columnType)
         {
             // find the column descriptor in the cache or create it
-            var column = (TreeGridDesignerColumnDescriptor)_columnTable[columnType];
+            TreeGridDesignerColumnDescriptor column = (TreeGridDesignerColumnDescriptor)_columnTable[columnType];
 
             if (column == null)
             {
@@ -534,9 +521,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         {
             if (e.HitInfo.HitTarget == VirtualTreeHitTargets.OnItemIcon)
             {
-                var branch = e.ItemInfo.Branch as ITreeGridDesignerBranch;
-
-                if (branch != null
+                if (e.ItemInfo.Branch is ITreeGridDesignerBranch branch
                     && Site != null
                     && e.ItemInfo.Row != -1)
                 {
@@ -562,9 +547,8 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                 && ContainsFocus)
             {
                 var info = Tree.GetItemInfo(CurrentIndex, 0, false);
-                var tridBranch = info.Branch as TreeGridDesignerBranch;
 
-                if (tridBranch != null)
+                if (info.Branch is TreeGridDesignerBranch tridBranch)
                 {
                     var eltCount = tridBranch.ElementCount;
                     if (info.Row >= eltCount
@@ -582,9 +566,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
             if (command != null)
             {
-                var menuCommandService = Site.GetService(typeof(IMenuCommandService)) as IMenuCommandService;
-
-                if (menuCommandService != null)
+                if (Site.GetService(typeof(IMenuCommandService)) is IMenuCommandService menuCommandService)
                 {
                     menuCommandService.GlobalInvoke(command);
                     return true;
@@ -642,8 +624,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// </summary>
         private static int GetLastColumnIndex(IBranch branch, int relIndex)
         {
-            var multiBranch = branch as IMultiColumnBranch;
-            if (multiBranch != null)
+            if (branch is IMultiColumnBranch multiBranch)
             {
                 if ((branch.Features & BranchFeatures.JaggedColumns) != 0)
                 {
@@ -664,11 +645,10 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             {
                 var absIndex = CurrentIndex;
                 var info = Tree.GetItemInfo(absIndex, 0, false);
-                var branch = info.Branch as ITreeGridDesignerBranch;
                 var column = CurrentColumn;
                 var relIndex = info.Row;
 
-                if (branch != null)
+                if (info.Branch is ITreeGridDesignerBranch branch)
                 {
                     var result = branch.ProcessKeyPress(relIndex, column, keyPressed, modifiers);
                     if (ProcessKey(result, branch, absIndex, relIndex, column))
@@ -691,11 +671,10 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             {
                 var absIndex = CurrentIndex;
                 var info = Tree.GetItemInfo(absIndex, 0, false);
-                var branch = info.Branch as ITreeGridDesignerBranch;
                 var column = CurrentColumn;
                 var relIndex = info.Row;
 
-                if (branch != null)
+                if (info.Branch is ITreeGridDesignerBranch branch)
                 {
                     // handle default action at the control level, do not route
                     // through the branch.
@@ -720,8 +699,6 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             return ProcessKeyReturn.NotHandled;
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private bool ProcessKey(ProcessKeyResult result, ITreeGridDesignerBranch branch, int absIndex, int relIndex, int column)
         {
             var actionOccurred = false;
@@ -743,11 +720,8 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                     // Alt + Down case - open drop down
                     if (result.Direction == NavigationDirection.Down)
                     {
-                        var dropDown = LabelEditControl as TypeEditorHost;
-                        if (dropDown != null)
-                        {
-                            dropDown.OpenDropDown();
-                        }
+                        TypeEditorHost dropDown = LabelEditControl as TypeEditorHost;
+                        dropDown?.OpenDropDown();
                     }
                     return true; // currently, we don't allow combining this with other options
                 }
@@ -762,9 +736,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                 BatchDrawItem = true;
                 if (inLabelEdit)
                 {
-                    var tridDesignerBranch = branch as TreeGridDesignerBranch;
-
-                    if (tridDesignerBranch != null
+                    if (branch is TreeGridDesignerBranch tridDesignerBranch
                         && relIndex >= tridDesignerBranch.ElementCount)
                     {
                         // creator node edit.  unless the user has actually typed some text here,
@@ -895,7 +867,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                                 break;
                             }
 
-                            var coordinate = new VirtualTreeCoordinate(absIndex, column);
+                            VirtualTreeCoordinate coordinate = new VirtualTreeCoordinate(absIndex, column);
                             if (absIndex == oldAbsIndex)
                             {
                                 // if the above didn't result in any navigation, ask the tree to do it itself.
@@ -1077,8 +1049,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                 throw new ArgumentOutOfRangeException("absIndex");
             }
 
-            NativeMethods.Rectangle rect;
-            NativeMethods.SendMessage(Handle, NativeMethods.LB_GETITEMRECT, absIndex, out rect);
+            NativeMethods.SendMessage(Handle, NativeMethods.LB_GETITEMRECT, absIndex, out NativeMethods.Rectangle rect);
             NativeMethods.RedrawWindow(
                 Handle, ref rect, IntPtr.Zero, NativeMethods.RedrawWindowFlags.Invalidate | NativeMethods.RedrawWindowFlags.Erase);
         }
@@ -1103,7 +1074,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             }
 
             var info = Tree.GetItemInfo(absIndex, 0, false);
-            var branch = info.Branch as ITreeGridDesignerBranch;
+            ITreeGridDesignerBranch branch = info.Branch as ITreeGridDesignerBranch;
 
             Debug.Assert(branch != null, "can only insert into branches that implement ITreeGridDesignerBranch");
 
@@ -1138,7 +1109,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                     _insertBranch.EndInsert(_insertIndex);
 
                     // redraw appropriate portions of the tree
-                    var branch = (IBranch)_insertBranch;
+                    IBranch branch = (IBranch)_insertBranch;
                     Tree.DisplayDataChanged(
                         new DisplayDataChangedData(
                             VirtualTreeDisplayDataChanges.VisibleElements, branch, _insertIndex, -1, branch.VisibleItemCount - _insertIndex));
@@ -1167,8 +1138,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
             if (propertyDescriptor != null)
             {
-                var uiTypeEditor = propertyDescriptor.GetEditor(typeof(UITypeEditor)) as UITypeEditor;
-                if (uiTypeEditor != null) // UITypeEditor case
+                if (propertyDescriptor.GetEditor(typeof(UITypeEditor)) is UITypeEditor uiTypeEditor) // UITypeEditor case
                 {
                     dropDown = new TreeGridDesignerInPlaceEditDropDown(uiTypeEditor, propertyDescriptor, instance);
                 }
@@ -1206,8 +1176,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
             if (propertyDescriptor != null)
             {
-                var uiTypeEditor = propertyDescriptor.GetEditor(typeof(UITypeEditor)) as UITypeEditor;
-                if (uiTypeEditor != null) // UITypeEditor case
+                if (propertyDescriptor.GetEditor(typeof(UITypeEditor)) is UITypeEditor uiTypeEditor) // UITypeEditor case
                 {
                     dropDown = new TreeGridDesignerInPlaceEditDropDown(uiTypeEditor, propertyDescriptor, instance, editControlStyle);
                 }

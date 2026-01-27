@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Permissions;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Collections;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Runtime.InteropServices;
-    using System.Security;
-    using System.Security.Permissions;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-
     #region Header control integration functions
 
     /// <summary>
@@ -92,7 +92,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// </summary>
         private void OnParentHandleCreated(object sender, EventArgs e)
         {
-            var parent = sender as Control;
+            Control parent = sender as Control;
             Debug.Assert(parent != null, "should have parent control");
             if (parent != null)
             {
@@ -112,10 +112,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         protected override void OnTabIndexChanged(EventArgs e)
         {
             base.OnTabIndexChanged(e);
-            if (myHeaderContainer != null)
-            {
-                myHeaderContainer.TabIndex = TabIndex;
-            }
+            myHeaderContainer?.TabIndex = TabIndex;
         }
 
         /// <summary>
@@ -133,7 +130,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <returns>The associated header control, or null</returns>
         public VirtualTreeHeaderControl HeaderControl
         {
-            get { return (myHeaderContainer != null) ? myHeaderContainer.HeaderControl : null; }
+            get { return myHeaderContainer?.HeaderControl; }
         }
 
         /// <summary>
@@ -155,7 +152,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.Data.Entity.Design.VisualStudio.NativeMethods.SetWindowLong(System.IntPtr,System.Int32,System.Int32)")]
         private void UpdateHeaderControlStyle(int style, bool onOff, bool uiChange)
         {
             if (myHeaderContainer != null
@@ -255,8 +251,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Whitehorse.CustomRules", "WH03:WinFormControlCatchUnhandledExceptions",
-            Justification = "All but critical exceptions are caught.")]
         private class HeaderContainer : Control
         {
             private readonly VirtualTreeHeaderControl myHeader;
@@ -380,7 +374,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "handle")]
         private void EnsureHeaderContainer()
         {
             if (myHeaderContainer == null)
@@ -395,7 +388,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "containerHandle")]
         private void AttachHeaderContainer()
         {
             if (myHeaderContainer != null)
@@ -439,8 +431,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
     /// <summary>
     ///     The control used to display column headers for the VirtualTreeControl
     /// </summary>
-    [SuppressMessage("Whitehorse.CustomRules", "WH03:WinFormControlCatchUnhandledExceptions",
-        Justification = "All but critical exceptions are caught.")]
     internal class VirtualTreeHeaderControl : Control
     {
         #region Internal state flags
@@ -555,7 +545,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// </summary>
         protected override void CreateHandle()
         {
-            var icc = new NativeMethods.INITCOMMONCONTROLSEX();
+            NativeMethods.INITCOMMONCONTROLSEX icc = new NativeMethods.INITCOMMONCONTROLSEX();
             icc.dwICC = NativeMethods.ICC_LISTVIEW_CLASSES;
             NativeMethods.InitCommonControlsEx(icc);
             base.CreateHandle();
@@ -611,7 +601,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="itemWidth"></param>
         public void AddItem(VirtualTreeColumnHeader columnHeader, int itemWidth)
         {
-            var item = new NativeMethods.HDITEM();
+            NativeMethods.HDITEM item = new NativeMethods.HDITEM();
             item.cxy = itemWidth;
             item.mask = NativeMethods.HDITEM.Mask.HDI_WIDTH;
             SetAppearanceFields(ref columnHeader, ref item);
@@ -628,7 +618,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             if (IsHandleCreated)
             {
-                var item = new NativeMethods.HDITEM();
+                NativeMethods.HDITEM item = new NativeMethods.HDITEM();
                 SetAppearanceFields(ref columnHeader, ref item);
                 if (item.mask != 0)
                 {
@@ -723,7 +713,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             // index requested here will always be the displayed order, not the true index,
             // so we need to switch to the true index before moving on.
             index = OrderToIndex(index);
-            var item = new NativeMethods.HDITEM();
+            NativeMethods.HDITEM item = new NativeMethods.HDITEM();
             item.cxy = itemWidth;
             item.mask = NativeMethods.HDITEM.Mask.HDI_WIDTH;
             NativeMethods.SendMessage(Handle, NativeMethods.HDM_SETITEMW, index, ref item);
@@ -830,8 +820,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         [SecuritySafeCritical]
         [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         [SecurityPermission(SecurityAction.InheritanceDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         protected override void WndProc(ref Message m)
         {
             try
@@ -939,7 +927,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     case NativeMethods.WM_CONTEXTMENU:
                         {
                             var notifyPoint = NativeMethods.GetMessagePos();
-                            var hitInfo = new NativeMethods.HDHITTESTINFO(PointToClient(notifyPoint));
+                            NativeMethods.HDHITTESTINFO hitInfo = new NativeMethods.HDHITTESTINFO(PointToClient(notifyPoint));
                             var index = (int)NativeMethods.SendMessage(m.HWnd, NativeMethods.HDM_HITTEST, 0, ref hitInfo);
                             if (index != -1
                                 && (0 != (hitInfo.flags & NativeMethods.HDHITTESTINFO.Flags.HHT_ONHEADER)))
@@ -961,16 +949,13 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                         }
                         else
                         {
-                            if (myOwnerDrawItemQueue != null)
-                            {
-                                myOwnerDrawItemQueue.Clear();
-                            }
-                            var ps = new NativeMethods.PAINTSTRUCT();
+                            myOwnerDrawItemQueue?.Clear();
+                            NativeMethods.PAINTSTRUCT ps = new NativeMethods.PAINTSTRUCT();
                             var dc = NativeMethods.BeginPaint(Handle, ref ps);
                             var oldPal = NativeMethods.SelectPalette(dc, Graphics.GetHalftonePalette(), 1);
                             try
                             {
-                                using (var g = Graphics.FromHdc(dc))
+                                using (Graphics g = Graphics.FromHdc(dc))
                                 {
                                     try
                                     {
@@ -1003,7 +988,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     case NativeMethods.WM_REFLECT + NativeMethods.WM_DRAWITEM:
                         if (myAssociatedControl != null)
                         {
-                            var dis = (NativeMethods.DRAWITEMSTRUCT)m.GetLParam(typeof(NativeMethods.DRAWITEMSTRUCT));
+                            NativeMethods.DRAWITEMSTRUCT dis = (NativeMethods.DRAWITEMSTRUCT)m.GetLParam(typeof(NativeMethods.DRAWITEMSTRUCT));
                             // transform itemId into a native column index. this will get passed in 
                             // the DrawItemEventArgs via the DrawColumnHeaderItem event.
                             dis.itemId = IndexToOrder(dis.itemId);
@@ -1015,10 +1000,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
                             // Queue the draw item message.  This allows us to do overlay drawing, because we can let
                             // the underlying control paint first if necessary.
-                            if (myOwnerDrawItemQueue == null)
-                            {
-                                myOwnerDrawItemQueue = new ArrayList();
-                            }
+                            myOwnerDrawItemQueue ??= [];
                             myOwnerDrawItemQueue.Add(dis);
 
                             // return 0 here if we want the column header to draw normally (i.e., we're doing overlay drawing)
@@ -1150,7 +1132,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 
         internal void WmReflectDrawItem(NativeMethods.DRAWITEMSTRUCT dis, Graphics g)
         {
-            var bounds = Rectangle.FromLTRB(dis.rcItem.left, dis.rcItem.top, dis.rcItem.right, dis.rcItem.bottom);
+            Rectangle bounds = Rectangle.FromLTRB(dis.rcItem.left, dis.rcItem.top, dis.rcItem.right, dis.rcItem.bottom);
             if (!ClientRectangle.IntersectsWith(bounds))
             {
                 return;
@@ -1225,7 +1207,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         {
             if (IsHandleCreated)
             {
-                var item = new NativeMethods.HDITEM();
+                NativeMethods.HDITEM item = new NativeMethods.HDITEM();
                 item.iOrder = index;
                 item.mask = NativeMethods.HDITEM.Mask.HDI_ORDER;
                 NativeMethods.SendMessage(Handle, NativeMethods.HDM_GETITEMW, index, ref item);
@@ -1262,14 +1244,14 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 else if (IsHandleCreated)
                 {
                     var hWnd = Handle;
-                    var layout = new NativeMethods.HDLAYOUT();
-                    var rect = new NativeMethods.RECT();
-                    var pRect = GCHandle.Alloc(rect, GCHandleType.Pinned);
-                    var pWindowPos = GCHandle.Alloc(new NativeMethods.WINDOWPOS(), GCHandleType.Pinned);
+                    NativeMethods.HDLAYOUT layout = new NativeMethods.HDLAYOUT();
+                    NativeMethods.RECT rect = new NativeMethods.RECT();
+                    GCHandle pRect = GCHandle.Alloc(rect, GCHandleType.Pinned);
+                    GCHandle pWindowPos = GCHandle.Alloc(new NativeMethods.WINDOWPOS(), GCHandleType.Pinned);
                     layout.prc = pRect.AddrOfPinnedObject();
                     layout.pwpos = pWindowPos.AddrOfPinnedObject();
                     NativeMethods.SendMessage(hWnd, NativeMethods.HDM_LAYOUT, 0, ref layout);
-                    var wp = (NativeMethods.WINDOWPOS)Marshal.PtrToStructure(layout.pwpos, typeof(NativeMethods.WINDOWPOS));
+                    NativeMethods.WINDOWPOS wp = (NativeMethods.WINDOWPOS)Marshal.PtrToStructure(layout.pwpos, typeof(NativeMethods.WINDOWPOS));
                     pWindowPos.Free();
                     pRect.Free();
                     myHeaderHeight = wp.cy;

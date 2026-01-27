@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     Dummy element which contains the Associations
     // </summary>
@@ -40,8 +40,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             // load children from model
             // note: have to go to parent to get this as this is a dummy node
-            var entityModel = Parent.ModelItem as BaseEntityModel;
-            if (entityModel != null)
+            if (Parent.ModelItem is BaseEntityModel entityModel)
             {
                 foreach (var child in entityModel.Associations())
                 {
@@ -78,8 +77,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var assoc = efElementToInsert as Association;
-            if (assoc != null)
+            if (efElementToInsert is Association assoc)
             {
                 var explorerAssociation = AddAssociation(assoc);
                 var index = _associations.IndexOf(explorerAssociation);
@@ -93,8 +91,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerAssociation = efElementToRemove as ExplorerAssociation;
-            if (explorerAssociation == null)
+            if (efElementToRemove is not ExplorerAssociation explorerAssociation)
             {
                 Debug.Fail(
                     string.Format(

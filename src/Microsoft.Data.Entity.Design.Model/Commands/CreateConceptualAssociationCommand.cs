@@ -1,19 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure.Pluralization;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Infrastructure.Pluralization;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class CreateConceptualAssociationCommand : Command
     {
         internal static readonly string PrereqId = "CreateConceptualAssociationCommand";
@@ -83,7 +82,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             ShouldCreateForeignKeyProperties = createForeignKeyProperties;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             var service = cpc.EditingContext.GetEFArtifactService();
@@ -108,9 +106,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     && !ModelHelper.IsUniquePropertyName(End1Entity, NavigationPropertyInEnd1Entity, true)
                     || NavigationPropertyInEnd1Entity == End1Entity.LocalName.Value)
                 {
-                    var namesToAvoid = new HashSet<string>();
-                    namesToAvoid.Add(End1Entity.LocalName.Value);
-                    namesToAvoid.Add(NavigationPropertyInEnd2Entity);
+                    HashSet<string> namesToAvoid = new HashSet<string>
+                    {
+                        End1Entity.LocalName.Value,
+                        NavigationPropertyInEnd2Entity
+                    };
                     NavigationPropertyInEnd1Entity = ModelHelper.GetUniqueConceptualPropertyName(
                         NavigationPropertyInEnd1Entity, End1Entity, namesToAvoid);
                 }
@@ -119,7 +119,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     && !ModelHelper.IsUniquePropertyName(End2Entity, NavigationPropertyInEnd2Entity, true)
                     || NavigationPropertyInEnd2Entity == End2Entity.LocalName.Value)
                 {
-                    var namesToAvoid = new HashSet<string> { End2Entity.LocalName.Value, NavigationPropertyInEnd1Entity };
+                    HashSet<string> namesToAvoid = new HashSet<string> { End2Entity.LocalName.Value, NavigationPropertyInEnd1Entity };
                     NavigationPropertyInEnd2Entity = ModelHelper.GetUniqueConceptualPropertyName(
                         NavigationPropertyInEnd2Entity, End2Entity, namesToAvoid);
                 }
@@ -128,8 +128,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 assocSetName = ModelHelper.GetUniqueName(typeof(AssociationSet), model.FirstEntityContainer, assocName);
 
-                string msg = null;
-                if (!ModelHelper.IsUniqueName(typeof(Association), model, assocName, false, out msg))
+                if (!ModelHelper.IsUniqueName(typeof(Association), model, assocName, false, out string msg))
                 {
                     throw new InvalidOperationException(msg);
                 }
@@ -164,7 +163,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // create the new item in our model
-            var association = new Association(model, null);
+            Association association = new Association(model, null);
             association.LocalName.Value = assocName;
             model.AddAssociation(association);
             XmlModelHelper.NormalizeAndResolve(association);
@@ -193,7 +192,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             XmlModelHelper.NormalizeAndResolve(_end2);
 
             // create the association set for this association
-            var cmd = new CreateAssociationSetCommand(assocSetName, association);
+            CreateAssociationSetCommand cmd = new CreateAssociationSetCommand(assocSetName, association);
             CommandProcessor.InvokeSingleCommand(cpc, cmd);
             var set = cmd.AssociationSet;
             Debug.Assert(set != null, "unable to create association set");
@@ -261,15 +260,15 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             var proposedEnd2NavPropName = ModelHelper.ConstructProposedNavigationPropertyName(
                 pluralizationService, end1Entity.LocalName.Value, end1Multiplicity);
             var end2NavigationPropertyName = ModelHelper.GetUniqueConceptualPropertyName(
-                proposedEnd2NavPropName, end2Entity, new HashSet<string> { end1NavigationPropertyName });
+                proposedEnd2NavPropName, end2Entity, [end1NavigationPropertyName]);
 
-            var cac = new CreateConceptualAssociationCommand(
+            CreateConceptualAssociationCommand cac = new CreateConceptualAssociationCommand(
                 associationName,
                 end1Entity, end1Multiplicity, end1NavigationPropertyName,
                 end2Entity, end2Multiplicity, end2NavigationPropertyName,
                 false, // uniquify names
                 false); // create foreign key properties
-            var cp = new CommandProcessor(cpc, cac);
+            CommandProcessor cp = new CommandProcessor(cpc, cac);
             cp.Invoke();
 
             return cac.CreatedAssociation;

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateOrUpdateConceptualAssociationCommand : CreateConceptualAssociationCommand
     {
         internal CreateOrUpdateConceptualAssociationCommand(Func<Command, CommandProcessorContext, bool> bindingAction)
@@ -30,9 +30,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     CreatedAssociation.AssociationEnds().Count == 2, "Association element is invalid, it should always have exactly 2 ends");
                 if (CreatedAssociation.AssociationEnds().Count == 2)
                 {
-                    AssociationEnd principal;
-                    AssociationEnd dependent;
-                    ModelHelper.DeterminePrincipalDependentEndsForAnyAssociationType(CreatedAssociation, out principal, out dependent);
+                    ModelHelper.DeterminePrincipalDependentEndsForAnyAssociationType(CreatedAssociation, out AssociationEnd principal, out AssociationEnd dependent);
 
                     if (principal.Type.Target == null
                         || !string.Equals(principal.Type.Target.Name.Value, End1Entity.LocalName.Value, StringComparison.Ordinal))
@@ -79,7 +77,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     {
                         var assocSetName = ModelHelper.GetUniqueName(
                             typeof(AssociationSet), cpc.Artifact.ConceptualModel().FirstEntityContainer, Name);
-                        var cmd = new CreateAssociationSetCommand(assocSetName, CreatedAssociation);
+                        CreateAssociationSetCommand cmd = new CreateAssociationSetCommand(assocSetName, CreatedAssociation);
                         CommandProcessor.InvokeSingleCommand(cpc, cmd);
                         associationSet = cmd.AssociationSet;
                     }

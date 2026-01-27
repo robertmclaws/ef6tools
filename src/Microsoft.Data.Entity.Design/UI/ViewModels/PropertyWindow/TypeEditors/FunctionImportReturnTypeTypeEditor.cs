@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.Util;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.TypeEditors
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Drawing.Design;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.Util;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-
     internal class FunctionImportReturnTypeTypeEditor : UITypeEditor
     {
         public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context)
@@ -42,8 +42,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.TypeEditors
                 return value;
             }
 
-            var funcImpDesc = context.Instance as EFFunctionImportDescriptor;
-            if (null == funcImpDesc)
+            if (context.Instance is not EFFunctionImportDescriptor funcImpDesc)
             {
                 Debug.Fail(
                     "Context Instance object should be EFFunctionImportDescriptor, instead received object of type "
@@ -99,7 +98,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.TypeEditors
             }
 
             var sModel = artifact.StorageModel();
-            var cContainer = cModel.FirstEntityContainer as ConceptualEntityContainer;
+            ConceptualEntityContainer cContainer = cModel.FirstEntityContainer as ConceptualEntityContainer;
             // Since "value" parameter does not contain namespace information, so we could not differentiate between a complex type named "Decimal" and "Decimal" primitive type,
             // we need to get the normalized-return-type-string from function import and use it instead.
             var selectedElement = ModelHelper.FindComplexTypeEntityTypeOrPrimitiveTypeForFunctionImportReturnType(

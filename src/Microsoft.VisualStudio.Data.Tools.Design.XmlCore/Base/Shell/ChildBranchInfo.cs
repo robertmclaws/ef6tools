@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     /// <summary>
     ///     Encapsulates information about a child branch contained within a header branch
     /// </summary>

@@ -1,31 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Activities;
+using System.Activities.Hosting;
+using System.Collections.Generic;
+using System.Data.Entity.Core;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
 {
-    using System;
-    using System.Activities;
-    using System.Activities.Hosting;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     /// <summary>
     ///     Generates store schema definition language (SSDL) based on the provided conceptual schema definition language (CSDL).
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Csdl")]
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ssdl")]
     public class CsdlToSsdl : IGenerateActivityOutput
     {
-        [SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields",
-            Justification = "Changing would require changes to GenerateActivityOutput public API")]
         private OutputGeneratorActivity _activity;
         private static string _ssdlUri, _essgUri;
         private static XNamespace _ssdl, _essg;
@@ -70,17 +66,14 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
             _activity = owningActivity;
 
             // First attempt to get the CSDL represented by the EdmItemCollection from the inputs
-            object o;
-            inputs.TryGetValue(EdmConstants.csdlInputName, out o);
-            var edmItemCollection = o as EdmItemCollection;
-            if (edmItemCollection == null)
+            inputs.TryGetValue(EdmConstants.csdlInputName, out object o);
+            if (o is not EdmItemCollection edmItemCollection)
             {
                 throw new InvalidOperationException(Resources.ErrorCouldNotFindCSDL);
             }
 
             var symbolResolver = context.GetExtension<SymbolResolver>();
-            var edmParameterBag = symbolResolver[typeof(EdmParameterBag).Name] as EdmParameterBag;
-            if (edmParameterBag == null)
+            if (symbolResolver[typeof(EdmParameterBag).Name] is not EdmParameterBag edmParameterBag)
             {
                 throw new InvalidOperationException(Resources.ErrorNoEdmParameterBag);
             }
@@ -189,7 +182,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
         internal static XElement ConstructSchemaElement
             (string providerInvariantName, string providerManifestToken, string ssdlNamespace)
         {
-            var schemaElement =
+            XElement schemaElement =
                 new XElement(
                     _ssdl + "Schema",
                     new XAttribute("Namespace", ssdlNamespace),
@@ -203,18 +196,15 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
             return schemaElement;
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         internal static List<XElement> ConstructEntityTypes(
             EdmItemCollection edmItemCollection, DbProviderManifest providerManifest, Version targetVersion)
         {
-            var entityTypes = new List<XElement>();
+            List<XElement> entityTypes = new List<XElement>();
 
             // Translate the CSDL EntityTypes into SSDL EntityTypes
             foreach (var csdlEntityType in edmItemCollection.GetAllEntityTypes())
             {
-                var entityTypeElement =
+                XElement entityTypeElement =
                     new XElement(
                         _ssdl + "EntityType",
                         new XAttribute("Name", OutputGeneratorHelpers.GetStorageEntityTypeName(csdlEntityType, edmItemCollection)));
@@ -222,7 +212,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                 // Add the keys
                 if (csdlEntityType.GetRootOrSelf().GetKeyProperties().Any())
                 {
-                    var keyElement = new XElement(_ssdl + "Key");
+                    XElement keyElement = new XElement(_ssdl + "Key");
                     foreach (EdmMember key in csdlEntityType.GetRootOrSelf().GetKeyProperties())
                     {
                         keyElement.Add(new XElement(_ssdl + "PropertyRef", new XAttribute("Name", key.Name)));
@@ -243,7 +233,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                         property.VisitComplexProperty(
                             (namePrefix, nestedProperty) =>
                                 {
-                                    var propertyElement = new XElement(
+                                    XElement propertyElement = new XElement(
                                         _ssdl + "Property",
                                         new XAttribute("Name", namePrefix),
                                         new XAttribute("Type", nestedProperty.GetStoreType(providerManifest)));
@@ -272,7 +262,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                     }
                     else
                     {
-                        var propertyElement = new XElement(
+                        XElement propertyElement = new XElement(
                             _ssdl + "Property",
                             new XAttribute("Name", property.Name),
                             new XAttribute("Type", property.GetStoreType(providerManifest)));
@@ -323,7 +313,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                 {
                     foreach (var keyProperty in containedAssociation.GetPrincipalEnd().GetEntityType().GetKeyProperties())
                     {
-                        var propertyElement = new XElement(
+                        XElement propertyElement = new XElement(
                             _ssdl + "Property",
                             new XAttribute(
                                 "Name",
@@ -360,11 +350,11 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
             // For all *:* Associations, we need a pair table and an associated pair EntityType
             foreach (var assoc in edmItemCollection.GetItems<AssociationType>().Where(a => a.IsManyToMany()))
             {
-                var entityTypeElement = new XElement(_ssdl + "EntityType", new XAttribute("Name", assoc.Name));
+                XElement entityTypeElement = new XElement(_ssdl + "EntityType", new XAttribute("Name", assoc.Name));
 
                 // We determine the properties as the aggregation of the primary keys from both ends of the association.
                 // These properties are also the keys of this new EntityTyp
-                var keyElement = new XElement(_ssdl + "Key");
+                XElement keyElement = new XElement(_ssdl + "Key");
                 foreach (var key in assoc.GetEnd1().GetKeyProperties())
                 {
                     keyElement.Add(
@@ -384,7 +374,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                 // These are foreign keys as well; we create 0..1 associations so these will be nullable keys
                 foreach (var property in assoc.GetEnd1().GetKeyProperties())
                 {
-                    var propertyElement = new XElement(
+                    XElement propertyElement = new XElement(
                         _ssdl + "Property",
                         new XAttribute("Name", OutputGeneratorHelpers.GetFkName(assoc, assoc.GetEnd2(), property.Name)),
                         new XAttribute("Type", property.GetStoreType(providerManifest)));
@@ -402,7 +392,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                 }
                 foreach (var property in assoc.GetEnd2().GetKeyProperties())
                 {
-                    var propertyElement = new XElement(
+                    XElement propertyElement = new XElement(
                         _ssdl + "Property",
                         new XAttribute("Name", OutputGeneratorHelpers.GetFkName(assoc, assoc.GetEnd1(), property.Name)),
                         new XAttribute("Type", property.GetStoreType(providerManifest)));
@@ -440,16 +430,14 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
             }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal static List<XElement> ConstructAssociations(EdmItemCollection edm, string ssdlNamespace)
         {
-            var associations = new List<XElement>();
+            List<XElement> associations = new List<XElement>();
 
             // Ignore *:* associations for now, just translate the CSDL Associations into SSDL Associations
             foreach (var association in edm.GetItems<AssociationType>().Where(a => !a.IsManyToMany()))
             {
-                var associationElement = new XElement(_ssdl + "Association", new XAttribute("Name", association.Name));
+                XElement associationElement = new XElement(_ssdl + "Association", new XAttribute("Name", association.Name));
 
                 var principalEnd = association.GetPrincipalEnd();
                 var dependentEnd = association.GetDependentEnd();
@@ -476,7 +464,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                                                : TranslateMultiplicity(RelationshipMultiplicity.Many);
                         }
 
-                        var associationEnd = new XElement(
+                        XElement associationEnd = new XElement(
                             _ssdl + "End",
                             new XAttribute("Role", end.Name),
                             new XAttribute("Type", ssdlNamespace + "." + OutputGeneratorHelpers.GetStorageEntityTypeName(entityType, edm)),
@@ -540,7 +528,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                     if (entityType1 != null
                         && entityType2 != null)
                     {
-                        var associationElement1 = new XElement(
+                        XElement associationElement1 = new XElement(
                             _ssdl + "Association",
                             new XAttribute("Name", OutputGeneratorHelpers.GetStorageAssociationNameFromManyToMany(m2mAssoc.GetEnd1())));
                         associationElement1.Add(
@@ -561,7 +549,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                         OutputGeneratorHelpers.CopyExtendedPropertiesToSsdlElement(m2mAssoc, associationElement1);
                         associations.Add(associationElement1);
 
-                        var associationElement2 = new XElement(
+                        XElement associationElement2 = new XElement(
                             _ssdl + "Association",
                             new XAttribute("Name", OutputGeneratorHelpers.GetStorageAssociationNameFromManyToMany(m2mAssoc.GetEnd2())));
                         associationElement2.Add(
@@ -590,14 +578,14 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
             // set to Cascade so that if you delete a row from the base table, any corresponding rows in the child table will also be deleted.
             foreach (var derivedType in edm.GetAllEntityTypes().Where(et => et.BaseType != null))
             {
-                var pkAssociation = new XElement(
+                XElement pkAssociation = new XElement(
                     _ssdl + "Association",
                     new XAttribute(
                         "Name",
                         String.Format(
                             CultureInfo.CurrentCulture, Resources.CodeViewFKConstraintDerivedType, derivedType.Name,
                             derivedType.BaseType.Name)));
-                var baseTypeRole = new XElement(
+                XElement baseTypeRole = new XElement(
                     _ssdl + "End",
                     new XAttribute("Role", derivedType.BaseType.Name),
                     new XAttribute(
@@ -628,7 +616,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
             string principalRole, AssociationEndMember principalEnd,
             string dependentRole, AssociationEndMember dependentEnd)
         {
-            var refConstraintElement = new XElement(_ssdl + "ReferentialConstraint");
+            XElement refConstraintElement = new XElement(_ssdl + "ReferentialConstraint");
 
             if (dependentEnd != null
                 && principalEnd != null)
@@ -659,15 +647,15 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
             string dependentRole,
             IEnumerable<string> dependentPropRefNames)
         {
-            var refConstraintElement = new XElement(_ssdl + "ReferentialConstraint");
-            var principalElement = new XElement(_ssdl + "Principal", new XAttribute("Role", principalRole));
+            XElement refConstraintElement = new XElement(_ssdl + "ReferentialConstraint");
+            XElement principalElement = new XElement(_ssdl + "Principal", new XAttribute("Role", principalRole));
             foreach (var keyName in principalPropRefNames)
             {
                 principalElement.Add(new XElement(_ssdl + "PropertyRef", new XAttribute("Name", keyName)));
             }
             refConstraintElement.Add(principalElement);
 
-            var dependentElement = new XElement(_ssdl + "Dependent", new XAttribute("Role", dependentRole));
+            XElement dependentElement = new XElement(_ssdl + "Dependent", new XAttribute("Role", dependentRole));
             foreach (var keyName in dependentPropRefNames)
             {
                 dependentElement.Add(new XElement(_ssdl + "PropertyRef", new XAttribute("Name", keyName)));
@@ -679,7 +667,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
         internal static XElement ConstructEntityContainer(
             EdmItemCollection edm, string databaseSchemaName, string csdlNamespace, string ssdlNamespace)
         {
-            var entityContainerElement =
+            XElement entityContainerElement =
                 new XElement(
                     _ssdl + "EntityContainer",
                     new XAttribute("Name", OutputGeneratorHelpers.ConstructStorageEntityContainerName(csdlNamespace)));

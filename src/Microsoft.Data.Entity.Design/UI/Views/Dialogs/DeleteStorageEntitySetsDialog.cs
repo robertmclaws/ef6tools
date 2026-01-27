@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     internal partial class DeleteStorageEntitySetsDialog : Form
     {
         #region TEST HOOKS
@@ -57,7 +57,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             Debug.Assert(null != storageEntitySets, "Constructor requires a Collection of StorageEntitySets");
             if (null != storageEntitySets)
             {
-                var entitySets = new List<StorageEntitySet>(storageEntitySets);
+                List<StorageEntitySet> entitySets = new List<StorageEntitySet>(storageEntitySets);
                 entitySets.Sort(EFElement.EFElementDisplayNameComparison);
                 StorageEntitySetsListBox.Items.AddRange(entitySets.ToArray());
                 ViewUtils.DisplayHScrollOnListBoxIfNecessary(StorageEntitySetsListBox);

@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.VisualStudio.Shell;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using Microsoft.VisualStudio.Shell;
-
     // <summary>
     //     Wrapper around ErrorListProvider
     // </summary>
@@ -32,10 +32,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         {
             if (disposing)
             {
-                if (_provider != null)
-                {
-                    _provider.Dispose();
-                }
+                _provider?.Dispose();
             }
         }
 

@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Xml.Linq;
-
     internal abstract class BaseEntityModel : EFRuntimeModelRoot
     {
         internal static readonly string ElementName = "Schema";
         internal static readonly string AttributeAlias = "Alias";
         internal static readonly string AttributeNamespace = "Namespace";
 
-        protected List<BaseEntityContainer> _entityContainers = new List<BaseEntityContainer>();
-        private readonly List<EntityType> _entityTypes = new List<EntityType>();
-        private readonly List<Association> _associations = new List<Association>();
+        protected List<BaseEntityContainer> _entityContainers = [];
+        private readonly List<EntityType> _entityTypes = [];
+        private readonly List<Association> _associations = [];
 
         private DefaultableValue<string> _aliasAttr;
         private DefaultableValue<string> _namespaceAttr;
@@ -39,11 +39,8 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_aliasAttr == null)
-                {
-                    // we can safely create these here since we are the top node and don't need to be parsed first
-                    _aliasAttr = new AliasDefaultableValue(this);
-                }
+                // we can safely create these here since we are the top node and don't need to be parsed first
+                _aliasAttr ??= new AliasDefaultableValue(this);
                 return _aliasAttr;
             }
         }
@@ -73,11 +70,8 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_namespaceAttr == null)
-                {
-                    // we can safely create these here since we are the top node and don't need to be parsed first
-                    _namespaceAttr = new NamespaceDefaultableValue(this);
-                }
+                // we can safely create these here since we are the top node and don't need to be parsed first
+                _namespaceAttr ??= new NamespaceDefaultableValue(this);
                 return _namespaceAttr;
             }
         }
@@ -195,22 +189,19 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as BaseEntityContainer;
-            if (child1 != null)
+            if (efContainer is BaseEntityContainer child1)
             {
                 _entityContainers.Remove(child1);
                 return;
             }
 
-            var child2 = efContainer as EntityType;
-            if (child2 != null)
+            if (efContainer is EntityType child2)
             {
                 _entityTypes.Remove(child2);
                 return;
             }
 
-            var child3 = efContainer as Association;
-            if (child3 != null)
+            if (efContainer is Association child3)
             {
                 _associations.Remove(child3);
                 return;
@@ -279,7 +270,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             }
             else if (elem.Name.LocalName == Association.ElementName)
             {
-                var assoc = new Association(this, elem);
+                Association assoc = new Association(this, elem);
                 _associations.Add(assoc);
                 assoc.Parse(unprocessedElements);
             }

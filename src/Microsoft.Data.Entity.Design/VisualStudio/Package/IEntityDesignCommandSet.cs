@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.ComponentModel.Design;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.VisualStudio.Modeling.Shell;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System.ComponentModel.Design;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.VisualStudio.Modeling.Shell;
-
     internal interface IEntityDesignCommandSet
     {
         // <summary>

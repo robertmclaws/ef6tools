@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
-
     [TestClass]
     public class UpdateModelFromDatabaseModelBuilderEngineTests
     {
@@ -27,7 +25,7 @@ using FluentAssertions;
             [TestMethod]
             public void UpdateDesignerInfo_updates_no_properties_in_designer_section()
             {
-                var mockEdmxHelper = new Mock<EdmxHelper>(new XDocument());
+                Mock<EdmxHelper> mockEdmxHelper = new Mock<EdmxHelper>(new XDocument());
                 new UpdateModelFromDatabaseModelBuilderEngineFake()
                     .UpdateDesignerInfoInvoker(mockEdmxHelper.Object, new ModelBuilderSettings());
 

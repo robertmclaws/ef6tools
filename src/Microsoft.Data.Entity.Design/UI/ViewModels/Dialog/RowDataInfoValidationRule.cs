@@ -1,25 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.ComponentModel;
+using System.Globalization;
+using System.Text;
+using System.Windows.Controls;
+using System.Windows.Data;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels
 {
-    using System.ComponentModel;
-    using System.Globalization;
-    using System.Text;
-    using System.Windows.Controls;
-    using System.Windows.Data;
-
     internal class RowDataInfoValidationRule : ValidationRule
     {
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {
-            var group = (BindingGroup)value;
+            BindingGroup group = (BindingGroup)value;
 
-            var errorMessages = new StringBuilder();
+            StringBuilder errorMessages = new StringBuilder();
             foreach (var item in group.Items)
             {
                 // aggregate errors
-                var info = item as IDataErrorInfo;
-                if (info != null)
+                if (item is IDataErrorInfo info)
                 {
                     if (string.IsNullOrWhiteSpace(info.Error) == false)
                     {

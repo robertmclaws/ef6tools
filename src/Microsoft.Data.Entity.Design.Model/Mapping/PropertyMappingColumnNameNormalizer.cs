@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Diagnostics;
-
     internal static class PropertyMappingColumnNameNormalizer
     {
         internal static NormalizedName NameNormalizer(EFElement parent, string refName)
@@ -18,12 +18,9 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             var parentItem = parent;
             Debug.Assert(parentItem != null, "parent.Parent should be an EFElement");
 
-            var frag = parentItem.GetParentOfType(typeof(MappingFragment)) as MappingFragment;
-            var asm = parentItem.GetParentOfType(typeof(AssociationSetMapping)) as AssociationSetMapping;
-
             Symbol symbol = null;
 
-            if (frag != null
+            if (parentItem.GetParentOfType(typeof(MappingFragment)) is MappingFragment frag
                 && frag.StoreEntitySet.Status == BindingStatus.Known)
             {
                 // walk up until we find our MappingFragment, then we can walk to the EntitySet in the S-Space
@@ -34,7 +31,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                     if (storageSpaceEntitySet.EntityType.Target != null)
                     {
                         var entityTypeSymbol = storageSpaceEntitySet.EntityType.Target.NormalizedName;
-                        var propertySymbol = new Symbol(entityTypeSymbol, refName);
+                        Symbol propertySymbol = new Symbol(entityTypeSymbol, refName);
 
                         var artifactSet = parent.Artifact.ModelManager.GetArtifactSet(parent.Artifact.Uri);
                         var item = artifactSet.LookupSymbol(propertySymbol);
@@ -45,7 +42,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                     }
                 }
             }
-            else if (asm != null)
+            else if (parentItem.GetParentOfType(typeof(AssociationSetMapping)) is AssociationSetMapping asm)
             {
                 // this is a condition under an AssocationSetMapping or a ScalarProperty under an EndProperty
                 // regardless, use the reference to our S-Space from the asm
@@ -66,12 +63,9 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                 }
             }
 
-            if (symbol == null)
-            {
-                symbol = new Symbol(refName);
-            }
+            symbol ??= new Symbol(refName);
 
-            var normalizedName = new NormalizedName(symbol, null, null, refName);
+            NormalizedName normalizedName = new NormalizedName(symbol, null, null, refName);
             return normalizedName;
         }
     }

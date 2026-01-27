@@ -2,17 +2,16 @@
 
 using XmlDesignerBaseTextSpan = Microsoft.Data.Tools.XmlDesignerBase.Model.TextSpan;
 using VSTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows.Threading;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
 
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows.Threading;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -74,7 +73,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
         ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
         /// </summary>
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public override bool CanEditXmlModel()
         {
             string moniker = null;
@@ -148,7 +146,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
         public static VSTextSpan ConvertToVSTextSpan(XmlDesignerBaseTextSpan textSpan)
         {
-            var ret = new VSTextSpan();
+            VSTextSpan ret = new VSTextSpan();
             ret.iStartIndex = textSpan.iStartIndex;
             ret.iStartLine = textSpan.iStartLine;
             ret.iEndIndex = textSpan.iEndIndex;
@@ -164,7 +162,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
         /// <returns>This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.</returns>
         public static XmlDesignerBaseTextSpan ConvertFromVSTextSpan(VSTextSpan textSpan)
         {
-            var ret = new XmlDesignerBaseTextSpan();
+            XmlDesignerBaseTextSpan ret = new XmlDesignerBaseTextSpan();
             ret.iStartIndex = textSpan.iStartIndex;
             ret.iStartLine = textSpan.iStartLine;
             ret.iEndIndex = textSpan.iEndIndex;

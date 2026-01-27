@@ -1,17 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.Activities;
+using System.Activities.Hosting;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.TextTemplating;
 
 namespace Microsoft.Data.Entity.Design.DatabaseGeneration.Activities
 {
-    using System;
-    using System.Activities;
-    using System.Activities.Hosting;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.TextTemplating;
-
     /// <summary>
     ///     SsdlToDdlActivity that allows the transformation of SSDL to DDL using a TemplateActivity.
     ///     NOTE that this class should avoid any dependencies on any instance types (especially types instantiated by the
@@ -19,8 +20,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.Activities
     ///     Microsoft.Data.Entity.Design.CreateDatabase.
     ///     This class exists in this project because of VS dependencies.
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ddl")]
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ssdl")]
     public sealed class SsdlToDdlActivity : TemplateActivity
     {
         /// <summary>
@@ -28,21 +27,18 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.Activities
         ///     that is generated from the store schema definition language (SSDL) in the
         ///     <see cref="SsdlInput" /> and <see cref="ExistingSsdlInput" /> properties.
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ddl")]
         public OutArgument<string> DdlOutput { get; set; }
 
         /// <summary>
         ///     A Windows Workflow <see cref="InArgument{T}" /> that specifies the existing store schema definition language (SSDL)
         ///     from which the data definition language (DDL) for dropping existing database objects is generated.
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ssdl")]
         public InArgument<string> ExistingSsdlInput { get; set; }
 
         /// <summary>
         ///     A Windows Workflow <see cref="InArgument{T}" /> that specifies the store schema definition language (SSDL) from which the data
         ///     definition language (DDL) for creating new database objects is generated.
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ssdl")]
         public InArgument<string> SsdlInput { get; set; }
 
         /// <summary>
@@ -57,8 +53,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.Activities
             inputs.Add(EdmConstants.existingSsdlInputName, ExistingSsdlInput.Get(context));
 
             var symbolResolver = context.GetExtension<SymbolResolver>();
-            var edmParameterBag = symbolResolver[typeof(EdmParameterBag).Name] as EdmParameterBag;
-            if (edmParameterBag == null)
+            if (symbolResolver[typeof(EdmParameterBag).Name] is not EdmParameterBag edmParameterBag)
             {
                 throw new InvalidOperationException(Resources.DatabaseCreation_ErrorNoEdmParameterBag);
             }
@@ -126,7 +121,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.Activities
             if (TemplatePath.Get(context) == null)
             {
                 var symbolResolver = context.GetExtension<SymbolResolver>();
-                var edmParameterBag = symbolResolver[typeof(EdmParameterBag).Name] as EdmParameterBag;
+                EdmParameterBag edmParameterBag = symbolResolver[typeof(EdmParameterBag).Name] as EdmParameterBag;
                 var ddlTemplatePath = edmParameterBag.GetParameter<string>(EdmParameterBag.ParameterName.DDLTemplatePath);
 
                 if (String.IsNullOrEmpty(ddlTemplatePath))

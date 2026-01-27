@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     This class represents a set of artifacts that are validated and resolved with respect to one another.
     ///     This class contains resolve information (symbols &amp; bindings) and dep &amp; anti-dep info
@@ -27,9 +27,9 @@ namespace Microsoft.Data.Entity.Design.Model
         ///     the resolve errors.
         /// </summary>
         private readonly Dictionary<EFArtifact, Dictionary<ErrorClass, ICollection<ErrorInfo>>> _artifacts2Errors =
-            new Dictionary<EFArtifact, Dictionary<ErrorClass, ICollection<ErrorInfo>>>();
+            [];
 
-        private readonly Dictionary<Symbol, List<EFElement>> _symbolTable = new Dictionary<Symbol, List<EFElement>>();
+        private readonly Dictionary<Symbol, List<EFElement>> _symbolTable = [];
         private readonly EFDependencyGraph _dependencyGraph = new EFDependencyGraph();
 
         internal EFArtifactSet(EFArtifact artifact)
@@ -39,7 +39,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal void Add(EFArtifact artifact)
         {
-            _artifacts2Errors.Add(artifact, new Dictionary<ErrorClass, ICollection<ErrorInfo>>());
+            _artifacts2Errors.Add(artifact, []);
         }
 
         internal ICollection<EFArtifact> Artifacts
@@ -56,8 +56,10 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             if (!_symbolTable.ContainsKey(symbol))
             {
-                var list = new List<EFElement>(1);
-                list.Add(item);
+                List<EFElement> list = new List<EFElement>(1)
+                {
+                    item
+                };
                 _symbolTable.Add(symbol, list);
             }
             else
@@ -73,7 +75,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
                     // add an duplicate symbol error
                     var msg = String.Format(CultureInfo.CurrentCulture, Resources.NORMALIZE_DUPLICATE_SYMBOL_DEFINED, displayableSymbol);
-                    var errorInfo = new ErrorInfo(
+                    ErrorInfo errorInfo = new ErrorInfo(
                         ErrorInfo.Severity.ERROR, msg, item, ErrorCodes.NORMALIZE_DUPLICATE_SYMBOL_DEFINED, ErrorClass.ResolveError);
                     AddError(errorInfo);
                 }
@@ -133,11 +135,10 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns>The list of items with the symbol, the list may be empty</returns>
         internal IList<EFElement> GetSymbolList(Symbol symbol)
         {
-            List<EFElement> symbolList;
 
-            return _symbolTable.TryGetValue(symbol, out symbolList)
+            return _symbolTable.TryGetValue(symbol, out List<EFElement> symbolList)
                        ? symbolList
-                       : new List<EFElement>();
+                       : [];
         }
 
         /// <summary>
@@ -148,7 +149,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns></returns>
         internal HashSet<EFElement> GetElementsContainingFirstSymbolPart(string firstPart)
         {
-            var elements = new HashSet<EFElement>();
+            HashSet<EFElement> elements = new HashSet<EFElement>();
 
             if (string.IsNullOrEmpty(firstPart))
             {
@@ -178,7 +179,7 @@ namespace Microsoft.Data.Entity.Design.Model
         internal void RemoveArtifact(EFArtifact artifact)
         {
             // need to also remove the symbols for this artifact
-            var keysToRemove = new List<Symbol>();
+            List<Symbol> keysToRemove = new List<Symbol>();
 
             foreach (var key in _symbolTable.Keys)
             {
@@ -255,10 +256,9 @@ namespace Microsoft.Data.Entity.Design.Model
                 "Unexpected ErrorClass of ErrorInfo; it should be a non-zero, non-composite (one and only 1 bit should be set)");
 
             var errorClass2ErrorInfo = _artifacts2Errors[errorInfo.Item.Artifact];
-            ICollection<ErrorInfo> errors;
-            if (!errorClass2ErrorInfo.TryGetValue(errorInfo.ErrorClass, out errors))
+            if (!errorClass2ErrorInfo.TryGetValue(errorInfo.ErrorClass, out ICollection<ErrorInfo> errors))
             {
-                errors = new List<ErrorInfo>();
+                errors = [];
                 errorClass2ErrorInfo[errorInfo.ErrorClass] = errors;
             }
 
@@ -279,7 +279,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 foreach (var errorsForClass in errorClass2ErrorInfo.Values)
                 {
                     // store these off because we can't remove while iterating
-                    var errorsToRemove = new List<ErrorInfo>();
+                    List<ErrorInfo> errorsToRemove = new List<ErrorInfo>();
 
                     // find any errors that reference the passed in item
                     foreach (var errorInfo in errorsForClass)
@@ -313,7 +313,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 foreach (var errorsForClass in errorClass2ErrorInfo.Values)
                 {
                     // store these off because we can't remove while iterating
-                    var errorsToRemove = new List<ErrorInfo>();
+                    List<ErrorInfo> errorsToRemove = new List<ErrorInfo>();
 
                     // find any errors that reference the passed in item
                     foreach (var errorInfo in errorsForClass)
@@ -347,13 +347,12 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal void RemoveErrorsForEFObject(EFObject efobject, ErrorClass errorClass, int errorCodeToRemove)
         {
-            Dictionary<ErrorClass, ICollection<ErrorInfo>> errorClass2ErrorInfo = null;
-            _artifacts2Errors.TryGetValue(efobject.Artifact, out errorClass2ErrorInfo);
+            _artifacts2Errors.TryGetValue(efobject.Artifact, out Dictionary<ErrorClass, ICollection<ErrorInfo>> errorClass2ErrorInfo);
             if (errorClass2ErrorInfo != null)
             {
                 foreach (var errors in GetErrorInfosUsingMask(errorClass2ErrorInfo, errorClass))
                 {
-                    var errorsToRemove = new List<ErrorInfo>();
+                    List<ErrorInfo> errorsToRemove = new List<ErrorInfo>();
                     foreach (var errorInfo in errors)
                     {
                         if (errorInfo.ErrorCode == errorCodeToRemove)
@@ -377,7 +376,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <param name="artifact"></param>
         internal ICollection<ErrorInfo> GetAllErrorsForArtifact(EFArtifact artifact)
         {
-            var allErrors = new List<ErrorInfo>();
+            List<ErrorInfo> allErrors = new List<ErrorInfo>();
             GetAllErrorsForArtifact(artifact, allErrors);
             return allErrors;
         }
@@ -388,7 +387,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <param name="artifact"></param>
         internal ICollection<ErrorInfo> GetArtifactOnlyErrors(EFArtifact artifact)
         {
-            var errors = new List<ErrorInfo>();
+            List<ErrorInfo> errors = new List<ErrorInfo>();
             var errorClass2ErrorInfo = _artifacts2Errors[artifact];
             foreach (var errorsForClass in errorClass2ErrorInfo.Values)
             {
@@ -434,7 +433,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal ICollection<ErrorInfo> GetAllErrors()
         {
-            var allErrors = new List<ErrorInfo>();
+            List<ErrorInfo> allErrors = new List<ErrorInfo>();
             foreach (var artifact in Artifacts)
             {
                 GetAllErrorsForArtifact(artifact, allErrors);
@@ -444,7 +443,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal ICollection<ErrorInfo> GetErrors(ErrorClass errorClass)
         {
-            var allErrors = new List<ErrorInfo>();
+            List<ErrorInfo> allErrors = new List<ErrorInfo>();
             foreach (var artifact in Artifacts)
             {
                 GetErrorsForArtifact(artifact, allErrors, errorClass);
@@ -454,9 +453,8 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal void GetErrorsForArtifact(EFArtifact artifact, List<ErrorInfo> errors, ErrorClass errorClass)
         {
-            Dictionary<ErrorClass, ICollection<ErrorInfo>> errorClass2ErrorInfo = null;
 
-            _artifacts2Errors.TryGetValue(artifact, out errorClass2ErrorInfo);
+            _artifacts2Errors.TryGetValue(artifact, out Dictionary<ErrorClass, ICollection<ErrorInfo>> errorClass2ErrorInfo);
 
             if (errorClass2ErrorInfo != null)
             {
@@ -481,8 +479,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             get
             {
-                return _errorClassValues ??
-                       (_errorClassValues = Enum.GetValues(typeof(ErrorClass)).Cast<uint>().ToList());
+                return _errorClassValues ??= Enum.GetValues(typeof(ErrorClass)).Cast<uint>().ToList();
             }
         }
 
@@ -510,11 +507,11 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal List<string> GetSymbols()
         {
-            var symbols = new List<string>();
+            List<string> symbols = new List<string>();
             foreach (var key in _symbolTable.Keys)
             {
                 var symbolValues = _symbolTable[key];
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 sb.Append(key.ToDebugString() + "|");
                 for (var i = 0; i < symbolValues.Count; i++)
                 {

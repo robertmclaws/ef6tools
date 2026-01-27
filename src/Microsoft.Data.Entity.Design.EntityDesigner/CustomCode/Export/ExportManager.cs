@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 {
-    using System;
-
     /// <summary>
     /// Orchestrates diagram export operations by selecting and invoking
     /// the appropriate exporter based on the requested format.

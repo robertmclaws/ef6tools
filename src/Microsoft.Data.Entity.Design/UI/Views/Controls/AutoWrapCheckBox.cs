@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Controls
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Windows.Forms;
-
     // <summary>
     //     This helper class is used to override default behavior of a check-box which tries to fit all contents in 1 line.
     // </summary>

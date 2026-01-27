@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-
     internal class ExplorerEntityTypeShape : EntityDesignExplorerEFElement
     {
         public ExplorerEntityTypeShape(EditingContext context, EntityTypeShape entityTypeShape, ExplorerEFElement parent)
@@ -45,7 +45,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             get
             {
-                var entityTypeShape = ModelItem as EntityTypeShape;
+                EntityTypeShape entityTypeShape = ModelItem as EntityTypeShape;
                 Debug.Assert(entityTypeShape != null, "The underlying entity type shape is null.");
                 if (entityTypeShape != null)
                 {
@@ -64,7 +64,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             // EntityTypeShape is not a nameable item so it could not be renamed.
             // When the object is renamed, we actually rename its underlying entity-type.            
-            var entityTypeShape = ModelItem as EntityTypeShape;
+            EntityTypeShape entityTypeShape = ModelItem as EntityTypeShape;
             var entityType = entityTypeShape.EntityType.Target;
             Debug.Assert(entityType != null, "EntityType is null.");
 

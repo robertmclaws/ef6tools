@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     TODO 565946: This implements some temporary functionality to allow us to delete PKs from the entity designer model,
     ///     since IModelElements for PKs currently have no information (not even a name) once they are deleted.
@@ -35,16 +35,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 foreach (var entityType in Model.EntityTypes())
                 {
-                    var storageEntityType = entityType as StorageEntityType;
-                    var conceptualEntityType = entityType as ConceptualEntityType;
-
                     SchemaQualifiedName entityNameToLookFor = null;
-                    if (storageEntityType != null)
+                    if (entityType is StorageEntityType storageEntityType)
                     {
-                        var entitySet = storageEntityType.EntitySet as StorageEntitySet;
+                        StorageEntitySet entitySet = storageEntityType.EntitySet as StorageEntitySet;
                         entityNameToLookFor = new SchemaQualifiedName(entitySet.Schema.Value, entitySet.Table.Value);
                     }
-                    else if (conceptualEntityType != null)
+                    else if (entityType is ConceptualEntityType conceptualEntityType)
                     {
                         // If this EntityType has a base type, it should not have any keys.
                         if (conceptualEntityType.BaseType.Target != null)

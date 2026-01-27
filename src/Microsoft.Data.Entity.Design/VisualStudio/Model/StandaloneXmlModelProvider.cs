@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
+using EnvDTE;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Linq;
-    using System.Xml;
-    using System.Xml.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone;
-
     // <summary>
     //     This XmlModelProvider uses a strategy pattern to accept 'Loaders' which
     //     define how to build an XDocument from a given URI. In addition, it can discriminate
@@ -61,21 +61,19 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
             // Try to load the artifact string via extensions, if that doesn't work fall back to using the buffer on disk
             var inputDocument = File.ReadAllText(uri.LocalPath);
             var projectItem = VsUtils.GetProjectItemForDocument(uri.LocalPath, _serviceProvider);
-            string documentToLoad;
             return
-                TryGetBufferViaExtensions(projectItem, inputDocument, out documentToLoad, out _extensionErrors)
+                TryGetBufferViaExtensions(projectItem, inputDocument, out string documentToLoad, out _extensionErrors)
                     ? documentToLoad
                     : inputDocument;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         private static XDocument CreateAnnotatedXDocument(string documentContents)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(documentContents), "invalid edmx contents");
 
-            using (var stringReader = new StringReader(documentContents))
+            using (StringReader stringReader = new StringReader(documentContents))
             {
-                using (var reader = XmlReader.Create(stringReader))
+                using (XmlReader reader = XmlReader.Create(stringReader))
                 {
                     return CreateAnnotatedXDocument(reader);
                 }
@@ -86,7 +84,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
         {
             Debug.Assert(uri != null, "uri != null");
 
-            using (var reader = XmlReader.Create(uri.LocalPath))
+            using (XmlReader reader = XmlReader.Create(uri.LocalPath))
             {
                 return CreateAnnotatedXDocument(reader);
             }
@@ -110,7 +108,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
                 || !VsUtils.EntityFrameworkSupportedInProject(projectItem.ContainingProject, PackageManager.Package, allowMiscProject: false)
                 || (serializers.Length == 0 && converters.Length == 0))
             {
-                errors = new List<ExtensionError>();
+                errors = [];
                 documentViaExtensions = "";
                 return false;
             }
@@ -121,7 +119,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
         }
 
         // TODO: Refactor this method when fixing https://entityframework.codeplex.com/workitem/1371
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static bool TryGetBufferViaExtensions(
             IServiceProvider serviceProvider, ProjectItem projectItem, string fileContents,
             Lazy<IModelConversionExtension, IEntityDesignerConversionData>[] converters,
@@ -134,7 +131,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
             Debug.Assert(serializers != null && converters != null, "extensions must not be null");
             Debug.Assert(serializers.Any() || converters.Any(), "at least one extension expected");
 
-            errors = new List<ExtensionError>();
+            errors = [];
             documentViaExtensions = "";
 
             ModelConversionContextImpl conversionContext = null;
@@ -199,14 +196,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
                         // the XDocuments together since the original buffer may have different whitespace after creating the XDocument.
                         // TODO: Why not use XNode.DeepEquals()?
                         string newBufferContents;
-                        using (var currentDocWriter = new Utf8StringWriter())
+                        using (Utf8StringWriter currentDocWriter = new Utf8StringWriter())
                         {
                             transformContext.CurrentDocument.Save(currentDocWriter, SaveOptions.None);
                             newBufferContents = currentDocWriter.ToString();
                         }
 
                         string originalBufferContents;
-                        using (var originalDocWriter = new Utf8StringWriter())
+                        using (Utf8StringWriter originalDocWriter = new Utf8StringWriter())
                         {
                             originalDocument.Save(originalDocWriter, SaveOptions.None);
                             originalBufferContents = originalDocWriter.ToString();

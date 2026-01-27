@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     This class represents a table that has been mapped to an entity.
     // </summary>
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                 }
                 else
                 {
-                    var et = ModelItem as EntityType;
+                    EntityType et = ModelItem as EntityType;
                     Debug.Assert(et != null, "ModelItem is of wrong type " + ModelItem.GetType().FullName);
 
                     return string.Format(
@@ -66,19 +66,18 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
         {
             get
             {
-                _conditions = new List<MappingCondition>();
+                _conditions = [];
 
                 if (StorageEntityType != null)
                 {
                     // get the table's entity set
-                    var ses = StorageEntityType.EntitySet as StorageEntitySet;
-                    if (ses != null)
+                    if (StorageEntityType.EntitySet is StorageEntitySet ses)
                     {
                         // get all of its fragments
                         foreach (var frag in ses.MappingFragments)
                         {
                             // make sure that this fragment is for the C-Entity we are referencing
-                            var etm = frag.Parent as EntityTypeMapping;
+                            EntityTypeMapping etm = frag.Parent as EntityTypeMapping;
                             Debug.Assert(
                                 etm != null,
                                 "fragment's parent is not an EntityTypeMapping, instead of type " + frag.Parent.GetType().FullName);
@@ -90,7 +89,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                                 // add the conditions to our view model
                                 foreach (var cond in frag.Conditions())
                                 {
-                                    var mcond = (MappingCondition)ModelToMappingModelXRef.GetNewOrExisting(_context, cond, this);
+                                    MappingCondition mcond = (MappingCondition)ModelToMappingModelXRef.GetNewOrExisting(_context, cond, this);
                                     _conditions.Add(mcond);
                                 }
                             }
@@ -112,7 +111,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 
         protected override void OnChildDeleted(MappingEFElement melem)
         {
-            var child = melem as MappingCondition;
+            MappingCondition child = melem as MappingCondition;
             Debug.Assert(child != null, "Unknown child being deleted");
             if (child != null)
             {
@@ -125,30 +124,30 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 
         internal override Dictionary<MappingLovEFElement, string> GetListOfValues(ListOfValuesCollection type)
         {
-            var lov = new Dictionary<MappingLovEFElement, string>();
+            Dictionary<MappingLovEFElement, string> lov = new Dictionary<MappingLovEFElement, string>();
 
             if (type == ListOfValuesCollection.FirstColumn)
             {
                 BaseEntityModel storageModel = null;
                 if (ModelItem != null)
                 {
-                    var table = ModelItem as EntityType;
+                    EntityType table = ModelItem as EntityType;
                     storageModel = table.EntityModel as StorageEntityModel;
                 }
                 else
                 {
                     // this is a creator node, so get the list from the artifact
-                    var entity = MappingConceptualEntityType.ModelItem as EntityType;
+                    EntityType entity = MappingConceptualEntityType.ModelItem as EntityType;
                     storageModel = entity.Artifact.StorageModel();
                 }
 
-                var entities = new List<EntityType>();
+                List<EntityType> entities = new List<EntityType>();
                 entities.AddRange(storageModel.EntityTypes());
 
                 // filter the list down to those tables that we aren't already mapping
                 foreach (var child in MappingConceptualEntityType.Children)
                 {
-                    var mset = child as MappingStorageEntityType;
+                    MappingStorageEntityType mset = child as MappingStorageEntityType;
                     Debug.Assert(mset != null, "expected child of type MappingStorageEntityType, got type " + child.GetType().FullName);
                     if (mset.StorageEntityType != null)
                     {
@@ -194,14 +193,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
         //     contains the scalar property mappings.  It is separated from the other "children", the conditions, simply because of
         //     UI requirements that Conditions be UI peers of a "Column Mappings" node in the Trid.
         // </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal override void CreateModelItem(CommandProcessorContext cpc, EditingContext context, EFElement underlyingModelItem)
         {
             Debug.Assert(context != null, "The context argument cannot be null");
             Debug.Assert(StorageEntityType == null, "Don't call this method if we already have a ModelItem");
             Debug.Assert(MappingConceptualEntityType.ConceptualEntityType != null, "The parent item isn't set up correctly");
             Debug.Assert(underlyingModelItem != null, "The underlyingModelItem cannot be null");
-            var storeEntityType = underlyingModelItem as EntityType;
+            EntityType storeEntityType = underlyingModelItem as EntityType;
             Debug.Assert(
                 storeEntityType != null,
                 "underlyingModelItem must be of type EntityType, actual type = " + underlyingModelItem.GetType().FullName);
@@ -211,11 +209,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             ColumnMappings.Context = context;
 
             // create a context if we weren't passed one
-            if (cpc == null)
-            {
-                cpc = new CommandProcessorContext(
+            cpc ??= new CommandProcessorContext(
                     Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_CreateMappingFragment);
-            }
 
             // create the MappingFragment - if we already have a default EntityTypeMapping then just add
             // the MappingFragment to that mapping, otherwise if we already have an IsTypeOf
@@ -224,7 +219,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             var cet = MappingConceptualEntityType.ConceptualEntityType;
             var defaultEtm = ModelHelper.FindEntityTypeMapping(cpc, cet, EntityTypeMappingKind.Default, false);
             var etmKind = (defaultEtm == null ? EntityTypeMappingKind.IsTypeOf : EntityTypeMappingKind.Default);
-            var cmd = new CreateMappingFragmentCommand(cet, storeEntityType, etmKind);
+            CreateMappingFragmentCommand cmd = new CreateMappingFragmentCommand(cet, storeEntityType, etmKind);
 
             // add post-invoke event to fix up our view model
             cmd.PostInvokeEvent += (o, eventsArgs) =>
@@ -241,11 +236,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                     var topMostBaseType = cet.ResolvableTopMostBaseType;
                     foreach (var child in ColumnMappings.Children)
                     {
-                        var msp = child as MappingScalarProperty;
-                        if (msp != null)
+                        if (child is MappingScalarProperty msp)
                         {
-                            List<Property> properties;
-                            if (ModelHelper.FindScalarPropertyPathByLocalName(cet, msp.ColumnName, out properties))
+                            if (ModelHelper.FindScalarPropertyPathByLocalName(cet, msp.ColumnName, out List<Property> properties))
                             {
                                 msp.CreateModelItem(cpc, _context, properties);
                             }
@@ -262,7 +255,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             try
             {
                 // now update the model
-                var cp = new CommandProcessor(cpc);
+                CommandProcessor cp = new CommandProcessor(cpc);
                 cp.EnqueueCommand(cmd);
                 cp.Invoke();
             }
@@ -285,11 +278,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
             if (IsModelItemDeleted() == false)
             {
                 // create a context if we weren't passed one
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_DeleteMappingFragment);
-                }
 
                 var fragment = ModelHelper.FindMappingFragment(
                     cpc, MappingConceptualEntityType.ConceptualEntityType, StorageEntityType, false);

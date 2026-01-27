@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.ComponentModel.Design;
+using System.Drawing.Design;
+using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Editors
 {
-    using System;
-    using System.ComponentModel;
-    using System.ComponentModel.Design;
-    using System.Drawing.Design;
-    using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
-
     internal class DebugViewerEditor : ObjectSelectorEditor
     {
         public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context)
@@ -23,7 +23,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Editors
                 return value;
             }
 
-            using (var dlg = new DebugViewerDialog(context.PropertyDescriptor.Name, value as string))
+            using (DebugViewerDialog dlg = new DebugViewerDialog(context.PropertyDescriptor.Name, value as string))
             {
                 dlg.ShowDialog();
 

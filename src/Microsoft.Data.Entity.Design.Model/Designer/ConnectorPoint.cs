@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class ConnectorPoint : EFElement
     {
         internal static readonly string ElementName = "ConnectorPoint";
@@ -27,10 +27,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_pointXAttr == null)
-                {
-                    _pointXAttr = new PointXDefaultableValue(this);
-                }
+                _pointXAttr ??= new PointXDefaultableValue(this);
                 return _pointXAttr;
             }
         }
@@ -39,10 +36,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_pointYAttr == null)
-                {
-                    _pointYAttr = new PointYDefaultableValue(this);
-                }
+                _pointYAttr ??= new PointYDefaultableValue(this);
                 return _pointYAttr;
             }
         }
@@ -99,7 +93,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         /// <returns></returns>
         internal override DeleteEFElementCommand GetDeleteCommand()
         {
-            var cmd = new DeleteEFElementCommand(this, false /* = rebindAllBindings */);
+            DeleteEFElementCommand cmd = new DeleteEFElementCommand(this, false /* = rebindAllBindings */);
             if (cmd == null)
             {
                 // shouldn't happen, just to be safe

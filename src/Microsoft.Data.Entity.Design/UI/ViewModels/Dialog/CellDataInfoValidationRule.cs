@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.Windows.Controls;
+using System.Windows.Data;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Windows.Controls;
-    using System.Windows.Data;
-
     // <summary>
     //     A validation rule that makes use of the business objects IDataErrorInfo interface is applied at the property level
     // </summary>
@@ -17,13 +17,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {
             // obtain the bound business object
-            var expression = value as BindingExpression;
+            BindingExpression expression = value as BindingExpression;
 
             Debug.Assert(expression != null, "passed in value parameter is not a type of: BindingExpression");
 
             if (expression != null)
             {
-                var info = expression.DataItem as IDataErrorInfo;
+                IDataErrorInfo info = expression.DataItem as IDataErrorInfo;
 
                 Debug.Assert(expression.ParentBinding != null, "Expression's ParentBinding is null.");
 

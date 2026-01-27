@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
-    using System;
-    using System.Xml.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class EdmUpdateSolutionEventsTests
     {
@@ -31,10 +31,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock =
+            Mock<EntityDesignArtifact> entityDesignArtifactMock =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
-            using (var designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("root")))
+            using (EFDesignerInfoRoot designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("root")))
             {
                 entityDesignArtifactMock
                     .Setup(a => a.DesignerInfo)
@@ -49,10 +49,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock =
+            Mock<EntityDesignArtifact> entityDesignArtifactMock =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
-            using (var designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
+            using (EFDesignerInfoRoot designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
             {
                 designerInfoRoot
                     .AddDesignerInfo(
@@ -72,14 +72,14 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock =
+            Mock<EntityDesignArtifact> entityDesignArtifactMock =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
-            using (var designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
+            using (EFDesignerInfoRoot designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
             {
-                using (var designerProperty = new DesignerProperty(null, new XElement("_")))
+                using (DesignerProperty designerProperty = new DesignerProperty(null, new XElement("_")))
                 {
-                    var optionsDesignerInfoMock = new Mock<OptionsDesignerInfo>(designerInfoRoot, new XElement("_"));
+                    Mock<OptionsDesignerInfo> optionsDesignerInfoMock = new Mock<OptionsDesignerInfo>(designerInfoRoot, new XElement("_"));
                     optionsDesignerInfoMock
                         .Setup(o => o.ValidateOnBuild)
                         .Returns(designerProperty);
@@ -103,18 +103,18 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock =
+            Mock<EntityDesignArtifact> entityDesignArtifactMock =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
-            using (var designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
+            using (EFDesignerInfoRoot designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
             {
                 using (
-                    var designerProperty =
+                    DesignerProperty designerProperty =
                         new DesignerProperty(
                             null,
                             new XElement("_", new XAttribute("Value", "false"))))
                 {
-                    var optionsDesignerInfoMock = new Mock<OptionsDesignerInfo>(designerInfoRoot, new XElement("_"));
+                    Mock<OptionsDesignerInfo> optionsDesignerInfoMock = new Mock<OptionsDesignerInfo>(designerInfoRoot, new XElement("_"));
                     optionsDesignerInfoMock
                         .Setup(o => o.ValidateOnBuild)
                         .Returns(designerProperty);
@@ -138,18 +138,18 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock =
+            Mock<EntityDesignArtifact> entityDesignArtifactMock =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
-            using (var designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
+            using (EFDesignerInfoRoot designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
             {
                 using (
-                    var designerProperty =
+                    DesignerProperty designerProperty =
                         new DesignerProperty(
                             null,
                             new XElement("_", new XAttribute("Value", "true"))))
                 {
-                    var optionsDesignerInfoMock = new Mock<OptionsDesignerInfo>(designerInfoRoot, new XElement("_"));
+                    Mock<OptionsDesignerInfo> optionsDesignerInfoMock = new Mock<OptionsDesignerInfo>(designerInfoRoot, new XElement("_"));
                     optionsDesignerInfoMock
                         .Setup(o => o.ValidateOnBuild)
                         .Returns(designerProperty);
@@ -173,18 +173,18 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock =
+            Mock<EntityDesignArtifact> entityDesignArtifactMock =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
-            using (var designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
+            using (EFDesignerInfoRoot designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
             {
                 using (
-                    var designerProperty =
+                    DesignerProperty designerProperty =
                         new DesignerProperty(
                             null,
                             new XElement("_", new XAttribute("Value", "abc"))))
                 {
-                    var optionsDesignerInfoMock = new Mock<OptionsDesignerInfo>(designerInfoRoot, new XElement("_"));
+                    Mock<OptionsDesignerInfo> optionsDesignerInfoMock = new Mock<OptionsDesignerInfo>(designerInfoRoot, new XElement("_"));
                     optionsDesignerInfoMock
                         .Setup(o => o.ValidateOnBuild)
                         .Returns(designerProperty);

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class InheritanceConnectorDelete : InheritanceConnectorModelChange
     {
         internal InheritanceConnectorDelete(InheritanceConnector inheritanceConnector)
@@ -21,8 +21,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var modelInheritanceConnector = viewModel.ModelXRef.GetExisting(InheritanceConnector) as Model.Designer.InheritanceConnector;
-                if (modelInheritanceConnector != null)
+                if (viewModel.ModelXRef.GetExisting(InheritanceConnector) is Model.Designer.InheritanceConnector modelInheritanceConnector)
                 {
                     viewModel.ModelXRef.Remove(modelInheritanceConnector, InheritanceConnector);
                     DeleteEFElementCommand.DeleteInTransaction(cpc, modelInheritanceConnector);

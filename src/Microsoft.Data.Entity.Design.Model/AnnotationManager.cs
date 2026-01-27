@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     /// <summary>
     ///     Instantiated via an XElement and a version, this class will retrieve
     ///     all annotations under the XElement given an annotation namespace.
@@ -25,7 +25,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal void Load(XElement xelement, Version version)
         {
-            _reservedNamespaces = new HashSet<string>();
+            _reservedNamespaces = [];
             _xElement = xelement;
             foreach (var n in SchemaManager.GetAllNamespacesForVersion(version))
             {
@@ -95,10 +95,7 @@ namespace Microsoft.Data.Entity.Design.Model
             if (!String.IsNullOrEmpty(name))
             {
                 var xattr = GetAnnotation<XAttribute>(namespaceName, name);
-                if (xattr != null)
-                {
-                    xattr.Remove();
-                }
+                xattr?.Remove();
             }
         }
 
@@ -132,13 +129,11 @@ namespace Microsoft.Data.Entity.Design.Model
             return GetAnnotations().OfType<T>().Where(
                 xo =>
                     {
-                        var xa = xo as XAttribute;
-                        var xe = xo as XElement;
-                        if (xa != null)
+                        if (xo is XAttribute xa)
                         {
                             return xa.Name.NamespaceName == namespaceName;
                         }
-                        if (xe != null)
+                        if (xo is XElement xe)
                         {
                             return xe.Name.NamespaceName == namespaceName;
                         }
@@ -151,13 +146,11 @@ namespace Microsoft.Data.Entity.Design.Model
             return GetAnnotations<T>(namespaceName).Where(
                 xo =>
                     {
-                        var xa = xo as XAttribute;
-                        var xe = xo as XElement;
-                        if (xa != null)
+                        if (xo is XAttribute xa)
                         {
                             return xa.Name.LocalName == name;
                         }
-                        if (xe != null)
+                        if (xo is XElement xe)
                         {
                             return xe.Name.LocalName == name;
                         }

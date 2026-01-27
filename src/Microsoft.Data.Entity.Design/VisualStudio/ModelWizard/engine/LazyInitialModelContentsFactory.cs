@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Text;
-
     internal class LazyInitialModelContentsFactory : IInitialModelContentsFactory
     {
         private readonly string _fileContentsTemplate;
@@ -28,7 +28,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             _replacementsDictionary = replacementsDictionary;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public string GetInitialModelContents(Version targetSchemaVersion)
         {
             Debug.Assert(
@@ -39,7 +38,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             {
                 AddSchemaSpecificReplacements(_replacementsDictionary, targetSchemaVersion);
 
-                var sb = new StringBuilder(_fileContentsTemplate);
+                StringBuilder sb = new StringBuilder(_fileContentsTemplate);
                 foreach (var pair in _replacementsDictionary)
                 {
                     sb.Replace(pair.Key, pair.Value);

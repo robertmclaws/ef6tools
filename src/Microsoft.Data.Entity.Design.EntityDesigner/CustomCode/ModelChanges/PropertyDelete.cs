@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class PropertyDelete : ViewModelChange
     {
         internal Property Property { get; private set; }
@@ -27,7 +25,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var property = viewModel.ModelXRef.GetExisting(Property) as Model.Entity.Property;
+                Model.Entity.Property property = viewModel.ModelXRef.GetExisting(Property) as Model.Entity.Property;
                 Debug.Assert(property != null);
                 DeleteEFElementCommand.DeleteInTransaction(cpc, property);
                 viewModel.ModelXRef.Remove(property, Property);

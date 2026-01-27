@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Reflection;
+using Microsoft.Data.Entity.Design.Core.Controls;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Reflection;
-    using Microsoft.Data.Entity.Design.Core.Controls;
-
     /// <summary>
     ///     type converter for enums, with support for a Description attribute on the enum values
     ///     for localization support.
@@ -29,7 +29,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
                         descriptionAttr = attr as DescriptionAttribute;
                         break;
                     }
-                    var value = (TEnum)Enum.Parse(type, enumValue.Name);
+                    TEnum value = (TEnum)Enum.Parse(type, enumValue.Name);
                     var displayValue = (descriptionAttr != null) ? descriptionAttr.Description : value.ToString();
                     AddMapping(value, displayValue);
                 }

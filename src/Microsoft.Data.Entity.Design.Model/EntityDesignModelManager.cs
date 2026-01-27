@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     /// <summary>
     ///     Class that contains ado.net metadata and information about the metadata source representation, in this case xml source.
     /// </summary>
@@ -80,10 +80,7 @@ namespace Microsoft.Data.Entity.Design.Model
             else
             {
                 EscherModelValidator.ClearErrors(artifactSet);
-                if (artifact != null)
-                {
-                    artifact.SetValidityDirtyForErrorClass(ErrorClass.Escher_All, true);
-                }
+                artifact?.SetValidityDirtyForErrorClass(ErrorClass.Escher_All, true);
             }
 
             // validate using the schema version of this artifact as the target Entity Framework version

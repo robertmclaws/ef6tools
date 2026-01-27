@@ -1,21 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using EDMModelUtils = Microsoft.Data.Entity.Design.Model.ModelHelper;
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+using ModelRes = Microsoft.Data.Entity.Design.Model.Resources;
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Properties;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-
     /// <summary>
     ///     Rule fired when an NavigationProperty changes
     /// </summary>
@@ -31,7 +30,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
         {
             base.ElementPropertyChanged(e);
 
-            var changedNavigationProperty = e.ModelElement as NavigationProperty;
+            NavigationProperty changedNavigationProperty = e.ModelElement as NavigationProperty;
             Debug.Assert(changedNavigationProperty != null);
             Debug.Assert(
                 changedNavigationProperty.EntityType != null && changedNavigationProperty.EntityType.EntityDesignerViewModel != null);
@@ -60,11 +59,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
                         {
                             throw new InvalidOperationException(
                                 String.Format(
-                                    CultureInfo.CurrentCulture, Resources.Error_NavigationPropertyNameInvalid,
+                                    CultureInfo.CurrentCulture, EntityDesignerRes.Error_NavigationPropertyNameInvalid,
                                     changedNavigationProperty.Name));
                         }
 
-                        var modelEntityType =
+                        Model.Entity.EntityType modelEntityType =
                             viewModel.ModelXRef.GetExisting(changedNavigationProperty.EntityType) as Model.Entity.EntityType;
                         Debug.Assert(modelEntityType != null, "modelEntityType is null");
 
@@ -72,14 +71,14 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
                         if (modelEntityType.LocalName.Value.Equals(changedNavigationProperty.Name, StringComparison.Ordinal))
                         {
                             var msg = string.Format(
-                                CultureInfo.CurrentCulture, Model.Resources.Error_MemberNameSameAsParent, changedNavigationProperty.Name,
+                                CultureInfo.CurrentCulture, ModelRes.Error_MemberNameSameAsParent, changedNavigationProperty.Name,
                                 modelEntityType.LocalName.Value);
                             throw new InvalidOperationException(msg);
                         }
                         else if (!EDMModelUtils.IsUniquePropertyName(modelEntityType, changedNavigationProperty.Name, true))
                         {
                             var msg = string.Format(
-                                CultureInfo.CurrentCulture, Model.Resources.Error_MemberNameNotUnique, changedNavigationProperty.Name,
+                                CultureInfo.CurrentCulture, ModelRes.Error_MemberNameNotUnique, changedNavigationProperty.Name,
                                 modelEntityType.LocalName.Value);
                             throw new InvalidOperationException(msg);
                         }

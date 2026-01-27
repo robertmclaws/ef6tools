@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Diagnostics;
-
     internal class Binding<T> : Binding, IDisposable
         where T : EFNormalizableItem, IDisposable
     {
@@ -29,7 +29,6 @@ namespace Microsoft.Data.Entity.Design.Model
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1821:RemoveEmptyFinalizers")]
         ~Binding()
         {
             Debug.Assert(_isDisposed = true, "A Binding class did not have Dispose() called on it!");

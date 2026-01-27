@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-
     // <summary>
     //     This class is used by Escher extensions to update annotation values in the EDMX.
     // </summary>
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class PropertyExtensionContextImpl : PropertyExtensionContext, IChangeScopeContainer
     {
         internal const string PROPERTY_EXTENSION_ORIGINATOR_ID = "__property_extension";
@@ -52,7 +52,6 @@ namespace Microsoft.Data.Entity.Design.Extensibility
             get { return _projectItem.ContainingProject; }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public override EntityDesignerChangeScope CreateChangeScope(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -65,7 +64,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
                 throw new InvalidOperationException(Resources.Extensibility_StartChangeScopeFailed);
             }
 
-            var txn = new EfiTransaction(_editingContext.GetEFArtifactService().Artifact, PROPERTY_EXTENSION_ORIGINATOR_ID, name);
+            EfiTransaction txn = new EfiTransaction(_editingContext.GetEFArtifactService().Artifact, PROPERTY_EXTENSION_ORIGINATOR_ID, name);
             _scope = new ChangeScopeImpl(txn, _editingContext, _extensionToken, this);
             return _scope;
         }

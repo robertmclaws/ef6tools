@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics;
-
     /// <summary>
     ///     The refName for these ends cannot be already normalized.  The Role attribute points to
     ///     an End of the Assocation from the AssociationSet, so it already has its scope set in stone.
@@ -22,17 +22,16 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             }
 
             // cast the parameter to what this really is
-            var end = parent as AssociationSetEnd;
+            AssociationSetEnd end = parent as AssociationSetEnd;
             Debug.Assert(end != null, "parent should be an AssociationSetEnd");
 
             // get the assoc set
-            var set = end.Parent as AssociationSet;
+            AssociationSet set = end.Parent as AssociationSet;
             Debug.Assert(set != null, "association set end parent should be an AssociationSet");
 
             // get the entity container name
             string entityContainerName = null;
-            var ec = set.Parent as BaseEntityContainer;
-            if (ec != null)
+            if (set.Parent is BaseEntityContainer ec)
             {
                 entityContainerName = ec.EntityContainerName;
             }
@@ -40,9 +39,9 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             Debug.Assert(ec != null, "AssociationSet parent should be a subclass of BaseEntityContainer");
 
             // the normalized name for an EnitySet is 'EntityContainerName + # + EntitySetName'
-            var symbol = new Symbol(entityContainerName, refName);
+            Symbol symbol = new Symbol(entityContainerName, refName);
 
-            var normalizedName = new NormalizedName(symbol, null, null, refName);
+            NormalizedName normalizedName = new NormalizedName(symbol, null, null, refName);
             return normalizedName;
         }
     }

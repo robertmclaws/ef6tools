@@ -1,16 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Windows;
+using System.Windows.Data;
+using System.Windows.Markup;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.UI.Converters
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Globalization;
-    using System.Windows;
-    using System.Windows.Data;
-    using System.Windows.Markup;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
@@ -29,7 +28,7 @@ namespace Microsoft.Data.Entity.Design.UI.Converters
         /// </summary>
         public SwitchConverter()
         {
-            _cases = new Collection<SwitchCase>();
+            _cases = [];
         }
 
         #region Properties

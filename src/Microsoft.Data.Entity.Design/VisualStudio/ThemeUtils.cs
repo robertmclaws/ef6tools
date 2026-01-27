@@ -1,30 +1,28 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Drawing.Imaging;
-    using System.Runtime.InteropServices;
-    using System.Windows.Forms;
-    using Microsoft.VisualStudio.PlatformUI;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-
-    [SuppressMessage("Microsoft.Naming", "CA1706:ShortAcronymsShouldBeUppercase")]
     internal static class ThemeUtils
     {
         public static readonly Color TransparentColor = Color.Magenta;
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public static ImageList GetThemedImageList(Bitmap bitmap, ThemeResourceKey backgroundColorKey)
         {
             Debug.Assert(bitmap != null, "bitmap != null");
             bitmap.MakeTransparent(TransparentColor);
             var themedBitmap = ThemeBitmap(bitmap, VSColorTheme.GetThemedColor(backgroundColorKey));
-            var imageList = new ImageList
+            ImageList imageList = new ImageList
                 {
                     ColorDepth = ColorDepth.Depth32Bit,
                     ImageSize = new Size(16, 16)
@@ -61,12 +59,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         private static Bitmap ThemeBitmap(Bitmap bitmap, Color backgroundColor)
         {
             Debug.Assert(bitmap != null, "bitmap != null");
-            var uiShell5 = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell5;
-            if (uiShell5 == null)
+            if (Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsUIShell)) is not IVsUIShell5 uiShell5)
             {
                 return bitmap;
             }
-            var bitmapClone = (Bitmap)bitmap.Clone();
+            Bitmap bitmapClone = (Bitmap)bitmap.Clone();
             var bitmapData
                 = bitmapClone.LockBits(
                     new Rectangle(0, 0, bitmapClone.Width, bitmapClone.Height),

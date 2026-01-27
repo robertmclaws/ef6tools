@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using XamlDesignerBaseResources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
+
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal class DeleteComplexTypeCommand : DeleteEFElementCommand
     {
-        private readonly List<ComplexConceptualProperty> _complexPropertiesToResolve = new List<ComplexConceptualProperty>();
+        private readonly List<ComplexConceptualProperty> _complexPropertiesToResolve = [];
 
         public DeleteComplexTypeCommand(Func<Command, CommandProcessorContext, bool> bindingAction)
             : base(bindingAction)
@@ -72,9 +73,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// <param name="cpc"></param>
         protected override void RemoveAntiDeps(CommandProcessorContext cpc)
         {
-            var cModel = EFElement.RuntimeModelRoot() as ConceptualEntityModel;
-
-            if (cModel != null)
+            if (EFElement.RuntimeModelRoot() is ConceptualEntityModel cModel)
             {
                 // If there is a FunctionImport which returns a complex type, set the FunctionImport return type to null.
                 foreach (var fi in EFElement.GetAntiDependenciesOfType<FunctionImport>())
@@ -83,7 +82,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                         cpc, new ChangeFunctionImportCommand(
                             cModel.FirstEntityContainer as ConceptualEntityContainer,
                             fi, fi.Function, fi.DisplayName, fi.IsComposable.Value, true,
-                            Resources.NoneDisplayValueUsedForUX));
+                            XamlDesignerBaseResources.NoneDisplayValueUsedForUX));
                 }
             }
 

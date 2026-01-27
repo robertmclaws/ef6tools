@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Security;
+using System.Security.Permissions;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.Diagnostics;
-    using System.Security;
-    using System.Security.Permissions;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     internal class TreeGridDesignerInPlaceEdit : VirtualTreeInPlaceEditControl
     {
         public TreeGridDesignerInPlaceEdit()
@@ -29,7 +29,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
             if (!e.Handled)
             {
-                var parent = Parent as TreeGridDesignerTreeControl;
+                TreeGridDesignerTreeControl parent = Parent as TreeGridDesignerTreeControl;
 
                 Debug.Assert(parent != null, "parent of TreeGridDesignerInPlaceEdit must be TreeGridDesignerTreeControl");
 
@@ -50,7 +50,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
             if (!e.Handled)
             {
-                var parent = Parent as TreeGridDesignerTreeControl;
+                TreeGridDesignerTreeControl parent = Parent as TreeGridDesignerTreeControl;
 
                 Debug.Assert(parent != null, "parent of TreeGridDesignerInPlaceEdit must be TreeGridDesignerTreeControl");
 
@@ -67,7 +67,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         protected override void OnLostFocus(EventArgs e)
         {
             // base method may destroy parent link, so get parent control first.
-            var parent = Parent as TreeGridDesignerTreeControl;
+            TreeGridDesignerTreeControl parent = Parent as TreeGridDesignerTreeControl;
 
             base.OnLostFocus(e);
 

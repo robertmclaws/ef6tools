@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     This class will perform the conversions between strings to BoolOrNone, or from a BoolOrNone to a string.
     /// </summary>

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class InheritanceConnector : Connector
     {
         internal static readonly string ElementName = "InheritanceConnector";
@@ -26,13 +26,10 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_entityTypeBinding == null)
-                {
-                    _entityTypeBinding = new SingleItemBinding<EntityType>(
+                _entityTypeBinding ??= new SingleItemBinding<EntityType>(
                         this,
                         AttributeEntityType,
                         EFNormalizableItemDefaults.DefaultNameNormalizerForDesigner);
-                }
 
                 return _entityTypeBinding;
             }

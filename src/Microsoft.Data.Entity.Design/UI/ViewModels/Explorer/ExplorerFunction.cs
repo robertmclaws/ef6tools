@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class ExplorerFunction : EntityDesignExplorerEFElement
     {
         private readonly TypedChildList<ExplorerParameter> _parameters =
@@ -27,8 +27,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             get
             {
-                var func = ModelItem as Function;
-                if (func != null)
+                if (ModelItem is Function func)
                 {
                     return func.IsComposable.Value;
                 }
@@ -40,7 +39,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         private void LoadParametersFromModel()
         {
             // load children from model
-            var function = ModelItem as Function;
+            Function function = ModelItem as Function;
             Debug.Assert(function != null, "Underlying Function is null for ExplorerFunction with name " + Name);
             if (function != null)
             {

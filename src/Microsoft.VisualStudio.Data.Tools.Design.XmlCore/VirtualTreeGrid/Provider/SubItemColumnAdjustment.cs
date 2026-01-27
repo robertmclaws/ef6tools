@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Collections;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-
     #region SubItemColumnAdjustment class
 
     /// <summary>
@@ -63,8 +63,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns false, there is no need to compare two SubItemColumnAdjustment structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator ==(SubItemColumnAdjustment operand1, SubItemColumnAdjustment operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -77,8 +75,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns false, there is no need to compare two SubItemColumnAdjustment structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool Compare(SubItemColumnAdjustment operand1, SubItemColumnAdjustment operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -91,8 +87,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns true, there is no need to compare two SubItemColumnAdjustment structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator !=(SubItemColumnAdjustment operand1, SubItemColumnAdjustment operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -249,8 +243,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     Add not supported
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "adjustment")]
         public void Add(SubItemColumnAdjustment adjustment)
         {
             throw new NotSupportedException();
@@ -295,9 +287,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     Insert not supported
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "index")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "value")]
         public void Insert(int index, SubItemColumnAdjustment value)
         {
             throw new NotSupportedException();
@@ -306,8 +295,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <summary>
         ///     Remove not supported
         /// </summary>
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "value")]
         public void Remove(SubItemColumnAdjustment value)
         {
             throw new NotSupportedException();

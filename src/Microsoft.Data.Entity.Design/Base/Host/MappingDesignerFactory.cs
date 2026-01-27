@@ -2,8 +2,6 @@
 
 namespace Microsoft.Data.Entity.Design.Base.Host
 {
-    using System;
-
     // <summary>
     //     This class defines an Escher service that provides a schema
     //     designer given a DesignerContext.

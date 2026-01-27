@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class DeleteFunctionImportMappingCommand : DeleteEFElementCommand
     {
         /// <summary>
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             get
             {
-                var elem = EFElement as FunctionImportMapping;
+                FunctionImportMapping elem = EFElement as FunctionImportMapping;
                 Debug.Assert(elem != null, "underlying element does not exist or is not a FunctionImportMapping");
                 if (elem == null)
                 {

@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Windows.Forms;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Windows.Forms;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-    using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
-
     /// <summary>
     ///     simple branch that exposes a set of child branches via headers
     /// </summary>
@@ -87,7 +87,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// </summary>
         protected virtual VirtualTreeDisplayData GetDisplayData(int row, int column, VirtualTreeDisplayDataMasks requiredData)
         {
-            var data = new VirtualTreeDisplayData(-1);
+            VirtualTreeDisplayData data = new VirtualTreeDisplayData(-1);
 
             if (column == 0)
             {
@@ -363,8 +363,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
                         // checkboxes in header branches work differently.  The value is set 
                         // by toggling the values of all child branches
                         checkState = checkState == CheckBoxState.Checked ? CheckBoxState.Unchecked : CheckBoxState.Checked;
-                        var branch = _currentBranches[row].Branch as TreeGridDesignerBranch;
-                        if (branch != null)
+                        if (_currentBranches[row].Branch is TreeGridDesignerBranch branch)
                         {
                             for (var i = 0; i < branch.ElementCount; i++)
                             {
@@ -488,9 +487,8 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         {
             var state = CheckBoxState.Unsupported;
             var columnDescriptor = _columns[column];
-            var branch = _currentBranches[row].Branch as TreeGridDesignerBranch;
 
-            if (branch != null)
+            if (_currentBranches[row].Branch is TreeGridDesignerBranch branch)
             {
                 for (var i = 0; i < branch.ElementCount; i++)
                 {
@@ -600,7 +598,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// </summary>
         public ProcessKeyResult ProcessKeyDown(int row, int column, KeyEventArgs e)
         {
-            var result = new ProcessKeyResult(KeyAction.Process);
+            ProcessKeyResult result = new ProcessKeyResult(KeyAction.Process);
             if (e != null)
             {
                 switch (e.KeyCode)

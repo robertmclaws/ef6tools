@@ -1,21 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data.Entity.Core.EntityClient;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
     [TestClass]
     public class ModelGeneratorTests
     {
@@ -252,20 +248,20 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
         public void GetStoreSchemaDetails_uses_correct_version_of_store_schema_version()
         {
             var mockEntityConnectionObject = new Mock<EntityConnection>().Object;
-            var mockBuilderSettings = new Mock<ModelBuilderSettings>();
+            Mock<ModelBuilderSettings> mockBuilderSettings = new Mock<ModelBuilderSettings>();
             mockBuilderSettings.Setup(s => s.RuntimeProviderInvariantName).Returns("fakeInvariantName");
             mockBuilderSettings.Object.TargetSchemaVersion = EntityFrameworkVersion.Version3;
 
-            var mockConnectionFactory = new Mock<StoreSchemaConnectionFactory>();
+            Mock<StoreSchemaConnectionFactory> mockConnectionFactory = new Mock<StoreSchemaConnectionFactory>();
 
-            var version = EntityFrameworkVersion.Version1;
+            var version = EntityFrameworkVersion.Version3;
             mockConnectionFactory.Setup(
                 f => f.Create(
                     It.IsAny<IDbDependencyResolver>(), It.IsAny<string>(), It.IsAny<string>(),
                     It.IsAny<Version>(), out version))
                 .Returns(mockEntityConnectionObject);
 
-            var mockModelGenerator =
+            Mock<ModelGenerator> mockModelGenerator =
                 new Mock<ModelGenerator>(mockBuilderSettings.Object, "modelNs")
                     {
                         CallBase = true
@@ -283,7 +279,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
                 .Verify(
                     g => g.CreateDbSchemaLoader(
                         It.IsAny<EntityConnection>(),
-                        It.Is<Version>(v => v == EntityFrameworkVersion.Version1)),
+                        It.Is<Version>(v => v == EntityFrameworkVersion.Version3)),
                     Times.Once());
         }
     }

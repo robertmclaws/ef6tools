@@ -1,31 +1,31 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure.Pluralization;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using EnvDTE80;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+
 namespace Microsoft.Data.Entity.Design.Refactoring
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Infrastructure.Pluralization;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using EnvDTE80;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class EFRefactoringOperation : RefactoringOperationBase
     {
         private readonly EFRenameContributorInput _contributorInput;
@@ -82,19 +82,18 @@ namespace Microsoft.Data.Entity.Design.Refactoring
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.TextManager.Interop.IVsLinkedUndoTransactionManager.AbortLinkedUndo")]
         protected override void OnApplyChanges()
         {
             // SCCI operation, check out any file that need to be changed.
             // If failed to check out any file or user cancelled check out, return.
-            var filesToCheckOut = new List<String>(GetListOfFilesToCheckOut());
+            List<string> filesToCheckOut = new List<String>(GetListOfFilesToCheckOut());
             if (!EnsureFileCheckOut(filesToCheckOut))
             {
                 return;
             }
 
             // Set up linked undo
-            var linkedUndoManager = ServiceProvider.GetService(typeof(SVsLinkedUndoTransactionManager)) as IVsLinkedUndoTransactionManager;
+            IVsLinkedUndoTransactionManager linkedUndoManager = ServiceProvider.GetService(typeof(SVsLinkedUndoTransactionManager)) as IVsLinkedUndoTransactionManager;
 
             var completedLinkedUndo = false;
             try
@@ -106,7 +105,7 @@ namespace Microsoft.Data.Entity.Design.Refactoring
 
                     // Remember what are invisible editors we open, we will release them explicitly
                     // after apply changes are done.
-                    var invisibleEditors = new List<IVsInvisibleEditor>();
+                    List<IVsInvisibleEditor> invisibleEditors = new List<IVsInvisibleEditor>();
                     try
                     {
                         var changeCount = FileChanges.Count;
@@ -130,12 +129,12 @@ namespace Microsoft.Data.Entity.Design.Refactoring
                             }
 
                             // Execute the rename command to update the CSDL model
-                            var artifact = _objectToRename.Artifact as EntityDesignArtifact;
+                            EntityDesignArtifact artifact = _objectToRename.Artifact as EntityDesignArtifact;
                             Debug.Assert(artifact != null, "Object being refactored does not have an EntityDesignArtifact parent.");
                             if (artifact != null)
                             {
-                                var renameCommand = new EntityDesignRenameCommand(_objectToRename, _newName, false);
-                                var cpc = new CommandProcessorContext(
+                                EntityDesignRenameCommand renameCommand = new EntityDesignRenameCommand(_objectToRename, _newName, false);
+                                CommandProcessorContext cpc = new CommandProcessorContext(
                                     artifact.EditingContext, "EFRefactoringOperation->OnApplyChanges", Resources.Tx_RefactorRenameCommand);
                                 CommandProcessor.InvokeSingleCommand(cpc, renameCommand);
                             }
@@ -196,10 +195,9 @@ namespace Microsoft.Data.Entity.Design.Refactoring
             }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         protected override IList<FileChange> GetFileChanges()
         {
-            var fileChangeMap = new Dictionary<string, FileChange>();
+            Dictionary<string, FileChange> fileChangeMap = new Dictionary<string, FileChange>();
 
             using (WaitCursorHelper.NewWaitCursor())
             {
@@ -223,11 +221,7 @@ namespace Microsoft.Data.Entity.Design.Refactoring
                         var codeElements = generatedCodeProjectItem.FileCodeModel.CodeElements.OfType<CodeElement2>();
                         CodeElementRenameData renameData = null;
 
-                        // Check if we're refactoring an EntityType or Property
-                        var entityType = _contributorInput.ObjectToBeRenamed as EntityType;
-                        var property = _contributorInput.ObjectToBeRenamed as Property;
-
-                        if (entityType != null)
+                        if (_contributorInput.ObjectToBeRenamed is EntityType entityType)
                         {
                             var newEntitySetName = _contributorInput.NewName;
                             var pluralize = ModelHelper.GetDesignerPropertyValueFromArtifactAsBool(
@@ -244,7 +238,7 @@ namespace Microsoft.Data.Entity.Design.Refactoring
                             renameData = new CodeElementRenameData(
                                 _contributorInput.NewName, newEntitySetName, _contributorInput.OldName, entityType.EntitySet.Name.Value);
                         }
-                        else if (property != null)
+                        else if (_contributorInput.ObjectToBeRenamed is Property property)
                         {
                             if (property.EntityType != null)
                             {
@@ -255,10 +249,10 @@ namespace Microsoft.Data.Entity.Design.Refactoring
 
                         if (renameData != null)
                         {
-                            var codeElementsToRename = new Dictionary<CodeElement2, Tuple<string, string>>();
+                            Dictionary<CodeElement2, Tuple<string, string>> codeElementsToRename = new Dictionary<CodeElement2, Tuple<string, string>>();
                             CodeElementUtilities.FindRootCodeElementsToRename(
                                 codeElements, renameData, generatedItemPath, objectSearchLanguage, ref codeElementsToRename);
-                            var changeProposals = new List<ChangeProposal>();
+                            List<ChangeProposal> changeProposals = new List<ChangeProposal>();
 
                             // We may need to rename more than one object, as type names affect functions and entity set properties. This means we need to loop through and
                             // process each root item change in the generated code designer file.
@@ -274,17 +268,16 @@ namespace Microsoft.Data.Entity.Design.Refactoring
                             // Now sort the change proposals by filename so that we can return a list of file changes
                             foreach (var changeProposal in changeProposals)
                             {
-                                FileChange fileChange;
                                 HashSet<ChangeProposal> fileChangeProposals;
 
-                                if (fileChangeMap.TryGetValue(changeProposal.FileName, out fileChange))
+                                if (fileChangeMap.TryGetValue(changeProposal.FileName, out FileChange fileChange))
                                 {
                                     fileChangeProposals = fileChange.ChangeList.Values.First();
                                 }
                                 else
                                 {
                                     fileChange = new FileChange(changeProposal.FileName);
-                                    fileChangeProposals = new HashSet<ChangeProposal>();
+                                    fileChangeProposals = [];
                                     fileChange.ChangeList.Add(
                                         new KeyValuePair<RefactoringPreviewGroup, HashSet<ChangeProposal>>(
                                             new RefactoringPreviewGroup(Resources.RefactorPreviewGroupName), fileChangeProposals));

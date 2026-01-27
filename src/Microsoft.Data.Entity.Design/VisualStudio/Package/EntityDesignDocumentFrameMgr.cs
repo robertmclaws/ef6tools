@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     // <summary>
     //     The EntityDesignDocumentFrameMgr class manages all document window frames that
     //     are associated to an EDMX file document if they were loaded in Escher or in the XML editor
@@ -34,21 +34,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         //     This method will set the editing context for the mapping details and model browser. This will
         //     also show/hide these tool windows.
         // </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected internal override void SetCurrentContext(EditingContext context)
         {
             try
             {
                 if (PackageManager.Package != null)
                 {
-                    if (PackageManager.Package.MappingDetailsWindow != null)
-                    {
-                        PackageManager.Package.MappingDetailsWindow.Context = context;
-                    }
-                    if (PackageManager.Package.ExplorerWindow != null)
-                    {
-                        PackageManager.Package.ExplorerWindow.Context = context;
-                    }
+                    PackageManager.Package.MappingDetailsWindow?.Context = context;
+                    PackageManager.Package.ExplorerWindow?.Context = context;
                 }
             }
             catch
@@ -110,7 +103,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             {
                 if (pFrame != null)
                 {
-                    var frameWrapper = new EntityDesignFrameWrapper(pFrame);
+                    EntityDesignFrameWrapper frameWrapper = new EntityDesignFrameWrapper(pFrame);
                     if (frameWrapper.IsEscherDocInXmlEditor)
                     {
                         // we have an EDMX file that is being opened in the XML editor so we want to validate
@@ -126,16 +119,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         {
             base.OnAfterSave();
 
-            if (_dirtyArtifactsOnClose != null)
-            {
-                _dirtyArtifactsOnClose.Clear();
-            }
+            _dirtyArtifactsOnClose?.Clear();
         }
 
         protected override void OnBeforeLastDesignerDocumentUnlock(Uri docUri)
         {
-            var vsArtifact = CurrentArtifact as VSArtifact;
-            if (vsArtifact != null && vsArtifact.Uri == docUri
+            if (CurrentArtifact is VSArtifact vsArtifact && vsArtifact.Uri == docUri
                 && vsArtifact.LayerManager != null)
             {
                 vsArtifact.LayerManager.Unload();
@@ -150,27 +139,21 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             {
                 if (varValueOld != null)
                 {
-                    var oldFrame = new EntityDesignFrameWrapper(varValueOld as IVsWindowFrame);
+                    EntityDesignFrameWrapper oldFrame = new EntityDesignFrameWrapper(varValueOld as IVsWindowFrame);
                     if (oldFrame.IsEscherDocInEntityDesigner)
                     {
-                        var oldVsArtifact = PackageManager.Package.ModelManager.GetArtifact(oldFrame.Uri) as VSArtifact;
-                        if (oldVsArtifact != null)
-                        {
-                            oldVsArtifact.LayerManager.Unload();
-                        }
+                        VSArtifact oldVsArtifact = PackageManager.Package.ModelManager.GetArtifact(oldFrame.Uri) as VSArtifact;
+                        oldVsArtifact?.LayerManager.Unload();
                     }
                 }
 
                 if (varValueNew != null)
                 {
-                    var newFrame = new EntityDesignFrameWrapper(varValueNew as IVsWindowFrame);
+                    EntityDesignFrameWrapper newFrame = new EntityDesignFrameWrapper(varValueNew as IVsWindowFrame);
                     if (newFrame.IsEscherDocInEntityDesigner)
                     {
-                        var vsArtifact = PackageManager.Package.ModelManager.GetArtifact(newFrame.Uri) as VSArtifact;
-                        if (vsArtifact != null)
-                        {
-                            vsArtifact.LayerManager.Load();
-                        }
+                        VSArtifact vsArtifact = PackageManager.Package.ModelManager.GetArtifact(newFrame.Uri) as VSArtifact;
+                        vsArtifact?.LayerManager.Load();
                     }
                 }
             }

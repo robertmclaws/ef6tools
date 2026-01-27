@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
-    using System.Collections.Generic;
-    using System.Xml.Linq;
-
     internal class OptionsDesignerInfo : DesignerInfo
     {
         // DesignerProperty objects
@@ -35,7 +35,8 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         internal static readonly string AttributeCodeGenerationStrategy = "CodeGenerationStrategy";
         internal static readonly string AttributeSynchronizePropertyFacets = "SynchronizePropertyFacets";
         internal static readonly string AttributeUseLegacyProvider = "UseLegacyProvider";
-        internal static readonly bool UseLegacyProviderDefault = true;
+        // Default to false - legacy provider support removed
+        internal static readonly bool UseLegacyProviderDefault = false;
 
         internal OptionsDesignerInfo(EFElement parent, XElement element)
             : base(parent, element)

@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class DeleteEnumTypeCommand : DeleteEFElementCommand
     {
-        private readonly List<ConceptualProperty> _propertiesToResolve = new List<ConceptualProperty>();
+        private readonly List<ConceptualProperty> _propertiesToResolve = [];
 
         /// <summary>
         ///     Deletes the passed in EnumType

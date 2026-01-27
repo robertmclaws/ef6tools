@@ -1,26 +1,26 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Core.Controls;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Core.Controls;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class EFEntityModelDescriptor : EFAnnotatableElementDescriptor<ConceptualEntityModel>,
                                              IEFConnectionDesignerDescriptorAddOn,
                                              IEFOptionsDesignerDescriptorAddOn
@@ -42,15 +42,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             if (artifact != null
                 && artifact.DesignerInfo() != null)
             {
-                DesignerInfo connectionDesignerInfo = null;
-                DesignerInfo optionsDesignerInfo = null;
 
                 var foundConnectionDesignerInfo = artifact.DesignerInfo()
-                    .TryGetDesignerInfo(ConnectionDesignerInfo.ElementName, out connectionDesignerInfo);
+                    .TryGetDesignerInfo(ConnectionDesignerInfo.ElementName, out DesignerInfo connectionDesignerInfo);
 
                 if (foundConnectionDesignerInfo)
                 {
-                    var connectionDesigner = connectionDesignerInfo as ConnectionDesignerInfo;
+                    ConnectionDesignerInfo connectionDesigner = connectionDesignerInfo as ConnectionDesignerInfo;
                     Debug.Assert(connectionDesigner != null, "DesignerInfo with element name 'Connection' must be a ConnectionDesignerInfo");
 
                     if (connectionDesigner != null)
@@ -68,10 +66,10 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                                 if (connectionDesigner.MetadataArtifactProcessingProperty != null
                                     && connectionDesigner.MetadataArtifactProcessingProperty.ValueAttr.Value != mapDefault)
                                 {
-                                    var cpc = new CommandProcessorContext(
+                                    CommandProcessorContext cpc = new CommandProcessorContext(
                                         editingContext, EfiTransactionOriginator.PropertyWindowOriginatorId,
                                         Resources.Tx_ChangeMetadataArtifactProcessing);
-                                    var cmd =
+                                    UpdateDefaultableValueCommand<string> cmd =
                                         new UpdateDefaultableValueCommand<string>(
                                             connectionDesigner.MetadataArtifactProcessingProperty.ValueAttr, mapDefault);
                                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
@@ -85,7 +83,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 }
 
                 var foundOptionsDesignerInfo = artifact.DesignerInfo()
-                    .TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out optionsDesignerInfo);
+                    .TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out DesignerInfo optionsDesignerInfo);
 
                 if (foundOptionsDesignerInfo)
                 {
@@ -105,7 +103,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                 Command c = new RenameConceptualNamespaceCommand(TypedEFElement, value);
-                var cp = new CommandProcessor(cpc, c);
+                CommandProcessor cp = new CommandProcessor(cpc, c);
                 cp.Invoke();
             }
         }
@@ -159,7 +157,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                     Command c = new EntityDesignRenameCommand(container, value, true);
-                    var cp = new CommandProcessor(cpc, c);
+                    CommandProcessor cp = new CommandProcessor(cpc, c);
                     cp.Invoke();
                 }
             }
@@ -173,8 +171,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             get
             {
-                var container = TypedEFElement.FirstEntityContainer as ConceptualEntityContainer;
-                if (container != null
+                if (TypedEFElement.FirstEntityContainer is ConceptualEntityContainer container
                     && container.TypeAccess != null)
                 {
                     return container.TypeAccess.Value;
@@ -184,13 +181,12 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
             set
             {
-                var container = TypedEFElement.FirstEntityContainer as ConceptualEntityContainer;
-                if (container != null
+                if (TypedEFElement.FirstEntityContainer is ConceptualEntityContainer container
                     && container.TypeAccess != null)
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                     Command c = new UpdateDefaultableValueCommand<string>(container.TypeAccess, value);
-                    var cp = new CommandProcessor(cpc, c);
+                    CommandProcessor cp = new CommandProcessor(cpc, c);
                     cp.Invoke();
                 }
             }
@@ -257,10 +253,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                if (_EFConnectionDesignerInfoDescriptor != null)
-                {
-                    _EFConnectionDesignerInfoDescriptor.MetadataArtifactProcessing = value;
-                }
+                _EFConnectionDesignerInfoDescriptor?.MetadataArtifactProcessing = value;
             }
         }
 
@@ -283,10 +276,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                if (_EFOptionsDesignerInfoDescriptor != null)
-                {
-                    _EFOptionsDesignerInfoDescriptor.ValidateOnBuild = value;
-                }
+                _EFOptionsDesignerInfoDescriptor?.ValidateOnBuild = value;
             }
         }
 
@@ -309,10 +299,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                if (_EFOptionsDesignerInfoDescriptor != null)
-                {
-                    _EFOptionsDesignerInfoDescriptor.PluralizeNewObjects = value;
-                }
+                _EFOptionsDesignerInfoDescriptor?.PluralizeNewObjects = value;
             }
         }
 
@@ -332,10 +319,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                if (_EFOptionsDesignerInfoDescriptor != null)
-                {
-                    _EFOptionsDesignerInfoDescriptor.DatabaseGenerationWorkflow = value;
-                }
+                _EFOptionsDesignerInfoDescriptor?.DatabaseGenerationWorkflow = value;
             }
         }
 
@@ -358,10 +342,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                if (_EFOptionsDesignerInfoDescriptor != null)
-                {
-                    _EFOptionsDesignerInfoDescriptor.DDLGenerationTemplate = value;
-                }
+                _EFOptionsDesignerInfoDescriptor?.DDLGenerationTemplate = value;
             }
         }
 
@@ -383,10 +364,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                if (_EFOptionsDesignerInfoDescriptor != null)
-                {
-                    _EFOptionsDesignerInfoDescriptor.DatabaseSchemaName = value;
-                }
+                _EFOptionsDesignerInfoDescriptor?.DatabaseSchemaName = value;
             }
         }
 
@@ -409,10 +387,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                if (_EFOptionsDesignerInfoDescriptor != null)
-                {
-                    _EFOptionsDesignerInfoDescriptor.ProcessDependentTemplatesOnSave = value;
-                }
+                _EFOptionsDesignerInfoDescriptor?.ProcessDependentTemplatesOnSave = value;
             }
         }
 
@@ -435,10 +410,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                if (_EFOptionsDesignerInfoDescriptor != null)
-                {
-                    _EFOptionsDesignerInfoDescriptor.CodeGenerationStrategy = value;
-                }
+                _EFOptionsDesignerInfoDescriptor?.CodeGenerationStrategy = value;
             }
         }
 
@@ -461,10 +433,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                if (_EFOptionsDesignerInfoDescriptor != null)
-                {
-                    _EFOptionsDesignerInfoDescriptor.SynchronizePropertyFacets = value;
-                }
+                _EFOptionsDesignerInfoDescriptor?.SynchronizePropertyFacets = value;
             }
         }
 
@@ -494,8 +463,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 // If LazyLoading is not supported, we want to show false regardless what is in the model.
                 if (EdmFeatureManager.GetLazyLoadingFeatureState(TypedEFElement.Artifact.SchemaVersion).IsEnabled())
                 {
-                    var container = TypedEFElement.FirstEntityContainer as ConceptualEntityContainer;
-                    if (container != null)
+                    if (TypedEFElement.FirstEntityContainer is ConceptualEntityContainer container)
                     {
                         return container.LazyLoadingEnabled.Value;
                     }
@@ -504,12 +472,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                var container = TypedEFElement.FirstEntityContainer as ConceptualEntityContainer;
-                if (container != null)
+                if (TypedEFElement.FirstEntityContainer is ConceptualEntityContainer container)
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                     Command c = new UpdateDefaultableValueCommand<bool>(container.LazyLoadingEnabled, value);
-                    var cp = new CommandProcessor(cpc, c);
+                    CommandProcessor cp = new CommandProcessor(cpc, c);
                     cp.Invoke();
                 }
             }
@@ -571,13 +538,12 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                     Command c = new UpdateDefaultableValueCommand<bool>(cem.UseStrongSpatialTypes, value);
-                    var cp = new CommandProcessor(cpc, c);
+                    CommandProcessor cp = new CommandProcessor(cpc, c);
                     cp.Invoke();
                 }
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
         internal bool IsReadOnlyUseStrongSpatialTypes()
         {
             // TODO: when runtime support for the other (true) setting of this attribute is available replace the "return true" below by the commented line below it
@@ -615,8 +581,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             if (propertyDescriptorMethodName.Equals("EntityContainerAccess"))
             {
-                var container = TypedEFElement.FirstEntityContainer as ConceptualEntityContainer;
-                if (container != null
+                if (TypedEFElement.FirstEntityContainer is ConceptualEntityContainer container
                     && container.TypeAccess != null)
                 {
                     return container.TypeAccess.DefaultValue;
@@ -624,8 +589,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             if (propertyDescriptorMethodName.Equals("LazyLoadingEnabled"))
             {
-                var container = TypedEFElement.FirstEntityContainer as ConceptualEntityContainer;
-                if (container != null
+                if (TypedEFElement.FirstEntityContainer is ConceptualEntityContainer container
                     && container.LazyLoadingEnabled != null)
                 {
                     return container.LazyLoadingEnabled.DefaultValue;

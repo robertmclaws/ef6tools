@@ -1,25 +1,24 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-
     internal class VSArtifactFactory : IEFArtifactFactory
     {
         // <summary>
         //     The factory that creates VSArtifact and the corresponding DiagramArtifact if diagram file is available.
         // </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         public IList<EFArtifact> Create(ModelManager modelManager, Uri uri, XmlModelProvider xmlModelProvider)
         {
-            var artifact = new VSArtifact(modelManager, uri, xmlModelProvider);
+            VSArtifact artifact = new VSArtifact(modelManager, uri, xmlModelProvider);
 
-            var artifacts = new List<EFArtifact> { artifact };
+            List<EFArtifact> artifacts = new List<EFArtifact> { artifact };
 
             var diagramArtifact = GetDiagramArtifactIfAvailable(modelManager, uri, xmlModelProvider);
             if (diagramArtifact != null)
@@ -31,7 +30,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Model
             return artifacts;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static DiagramArtifact GetDiagramArtifactIfAvailable(
             ModelManager modelManager, Uri modelUri, XmlModelProvider xmlModelProvider)
         {

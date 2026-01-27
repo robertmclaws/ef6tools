@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using Microsoft.Data.Entity.Design.Common;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using System;
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.Common;
-
     /// <summary>
     ///     Captures check-box setting, friendly name and other information for a preview group.
     ///     RefactoringPreviewGroup will only contain group information, will not know list of changes.
@@ -89,8 +89,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             if (fileExtension != null
                 && languageService != Guid.Empty)
             {
-                Guid temp;
-                if (!_languageServices.TryGetValue(fileExtension, out temp))
+                if (!_languageServices.TryGetValue(fileExtension, out Guid temp))
                 {
                     _languageServices.Add(fileExtension, languageService);
                 }

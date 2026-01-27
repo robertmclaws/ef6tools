@@ -1,29 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class EFDesignerInfoRoot : EFElement
     {
         internal static readonly string ElementName = "Designer";
-        protected Dictionary<string, DesignerInfo> _designerInfos = new Dictionary<string, DesignerInfo>();
+        protected Dictionary<string, DesignerInfo> _designerInfos = [];
 
         private Diagrams _diagrams;
         private readonly DiagramArtifact _diagramArtifact;
 
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         internal EFDesignerInfoRoot(EFArtifact parent, XElement element)
             : base(parent, element)
         {
             // Allow the Diagrams node comes from DiagramArtifact.
-            var artifact = Artifact as EntityDesignArtifact;
-            if (artifact != null
+            if (Artifact is EntityDesignArtifact artifact
                 && artifact.DiagramArtifact != null)
             {
                 _diagramArtifact = artifact.DiagramArtifact;
@@ -126,8 +124,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child2 = efContainer as DesignerInfo;
-            if (child2 != null)
+            if (efContainer is DesignerInfo child2)
             {
                 var infoEnum = _designerInfos.GetEnumerator();
                 while (infoEnum.MoveNext())
@@ -189,7 +186,6 @@ namespace Microsoft.Data.Entity.Design.Model
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement element)
         {
             if (element.Name.LocalName == "Connection")

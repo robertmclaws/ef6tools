@@ -1,22 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class TableDiscovererTests
     {
         [TestMethod]
         public void Discover_returns_null_when_conventional()
         {
-            var code = new CSharpCodeHelper();
-            var modelBuilder = new DbModelBuilder();
+            CSharpCodeHelper code = new CSharpCodeHelper();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>();
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entitySet = model.ConceptualModel.Container.EntitySets.First();
@@ -29,13 +29,13 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_unconventional_name()
         {
-            var code = new CSharpCodeHelper();
-            var modelBuilder = new DbModelBuilder();
+            CSharpCodeHelper code = new CSharpCodeHelper();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>().ToTable("Entity");
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entitySet = model.ConceptualModel.Container.EntitySets.First();
 
-            var configuration = new TableDiscoverer(code).Discover(entitySet, model) as TableConfiguration;
+            TableConfiguration configuration = new TableDiscoverer(code).Discover(entitySet, model) as TableConfiguration;
 
             configuration.Should().NotBeNull();
             configuration.Table.Should().Be("Entity");
@@ -45,13 +45,13 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_unconventional_schema()
         {
-            var code = new CSharpCodeHelper();
-            var modelBuilder = new DbModelBuilder();
+            CSharpCodeHelper code = new CSharpCodeHelper();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>().ToTable("Entities", "old");
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entitySet = model.ConceptualModel.Container.EntitySets.First();
 
-            var configuration = new TableDiscoverer(code).Discover(entitySet, model) as TableConfiguration;
+            TableConfiguration configuration = new TableDiscoverer(code).Discover(entitySet, model) as TableConfiguration;
 
             configuration.Should().NotBeNull();
             configuration.Table.Should().Be("Entities");

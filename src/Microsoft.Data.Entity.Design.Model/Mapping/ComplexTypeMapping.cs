@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class ComplexTypeMapping : EFElement
     {
         internal static readonly string ElementName = "ComplexTypeMapping";
@@ -16,9 +16,9 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         private SingleItemBinding<ComplexType> _typeName;
         private DefaultableValue<bool> _isPartial;
 
-        private readonly List<ScalarProperty> _scalarProperties = new List<ScalarProperty>();
-        private readonly List<ComplexProperty> _complexProperties = new List<ComplexProperty>();
-        private readonly List<Condition> _conditions = new List<Condition>();
+        private readonly List<ScalarProperty> _scalarProperties = [];
+        private readonly List<ComplexProperty> _complexProperties = [];
+        private readonly List<Condition> _conditions = [];
 
         internal ComplexTypeMapping(EFContainer parent, XElement element)
             : base(parent, element)
@@ -29,11 +29,8 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_typeName == null)
-                {
-                    _typeName = new SingleItemBinding<ComplexType>(
+                _typeName ??= new SingleItemBinding<ComplexType>(
                         this, AttributeTypeName, EFNormalizableItemDefaults.DefaultNameNormalizerForMSL);
-                }
                 return _typeName;
             }
         }
@@ -42,10 +39,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_isPartial == null)
-                {
-                    _isPartial = new IsPartialDefaultableValue(this);
-                }
+                _isPartial ??= new IsPartialDefaultableValue(this);
                 return _isPartial;
             }
         }
@@ -123,22 +117,19 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var sp = efContainer as ScalarProperty;
-            if (sp != null)
+            if (efContainer is ScalarProperty sp)
             {
                 _scalarProperties.Remove(sp);
                 return;
             }
 
-            var cp = efContainer as ComplexProperty;
-            if (cp != null)
+            if (efContainer is ComplexProperty cp)
             {
                 _complexProperties.Remove(cp);
                 return;
             }
 
-            var cond = efContainer as Condition;
-            if (cond != null)
+            if (efContainer is Condition cond)
             {
                 _conditions.Remove(cond);
                 return;
@@ -189,19 +180,19 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == ScalarProperty.ElementName)
             {
-                var prop = new ScalarProperty(this, elem);
+                ScalarProperty prop = new ScalarProperty(this, elem);
                 _scalarProperties.Add(prop);
                 prop.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == ComplexProperty.ElementName)
             {
-                var complexProperty = new ComplexProperty(this, elem);
+                ComplexProperty complexProperty = new ComplexProperty(this, elem);
                 _complexProperties.Add(complexProperty);
                 complexProperty.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == Condition.ElementName)
             {
-                var cond = new Condition(this, elem);
+                Condition cond = new Condition(this, elem);
                 _conditions.Add(cond);
                 cond.Parse(unprocessedElements);
             }

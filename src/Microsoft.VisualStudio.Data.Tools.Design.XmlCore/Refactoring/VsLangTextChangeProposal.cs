@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Common;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using Microsoft.Data.Entity.Design.Common;
-
     /// <summary>
     ///     VsLang changes require a root node that contains the full name of the object definition being refactored.
     /// </summary>
@@ -32,8 +32,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         public override bool Equals(object obj)
         {
             var isEqual = false;
-            var other = obj as VsLangTextChangeProposal;
-            if (other != null)
+            if (obj is VsLangTextChangeProposal other)
             {
                 isEqual = base.Equals(obj);
                 if (isEqual)

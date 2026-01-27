@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateOrUpdateReferentialConstraintCommand : CreateReferentialConstraintCommand
     {
         internal CreateOrUpdateReferentialConstraintCommand(Func<Command, CommandProcessorContext, bool> bindingAction)
@@ -16,7 +17,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
-            var association = PrincipalEnd.Parent as Association;
+            Association association = PrincipalEnd.Parent as Association;
             Debug.Assert(
                 association != null && association == DependentEnd.Parent, "Association parent for both ends must agree and be not null");
             if (association != null)
@@ -35,7 +36,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     principal.Role.SetRefName(PrincipalEnd);
                     dependent.Role.SetRefName(DependentEnd);
 
-                    var oldPrincipalPropertyRefs = principal.PropertyRefs.ToList();
+                    List<PropertyRef> oldPrincipalPropertyRefs = principal.PropertyRefs.ToList();
                     foreach (var pref in oldPrincipalPropertyRefs)
                     {
                         CommandProcessor.InvokeSingleCommand(cpc, principal.GetDeleteCommandForChild(pref));
@@ -46,7 +47,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                         principal.AddPropertyRef(prop);
                     }
 
-                    var oldDependentPropertyRefs = dependent.PropertyRefs.ToList();
+                    List<PropertyRef> oldDependentPropertyRefs = dependent.PropertyRefs.ToList();
                     foreach (var pref in oldDependentPropertyRefs)
                     {
                         CommandProcessor.InvokeSingleCommand(cpc, dependent.GetDeleteCommandForChild(pref));

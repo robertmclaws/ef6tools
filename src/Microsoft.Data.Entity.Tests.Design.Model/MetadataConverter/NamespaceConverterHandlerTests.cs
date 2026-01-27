@@ -1,34 +1,27 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System;
-    using System.Xml;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class NamespaceConverterHandlerTests
     {
         [TestMethod]
-        public void NamespaceConverterHandlerTests_rewrites_document_to_use_namespaces_for_target_schema_version()
+        public void NamespaceConverterHandlerTests_rewrites_document_to_use_namespaces_for_Version3()
         {
-            for (var sourceMajorVersion = 1; sourceMajorVersion <= 3; sourceMajorVersion++)
-            {
-                for (var targetMajorVersion = 1; targetMajorVersion <= 3; targetMajorVersion++)
-                {
-                    var sourceSchemaVersion = new Version(sourceMajorVersion, 0, 0, 0);
-                    var targetSchemaVersion = new Version(targetMajorVersion, 0, 0, 0);
+            // Only Version3 is supported
+            Version schemaVersion = new Version(3, 0, 0, 0);
+            var sourceEdmx = CreateSourceEdmx(schemaVersion);
 
-                    var sourceEdmx = CreateSourceEdmx(sourceSchemaVersion);
-
-                    UsesNamespacesForTargetSchemaVersion(
-                            new NamespaceConverterHandler(sourceSchemaVersion, targetSchemaVersion).HandleConversion(sourceEdmx),
-                            targetSchemaVersion).Should().BeTrue();
-                }
-            }
+            UsesNamespacesForTargetSchemaVersion(
+                    new NamespaceConverterHandler(schemaVersion, schemaVersion).HandleConversion(sourceEdmx),
+                    schemaVersion).Should().BeTrue();
         }
 
         private static XmlDocument CreateSourceEdmx(Version schemaVersion)
@@ -49,7 +42,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
                 "  <Designer/>" +
                 "</Edmx>";
 
-            var edmx = new XmlDocument();
+            XmlDocument edmx = new XmlDocument();
             edmx.LoadXml(
                 string.Format(
                     template,

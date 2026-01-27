@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Drawing.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Editors;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.ComponentModel;
-    using System.Drawing.Design;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Editors;
-
     internal class EFAssociationDescriptor :
         EFAnnotatableElementDescriptor<Association>,
         IAnnotatableDocumentableDescriptor
@@ -31,8 +31,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 {
                     end1 = ends[0];
                     var et1 = end1.Type.Target;
-                    var cet1 = et1 as ConceptualEntityType;
-                    if (cet1 != null)
+                    if (et1 is ConceptualEntityType cet1)
                     {
                         navProp1 = cet1.FindNavigationPropertyForEnd(end1);
                     }
@@ -41,9 +40,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 {
                     end2 = ends[1];
                     var et2 = end2.Type.Target;
-                    var cet2 = et2 as ConceptualEntityType;
 
-                    if (cet2 != null)
+                    if (et2 is ConceptualEntityType cet2)
                     {
                         navProp2 = cet2.FindNavigationPropertyForEnd(end2);
                     }
@@ -82,7 +80,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                     Command c = new EntityDesignRenameCommand(assocSet, value, true);
-                    var cp = new CommandProcessor(cpc, c);
+                    CommandProcessor cp = new CommandProcessor(cpc, c);
                     cp.Invoke();
                 }
             }
@@ -169,7 +167,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
             Command c = new ChangeAssociationEndCommand(end, value, null);
-            var cp = new CommandProcessor(cpc, c);
+            CommandProcessor cp = new CommandProcessor(cpc, c);
             cp.Invoke();
         }
 
@@ -216,7 +214,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
             Command c = new ChangeAssociationEndCommand(end, null, value);
-            var cp = new CommandProcessor(cpc, c);
+            CommandProcessor cp = new CommandProcessor(cpc, c);
             cp.Invoke();
         }
 
@@ -263,7 +261,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
             Command c = new EntityDesignRenameCommand(navProp, value, true);
-            var cp = new CommandProcessor(cpc, c);
+            CommandProcessor cp = new CommandProcessor(cpc, c);
             cp.Invoke();
         }
 

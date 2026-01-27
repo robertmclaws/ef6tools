@@ -1,15 +1,15 @@
-﻿namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
-{
-    using System;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Data.Entity.Core.EntityClient;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
 
+namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Engine
+{
     [TestClass]
     public class DatabaseEngineBaseTests
     {
@@ -26,8 +26,8 @@ using FluentAssertions;
         [TestMethod]
         public void CanCreateAndOpenConnection_returns_true_for_valid_connection()
         {
-            var mockEntityConnection = new Mock<EntityConnection>();
-            var mockConnectionFactory = new Mock<StoreSchemaConnectionFactory>();
+            Mock<EntityConnection> mockEntityConnection = new Mock<EntityConnection>();
+            Mock<StoreSchemaConnectionFactory> mockConnectionFactory = new Mock<StoreSchemaConnectionFactory>();
 
             Version version;
             mockConnectionFactory
@@ -44,10 +44,10 @@ using FluentAssertions;
         [TestMethod]
         public void CanCreateAndOpenConnection_returns_false_for_invalid_connection()
         {
-            var mockEntityConnection = new Mock<EntityConnection>();
+            Mock<EntityConnection> mockEntityConnection = new Mock<EntityConnection>();
             mockEntityConnection.Setup(c => c.Open()).Throws<InvalidOperationException>();
 
-            var mockConnectionFactory = new Mock<StoreSchemaConnectionFactory>();
+            Mock<StoreSchemaConnectionFactory> mockConnectionFactory = new Mock<StoreSchemaConnectionFactory>();
 
             Version version;
             mockConnectionFactory
@@ -64,8 +64,8 @@ using FluentAssertions;
         [TestMethod]
         public void CanCreateAndOpenConnection_passes_the_latest_EF_version_as_the_max_version()
         {
-            var mockEntityConnection = new Mock<EntityConnection>();
-            var mockConnectionFactory = new Mock<StoreSchemaConnectionFactory>();
+            Mock<EntityConnection> mockEntityConnection = new Mock<EntityConnection>();
+            Mock<StoreSchemaConnectionFactory> mockConnectionFactory = new Mock<StoreSchemaConnectionFactory>();
 
             Version version;
             mockConnectionFactory

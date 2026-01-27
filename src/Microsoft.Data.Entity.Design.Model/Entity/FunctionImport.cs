@@ -1,17 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using XamlDesignerBaseResources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
+
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal class FunctionImport : NameableAnnotatableElement
     {
         internal static readonly string ElementName = "FunctionImport";
@@ -33,7 +34,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         private DefaultableValue<string> _methodAccessAttr;
         private DefaultableValueBoolOrNone _isComposableAttr;
 
-        private readonly List<Parameter> _parameters = new List<Parameter>();
+        private readonly List<Parameter> _parameters = [];
 
         internal FunctionImport(EFElement parent, XElement element)
             : base(parent, element)
@@ -322,10 +323,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                     _returnTypeAsComplexType = null;
                 }
 
-                if (_returnTypeAsPrimitiveType == null)
-                {
-                    _returnTypeAsPrimitiveType = new ReturnTypeAsPrimitiveTypeDefaultableValue(this);
-                }
+                _returnTypeAsPrimitiveType ??= new ReturnTypeAsPrimitiveTypeDefaultableValue(this);
                 return _returnTypeAsPrimitiveType;
             }
         }
@@ -344,7 +342,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
             public override string DefaultValue
             {
-                get { return Resources.NoneDisplayValueUsedForUX; }
+                get { return XamlDesignerBaseResources.NoneDisplayValueUsedForUX; }
             }
         }
 
@@ -352,13 +350,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_entitySet == null)
-                {
-                    _entitySet = new SingleItemBinding<EntitySet>(
+                _entitySet ??= new SingleItemBinding<EntitySet>(
                         this,
                         AttributeEntitySet,
                         FunctionImportEntitySetNameNormalizer);
-                }
                 return _entitySet;
             }
         }
@@ -367,10 +362,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_methodAccessAttr == null)
-                {
-                    _methodAccessAttr = new MethodAccessDefaultableValue(this);
-                }
+                _methodAccessAttr ??= new MethodAccessDefaultableValue(this);
                 return _methodAccessAttr;
             }
         }
@@ -400,10 +392,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_isComposableAttr == null)
-                {
-                    _isComposableAttr = new ComposableDefaultableValue(this);
-                }
+                _isComposableAttr ??= new ComposableDefaultableValue(this);
                 return _isComposableAttr;
             }
         }
@@ -471,8 +460,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as Parameter;
-            if (child1 != null)
+            if (efContainer is Parameter child1)
             {
                 _parameters.Remove(child1);
                 return;
@@ -483,7 +471,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         internal override DeleteEFElementCommand GetDeleteCommand()
         {
-            var cmd = new DeleteFunctionImportCommand(this);
+            DeleteFunctionImportCommand cmd = new DeleteFunctionImportCommand(this);
             if (cmd == null)
             {
                 // shouldn't happen, just to be safe
@@ -533,12 +521,11 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == Parameter.ElementName)
             {
-                var param = new Parameter(this, elem);
+                Parameter param = new Parameter(this, elem);
                 param.Parse(unprocessedElements);
                 _parameters.Add(param);
             }
@@ -598,13 +585,12 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             }
 
             // cast the parameter to what this really is
-            var fi = parent as FunctionImport;
+            FunctionImport fi = parent as FunctionImport;
             Debug.Assert(fi != null, "parent should be a " + typeof(FunctionImport));
 
             // get the entity container name
             Symbol entityContainerName = null;
-            var ec = fi.Parent as BaseEntityContainer;
-            if (ec != null)
+            if (fi.Parent is BaseEntityContainer ec)
             {
                 entityContainerName = ec.NormalizedName;
             }
@@ -616,12 +602,9 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 symbol = new Symbol(entityContainerName, refName);
             }
 
-            if (symbol == null)
-            {
-                symbol = new Symbol(refName);
-            }
+            symbol ??= new Symbol(refName);
 
-            var normalizedName = new NormalizedName(symbol, null, null, refName);
+            NormalizedName normalizedName = new NormalizedName(symbol, null, null, refName);
             return normalizedName;
         }
 

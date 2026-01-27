@@ -1,30 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using System;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using System.Windows.Threading;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.DataDesign.Interfaces;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Utilities;
+using ModelChangeEventArgs = Microsoft.Data.Entity.Design.VisualStudio.Package.ModelChangeEventArgs;
 
 namespace Microsoft.Data.Entity.Design.Package
 {
-    using System;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.InteropServices;
-    using System.Windows.Threading;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.VSDesigner.Data.Local;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.DataDesign.Interfaces;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.Utilities;
-    using ModelChangeEventArgs = Microsoft.Data.Entity.Design.VisualStudio.Package.ModelChangeEventArgs;
-
     [ProvideToolWindow(typeof(EntityDesignExplorerWindow),
         MultiInstances = false,
         Style = VsDockStyle.Tabbed,
@@ -44,18 +42,14 @@ namespace Microsoft.Data.Entity.Design.Package
     [ProvideEditorLogicalView(typeof(MicrosoftDataEntityDesignEditorFactory), PackageConstants.guidLogicalViewString, IsTrusted = true)]
     // Auto-load when .edmx file is selected (modern pattern - no separate bootstrap package needed)
     [ProvideAutoLoad(PackageConstants.UICONTEXT_AddNewEntityDataModel, PackageAutoLoadFlags.BackgroundLoad)]
-#pragma warning disable VSSDK006 // Check services exist - this is a UIContextRule, not a service check
     [ProvideUIContextRule(PackageConstants.UICONTEXT_AddNewEntityDataModel,
         name: "Auto load Entity Data Model Package",
         expression: "DotEdmx",
         termNames: new[] { "DotEdmx" },
         termValues: new[] { "HierSingleSelectionName:.edmx$" })]
-#pragma warning restore VSSDK006
     internal sealed partial class MicrosoftDataEntityDesignPackage : IEdmPackage, IVsTrackProjectRetargetingEvents
     {
-        [SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields", Justification = "Used by Visual Studio")]
         private OleMenuCommand _viewExplorerCmd;
-        [SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields", Justification = "Used by Visual Studio")]
         private OleMenuCommand _viewMappingCmd;
         private ExplorerWindow _explorerWindow;
         private MappingDetailsWindow _mappingDetailsWindow;
@@ -67,8 +61,6 @@ namespace Microsoft.Data.Entity.Design.Package
 
         #region Initialize/Dispose
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsTrackProjectRetargeting.AdviseTrackProjectRetargetingEvents(Microsoft.VisualStudio.Shell.Interop.IVsTrackProjectRetargetingEvents,System.UInt32@)")]
         protected override void Initialize()
         {
             base.Initialize();
@@ -89,12 +81,11 @@ namespace Microsoft.Data.Entity.Design.Package
                 _dispatcher = Dispatcher.CurrentDispatcher;
 
                 // make sure that we can load the XML Editor package
-                var vsShell = (IVsShell)GetService(typeof(SVsShell));
+                IVsShell vsShell = (IVsShell)GetService(typeof(SVsShell));
                 if (vsShell != null)
                 {
                     var editorPackageGuid = CommonPackageConstants.xmlEditorPackageGuid;
-                    IVsPackage editorPackage;
-                    NativeMethods.ThrowOnFailure(vsShell.LoadPackage(ref editorPackageGuid, out editorPackage));
+                    NativeMethods.ThrowOnFailure(vsShell.LoadPackage(ref editorPackageGuid, out IVsPackage editorPackage));
                 }
 
                 DocumentFrameMgr = new EntityDesignDocumentFrameMgr(PackageManager.Package);
@@ -119,74 +110,39 @@ namespace Microsoft.Data.Entity.Design.Package
                     ShowMappingDetailsWindow, ShowMappingDetailsWindow_BeforeQueryStatus, MicrosoftDataEntityDesignCommands.ViewMapping);
 
                 // Subscribe to Project's target framework retargeting
-                var projectRetargetingService = GetService(typeof(SVsTrackProjectRetargeting)) as IVsTrackProjectRetargeting;
+                IVsTrackProjectRetargeting projectRetargetingService = GetService(typeof(SVsTrackProjectRetargeting)) as IVsTrackProjectRetargeting;
                 Debug.Assert(null != projectRetargetingService, "TrackProjectRetargeting service is null");
                 _trackProjectRetargetingEventsCookie = 0;
-                if (projectRetargetingService != null)
-                {
-                    projectRetargetingService.AdviseTrackProjectRetargetingEvents(this, out _trackProjectRetargetingEventsCookie);
-                }
+                projectRetargetingService?.AdviseTrackProjectRetargetingEvents(this, out _trackProjectRetargetingEventsCookie);
 
                 // There is no SQL CE support dev12 onward, so removing the references
 
-#if VS11
-                // Subscribe to the SQL CE and SqlDatabaseFile upgrade services
-                var sqlCeUpgradeService = GetGlobalService(typeof(IVsSqlCeUpgradeService)) as IVsSqlCeUpgradeService;
-#endif
-
-                var sqlDatabaseFileUpgradeService =
+                IVsSqlDatabaseFileUpgradeService sqlDatabaseFileUpgradeService =
                     GetGlobalService(typeof(IVsSqlDatabaseFileUpgradeService)) as IVsSqlDatabaseFileUpgradeService;
 
-#if VS12ORNEWER
                 if (sqlDatabaseFileUpgradeService == null)
-#else
-                if (sqlCeUpgradeService == null
-                    || sqlDatabaseFileUpgradeService == null)
-#endif
                 {
-                    // attempt to start IVsSqlCeUpgradeService and IVsSqlDatabaseFileUpgradeService
+                    // attempt to start IVsSqlDatabaseFileUpgradeService
                     BootstrapVSDesigner();
 
-#if VS11
-                    if (sqlCeUpgradeService == null)
-                    {
-                        sqlCeUpgradeService = GetGlobalService(typeof(IVsSqlCeUpgradeService)) as IVsSqlCeUpgradeService;
-                    }
-#endif
-
-                    if (sqlDatabaseFileUpgradeService == null)
-                    {
-                        sqlDatabaseFileUpgradeService =
+                    sqlDatabaseFileUpgradeService ??=
                             GetGlobalService(typeof(IVsSqlDatabaseFileUpgradeService)) as IVsSqlDatabaseFileUpgradeService;
-                    }
                 }
-
-#if VS11
-                Debug.Assert(null != sqlCeUpgradeService, "sqlCeUpgradeService service is null");
-                if (sqlCeUpgradeService != null)
-                {
-                    sqlCeUpgradeService.OnUpgradeProject += EdmUtils.SqlCeUpgradeService_OnUpgradeProject;
-                }
-#endif
 
                 Debug.Assert(null != sqlDatabaseFileUpgradeService, "sqlDatabaseFileUpgradeService service is null");
-                if (sqlDatabaseFileUpgradeService != null)
-                {
-                    sqlDatabaseFileUpgradeService.OnUpgradeProject += EdmUtils.SqlDatabaseFileUpgradeService_OnUpgradeProject;
-                }
+                sqlDatabaseFileUpgradeService?.OnUpgradeProject += EdmUtils.SqlDatabaseFileUpgradeService_OnUpgradeProject;
             }
         }
 
         private void BootstrapVSDesigner()
         {
             // Bootstrap VSDesigner services so that we can subscribe to an event service which is set up in VSDesigner initialization
-            var iunknown = new Guid("00000000-0000-0000-C000-000000000046");
-            var vsDesignerBootstrap = new Guid("AD028B85-FA21-41b1-AB4A-08672F633506");
-            var site = (IOleServiceProvider)GetService(typeof(IOleServiceProvider));
+            Guid iunknown = new Guid("00000000-0000-0000-C000-000000000046");
+            Guid vsDesignerBootstrap = new Guid("AD028B85-FA21-41b1-AB4A-08672F633506");
+            IOleServiceProvider site = (IOleServiceProvider)GetService(typeof(IOleServiceProvider));
             if (site != null)
             {
-                IntPtr ppvObject;
-                var hr = site.QueryService(ref vsDesignerBootstrap, ref iunknown, out ppvObject);
+                var hr = site.QueryService(ref vsDesignerBootstrap, ref iunknown, out IntPtr ppvObject);
                 if (NativeMethods.Succeeded(hr) && ppvObject != IntPtr.Zero)
                 {
                     Marshal.Release(ppvObject);
@@ -205,12 +161,8 @@ namespace Microsoft.Data.Entity.Design.Package
                 // always dispose and null out items that use VS resources
                 _viewExplorerCmd = null;
                 _viewMappingCmd = null;
-
-                if (_explorerWindow != null)
-                {
-                    _explorerWindow.Dispose();
-                    _explorerWindow = null;
-                }
+                _explorerWindow?.Dispose();
+                _explorerWindow = null;
 
                 if (_mappingDetailsWindow != null)
                 {
@@ -226,41 +178,19 @@ namespace Microsoft.Data.Entity.Design.Package
                 ErrorListHelper.UnregisterForNotifications();
 
                 // dispose of our classes in reverse order than we created them
-                if (ConnectionManager != null)
-                {
-                    ConnectionManager.Dispose();
-                    ConnectionManager = null;
-                }
-
-                if (ModelChangeEventListener != null)
-                {
-                    ModelChangeEventListener.Dispose();
-                    ModelChangeEventListener = null;
-                }
-
-                if (DocumentFrameMgr != null)
-                {
-                    DocumentFrameMgr.Dispose();
-                    DocumentFrameMgr = null;
-                }
+                ConnectionManager?.Dispose();
+                ConnectionManager = null;
+                ModelChangeEventListener?.Dispose();
+                ModelChangeEventListener = null;
+                DocumentFrameMgr?.Dispose();
+                DocumentFrameMgr = null;
 
                 ModelManager.Dispose();
 
-#if VS11
-                // UnSubscribe from the SQL CE upgrade service
-                var sqlCeUpgradeService = GetGlobalService(typeof(IVsSqlCeUpgradeService)) as IVsSqlCeUpgradeService;
-                if (sqlCeUpgradeService != null)
-                {
-                    sqlCeUpgradeService.OnUpgradeProject -= EdmUtils.SqlCeUpgradeService_OnUpgradeProject;
-                }
-#endif
                 // UnSubscribe from the SqlDatabaseFile upgrade service
-                var sqlDatabaseFileUpgradeService =
+                IVsSqlDatabaseFileUpgradeService sqlDatabaseFileUpgradeService =
                     GetGlobalService(typeof(IVsSqlDatabaseFileUpgradeService)) as IVsSqlDatabaseFileUpgradeService;
-                if (sqlDatabaseFileUpgradeService != null)
-                {
-                    sqlDatabaseFileUpgradeService.OnUpgradeProject -= EdmUtils.SqlDatabaseFileUpgradeService_OnUpgradeProject;
-                }
+                sqlDatabaseFileUpgradeService?.OnUpgradeProject -= EdmUtils.SqlDatabaseFileUpgradeService_OnUpgradeProject;
 
                 // clear out any static references
                 PackageManager.Package = null;
@@ -323,12 +253,11 @@ namespace Microsoft.Data.Entity.Design.Package
             _dispatcher = Dispatcher.CurrentDispatcher;
 
             // make sure that we can load the XML Editor package
-            var vsShell = (IVsShell)GetService(typeof(SVsShell));
+            IVsShell vsShell = (IVsShell)GetService(typeof(SVsShell));
             if (vsShell != null)
             {
                 var editorPackageGuid = CommonPackageConstants.xmlEditorPackageGuid;
-                IVsPackage editorPackage;
-                NativeMethods.ThrowOnFailure(vsShell.LoadPackage(ref editorPackageGuid, out editorPackage));
+                NativeMethods.ThrowOnFailure(vsShell.LoadPackage(ref editorPackageGuid, out IVsPackage editorPackage));
             }
 
             ErrorListHelper.RegisterForNotifications();
@@ -343,8 +272,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// </summary>
         private void ShowExplorerWindow_BeforeQueryStatus(object sender, EventArgs e)
         {
-            var menuCommand = sender as OleMenuCommand;
-            if (menuCommand != null)
+            if (sender is OleMenuCommand menuCommand)
             {
                 // if an EDMX file is currently open then this menu item should be visible and enabled
                 if (PackageManager.Package.ModelManager.Artifacts != null
@@ -379,8 +307,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="e"></param>
         private void ShowMappingDetailsWindow_BeforeQueryStatus(object sender, EventArgs e)
         {
-            var menuCommand = sender as OleMenuCommand;
-            if (menuCommand != null)
+            if (sender is OleMenuCommand menuCommand)
             {
                 // if an EDMX file is currently open then this menu item should be visible and enabled
                 if (PackageManager.Package.ModelManager.Artifacts != null
@@ -453,18 +380,16 @@ namespace Microsoft.Data.Entity.Design.Package
         /// </summary>
         /// <param name="resourceName">Resource to load</param>
         /// <returns>String loaded for the specified resource</returns>
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "SVsResourceManager")]
         public string GetResourceString(string resourceName)
         {
-            string resourceValue;
-            var resourceManager = (IVsResourceManager)GetService(typeof(SVsResourceManager));
+            IVsResourceManager resourceManager = (IVsResourceManager)GetService(typeof(SVsResourceManager));
             if (resourceManager == null)
             {
                 throw new InvalidOperationException(
                     "Could not get SVsResourceManager service. Make sure the package is Sited before calling this method");
             }
             var packageGuid = GetType().GUID;
-            var hr = resourceManager.LoadResourceString(ref packageGuid, -1, resourceName, out resourceValue);
+            var hr = resourceManager.LoadResourceString(ref packageGuid, -1, resourceName, out string resourceValue);
             ErrorHandler.ThrowOnFailure(hr);
             return resourceValue;
         }
@@ -523,7 +448,7 @@ namespace Microsoft.Data.Entity.Design.Package
         /// <param name="newFileName"></param>
         public void OnFileNameChanged(string oldFileName, string newFileName)
         {
-            var args = new ModelChangeEventArgs();
+            ModelChangeEventArgs args = new ModelChangeEventArgs();
             args.OldFileName = oldFileName;
             args.NewFileName = newFileName;
             FileNameChanged(this, args);
@@ -543,11 +468,9 @@ namespace Microsoft.Data.Entity.Design.Package
                     try
                     {
                         // use the source code control property setting to determine if we are in command line mode
-                        var shell = GetService(typeof(SVsShell)) as IVsShell;
-                        if (shell != null)
+                        if (GetService(typeof(SVsShell)) is IVsShell shell)
                         {
-                            object o;
-                            var hr = shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out o);
+                            var hr = shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out object o);
                             if (NativeMethods.Succeeded(hr))
                             {
                                 _isBuildingFromCommandLine = o as bool?;
@@ -562,10 +485,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     {
                         // if for some reason we can't get the property from the shell, the shell is null, we get a COM exception, we can't cast, etc.
                         // then we assume the most popular case which is we aren't building from the command line.
-                        if (_isBuildingFromCommandLine == null)
-                        {
-                            _isBuildingFromCommandLine = false;
-                        }
+                        _isBuildingFromCommandLine ??= false;
                     }
                 }
 

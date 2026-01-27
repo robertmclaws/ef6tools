@@ -1,28 +1,27 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Threading;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.Commands;
+using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Controls.Primitives;
-    using System.Windows.Documents;
-    using System.Windows.Input;
-    using System.Windows.Media;
-    using System.Windows.Threading;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.Commands;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
-
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal abstract class ExplorerFrame : DockPanel, INotifyPropertyChanged, IDisposable
     {
         private bool _isDisposed;
@@ -101,7 +100,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 var context = Context;
                 if (context != null)
                 {
-                    var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(context);
+                    ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(context);
                     return explorerSearchResults.CanGoToNextSearchResult;
                 }
                 return false;
@@ -115,7 +114,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 var context = Context;
                 if (context != null)
                 {
-                    var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(context);
+                    ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(context);
                     return explorerSearchResults.CanGoToPreviousSearchResult;
                 }
                 return false;
@@ -186,11 +185,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                     _frameTreeView = null;
                 }
 
-                if (_frameContent != null)
-                {
-                    _frameContent.Dispose();
-                    _frameContent = null;
-                }
+                _frameContent?.Dispose();
+                _frameContent = null;
             }
         }
 
@@ -198,7 +194,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         #region Implementation
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected override void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
@@ -266,11 +261,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 // unregister from old context
                 if (Context != value)
                 {
-                    if (Context != null)
-                    {
-                        Context.Items.Unsubscribe<ExplorerSelection>(OnSelectionChanged);
-                        Context = null;
-                    }
+                    Context?.Items.Unsubscribe<ExplorerSelection>(OnSelectionChanged);
+                    Context = null;
 
                     // register to new context
                     Context = value;
@@ -296,7 +288,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
                 if (brItem != null)
                 {
-                    var newSelection = new HashSet<EFElement>();
+                    HashSet<EFElement> newSelection = new HashSet<EFElement>();
                     if (brItem.ModelItem != null)
                     {
                         newSelection.Add(brItem.ModelItem);
@@ -325,7 +317,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                     treeViewItem.UpdateLayout();
                 }
 
-                var childTreeViewItem = (ExplorerTreeViewItem)treeViewItem.ItemContainerGenerator.ContainerFromItem(item);
+                ExplorerTreeViewItem childTreeViewItem = (ExplorerTreeViewItem)treeViewItem.ItemContainerGenerator.ContainerFromItem(item);
                 if (childTreeViewItem == null)
                 {
                     if (returnAncestorTreeViewItemIfNotAvailable)
@@ -399,8 +391,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         private void OnContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
-            var source = e.OriginalSource as UIElement;
-            if (source != null)
+            if (e.OriginalSource is UIElement source)
             {
                 if (ShowContextMenu != null)
                 {
@@ -436,11 +427,10 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 || e.RightButton == MouseButtonState.Pressed)
             {
                 ExplorerTreeViewItem treeViewItem = null;
-                var item = e.OriginalSource as UIElement;
+                UIElement item = e.OriginalSource as UIElement;
                 while (item != null)
                 {
-                    var toggleButton = item as ToggleButton;
-                    if (toggleButton != null
+                    if (item is ToggleButton toggleButton
                         && toggleButton.Name == "Expander")
                     {
                         if (e.LeftButton == MouseButtonState.Pressed)
@@ -549,28 +539,28 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         internal ExplorerTreeViewItem ExplorerTreeRoot
         {
-            get { return _frameContent == null ? null : _frameContent.ExplorerTreeRoot; }
+            get { return _frameContent?.ExplorerTreeRoot; }
         }
 
         // Property that returns the Search Text Box control
         private ComboBox SearchComboBox
         {
-            get { return _frameContent == null ? null : _frameContent.SearchBox; }
+            get { return _frameContent?.SearchBox; }
         }
 
         private Border SearchBar
         {
-            get { return _frameContent == null ? null : _frameContent.SearchBar; }
+            get { return _frameContent?.SearchBar; }
         }
 
         private FrameworkElement SearchTicksTrack
         {
-            get { return _frameContent == null ? null : _frameContent.SearchTicksTrack; }
+            get { return _frameContent?.SearchTicksTrack; }
         }
 
         private SearchAdornerDecorator SearchAdornerDecorator
         {
-            get { return _frameContent == null ? null : _frameContent.SearchAdornerDecorator; }
+            get { return _frameContent?.SearchAdornerDecorator; }
         }
 
         private AdornerLayer TreeViewAdornerLayer
@@ -634,8 +624,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
         protected abstract ExplorerViewModelHelper GetNewExplorerViewModelHelper();
         protected abstract ExplorerContent InitializeExplorerContent();
 
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode",
-            Justification = "Bug746319 opened to remove this in future")]
         private static UIElement GetFirstFocusableAncestor(UIElement focusableAncestor)
         {
             while (focusableAncestor != null)
@@ -717,10 +705,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
             ResetAdorners();
 
-            if (_deferredExpansionAndCalculateAdorners != null)
-            {
-                _deferredExpansionAndCalculateAdorners.Cancel();
-            }
+            _deferredExpansionAndCalculateAdorners?.Cancel();
 
             SearchIsActive = false;
         }
@@ -784,7 +769,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 var context = Context;
                 if (context != null)
                 {
-                    var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(context);
+                    ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(context);
                     return explorerSearchResults.CanGoToNextSearchResult;
                 }
                 return false;
@@ -798,7 +783,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                 var context = Context;
                 if (context != null)
                 {
-                    var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(context);
+                    ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(context);
                     return explorerSearchResults.CanGoToPreviousSearchResult;
                 }
                 return false;
@@ -807,10 +792,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         private void UpdateNextAndPreviousResults(bool relativeToSelection)
         {
-            if (_deferredUpdateNextAndPreviousSearchResults != null)
-            {
-                _deferredUpdateNextAndPreviousSearchResults.Request(relativeToSelection);
-            }
+            _deferredUpdateNextAndPreviousSearchResults?.Request(relativeToSelection);
         }
 
         // Argument must be an object to allow it to be called via DeferredRequest
@@ -832,12 +814,9 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                     {
                         relativeToItem = selectedItem;
                     }
-                    if (relativeToItem == null)
-                    {
-                        relativeToItem = ExplorerViewModelHelper.ViewModel.RootNode;
-                    }
+                    relativeToItem ??= ExplorerViewModelHelper.ViewModel.RootNode;
 
-                    var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(Context);
+                    ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(Context);
                     explorerSearchResults.RecalculateNextAndPrevious(relativeToItem);
                 }
 
@@ -854,7 +833,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             {
                 _nextOrPreviousInProgress = true;
 
-                var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(Context);
+                ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(Context);
                 var nextSearchResultItem = explorerSearchResults.SelectNextSearchResult();
                 if (nextSearchResultItem != null)
                 {
@@ -876,7 +855,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             {
                 _nextOrPreviousInProgress = true;
 
-                var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(Context);
+                ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(Context);
                 var previousSearchResultItem = explorerSearchResults.SelectPreviousSearchResult();
                 if (previousSearchResultItem != null)
                 {
@@ -947,7 +926,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
             // now reset the ExplorerSearchResults which will clear all the 
             // IsInSearchResults settings in the tree
-            var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(Context);
+            ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(Context);
             explorerSearchResults.Reset();
         }
 
@@ -957,7 +936,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             SetSearchBarText(_frameContent.SearchBarText, action, searchCriteria, found);
 
             // next use same method to define Tooltip
-            var tooltip = new TextBlock();
+            TextBlock tooltip = new TextBlock();
             SetSearchBarText(tooltip, action, searchCriteria, found);
             _frameContent.SearchBarText.ToolTip = tooltip;
         }
@@ -1008,7 +987,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             var scrollBar = GetVerticalScrollBar();
 
             var addAdorners = scrollBar != null && scrollBar.IsVisible;
-            var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(Context);
+            ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(Context);
 
             if (addAdorners)
             {
@@ -1047,10 +1026,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         private void WaitForExpansionThenProcessTreeView()
         {
-            if (_deferredExpansionAndCalculateAdorners != null)
-            {
-                _deferredExpansionAndCalculateAdorners.Request();
-            }
+            _deferredExpansionAndCalculateAdorners?.Request();
         }
 
         private ScrollBar GetVerticalScrollBar()
@@ -1237,7 +1213,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         private static void WaitUIUpdate()
         {
-            var frame = new DispatcherFrame();
+            DispatcherFrame frame = new DispatcherFrame();
             _ = Dispatcher.CurrentDispatcher.BeginInvoke(
                 DispatcherPriority.Background, new DispatcherOperationCallback(o => frame.Continue = false), null);
             Dispatcher.PushFrame(frame);

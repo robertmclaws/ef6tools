@@ -1,31 +1,31 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.Model.Visitor;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-
     /// <summary>
     ///     This API supports the Entity Framework infrastructure and is not intended to be used directly from your code.
     /// </summary>
     public abstract class ModelManager : IDisposable
     {
         // TODO:  we should have a case-insensitive URI comparison here.  
-        private readonly Dictionary<Uri, EFArtifact> _artifactsByUri = new Dictionary<Uri, EFArtifact>();
+        private readonly Dictionary<Uri, EFArtifact> _artifactsByUri = [];
 
         // TODO:  we should have a case-insensitive URI comparison here.  
         private readonly Dictionary<EFArtifact, List<EFArtifactSet>> _artifact2ArtifactSets =
-            new Dictionary<EFArtifact, List<EFArtifactSet>>();
+            [];
 
         // views should listen to this event to be notified when changes are committed to the model
         internal EventHandler<EfiChangingEventArgs> BeforeModelChangesCommitted { get; set; }
@@ -99,7 +99,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal void BeforeCommitChangeGroups(CommandProcessorContext cpc)
         {
-            var args = new EfiChangingEventArgs(cpc);
+            EfiChangingEventArgs args = new EfiChangingEventArgs(cpc);
             if (BeforeModelChangesCommitted != null)
             {
                 // now tell everyone that the changes are about to be committed
@@ -114,7 +114,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 while (_changeGroups.Count > 0)
                 {
                     var changeGroup = _changeGroups.Dequeue();
-                    var args = new EfiChangedEventArgs(changeGroup);
+                    EfiChangedEventArgs args = new EfiChangedEventArgs(changeGroup);
                     if (ModelChangesCommitted != null)
                     {
                         // now tell everyone that things have changed
@@ -133,7 +133,6 @@ namespace Microsoft.Data.Entity.Design.Model
             _changeGroups.Clear();
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
         internal IEnumerable<XName> GetUnprocessedElements()
         {
 #if DEBUG
@@ -183,12 +182,10 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             lock (this)
             {
-                EFArtifact artifact = null;
-                _artifactsByUri.TryGetValue(uri, out artifact);
+                _artifactsByUri.TryGetValue(uri, out EFArtifact artifact);
                 if (artifact != null)
                 {
-                    List<EFArtifactSet> result = null;
-                    if (_artifact2ArtifactSets.TryGetValue(artifact, out result))
+                    if (_artifact2ArtifactSets.TryGetValue(artifact, out List<EFArtifactSet> result))
                     {
                         Debug.Assert(result.Count == 1, "Support for an artifact spanning multiple sets is not yet implemented");
                         return result[0];
@@ -207,8 +204,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             lock (this)
             {
-                EFArtifact result = null;
-                if (_artifactsByUri.TryGetValue(uri, out result))
+                if (_artifactsByUri.TryGetValue(uri, out EFArtifact result))
                 {
                     return result;
                 }
@@ -220,8 +216,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             lock (this)
             {
-                EFArtifact result = null;
-                if (_artifactsByUri.TryGetValue(oldUri, out result))
+                if (_artifactsByUri.TryGetValue(oldUri, out EFArtifact result))
                 {
                     _artifactsByUri.Remove(oldUri);
                     _artifactsByUri.Add(newUri, result);
@@ -238,8 +233,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             lock (this)
             {
-                EFArtifact artifact = null;
-                if (_artifactsByUri.TryGetValue(uri, out artifact))
+                if (_artifactsByUri.TryGetValue(uri, out EFArtifact artifact))
                 {
                     if (artifact != null)
                     {
@@ -298,10 +292,7 @@ namespace Microsoft.Data.Entity.Design.Model
                             _artifact2ArtifactSets.ContainsKey(artifact) == false, "Unexpected entry for artifact in artifact2ArtifactSet");
                         if (_artifact2ArtifactSets.ContainsKey(artifact) == false)
                         {
-                            if (efArtifactSet == null)
-                            {
-                                efArtifactSet = _artifactSetFactory.CreateArtifactSet(artifact);
-                            }
+                            efArtifactSet ??= _artifactSetFactory.CreateArtifactSet(artifact);
                             RegisterArtifact(artifact, efArtifactSet);
                         }
                     }
@@ -317,17 +308,14 @@ namespace Microsoft.Data.Entity.Design.Model
                 catch (Exception)
                 {
                     // an exception occurred during loading, dispose each artifact in the list and rethrow.
-                    if (artifacts != null)
-                    {
-                        // call dispose & clear the artifact.  We need both since the the entry may not be 
-                        // in the _artifactsByUri table. 
-                        artifacts.ForEach(
-                            artifact =>
-                                {
-                                    artifact.Dispose();
-                                    ClearArtifact(artifact.Uri);
-                                });
-                    }
+                    // call dispose & clear the artifact.  We need both since the the entry may not be 
+                    // in the _artifactsByUri table. 
+                    artifacts?.ForEach(
+                        artifact =>
+                            {
+                                artifact.Dispose();
+                                ClearArtifact(artifact.Uri);
+                            });
                     throw;
                 }
 
@@ -366,7 +354,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             lock (this)
             {
-                var visitor = new NormalizingVisitor();
+                NormalizingVisitor visitor = new NormalizingVisitor();
 
                 var lastMissedCount = -1;
                 while (visitor.MissedCount != 0)
@@ -395,7 +383,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// </summary>
         internal static void NormalizeItem(EFContainer item)
         {
-            var visitor = new NormalizingVisitor();
+            NormalizingVisitor visitor = new NormalizingVisitor();
 
             var lastMissedCount = -1;
             while (visitor.MissedCount != 0)
@@ -422,7 +410,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             lock (this)
             {
-                var visitor = new ResolvingVisitor(artifactSet);
+                ResolvingVisitor visitor = new ResolvingVisitor(artifactSet);
 
                 var lastMissedCount = visitor.MissedCount;
 
@@ -455,7 +443,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             lock (this)
             {
-                var visitor = new ResolvingVisitor(item.Artifact.ArtifactSet);
+                ResolvingVisitor visitor = new ResolvingVisitor(item.Artifact.ArtifactSet);
 
                 var lastMissedCount = visitor.MissedCount;
 
@@ -538,8 +526,10 @@ namespace Microsoft.Data.Entity.Design.Model
 
                 _artifactsByUri[efArtifact.Uri] = efArtifact;
 
-                var artifactSetList = new List<EFArtifactSet>(1);
-                artifactSetList.Add(efArtifactSet);
+                List<EFArtifactSet> artifactSetList = new List<EFArtifactSet>(1)
+                {
+                    efArtifactSet
+                };
                 _artifact2ArtifactSets[efArtifact] = artifactSetList;
                 efArtifact.Init();
             }

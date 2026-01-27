@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class EntityTypeShapeDelete : EntityTypeShapeModelChange
     {
         internal EntityTypeShapeDelete(EntityTypeShape entityShape)
@@ -20,8 +20,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
             Debug.Assert(viewModel != null, "Unable to find root view model from entity type shape: " + EntityTypeShape.AccessibleName);
             if (viewModel != null)
             {
-                var modelEntityShape = viewModel.ModelXRef.GetExisting(EntityTypeShape) as Model.Designer.EntityTypeShape;
-                if (modelEntityShape != null)
+                if (viewModel.ModelXRef.GetExisting(EntityTypeShape) is Model.Designer.EntityTypeShape modelEntityShape)
                 {
                     DeleteEFElementCommand.DeleteInTransaction(cpc, modelEntityShape);
                     viewModel.ModelXRef.Remove(modelEntityShape, EntityTypeShape);

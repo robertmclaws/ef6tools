@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal abstract class ModelToExplorerModelXRef : ContextItem
     {
         /// <summary>
         ///     Maps ModelManager types to ModelToExlporerModelXRef types.  This way the base ModelToExplorerModelXRef class can
         ///     get the correct ModelToExplorerModelXRef instance from the EditingContext.
         /// </summary>
-        private static readonly Dictionary<Type, Type> _modelManagerType2XRefType = new Dictionary<Type, Type>();
+        private static readonly Dictionary<Type, Type> _modelManagerType2XRefType = [];
 
         /// <summary>
         ///     Pairs a ModelManager type with a ModelToExplorerModelXRef type.  Whenever a ModelToExplorerModelXRef is requested,
@@ -37,8 +37,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
                 typeof(ModelToExplorerModelXRef).IsAssignableFrom(xRefType) && xRefType != typeof(ModelToExplorerModelXRef),
                 "xRefType needs to be a type that derives from ModelToExplorerModelXRef.");
 
-            Type existingXRefType;
-            if (_modelManagerType2XRefType.TryGetValue(modelManagerType, out existingXRefType))
+            if (_modelManagerType2XRefType.TryGetValue(modelManagerType, out Type existingXRefType))
             {
                 // if the modelManagerType already exists in the map, make sure the XRef types are the same
                 Debug.Assert(
@@ -53,10 +52,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         internal static ModelToExplorerModelXRef GetModelToBrowserModelXRef(EditingContext context)
         {
-            Type modelToExplorerModelXRefType;
             if (
                 !_modelManagerType2XRefType.TryGetValue(
-                    context.GetEFArtifactService().Artifact.ModelManager.GetType(), out modelToExplorerModelXRefType))
+                    context.GetEFArtifactService().Artifact.ModelManager.GetType(), out Type modelToExplorerModelXRefType))
             {
                 Debug.Fail(
                     "Could not find a ModelToExplorerModelXRef type for the ModelManager of type '"
@@ -66,7 +64,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             }
 
             // Update EFElement to BrowserEFElement cross reference so that Search Results can later access it
-            var xref = (ModelToExplorerModelXRef)context.Items.GetValue(modelToExplorerModelXRefType);
+            ModelToExplorerModelXRef xref = (ModelToExplorerModelXRef)context.Items.GetValue(modelToExplorerModelXRefType);
             if (xref == null)
             {
                 xref = (ModelToExplorerModelXRef)Activator.CreateInstance(modelToExplorerModelXRefType);
@@ -135,8 +133,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             // The explorer parent may not be the same as model parent
 
             ExplorerEFElement explorerParentItem = null;
-            var parent = efElement.Parent as EFElement;
-            if (parent != null)
+            if (efElement.Parent is EFElement parent)
             {
                 var xref = GetModelToBrowserModelXRef(context);
 
@@ -158,7 +155,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             return xref.GetViewModelTypeForEFlement(efElement);
         }
 
-        private readonly Dictionary<EFElement, ExplorerEFElement> _dict = new Dictionary<EFElement, ExplorerEFElement>();
+        private readonly Dictionary<EFElement, ExplorerEFElement> _dict = [];
 
         protected abstract bool IsDisplayedInExplorerProtected(EFElement efElement);
 
@@ -171,8 +168,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         internal void Remove(EFElement efElement)
         {
-            ExplorerEFElement result;
-            _dict.TryGetValue(efElement, out result);
+            _dict.TryGetValue(efElement, out ExplorerEFElement result);
             Debug.Assert(
                 result != null,
                 "Attempt to remove non-existent EFElement of name " + efElement.DisplayName + " from ModelToExplorerModelXRef");
@@ -184,8 +180,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         internal ExplorerEFElement GetExisting(EFElement efElement)
         {
-            ExplorerEFElement result;
-            _dict.TryGetValue(efElement, out result);
+            _dict.TryGetValue(efElement, out ExplorerEFElement result);
             return result;
         }
 

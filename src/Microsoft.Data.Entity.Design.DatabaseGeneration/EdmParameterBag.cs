@@ -1,22 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+
 namespace Microsoft.Data.Entity.Design.DatabaseGeneration
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Threading;
-
     /// <summary>
     ///     Provides values for the parameters that are defined in the EdmParameterBag.ParameterName enumeration.
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Edm")]
     public class EdmParameterBag
     {
         /// <summary>
         ///     An enumeration of parameter names that are used by classes in the Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators namespace when generating a database from a conceptual model.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1034:NestedTypesShouldNotBeVisible", Justification = "Changing this would affect the public .tt files")]
         public enum ParameterName
         {
             /// <summary>
@@ -62,13 +60,11 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
             /// <summary>
             ///     The path to the text template used to generate data definition language (DDL).
             /// </summary>
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "DDL")]
             DDLTemplatePath,
 
             /// <summary>
             ///     The path to the .edmx file from which the Generate Database Wizard was launched.
             /// </summary>
-            [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Edmx")]
             EdmxPath
         }
 
@@ -87,8 +83,6 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// <param name="databaseName">The name of the generated database.</param>
         /// <param name="ddlTemplatePath">The path to the text template used to generate data definition language (DDL).</param>
         /// <param name="edmxPath">An optional path to the .edmx file from which the Generate Database Wizard was launched.</param>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "ddl")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "edmx")]
         public EdmParameterBag(
             SynchronizationContext syncContext,
             IAssemblyLoader assemblyLoader,
@@ -101,17 +95,19 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
             string ddlTemplatePath,
             string edmxPath)
         {
-            _parameterBag = new Dictionary<ParameterName, object>();
-            _parameterBag.Add(ParameterName.SynchronizationContext, syncContext);
-            _parameterBag.Add(ParameterName.AssemblyLoader, assemblyLoader);
-            _parameterBag.Add(ParameterName.TargetVersion, targetVersion);
-            _parameterBag.Add(ParameterName.ProviderInvariantName, providerInvariantName);
-            _parameterBag.Add(ParameterName.ProviderManifestToken, providerManifestToken);
-            _parameterBag.Add(ParameterName.ProviderConnectionString, providerConnectionString);
-            _parameterBag.Add(ParameterName.DatabaseSchemaName, databaseSchemaName);
-            _parameterBag.Add(ParameterName.DatabaseName, databaseName);
-            _parameterBag.Add(ParameterName.DDLTemplatePath, ddlTemplatePath);
-            _parameterBag.Add(ParameterName.EdmxPath, edmxPath);
+            _parameterBag = new Dictionary<ParameterName, object>
+            {
+                { ParameterName.SynchronizationContext, syncContext },
+                { ParameterName.AssemblyLoader, assemblyLoader },
+                { ParameterName.TargetVersion, targetVersion },
+                { ParameterName.ProviderInvariantName, providerInvariantName },
+                { ParameterName.ProviderManifestToken, providerManifestToken },
+                { ParameterName.ProviderConnectionString, providerConnectionString },
+                { ParameterName.DatabaseSchemaName, databaseSchemaName },
+                { ParameterName.DatabaseName, databaseName },
+                { ParameterName.DDLTemplatePath, ddlTemplatePath },
+                { ParameterName.EdmxPath, edmxPath }
+            };
         }
 
         /// <summary>
@@ -124,8 +120,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration
         /// </returns>
         public T GetParameter<T>(ParameterName parameterName) where T : class
         {
-            object paramValue = null;
-            _parameterBag.TryGetValue(parameterName, out paramValue);
+            _parameterBag.TryGetValue(parameterName, out object paramValue);
             return paramValue as T;
         }
     }

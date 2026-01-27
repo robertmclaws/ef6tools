@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
 namespace Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-
     /// <summary>
     ///     Provides utility methods for formatting Trace strings
     /// </summary>
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics
             string newlineIndent = DefaultIndent, string listStart = DefaultListStart, string listEnd = DefaultListEnd,
             string listSeparator = DefaultListSeparator)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.Append(listStart);
             var first = true;
             foreach (var t in enumerable)
@@ -83,7 +83,7 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics
             string dictionaryStart = DefaultDictionaryStart, string dictionaryEnd = DefaultDictionaryEnd,
             string mapsTo = DefaultDictionaryMapsTo)
         {
-            var sb = new StringBuilder(listStart);
+            StringBuilder sb = new StringBuilder(listStart);
             var first = true;
             foreach (var pair in dictionary)
             {

@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+
 namespace Microsoft.Data.Entity.Design.UI
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-
     /// <summary>
     ///     The Selection class defines a selection of EFObject.  Selections
     ///     consist of zero or more EFObject.  The first EFObject in a selection
@@ -53,11 +53,10 @@ namespace Microsoft.Data.Entity.Design.UI
                 throw new ArgumentNullException("selectedObjects");
             }
 
-            var selection = new List<EFObject>();
+            List<EFObject> selection = new List<EFObject>();
             foreach (object o in selectedObjects)
             {
-                var info = o as EFObject;
-                if (info != null
+                if (o is EFObject info
                     && (match == null || match(info)))
                 {
                     selection.Add(info);
@@ -94,11 +93,10 @@ namespace Microsoft.Data.Entity.Design.UI
                 throw new ArgumentNullException("selectedObjects");
             }
 
-            var selection = new List<EFObject>();
+            List<EFObject> selection = new List<EFObject>();
             foreach (var o in selectedObjects)
             {
-                var info = o as EFObject;
-                if (info != null
+                if (o is EFObject info
                     && (match == null || match(info)))
                 {
                     selection.Add(info);
@@ -170,11 +168,10 @@ namespace Microsoft.Data.Entity.Design.UI
 
         internal void SetSelectedObjects(params EFObject[] selectedObjects)
         {
-            var selection = new List<EFObject>();
+            List<EFObject> selection = new List<EFObject>();
             foreach (object o in selectedObjects)
             {
-                var info = o as EFObject;
-                if (info != null)
+                if (o is EFObject info)
                 {
                     selection.Add(info);
                 }
@@ -240,7 +237,7 @@ namespace Microsoft.Data.Entity.Design.UI
             {
                 if (obj == itemToSelect)
                 {
-                    var list = new List<EFObject>(existing.SelectedObjects);
+                    List<EFObject> list = new List<EFObject>(existing.SelectedObjects);
                     list.Remove(itemToSelect);
                     list.Insert(0, itemToSelect);
                     selection = Activator.CreateInstance<T>();
@@ -343,7 +340,7 @@ namespace Microsoft.Data.Entity.Design.UI
             // Is the item already in the selection?  If so, remove it.
             // If not, add it to the beginning.
 
-            var list = new List<EFObject>(existing.SelectedObjects);
+            List<EFObject> list = new List<EFObject>(existing.SelectedObjects);
             if (list.Contains(itemToToggle))
             {
                 list.Remove(itemToToggle);
@@ -390,7 +387,7 @@ namespace Microsoft.Data.Entity.Design.UI
             }
 
             // Is the item already in the selection?  If not, add it.
-            var list = new List<EFObject>(existing.SelectedObjects);
+            List<EFObject> list = new List<EFObject>(existing.SelectedObjects);
             if (list.Contains(itemToAdd))
             {
                 list.Remove(itemToAdd);

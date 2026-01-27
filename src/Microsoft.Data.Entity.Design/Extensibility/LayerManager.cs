@@ -1,38 +1,38 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Modeling.Shell;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class LayerManager
     {
         private const string _propertyNameFormat = "IsLayerEnabled_{0}";
         private readonly EFArtifact _artifact;
         private EntityDesignSelectionContainer<LayerSelection> _selectionContainer;
-        private readonly Dictionary<IEntityDesignerLayer, LayerState> _layer2state = new Dictionary<IEntityDesignerLayer, LayerState>();
+        private readonly Dictionary<IEntityDesignerLayer, LayerState> _layer2state = [];
 
         private readonly IDictionary<EntityDesignerCommand, CommandID> _commands2ids = new Dictionary<EntityDesignerCommand, CommandID>();
         private readonly IDictionary<int, EntityDesignerCommand> _intIds2commands = new Dictionary<int, EntityDesignerCommand>();
 
         private int _currentCommandId = PackageConstants.cmdIdLayerCommandsBase;
-        private readonly List<int> _commandIdFreeList = new List<int>();
+        private readonly List<int> _commandIdFreeList = [];
 
         private int _currentRefactoringCommandId = PackageConstants.cmdIdLayerRefactoringCommandsBase;
-        private readonly List<int> _refactoringCommandIdFreeList = new List<int>();
+        private readonly List<int> _refactoringCommandIdFreeList = [];
 
         internal EFObject SelectedEFObject
         {
@@ -102,10 +102,9 @@ namespace Microsoft.Data.Entity.Design.Extensibility
                 newCommandId = currentCommandId;
             }
 
-            var commandId = new CommandID(PackageConstants.guidEscherCmdSet, newCommandId);
+            CommandID commandId = new CommandID(PackageConstants.guidEscherCmdSet, newCommandId);
 
-            DynamicStatusMenuCommand menuCommand;
-            if (PackageManager.Package.CommandSet.AddCommand(commandId, command, out menuCommand))
+            if (PackageManager.Package.CommandSet.AddCommand(commandId, command, out DynamicStatusMenuCommand menuCommand))
             {
                 // If we are attempting to use an id from the free list then we should
                 // remove it from the free list if we've successfully added the command, or
@@ -185,8 +184,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
 
         internal void ToggleLayerEnabled(IEntityDesignerLayer layer, XObject selectedXObject)
         {
-            LayerState layerState;
-            if (_layer2state.TryGetValue(layer, out layerState))
+            if (_layer2state.TryGetValue(layer, out LayerState layerState))
             {
                 layerState.IsEnabled = !layerState.IsEnabled;
                 layerState.EnableCommand.Name = GetEnableLayerCommandText(layer.Name, layerState.IsEnabled);
@@ -220,17 +218,13 @@ namespace Microsoft.Data.Entity.Design.Extensibility
             }
 
             layer.ChangeEntityDesignerSelection -= layer_EntityDesignerSelectionChanged;
-
-            if (_selectionContainer != null)
-            {
-                _selectionContainer.Dispose();
-                _selectionContainer = null;
-            }
+            _selectionContainer?.Dispose();
+            _selectionContainer = null;
         }
 
         internal void UnloadAllLayers()
         {
-            var layersToRemove = new List<IEntityDesignerLayer>();
+            List<IEntityDesignerLayer> layersToRemove = new List<IEntityDesignerLayer>();
             foreach (var layer in _layer2state.Keys)
             {
                 UnloadLayer(layer);
@@ -248,7 +242,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
             StopListeningToSelections();
             UnloadAllLayers();
 
-            var commandsToRemove = new List<EntityDesignerCommand>();
+            List<EntityDesignerCommand> commandsToRemove = new List<EntityDesignerCommand>();
             foreach (var leftoverCommand in _commands2ids.Keys)
             {
                 commandsToRemove.Add(leftoverCommand);
@@ -272,23 +266,22 @@ namespace Microsoft.Data.Entity.Design.Extensibility
             var extensions = EscherExtensionPointManager.LoadLayerExtensions();
             if (extensions != null)
             {
-                var selectedEFElement = SelectedEFObject as EFElement;
+                EFElement selectedEFElement = SelectedEFObject as EFElement;
                 foreach (var ex in extensions)
                 {
                     var layer = ex.Value;
                     if (layer != null)
                     {
                         var isLayerEnabled = IsLayerEnabled(layer.Name);
-                        EntityDesignerCommand enableCommand;
-                        var addedCommand = AddEnableLayerCommand(layer, isLayerEnabled, out enableCommand);
+                        var addedCommand = AddEnableLayerCommand(layer, isLayerEnabled, out EntityDesignerCommand enableCommand);
                         if (addedCommand && enableCommand != null)
                         {
                             if (isLayerEnabled)
                             {
-                                LoadLayer(layer, selectedEFElement != null ? selectedEFElement.XObject : null);
+                                LoadLayer(layer, selectedEFElement?.XObject);
                             }
 
-                            var layerState = new LayerState { IsEnabled = isLayerEnabled, EnableCommand = enableCommand };
+                            LayerState layerState = new LayerState { IsEnabled = isLayerEnabled, EnableCommand = enableCommand };
                             _layer2state.Add(layer, layerState);
                         }
                     }
@@ -367,7 +360,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
 
         private static IEnumerable<EntityDesignerCommand> GetCommands(IEntityDesignerLayer layer = null)
         {
-            var commandsToReturn = new List<EntityDesignerCommand>();
+            List<EntityDesignerCommand> commandsToReturn = new List<EntityDesignerCommand>();
             var commandsForLayer = EscherExtensionPointManager.LoadCommandExtensions(layer == null, layer != null);
 
             foreach (var lazyFactory in commandsForLayer)
@@ -394,7 +387,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
                     if (editingContext != null)
                     {
                         // TODO handle multiple selection at some point
-                        var selectedItems = new List<EFNameableItem>();
+                        List<EFNameableItem> selectedItems = new List<EFNameableItem>();
                         foreach (var selectionIdentifier in e.SelectionIdentifiers)
                         {
                             if (!String.IsNullOrEmpty(selectionIdentifier))
@@ -431,7 +424,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
             {
                 var txname = string.Format(
                     CultureInfo.CurrentCulture, enable ? Resources.Tx_LayerEnable : Resources.Tx_LayerDisable, layer.Name);
-                var cpc = new CommandProcessorContext(
+                CommandProcessorContext cpc = new CommandProcessorContext(
                     editingContextMgr.GetNewOrExistingContext(_artifact.Uri), EfiTransactionOriginator.EntityDesignerOriginatorId, txname);
                 var cmd = ModelHelper.CreateSetDesignerPropertyValueCommandFromArtifact(
                     cpc.Artifact, OptionsDesignerInfo.ElementName
@@ -471,8 +464,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
                     {
                         if (l.Metadata != null)
                         {
-                            var layerData = l.Metadata as IEntityDesignerLayerData;
-                            if (layerData != null
+                            if (l.Metadata is IEntityDesignerLayerData layerData
                                 && !String.IsNullOrWhiteSpace(layerData.LayerName))
                             {
                                 return !excludeLayers && IsLayerEnabled(layerData.LayerName);

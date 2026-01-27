@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Diagnostics;
-
     internal static class PropertyNameNormalizer
     {
         internal static NormalizedName NameNormalizer(EFElement parent, string refName)
@@ -14,26 +14,21 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             {
                 return null;
             }
-
-            var entityType = parent as EntityType;
-            var complexType = parent as ComplexType;
-            var property = parent as Property;
-            var navigationProperty = parent as NavigationProperty;
+            Property property = parent as Property;
+            NavigationProperty navigationProperty = parent as NavigationProperty;
 
             Symbol symbol = null;
 
-            if (entityType != null)
+            if (parent is EntityType entityType)
             {
-                var em = entityType.Parent as BaseEntityModel;
-                if (em != null)
+                if (entityType.Parent is BaseEntityModel em)
                 {
                     symbol = new Symbol(em.NamespaceValue, entityType.LocalName.Value, refName);
                 }
             }
-            else if (complexType != null)
+            else if (parent is ComplexType complexType)
             {
-                var em = complexType.Parent as BaseEntityModel;
-                if (em != null)
+                if (complexType.Parent is BaseEntityModel em)
                 {
                     symbol = new Symbol(em.NamespaceValue, complexType.LocalName.Value, refName);
                 }
@@ -41,22 +36,18 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             else if (property != null
                      || navigationProperty != null)
             {
-                var et = parent.Parent as EntityType;
-                if (et != null)
+                if (parent.Parent is EntityType et)
                 {
-                    var em = et.Parent as BaseEntityModel;
-                    if (em != null)
+                    if (et.Parent is BaseEntityModel em)
                     {
                         symbol = new Symbol(em.NamespaceValue, et.LocalName.Value, refName);
                     }
                 }
                 else
                 {
-                    var ct = parent.Parent as ComplexType;
-                    if (ct != null)
+                    if (parent.Parent is ComplexType ct)
                     {
-                        var em = ct.Parent as BaseEntityModel;
-                        if (em != null)
+                        if (ct.Parent is BaseEntityModel em)
                         {
                             symbol = new Symbol(em.NamespaceValue, ct.LocalName.Value, refName);
                         }
@@ -64,12 +55,9 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
                 }
             }
 
-            if (symbol == null)
-            {
-                symbol = new Symbol(refName);
-            }
+            symbol ??= new Symbol(refName);
 
-            var normalizedName = new NormalizedName(symbol, null, null, refName);
+            NormalizedName normalizedName = new NormalizedName(symbol, null, null, refName);
             return normalizedName;
         }
     }

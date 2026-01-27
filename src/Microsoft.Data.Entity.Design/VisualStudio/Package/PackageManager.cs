@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal interface IEdmPackage : IXmlDesignerPackage
     {
         IEntityDesignCommandSet CommandSet { get; }
@@ -52,7 +52,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         {
             if (_package == null)
             {
-                var vsShell = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsShell)) as IVsShell;
+                IVsShell vsShell = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsShell)) as IVsShell;
                 LoadEDMPackage(vsShell);
             }
         }
@@ -61,7 +61,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         {
             if (_package == null)
             {
-                var vsShell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
+                IVsShell vsShell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
                 if (vsShell != null)
                 {
                     LoadEDMPackage(vsShell);

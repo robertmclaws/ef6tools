@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal abstract class ExplorerEntityType : EntityDesignExplorerEFElement
     {
         // class to be used when inserting ExplorerProperty objects to decide 
@@ -64,7 +64,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         private void LoadPropertiesFromModel()
         {
             // load Properties from model
-            var entityType = ModelItem as EntityType;
+            EntityType entityType = ModelItem as EntityType;
             Debug.Assert(
                 entityType != null, "Underlying EntityType is null calculating Properties for ExplorerEntityType with name " + Name);
             if (entityType != null)
@@ -90,12 +90,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         private void LoadNavigationPropertiesFromModel()
         {
             // load NavigationProperties from model
-            var entityType = ModelItem as EntityType;
+            EntityType entityType = ModelItem as EntityType;
             Debug.Assert(
                 entityType != null,
                 "Underlying EntityType is null calculating NavigationProperties for ExplorerEntityType with name " + Name);
-            var cet = entityType as ConceptualEntityType;
-            if (cet != null)
+            if (entityType is ConceptualEntityType cet)
             {
                 foreach (var child in cet.NavigationProperties())
                 {
@@ -111,7 +110,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             LoadPropertiesFromModel();
 
             // only load navigation properties for the C-side model
-            var entityType = ModelItem as EntityType;
+            EntityType entityType = ModelItem as EntityType;
             if (entityType.EntityModel.IsCSDL)
             {
                 LoadNavigationPropertiesFromModel();
@@ -134,8 +133,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var prop = efElementToInsert as Property;
-            if (prop != null)
+            if (efElementToInsert is Property prop)
             {
                 var explorerProp = AddProperty(prop);
                 var index = _properties.IndexOf(explorerProp);
@@ -143,8 +141,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
                 return;
             }
 
-            var navProp = efElementToInsert as NavigationProperty;
-            if (navProp != null)
+            if (efElementToInsert is NavigationProperty navProp)
             {
                 var explorerNavProp = AddNavigationProperty(navProp);
                 var index = _navigationProperties.IndexOf(explorerNavProp);
@@ -155,8 +152,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
                 return;
             }
 
-            var key = efElementToInsert as Key;
-            if (key != null)
+            if (efElementToInsert is Key key)
             {
                 // the ViewModel does not keep track of Key elements 
                 // but it is not an error - so just return
@@ -168,15 +164,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerProperty = efElementToRemove as ExplorerProperty;
-            if (explorerProperty != null)
+            if (efElementToRemove is ExplorerProperty explorerProperty)
             {
                 var indexOfRemovedChild = _properties.Remove(explorerProperty);
                 return (indexOfRemovedChild < 0) ? false : true;
             }
 
-            var explorerNavigationProperty = efElementToRemove as ExplorerNavigationProperty;
-            if (explorerNavigationProperty != null)
+            if (efElementToRemove is ExplorerNavigationProperty explorerNavigationProperty)
             {
                 var indexOfRemovedChild = _navigationProperties.Remove(explorerNavigationProperty);
                 return (indexOfRemovedChild < 0) ? false : true;
@@ -208,7 +202,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         private ExplorerNavigationProperty AddNavigationProperty(NavigationProperty navProp)
         {
-            var explorerNavProp =
+            ExplorerNavigationProperty explorerNavProp =
                 ModelToExplorerModelXRef.GetNew(_context, navProp, this, typeof(ExplorerNavigationProperty)) as ExplorerNavigationProperty;
             _navigationProperties.Insert(explorerNavProp);
             return explorerNavProp;

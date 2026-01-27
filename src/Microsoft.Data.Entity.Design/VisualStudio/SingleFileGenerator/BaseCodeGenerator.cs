@@ -1,14 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.Data.Entity.Design;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.InteropServices;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     /// <summary>
     ///     A managed wrapper for VS's concept of an IVsSingleFileGenerator which is
     ///     a custom tool invoked during the build which can take any file as an input
@@ -88,14 +89,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
         /// <param name="message">text displayed to the user</param>
         /// <param name="line">line number of error/warning</param>
         /// <param name="column">column number of error/warning</param>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsGeneratorProgress.GeneratorError(System.Int32,System.UInt32,System.String,System.UInt32,System.UInt32)")]
         protected virtual void GeneratorErrorCallback(bool warning, int level, string message, int line, int column)
         {
             var progress = CodeGeneratorProgress;
-            if (progress != null)
-            {
-                progress.GeneratorError(warning ? 1 : 0, (uint)level, message, (uint)line, (uint)column);
-            }
+            progress?.GeneratorError(warning ? 1 : 0, (uint)level, message, (uint)line, (uint)column);
         }
 
         /// <summary>
@@ -104,7 +101,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.SingleFileGenerator
         /// </summary>
         /// <param name="pbstrDefaultExtension">Out parameter, will hold the extension that is to be given to the output file name. The returned extension must include a leading period</param>
         /// <returns>S_OK if successful, E_FAIL if not</returns>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public int DefaultExtension(out string pbstrDefaultExtension)
         {
             try

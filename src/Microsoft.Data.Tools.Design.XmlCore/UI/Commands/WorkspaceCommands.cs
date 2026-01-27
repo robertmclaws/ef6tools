@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Windows.Input;
+
 namespace Microsoft.Data.Entity.Design.UI.Commands
 {
-    using System.Windows.Input;
-
     internal static class WorkspaceCommands
     {
         public static RoutedCommand ZoomIn = new RoutedCommand("ZoomIn", typeof(WorkspaceCommands));

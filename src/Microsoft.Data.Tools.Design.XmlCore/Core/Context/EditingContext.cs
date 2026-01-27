@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Entity.Design.Core.Context
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-
     /// <summary>
     ///     The EditingContext class contains contextual state about a designer.  This includes permanent
     ///     state such as list of services running in the designer.
@@ -84,7 +84,6 @@ namespace Microsoft.Data.Entity.Design.Core.Context
         ///     the design editor manager.
         /// </summary>
         /// <returns>Returns an implementation of the ContextItemCollection class.</returns>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected virtual ContextItemCollection CreateContextItemCollection()
         {
             return new DefaultContextItemCollection(this);
@@ -97,7 +96,6 @@ namespace Microsoft.Data.Entity.Design.Core.Context
         ///     declaration of a SubscribeService attribute on the design editor manager.
         /// </summary>
         /// <returns>Returns an implemetation of the ServiceCollection class.</returns>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected virtual ServiceCollection CreateServiceCollection()
         {
             return new DefaultServiceCollection();
@@ -126,17 +124,11 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                     Disposing(this, EventArgs.Empty);
                 }
 
-                var d = _services as IDisposable;
-                if (d != null)
-                {
-                    d.Dispose();
-                }
+                IDisposable d = _services as IDisposable;
+                d?.Dispose();
 
                 d = _contextItems as IDisposable;
-                if (d != null)
-                {
-                    d.Dispose();
-                }
+                d?.Dispose();
             }
         }
 
@@ -157,10 +149,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
 
             public void Dispose()
             {
-                if (_currentLayer != null)
-                {
-                    _currentLayer.Dispose();
-                }
+                _currentLayer?.Dispose();
             }
 
             /// <summary>
@@ -200,11 +189,8 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                 {
                     if (success)
                     {
-                        var d = existing as IDisposable;
-                        if (d != null)
-                        {
-                            d.Dispose();
-                        }
+                        IDisposable d = existing as IDisposable;
+                        d?.Dispose();
                         OnItemChanged(value);
                     }
                     else
@@ -375,12 +361,11 @@ namespace Microsoft.Data.Entity.Design.Core.Context
             /// <param name="item"></param>
             private void OnItemChanged(ContextItem item)
             {
-                SubscribeContextCallback callback;
 
                 Debug.Assert(item != null, "You cannot pass a null item here.");
 
                 if (_subscriptions != null
-                    && _subscriptions.TryGetValue(item.ItemType, out callback))
+                    && _subscriptions.TryGetValue(item.ItemType, out SubscribeContextCallback callback))
                 {
                     callback(item);
                 }
@@ -399,10 +384,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                 else
                 {
                     var childLayer = FindChildLayer(layer);
-                    if (childLayer != null)
-                    {
-                        childLayer.ParentLayer = layer.ParentLayer;
-                    }
+                    childLayer?.ParentLayer = layer.ParentLayer;
                 }
             }
 
@@ -432,14 +414,10 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                     */
                 }
 
-                if (_subscriptions == null)
-                {
-                    _subscriptions = new Dictionary<Type, SubscribeContextCallback>();
-                }
+                _subscriptions ??= [];
 
-                SubscribeContextCallback existing = null;
 
-                _subscriptions.TryGetValue(contextItemType, out existing);
+                _subscriptions.TryGetValue(contextItemType, out SubscribeContextCallback existing);
 
                 existing = (SubscribeContextCallback)Delegate.Combine(existing, callback);
                 _subscriptions[contextItemType] = existing;
@@ -478,8 +456,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                 }
                 if (_subscriptions != null)
                 {
-                    SubscribeContextCallback existing;
-                    if (_subscriptions.TryGetValue(contextItemType, out existing))
+                    if (_subscriptions.TryGetValue(contextItemType, out SubscribeContextCallback existing))
                     {
                         existing = (SubscribeContextCallback)RemoveCallback(existing, callback);
                         if (existing == null)
@@ -513,10 +490,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                 {
                     get
                     {
-                        if (_items == null)
-                        {
-                            _items = new Dictionary<Type, ContextItem>();
-                        }
+                        _items ??= [];
                         return _items;
                     }
                 }
@@ -536,11 +510,8 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                     {
                         foreach (var item in _items.Values)
                         {
-                            var d = item as IDisposable;
-                            if (d != null)
-                            {
-                                d.Dispose();
-                            }
+                            IDisposable d = item as IDisposable;
+                            d?.Dispose();
                         }
                         _items.Clear();
                         _collection.OnLayerRemoved(this);
@@ -601,8 +572,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
 
                     // See if this service is a callback.  If it is, invoke it and store
                     // the resulting service back in the dictionary.
-                    var callback = service as PublishServiceCallback;
-                    if (callback != null)
+                    if (service is PublishServiceCallback callback)
                     {
                         // Store a recursion sentinel in the dictionary so we can easily
                         // tell if someone is recursing
@@ -665,10 +635,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
             /// <returns></returns>
             public override IEnumerator<Type> GetEnumerator()
             {
-                if (_services == null)
-                {
-                    _services = new Dictionary<Type, object>();
-                }
+                _services ??= [];
 
                 return _services.Keys.GetEnumerator();
             }
@@ -701,12 +668,8 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                 else
                 {
                     // Otherwise, store this for later
-                    if (_subscriptions == null)
-                    {
-                        _subscriptions = new Dictionary<Type, SubscribeServiceCallback>();
-                    }
-                    SubscribeServiceCallback existing = null;
-                    _subscriptions.TryGetValue(serviceType, out existing);
+                    _subscriptions ??= [];
+                    _subscriptions.TryGetValue(serviceType, out SubscribeServiceCallback existing);
                     existing = (SubscribeServiceCallback)Delegate.Combine(existing, callback);
                     _subscriptions[serviceType] = existing;
                 }
@@ -768,10 +731,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                     */
                 }
 
-                if (_services == null)
-                {
-                    _services = new Dictionary<Type, object>();
-                }
+                _services ??= [];
 
                 try
                 {
@@ -786,9 +746,8 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                 }
 
                 // Now see if there were any subscriptions that required this service
-                SubscribeServiceCallback subscribeCallback;
                 if (_subscriptions != null
-                    && _subscriptions.TryGetValue(serviceType, out subscribeCallback))
+                    && _subscriptions.TryGetValue(serviceType, out SubscribeServiceCallback subscribeCallback))
                 {
                     subscribeCallback(serviceType, GetService(serviceType));
                     _subscriptions.Remove(serviceType);
@@ -811,8 +770,7 @@ namespace Microsoft.Data.Entity.Design.Core.Context
 
                 if (_subscriptions != null)
                 {
-                    SubscribeServiceCallback existing;
-                    if (_subscriptions.TryGetValue(serviceType, out existing))
+                    if (_subscriptions.TryGetValue(serviceType, out SubscribeServiceCallback existing))
                     {
                         existing = (SubscribeServiceCallback)RemoveCallback(existing, callback);
                         if (existing == null)
@@ -841,11 +799,8 @@ namespace Microsoft.Data.Entity.Design.Core.Context
                     {
                         foreach (var value in services.Values)
                         {
-                            var d = value as IDisposable;
-                            if (d != null)
-                            {
-                                d.Dispose();
-                            }
+                            IDisposable d = value as IDisposable;
+                            d?.Dispose();
                         }
                     }
                     finally

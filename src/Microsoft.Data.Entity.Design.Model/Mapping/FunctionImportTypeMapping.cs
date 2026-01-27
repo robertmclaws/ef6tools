@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal abstract class FunctionImportTypeMapping : EFElement
     {
         internal static readonly string AttributeTypeName = "TypeName";
 
         private SingleItemBinding<EFNormalizableItem> _typeName;
 
-        private readonly List<FunctionImportScalarProperty> _scalarProperties = new List<FunctionImportScalarProperty>();
+        private readonly List<FunctionImportScalarProperty> _scalarProperties = [];
 
         internal FunctionImportTypeMapping(ResultMapping parent, XElement element)
             : base(parent, element)
@@ -27,11 +27,8 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_typeName == null)
-                {
-                    _typeName = new SingleItemBinding<EFNormalizableItem>(
+                _typeName ??= new SingleItemBinding<EFNormalizableItem>(
                         this, AttributeTypeName, EFNormalizableItemDefaults.DefaultNameNormalizerForMSL);
-                }
                 return _typeName;
             }
         }
@@ -92,8 +89,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var sp = efContainer as FunctionImportScalarProperty;
-            if (sp != null)
+            if (efContainer is FunctionImportScalarProperty sp)
             {
                 _scalarProperties.Remove(sp);
                 return;
@@ -136,7 +132,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == FunctionImportScalarProperty.ElementName)
             {
-                var prop = new FunctionImportScalarProperty(this, elem);
+                FunctionImportScalarProperty prop = new FunctionImportScalarProperty(this, elem);
                 _scalarProperties.Add(prop);
                 prop.Parse(unprocessedElements);
             }

@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateEntityTypeShapeCommand : Command
     {
         private readonly Diagram _diagram;
@@ -36,7 +36,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _fillColor = fillColor;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             var nExistingTypeShapeCount =
@@ -48,7 +47,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             if (nExistingTypeShapeCount == 0)
             {
-                var shape = new EntityTypeShape(_diagram, null);
+                EntityTypeShape shape = new EntityTypeShape(_diagram, null);
                 _diagram.AddEntityTypeShape(shape);
 
                 shape.EntityType.SetRefName(_entity);
@@ -91,7 +90,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         ///     - Create association and inheritance connectors for the entity type shape and all entity type shapes in the diagram.
         ///     - If createRelatedEntityTypeShapes flag is set to true, it will also create all directly related entity-type-shapes not in the diagram.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal static void CreateEntityTypeShapeAndConnectorsInDiagram(
             CommandProcessorContext cpc, Diagram diagram, ConceptualEntityType entity, Color entityTypeShapeFillColor,
             bool createRelatedEntityTypeShapes)
@@ -103,14 +101,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 return;
             }
 
-            var createEntityTypeShapecommand = new CreateEntityTypeShapeCommand(diagram, entity, entityTypeShapeFillColor);
+            CreateEntityTypeShapeCommand createEntityTypeShapecommand = new CreateEntityTypeShapeCommand(diagram, entity, entityTypeShapeFillColor);
             createEntityTypeShapecommand.PostInvokeEvent += (o, eventsArgs) =>
                 {
                     if (createEntityTypeShapecommand.EntityTypeShape != null)
                     {
-                        var relatedEntityTypesNotInDiagram = new List<EntityType>();
+                        List<EntityType> relatedEntityTypesNotInDiagram = new List<EntityType>();
 
-                        var entityTypesInDiagram = new HashSet<EntityType>(diagram.EntityTypeShapes.Select(ets => ets.EntityType.Target));
+                        HashSet<EntityType> entityTypesInDiagram = new HashSet<EntityType>(diagram.EntityTypeShapes.Select(ets => ets.EntityType.Target));
 
                         // add inheritance connector if the base type exists in the diagram.
                         if (entity.SafeBaseType != null)
@@ -143,8 +141,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
                         foreach (var association in participatingAssociations)
                         {
-                            var entityTypesInAssociation = association.AssociationEnds().Select(ae => ae.Type.Target).ToList();
-                            var entityTypesNotInDiagram = entityTypesInAssociation.Except(entityTypesInDiagram).ToList();
+                            List<EntityType> entityTypesInAssociation = association.AssociationEnds().Select(ae => ae.Type.Target).ToList();
+                            List<EntityType> entityTypesNotInDiagram = entityTypesInAssociation.Except(entityTypesInDiagram).ToList();
 
                             if (entityTypesNotInDiagram.Count == 0)
                             {

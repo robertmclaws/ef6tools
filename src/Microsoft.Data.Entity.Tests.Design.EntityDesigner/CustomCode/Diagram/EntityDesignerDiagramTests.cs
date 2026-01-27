@@ -1,47 +1,51 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View
 {
-    using System;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
+    /// <summary>
+    ///     Tests for EntityDesignerDiagram.
+    ///     Note: Only UPGRADE to Version3 (EF6) is now supported. Downgrade tests have been removed.
+    /// </summary>
     [TestClass]
     public class EntityDesignerDiagramTests
     {
         [TestMethod]
-        public void ReversionModel_converts_model_namespaces_to_target_schema_version()
+        public void ReversionModel_upgrades_model_namespaces_to_Version3()
         {
+            // Test that ReversionModel works with Version3 (only supported version)
             var model = CreateModel(EntityFrameworkVersion.Version3);
 
-            var tempUri = new Uri("http://tempuri");
+            Uri tempUri = new Uri("http://tempuri");
 
-            var mockModelManager =
+            Mock<ModelManager> mockModelManager =
                 new Mock<ModelManager>(new Mock<IEFArtifactFactory>().Object, new Mock<IEFArtifactSetFactory>().Object);
 
             using (var modelManager = mockModelManager.Object)
             {
-                var mockModelProvider = new Mock<XmlModelProvider>();
+                Mock<XmlModelProvider> mockModelProvider = new Mock<XmlModelProvider>();
                 mockModelProvider
                     .Setup(p => p.BeginTransaction(It.IsAny<string>(), It.IsAny<object>()))
                     .Returns(new Mock<XmlTransaction>().Object);
 
-                var mockFrameManager = new Mock<DocumentFrameMgr>(new Mock<IXmlDesignerPackage>().Object);
-                var mockPackage = new Mock<IEdmPackage>();
+                Mock<DocumentFrameMgr> mockFrameManager = new Mock<DocumentFrameMgr>(new Mock<IXmlDesignerPackage>().Object);
+                Mock<IEdmPackage> mockPackage = new Mock<IEdmPackage>();
                 mockPackage.Setup(p => p.DocumentFrameMgr).Returns(mockFrameManager.Object);
 
-                var mockEditingContext = new Mock<EditingContext>();
-                var mockArtifact = new Mock<EntityDesignArtifact>(modelManager, tempUri, mockModelProvider.Object);
+                Mock<EditingContext> mockEditingContext = new Mock<EditingContext>();
+                Mock<EntityDesignArtifact> mockArtifact = new Mock<EntityDesignArtifact>(modelManager, tempUri, mockModelProvider.Object);
                 mockArtifact.Setup(a => a.CanEditArtifact()).Returns(true);
                 mockArtifact.Setup(a => a.XDocument).Returns(model);
 
@@ -55,11 +59,12 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View
 
                 mockArtifact.Object.IsDirty.Should().BeFalse();
 
+                // Upgrade from V2 to V3
                 EntityDesignerDiagram.ReversionModel(
-                    mockPackage.Object, mockEditingContext.Object, mockArtifact.Object, EntityFrameworkVersion.Version2);
+                    mockPackage.Object, mockEditingContext.Object, mockArtifact.Object, EntityFrameworkVersion.Version3);
 
                 mockArtifact.Object.IsDirty.Should().BeTrue();
-                XNode.DeepEquals(CreateModel(EntityFrameworkVersion.Version2), model).Should().BeTrue();
+                XNode.DeepEquals(CreateModel(EntityFrameworkVersion.Version3), model).Should().BeTrue();
                 mockFrameManager.Verify(m => m.SetCurrentContext(mockEditingContext.Object), Times.Once());
             }
         }

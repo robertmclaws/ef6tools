@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class DeleteScalarPropertyCommand : DeleteEFElementCommand
     {
         internal string MFConceptualEntityTypeName { get; private set; }
@@ -39,7 +39,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             get
             {
-                var elem = EFElement as ScalarProperty;
+                ScalarProperty elem = EFElement as ScalarProperty;
                 Debug.Assert(elem != null, "underlying element does not exist or is not a ScalarProperty");
                 if (elem == null)
                 {
@@ -56,17 +56,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 EnforceEntitySetMappingRules.AddRule(cpc, ScalarProperty);
 
-                MFConceptualEntityTypeName = ScalarProperty.FirstBoundConceptualEntityType != null
-                                                 ? ScalarProperty.FirstBoundConceptualEntityType.Name.Value
-                                                 : null;
-                MFConceptualPropertyName = ScalarProperty.Name.Target != null ? ScalarProperty.Name.Target.Name.Value : null;
-                MFStorageEntitySetName = ScalarProperty.BoundStorageEntityType != null
-                                             ? ScalarProperty.BoundStorageEntityType.Name.Value
-                                             : null;
-                MFStorageColumnName = ScalarProperty.ColumnName.Target != null ? ScalarProperty.ColumnName.Target.Name.Value : null;
-                MFConceptualEntityTypeOwnerName = ScalarProperty.FirstBoundConceptualEntityType != null
-                                                      ? ScalarProperty.FirstBoundConceptualEntityType.Name.Value
-                                                      : null;
+                MFConceptualEntityTypeName = ScalarProperty.FirstBoundConceptualEntityType?.Name.Value;
+                MFConceptualPropertyName = ScalarProperty.Name.Target?.Name.Value;
+                MFStorageEntitySetName = ScalarProperty.BoundStorageEntityType?.Name.Value;
+                MFStorageColumnName = ScalarProperty.ColumnName.Target?.Name.Value;
+                MFConceptualEntityTypeOwnerName = ScalarProperty.FirstBoundConceptualEntityType?.Name.Value;
                 MFComplexParentList =
                     ScalarProperty.GetParentComplexProperties(true)
                         .Where(cp => cp.Name.Target != null)
@@ -74,7 +68,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
             else if (ScalarProperty.EndProperty != null)
             {
-                var asm = ScalarProperty.EndProperty.Parent as AssociationSetMapping;
+                AssociationSetMapping asm = ScalarProperty.EndProperty.Parent as AssociationSetMapping;
                 Debug.Assert(asm != null, "this.ScalarProperty.EndProperty.Parent should be an AssociationSetMapping");
                 if (asm != null)
                 {
@@ -97,7 +91,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 && ScalarProperty.Name != null
                 && ScalarProperty.Name.Target != null)
             {
-                var cProp = ScalarProperty.Name.Target as ConceptualProperty;
+                ConceptualProperty cProp = ScalarProperty.Name.Target as ConceptualProperty;
                 Debug.Assert(
                     cProp != null, "ScalarProperty should have Name target with type " + typeof(ConceptualProperty).Name +
                                    ", instead got type " + ScalarProperty.Name.Target.GetType().FullName);

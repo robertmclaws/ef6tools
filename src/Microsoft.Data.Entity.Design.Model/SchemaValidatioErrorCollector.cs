@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Xml.Schema;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System.Xml.Schema;
-
     /// <summary>
     ///     Simple class to use to count the number of schema validation errors
     /// </summary>

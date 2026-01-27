@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration.Extensions
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-
     internal static class EdmMemberExtensions
     {
         private static readonly string[] _timestampTypes = new[]

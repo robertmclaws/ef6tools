@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class EntityDesignRenameCommand : RenameCommand
     {
         internal EntityDesignRenameCommand(EFNormalizableItem element, string newName, bool uniquenessIsCaseSensitive)
@@ -59,14 +59,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         private void RenameEntitySet(CommandProcessorContext cpc)
         {
-            var entity = Element as EntityType;
+            EntityType entity = Element as EntityType;
             Debug.Assert(entity != null, "Element for rename was not EntityType");
 
             // rename EntitySet only if the entity has no base type
             if (entity != null)
             {
-                var cet = entity as ConceptualEntityType;
-                if (cet != null
+                if (entity is ConceptualEntityType cet
                     && cet.HasResolvableBaseType)
                 {
                     return;
@@ -85,9 +84,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     // the actual EntitySet name may differ from the auto-generated name by an integer suffix
                     // if there were clashes with existing EntitySet names - so check this here
                     var suffix = entitySetName.Substring(autoEntitySetName.Length);
-                    int i;
                     if (suffix.Length == 0
-                        || int.TryParse(suffix, out i))
+                        || int.TryParse(suffix, out int i))
                     {
                         var proposedEntitySetName = ModelHelper.ConstructProposedEntitySetName(entity.Artifact, NewName);
                         var newEntitySetName = ModelHelper.GetUniqueName(

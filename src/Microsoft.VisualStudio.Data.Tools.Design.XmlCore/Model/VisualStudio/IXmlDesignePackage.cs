@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-
     internal interface IXmlDesignerPackage : IServiceProvider
     {
         void InvokeOnForeground(SimpleDelegateClass.SimpleDelegate simpleDelegate);

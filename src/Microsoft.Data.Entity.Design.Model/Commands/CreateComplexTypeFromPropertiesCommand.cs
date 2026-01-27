@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     This class creates a ComplexType from a set of EntityType properties
     ///     then it replace those properties with a property of created ComplexType.
@@ -33,12 +33,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // first create new ComplexType
             _createdComplexType = CreateComplexTypeCommand.CreateComplexTypeWithDefaultName(cpc);
             // add a copy of Entity properties to the ComplexType
-            var copyCmd = new CopyPropertiesCommand(new PropertiesClipboardFormat(_properties), _createdComplexType);
+            CopyPropertiesCommand copyCmd = new CopyPropertiesCommand(new PropertiesClipboardFormat(_properties), _createdComplexType);
             var propertyName = ModelHelper.GetUniqueConceptualPropertyName(
                 ComplexConceptualProperty.DefaultComplexPropertyName, _entityType);
             // add a new Property of created ComplexType to the Entity
-            var createCPCmd = new CreateComplexPropertyCommand(propertyName, _entityType, _createdComplexType);
-            var cp = new CommandProcessor(cpc, copyCmd, createCPCmd);
+            CreateComplexPropertyCommand createCPCmd = new CreateComplexPropertyCommand(propertyName, _entityType, _createdComplexType);
+            CommandProcessor cp = new CommandProcessor(cpc, copyCmd, createCPCmd);
             cp.Invoke();
             _createdComplexProperty = createCPCmd.Property;
 
@@ -47,7 +47,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 if (property is ComplexConceptualProperty)
                 {
-                    var createdComplexTypeProperty =
+                    ComplexConceptualProperty createdComplexTypeProperty =
                         _createdComplexType.FindPropertyByLocalName(property.LocalName.Value) as ComplexConceptualProperty;
                     Debug.Assert(createdComplexTypeProperty != null, "Copied complex property not found");
                     if (createdComplexTypeProperty != null)
@@ -124,7 +124,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             propertiesChain.Insert(0, createdComplexTypeProperty);
             // and add the created EntityType complex property as a root of that path
             propertiesChain.Insert(0, _createdComplexProperty);
-            var cmd = new CreateFragmentScalarPropertyTreeCommand(_entityType, propertiesChain, scalarPropertyMapping.ColumnName.Target);
+            CreateFragmentScalarPropertyTreeCommand cmd = new CreateFragmentScalarPropertyTreeCommand(_entityType, propertiesChain, scalarPropertyMapping.ColumnName.Target);
             CommandProcessor.InvokeSingleCommand(cpc, cmd);
         }
 
@@ -139,13 +139,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             propertiesChain.Insert(0, createdComplexTypeProperty);
             // and add the created EntityType complex property as a root of that path
             propertiesChain.Insert(0, _createdComplexProperty);
-            var mf = fsp.GetParentOfType(typeof(ModificationFunction)) as ModificationFunction;
+            ModificationFunction mf = fsp.GetParentOfType(typeof(ModificationFunction)) as ModificationFunction;
             Debug.Assert(
                 null != mf,
                 "PreserveFunctionScalarPropertyMapping(): Could not find ancestor of type + " + typeof(ModificationFunction).FullName);
             if (null != mf)
             {
-                var cmd = new CreateFunctionScalarPropertyTreeCommand(
+                CreateFunctionScalarPropertyTreeCommand cmd = new CreateFunctionScalarPropertyTreeCommand(
                     mf, propertiesChain, null, fsp.ParameterName.Target, fsp.Version.Value);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
@@ -156,15 +156,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             foreach (var property in _properties)
             {
                 var deleteCommand = property.GetDeleteCommand();
-                var deletePropertyCommand = deleteCommand as DeletePropertyCommand;
+                DeletePropertyCommand deletePropertyCommand = deleteCommand as DeletePropertyCommand;
                 Debug.Assert(
                     deletePropertyCommand != null,
                     "Property.GetDeleteCommand() failed to return a DeletePropertyCommand, command translation will not receive the correct value for the IsConceptualDeleteOnly flag");
 
-                if (deletePropertyCommand != null)
-                {
-                    deletePropertyCommand.IsConceptualOnlyDelete = true;
-                }
+                deletePropertyCommand?.IsConceptualOnlyDelete = true;
 
                 DeleteEFElementCommand.DeleteInTransaction(cpc, deletePropertyCommand);
             }

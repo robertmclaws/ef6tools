@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.ComponentModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System.ComponentModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-
     internal class EFEntitySetDescriptor : EFAnnotatableElementDescriptor<EntitySet>
     {
         [LocCategory("PropertyWindow_Category_General")]
@@ -24,8 +24,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             get
             {
-                var conc = TypedEFElement as ConceptualEntitySet;
-                if (conc != null)
+                if (TypedEFElement is ConceptualEntitySet conc)
                 {
                     return conc.GetterAccess.Value;
                 }
@@ -36,11 +35,10 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             }
             set
             {
-                var conc = TypedEFElement as ConceptualEntitySet;
-                if (conc != null)
+                if (TypedEFElement is ConceptualEntitySet conc)
                 {
                     var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                    var cmd = new UpdateDefaultableValueCommand<string>(conc.GetterAccess, value);
+                    UpdateDefaultableValueCommand<string> cmd = new UpdateDefaultableValueCommand<string>(conc.GetterAccess, value);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 }
             }
@@ -66,8 +64,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             if (propertyDescriptorMethodName.Equals("GetterAccess"))
             {
-                var conc = TypedEFElement as ConceptualEntitySet;
-                if (conc != null)
+                if (TypedEFElement is ConceptualEntitySet conc)
                 {
                     return conc.GetterAccess.DefaultValue;
                 }

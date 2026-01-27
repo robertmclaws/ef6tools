@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Globalization;
-
     /// <summary>
     ///     type converter for a list of values that is determined programmatically
     /// </summary>
@@ -114,8 +114,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
                 Debug.Assert(_context != null, "Should have a context for the InitializeMapping call.");
                 if (_context != null)
                 {
-                    _valueToDisplayMapping = new Dictionary<TValue, string>();
-                    _displayToValueMapping = new SortedDictionary<string, TValue>();
+                    _valueToDisplayMapping = [];
+                    _displayToValueMapping = [];
 
                     PopulateMapping(_context);
                 }
@@ -146,8 +146,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
             if (value != null
                 && destinationType == typeof(string))
             {
-                string displayValue;
-                if (!_valueToDisplayMapping.TryGetValue((TValue)value, out displayValue))
+                if (!_valueToDisplayMapping.TryGetValue((TValue)value, out string displayValue))
                 {
                     displayValue = null;
                 }
@@ -170,8 +169,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
                 Debug.Assert(displayValue != null);
                 if (!string.IsNullOrEmpty(displayValue))
                 {
-                    TValue rawValue;
-                    if (!_displayToValueMapping.TryGetValue(displayValue, out rawValue))
+                    if (!_displayToValueMapping.TryGetValue(displayValue, out TValue rawValue))
                     {
                         rawValue = default(TValue);
                     }

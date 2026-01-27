@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     /// <summary>
     ///     This class contains all preview data for an RefactorOperation.
     ///     Preview dialog will use all information in this class to populate the dialog.
@@ -52,7 +52,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             get
             {
-                var changes = new List<FileChange>(_fileChanges.Values);
+                List<FileChange> changes = new List<FileChange>(_fileChanges.Values);
                 return changes;
             }
             set { SetFileChanges(value); }

@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class ModelHelperTests
     {
@@ -46,10 +46,9 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         [TestMethod]
         public void TryGetFacet_returns_true_and_facet_description_for_valid_facet()
         {
-            FacetDescription facetDescription;
 
             ModelHelper.TryGetFacet(
-                    PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.String), "MaxLength", out facetDescription).Should().BeTrue();
+                    PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.String), "MaxLength", out FacetDescription facetDescription).Should().BeTrue();
             facetDescription.Should().NotBeNull();
             facetDescription.FacetName.Should().Be("MaxLength");
         }
@@ -57,19 +56,17 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         [TestMethod]
         public void TryGetFacet_returns_false_and_null_for_invalid_facet()
         {
-            FacetDescription facetDescription;
 
             ModelHelper.TryGetFacet(
-                    PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32), "MaxLength", out facetDescription).Should().BeFalse();
+                    PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32), "MaxLength", out FacetDescription facetDescription).Should().BeFalse();
             facetDescription.Should().BeNull();
         }
 
         [TestMethod]
         public void TryGetFacet_returns_false_and_null_for_null_type()
         {
-            FacetDescription facetDescription;
 
-            ModelHelper.TryGetFacet(null, "MaxLength", out facetDescription).Should().BeFalse();
+            ModelHelper.TryGetFacet(null, "MaxLength", out FacetDescription facetDescription).Should().BeFalse();
             facetDescription.Should().BeNull();
         }
 
@@ -97,10 +94,10 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
             // correctly are below.
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock =
+            Mock<EntityDesignArtifact> entityDesignArtifactMock =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
-            using (var designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
+            using (EFDesignerInfoRoot designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
             {
                 const string designerPropertyName = "TestPropertyName";
                 designerInfoRoot
@@ -173,19 +170,19 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
 
         private DesignerInfo SetupOptionsDesignerInfo(string designerPropertyName, string designerPropertyValue)
         {
-            var designerInfo =
+            OptionsDesignerInfo designerInfo =
                 new OptionsDesignerInfo(
                     null,
                     XElement.Parse(
                         "<Options xmlns='http://schemas.microsoft.com/ado/2009/11/edmx' />"));
-            var designerInfoPropertySet =
+            DesignerInfoPropertySet designerInfoPropertySet =
                 new DesignerInfoPropertySet(
                     designerInfo,
                     XElement.Parse(
                         "<DesignerInfoPropertySet xmlns='http://schemas.microsoft.com/ado/2009/11/edmx' />"));
             if (designerPropertyName != null)
             {
-                var designerProperty =
+                DesignerProperty designerProperty =
                     new DesignerProperty(
                         designerInfoPropertySet,
                         XElement.Parse(

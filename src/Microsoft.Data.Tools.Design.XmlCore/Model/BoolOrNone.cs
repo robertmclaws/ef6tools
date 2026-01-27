@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     Class that represents a choice between true, false or '(None)' i.e. "not set"
     /// </summary>

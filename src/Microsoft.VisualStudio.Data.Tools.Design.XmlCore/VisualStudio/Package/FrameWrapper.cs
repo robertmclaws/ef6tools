@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-
     internal abstract class FrameWrapper
     {
         protected IVsWindowFrame _frame;
@@ -25,8 +25,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 return true;
             }
 
-            var frameWrapper2 = obj as FrameWrapper;
-            if (frameWrapper2 != null)
+            if (obj is FrameWrapper frameWrapper2)
             {
                 return _frame == frameWrapper2._frame;
             }
@@ -42,18 +41,15 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             return 0;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal Uri Uri
         {
             get
             {
                 if (_frame != null)
                 {
-                    object value;
-                    if (_frame.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out value) == NativeMethods.S_OK)
+                    if (_frame.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out object value) == NativeMethods.S_OK)
                     {
-                        var filename = value as string;
-                        if (filename != null)
+                        if (value is string filename)
                         {
                             try
                             {
@@ -72,16 +68,12 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsWindowFrame.GetGuidProperty(System.Int32,System.Guid@)")]
         protected Guid Editor
         {
             get
             {
                 var editorGuid = Guid.Empty;
-                if (_frame != null)
-                {
-                    _frame.GetGuidProperty((int)__VSFPROPID.VSFPROPID_guidEditorType, out editorGuid);
-                }
+                _frame?.GetGuidProperty((int)__VSFPROPID.VSFPROPID_guidEditorType, out editorGuid);
                 return editorGuid;
             }
         }
@@ -96,13 +88,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             {
                 if (_frame != null)
                 {
-                    object value;
-                    NativeMethods.ThrowOnFailure(_frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out value));
-                    var codeWindow = value as IVsCodeWindow;
-                    if (codeWindow != null)
+                    NativeMethods.ThrowOnFailure(_frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out object value));
+                    if (value is IVsCodeWindow codeWindow)
                     {
-                        IVsTextView textView;
-                        var hr = codeWindow.GetLastActiveView(out textView);
+                        var hr = codeWindow.GetLastActiveView(out IVsTextView textView);
                         if (!NativeMethods.Succeeded(hr) || textView == null)
                         {
                             textView = VsShellUtilities.GetTextView(_frame);
@@ -114,13 +103,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsWindowFrame.Show")]
         internal void Show()
         {
-            if (_frame != null)
-            {
-                _frame.Show();
-            }
+            _frame?.Show();
         }
 
         internal bool IsDocumentOpen(IServiceProvider sp)
@@ -130,10 +115,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 var uri = Uri;
                 if (uri != null)
                 {
-                    IVsUIHierarchy hier;
-                    uint itemId;
-                    IVsWindowFrame frame;
-                    if (VsShellUtilities.IsDocumentOpen(sp, uri.LocalPath, Guid.Empty, out hier, out itemId, out frame))
+                    if (VsShellUtilities.IsDocumentOpen(sp, uri.LocalPath, Guid.Empty, out IVsUIHierarchy hier, out uint itemId, out IVsWindowFrame frame))
                     {
                         return true;
                     }

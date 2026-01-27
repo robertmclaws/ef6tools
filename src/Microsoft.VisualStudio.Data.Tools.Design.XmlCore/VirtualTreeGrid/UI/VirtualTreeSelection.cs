@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     /// <summary>
     ///     Selection support for the VirtualTreeControl.  The motivation for implementing this here, rather than allowing the
     ///     underlying listbox to handle it, is that we need to fire the correct WinEvents for selection/focus.  If we let the listbox
@@ -214,10 +214,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// </summary>
         private void SetSelectionRange(int startIndex, int endIndex, bool select)
         {
-            if (mySelectedRanges == null)
-            {
-                mySelectedRanges = new List<SelectionRange>();
-            }
+            mySelectedRanges ??= [];
 
             if (select)
             {
@@ -226,7 +223,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 // 2. expand newRange to last overlapping or contiguous range
                 // 3. collapse overlapping ranges
 
-                var newRange = new SelectionRange(startIndex, endIndex);
+                SelectionRange newRange = new SelectionRange(startIndex, endIndex);
                 int startPos;
                 int endPos;
 
@@ -424,10 +421,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
             {
                 RedrawVisibleSelectedItems();
             }
-            if (mySelectedRanges != null)
-            {
-                mySelectedRanges.Clear();
-            }
+            mySelectedRanges?.Clear();
         }
 
         /// <summary>
@@ -650,7 +644,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="preserveSelection">True to maintain selected items outside the anchored range</param>
         /// <param name="selectCaretAction">Specify how the selection state should be modified</param>
         /// <param name="select">True to select items in the caret to anchor range, false to deselect.  Implies extendFromAnchor.</param>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void SetCurrentExtendedMultiSelectIndex(
             int newCaret, bool extendFromAnchor, bool preserveSelection, ModifySelectionAction selectCaretAction, bool select)
         {

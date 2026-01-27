@@ -1,18 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
-    using System.Diagnostics.CodeAnalysis;
-
     // <summary>
     //     Based on the type of item being shown, show the correct text for the Value column.
     // </summary>
@@ -26,8 +27,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
         internal override object GetInPlaceEdit(object component, ref string alternateText)
         {
             EnsureTypeConverters(component as MappingEFElement);
-            var mc = component as MappingCondition;
-            if (mc != null
+            if (component is MappingCondition mc
                 && mc.IsValueEmptyString)
             {
                 // this will clear the "<Empty String>" gray text from the column when it enters an edit mode
@@ -38,15 +38,13 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         public override object /* PropertyDescriptor */ GetValue(object component)
         {
-            var mc = component as MappingCondition;
-            if (mc != null)
+            if (component is MappingCondition mc)
             {
                 EnsureTypeConverters(mc);
                 return new MappingLovEFElement(mc, mc.Value);
             }
 
-            var msp = component as MappingScalarProperty;
-            if (msp != null)
+            if (component is MappingScalarProperty msp)
             {
                 EnsureTypeConverters(msp);
                 return new MappingLovEFElement(msp, msp.Value);
@@ -69,7 +67,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
         {
             if (component is MappingScalarProperty)
             {
-                var mappingElement = component as MappingEFElement;
+                MappingEFElement mappingElement = component as MappingEFElement;
                 Debug.Assert(mappingElement != null, "The component should be a MappingEFElement");
                 if (mappingElement.ModelItem != null)
                 {
@@ -81,7 +79,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         // This method receives changes as MappingLovElements (user used the mouse)
         // or as strings (user used the keyboard)
-        [SuppressMessage("Microsoft.Performance", "CA1820:TestForEmptyStringsUsingStringLength", Justification = "We already test for null earlier, here we want to just test against the empty string. Testing length would require that the string exists which is often not the case.")]
         public override void /* PropertyDescriptor */ SetValue(object component, object value)
         {
             // the user clicked off of the drop-down without choosing a value
@@ -97,7 +94,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var lovElement = value as MappingLovEFElement;
+            MappingLovEFElement lovElement = value as MappingLovEFElement;
             var valueAsString = value as string;
             if (lovElement == null
                 && valueAsString == null)
@@ -107,8 +104,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var mc = component as MappingCondition;
-            if (mc != null)
+            if (component is MappingCondition mc)
             {
                 Debug.Assert(mc.ModelItem != null, "MappingCondition should not have null ModelItem");
 
@@ -151,8 +147,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var msp = component as MappingScalarProperty;
-            if (msp != null)
+            if (component is MappingScalarProperty msp)
             {
                 lovElement = msp.GetLovElementFromLovElementOrString(lovElement, valueAsString, ListOfValuesCollection.ThirdColumn);
                 if (lovElement == null)
@@ -172,7 +167,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 }
                 else
                 {
-                    var propertiesChain = lovElement.Object as List<Property>;
+                    List<Property> propertiesChain = lovElement.Object as List<Property>;
 
                     Debug.Assert(
                         propertiesChain != null,
@@ -207,8 +202,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         internal override void EnsureTypeConverters(MappingEFElement element)
         {
-            var mappingCondition = element as MappingCondition;
-            if (mappingCondition != null)
+            if (element is MappingCondition mappingCondition)
             {
                 // if element is a MappingCondition ensure TypeConverter is
                 // appropriate to Operation
@@ -246,9 +240,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
         internal override bool AllowKeyDownProcessing(KeyEventArgs e, object component)
         {
             EnsureTypeConverters(component as MappingEFElement);
-            var mc = component as MappingCondition;
             // if the in place edit is a regular text box and Delete key is pressed, we should disallow special key processing.
-            if (mc != null
+            if (component is MappingCondition mc
                 && Converter is EqualsConditionValueColumnConverter
                 && e.KeyCode == Keys.Delete)
             {

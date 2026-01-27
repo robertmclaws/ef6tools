@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows.Forms;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows.Forms;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-    using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
-
     /// <summary>
     ///     Summary description for TreeGridDesignerBranch.
     /// </summary>
@@ -308,7 +308,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// </returns>
         protected virtual VirtualTreeDisplayData GetDisplayData(int row, int column, VirtualTreeDisplayDataMasks requiredData)
         {
-            var data = new VirtualTreeDisplayData(-1);
+            VirtualTreeDisplayData data = new VirtualTreeDisplayData(-1);
 
             // account for row insertion index
             if (_insertingIndex != -1
@@ -466,8 +466,6 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// <param name="maxTextLength">Maximum length of the text to be edited</param>
         /// <param name="customInPlaceEdit"></param>
         /// <returns></returns>
-        [SuppressMessage("Microsoft.Design", "CA1045:DoNotPassTypesByReference")]
-        [SuppressMessage("Microsoft.Design", "CA1007:UseGenericsWhereAppropriate")]
         protected virtual bool BeginLabelEdit(
             int row, int column, ref string alternateText, ref int maxTextLength, ref object customInPlaceEdit)
         {
@@ -660,7 +658,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// <returns>ProcessKeyResult structure that indicates what action should be taken (if any)</returns>
         protected virtual ProcessKeyResult ProcessKeyDown(int row, int column, KeyEventArgs e)
         {
-            var result = new ProcessKeyResult();
+            ProcessKeyResult result = new ProcessKeyResult();
             result.Action = KeyAction.Process;
             result.Direction = (e.Modifiers != Keys.Shift) ? NavigationDirection.Right : NavigationDirection.Left;
             switch (e.KeyCode)
@@ -833,7 +831,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// </summary>
         public LocateObjectData /* IBranch */ LocateObject(object obj, ObjectStyle style, int locateOptions)
         {
-            var locateData = new LocateObjectData(-1, 0, 0);
+            LocateObjectData locateData = new LocateObjectData(-1, 0, 0);
             switch (style)
             {
                 case ObjectStyle.ExpandedBranch:

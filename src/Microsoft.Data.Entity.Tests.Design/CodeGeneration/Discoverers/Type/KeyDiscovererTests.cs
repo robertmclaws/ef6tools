@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class KeyDiscovererTests
     {
         [TestMethod]
         public void Discover_returns_null_when_conventional()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>();
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entitySet = model.ConceptualModel.Container.EntitySets.First();
@@ -26,12 +26,12 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>().HasKey(e => e.Name);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entitySet = model.ConceptualModel.Container.EntitySets.First();
 
-            var configuration = new KeyDiscoverer().Discover(entitySet, model) as KeyConfiguration;
+            KeyConfiguration configuration = new KeyDiscoverer().Discover(entitySet, model) as KeyConfiguration;
 
             configuration.Should().NotBeNull();
             configuration.KeyProperties.Count.Should().Be(1);

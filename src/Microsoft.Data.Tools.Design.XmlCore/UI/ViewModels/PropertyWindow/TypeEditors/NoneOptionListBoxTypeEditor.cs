@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing.Design;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.TypeEditors
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Drawing.Design;
-    using System.Windows.Forms;
-    using System.Windows.Forms.Design;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     Provides a drop-down editor experience for properties in the Properties Window
     ///     where there is a '(None)' option as well as free-form text
@@ -54,7 +54,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.TypeEditors
                 // if newValue is NoneValue then set valueToSet to null which will remove the attribute
                 // otherwise use newValue as is
                 var valueToSet = (StringOrNone.NoneValue.Equals(newValue) ? null : newValue);
-                var cmd =
+                UpdateDefaultableValueCommand<StringOrNone> cmd =
                     new UpdateDefaultableValueCommand<StringOrNone>(defaultableValueToUpdate, valueToSet);
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
@@ -82,7 +82,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.TypeEditors
                 if (null != _editorService)
                 {
                     // create and populate the list-box
-                    using (var listBox = new NoneOptionListBox())
+                    using (NoneOptionListBox listBox = new NoneOptionListBox())
                     {
                         // if the (None) value was the incoming value then show this by pre-selecting that
                         // value in the list, otherwise leave all items unselected

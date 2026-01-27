@@ -1,22 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using EFExtensions = Microsoft.Data.Entity.Design.Model.EFExtensions;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImports
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using EFExtensions = Microsoft.Data.Entity.Design.Model.EFExtensions;
-
     // <summary>
     //     This class represents FunctionImportMapping and it's result mappings
     // </summary>
@@ -87,7 +88,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImpo
         // </summary>
         internal override Dictionary<MappingLovEFElement, string> GetListOfValues(ListOfValuesCollection type)
         {
-            var lov = new Dictionary<MappingLovEFElement, string>();
+            Dictionary<MappingLovEFElement, string> lov = new Dictionary<MappingLovEFElement, string>();
 
             Debug.Assert(type == ListOfValuesCollection.FirstColumn, "Unsupported lov type was sent");
 
@@ -117,7 +118,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImpo
         // </summary>
         internal IList<MappingFunctionImportScalarProperty> GetScalarProperties()
         {
-            var mappingScalarProperties = new List<MappingFunctionImportScalarProperty>();
+            List<MappingFunctionImportScalarProperty> mappingScalarProperties = new List<MappingFunctionImportScalarProperty>();
             var fi = FunctionImportMapping.FunctionImportName.Target;
             Debug.Assert(fi != null, "No binding to FunctionImport found");
             if (fi != null)
@@ -179,10 +180,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImpo
             if (fi != null
                 && FunctionImportMapping.FunctionName.Target != newFunction)
             {
-                var cModel = EFExtensions.RuntimeModelRoot(FunctionImportMapping.FunctionImportName.Target) as ConceptualEntityModel;
-                if (cModel != null)
+                if (EFExtensions.RuntimeModelRoot(FunctionImportMapping.FunctionImportName.Target) is ConceptualEntityModel cModel)
                 {
-                    var cmd = new ChangeFunctionImportCommand(
+                    ChangeFunctionImportCommand cmd = new ChangeFunctionImportCommand(
                         cModel.FirstEntityContainer as ConceptualEntityContainer,
                         fi,
                         newFunction,
@@ -193,7 +193,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImpo
                     // This command can be called before the provider has been registered with the 
                     // resolver (e.g. Mapping Details window on a newly-opened project) - so ensure
                     // provider is registered here before any commands are invoked
-                    var cpc = new CommandProcessorContext(
+                    CommandProcessorContext cpc = new CommandProcessorContext(
                         context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeFuncImpMapping);
                     VsUtils.EnsureProvider(cpc.Artifact);
                     CommandProcessor.InvokeSingleCommand(cpc, cmd);
@@ -211,7 +211,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImpo
 
         protected override void OnChildDeleted(MappingEFElement melem)
         {
-            var child = melem as MappingFunctionImportScalarProperty;
+            MappingFunctionImportScalarProperty child = melem as MappingFunctionImportScalarProperty;
             Debug.Assert(child != null, "Unknown child being deleted");
             if (child != null)
             {

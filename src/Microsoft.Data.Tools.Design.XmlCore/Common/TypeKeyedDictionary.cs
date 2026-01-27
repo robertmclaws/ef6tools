@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Common
 {
-    using System;
-    using System.Collections.Generic;
-
     /// <summary>
     ///     This is the dictionary to use if the key is a type.  This dictionary understands
     ///     Embedded Interop Types (aka "noPIA").

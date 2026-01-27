@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal class MetadataConverterDriver
     {
         private static MetadataConverterDriver _instance;
@@ -29,10 +29,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             get
             {
-                if (_instance == null)
-                {
-                    _instance = new MetadataConverterDriver();
-                }
+                _instance ??= new MetadataConverterDriver();
 
                 return _instance;
             }
@@ -45,10 +42,7 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             get
             {
-                if (_sqlCeInstance == null)
-                {
-                    _sqlCeInstance = new MetadataConverterDriver();
-                }
+                _sqlCeInstance ??= new MetadataConverterDriver();
 
                 return _sqlCeInstance;
             }
@@ -85,7 +79,7 @@ namespace Microsoft.Data.Entity.Design.Model
             Debug.Assert(doc != null, "doc != null");
 
             var handler = CreateConverterHandler(GetDocumentSchemaVersion(doc));
-            return handler != null ? handler.HandleConversion(doc) : null;
+            return handler?.HandleConversion(doc);
         }
 
         private MetadataConverterHandler GetConverterHandler(Version sourceSchemaVersion, Version targetSchemaVersion)
@@ -96,8 +90,13 @@ namespace Microsoft.Data.Entity.Design.Model
             {
                 return null;
             }
-                // if the versions are equal, no conversion will take place
+            // if the versions are equal, no conversion will take place
             else if (sourceSchemaVersion == targetSchemaVersion)
+            {
+                return null;
+            }
+            // Only support UPGRADE to Version3 - no downgrades supported
+            else if (targetSchemaVersion != EntityFrameworkVersion.Version3)
             {
                 return null;
             }
@@ -156,9 +155,9 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             if (this == _instance)
             {
-                var namespaceConverter = new NamespaceConverterHandler(sourceSchemaVersion, targetSchemaVersion);
-                var versionConverter = new VersionConverterHandler(targetSchemaVersion);
-                var useStrongSpatialTypesConverter = new UseStrongSpatialTypesHandler(targetSchemaVersion);
+                NamespaceConverterHandler namespaceConverter = new NamespaceConverterHandler(sourceSchemaVersion, targetSchemaVersion);
+                VersionConverterHandler versionConverter = new VersionConverterHandler(targetSchemaVersion);
+                UseStrongSpatialTypesHandler useStrongSpatialTypesConverter = new UseStrongSpatialTypesHandler(targetSchemaVersion);
 
                 namespaceConverter.SetNextHandler(versionConverter);
                 versionConverter.SetNextHandler(useStrongSpatialTypesConverter);

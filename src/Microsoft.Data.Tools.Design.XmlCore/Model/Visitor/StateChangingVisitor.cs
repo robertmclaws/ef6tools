@@ -13,11 +13,9 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
 
         internal override void Visit(IVisitable visitable)
         {
-            var item = visitable as EFElement;
-
             // if this is an EFElement and it is a higher state than
             // what we want to set it to, set it
-            if (item != null
+            if (visitable is EFElement item
                 &&
                 item.State > _state)
             {

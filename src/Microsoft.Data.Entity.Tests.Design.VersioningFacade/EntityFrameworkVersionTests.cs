@@ -1,34 +1,30 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade
 {
-    using System;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class EntityFrameworkVersionTests
     {
         [TestMethod]
-        public void GetAllVersions_returns_all_declared_versions()
+        public void GetAllVersions_returns_only_Version3_for_modern_development()
         {
-            var declaredVersions =
-                typeof(EntityFrameworkVersion)
-                    .GetFields()
-                    .Where(f => f.FieldType == typeof(Version))
-                    .Select(f => f.GetValue(null))
-                    .OrderByDescending(v => v);
-
-            EntityFrameworkVersion.GetAllVersions().SequenceEqual(declaredVersions).Should().BeTrue();
+            // For modern development, GetAllVersions only returns Version3
+            List<Version> versions = EntityFrameworkVersion.GetAllVersions().ToList();
+            versions.Should().HaveCount(1);
+            versions.Should().Contain(EntityFrameworkVersion.Version3);
         }
 
         [TestMethod]
-        public void IsValidVersion_returns_true_for_valid_versions()
+        public void IsValidVersion_returns_true_for_Version3()
         {
-            EntityFrameworkVersion.IsValidVersion(new Version(1, 0, 0, 0)).Should().BeTrue();
-            EntityFrameworkVersion.IsValidVersion(new Version(2, 0, 0, 0)).Should().BeTrue();
+            // Only Version3 is valid
             EntityFrameworkVersion.IsValidVersion(new Version(3, 0, 0, 0)).Should().BeTrue();
         }
 
@@ -37,25 +33,22 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade
         {
             EntityFrameworkVersion.IsValidVersion(null).Should().BeFalse();
             EntityFrameworkVersion.IsValidVersion(new Version(0, 0, 0, 0)).Should().BeFalse();
+            EntityFrameworkVersion.IsValidVersion(new Version(1, 0, 0, 0)).Should().BeFalse();
+            EntityFrameworkVersion.IsValidVersion(new Version(2, 0, 0, 0)).Should().BeFalse();
             EntityFrameworkVersion.IsValidVersion(new Version(4, 0, 0, 0)).Should().BeFalse();
             EntityFrameworkVersion.IsValidVersion(new Version(3, 0)).Should().BeFalse();
-            EntityFrameworkVersion.IsValidVersion(new Version(2, 0, 0)).Should().BeFalse();
         }
 
         [TestMethod]
         public void DoubleToVersion_returns_valid_version_for_known_double_versions()
         {
             EntityFrameworkVersion.DoubleToVersion(3.0).Should().Be(EntityFrameworkVersion.Version3);
-            EntityFrameworkVersion.DoubleToVersion(2.0).Should().Be(EntityFrameworkVersion.Version2);
-            EntityFrameworkVersion.DoubleToVersion(1.0).Should().Be(EntityFrameworkVersion.Version1);
         }
 
         [TestMethod]
         public void VersionToDouble_returns_valid_version_for_known_double_versions()
         {
             EntityFrameworkVersion.VersionToDouble(EntityFrameworkVersion.Version3).Should().Be(3.0);
-            EntityFrameworkVersion.VersionToDouble(EntityFrameworkVersion.Version2).Should().Be(2.0);
-            EntityFrameworkVersion.VersionToDouble(EntityFrameworkVersion.Version1).Should().Be(1.0);
         }
 
         [TestMethod]

@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.ComponentModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System.ComponentModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-
     internal class EFPropertyBaseDescriptor<T> :
         EFAnnotatableElementDescriptor<T>, IAnnotatableDocumentableDescriptor
         where T : PropertyBase
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             set
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                var cmd = new UpdateDefaultableValueCommand<string>(TypedEFElement.Getter, value);
+                UpdateDefaultableValueCommand<string> cmd = new UpdateDefaultableValueCommand<string>(TypedEFElement.Getter, value);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
         }
@@ -46,7 +46,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             set
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                var cmd = new UpdateDefaultableValueCommand<string>(TypedEFElement.Setter, value);
+                UpdateDefaultableValueCommand<string> cmd = new UpdateDefaultableValueCommand<string>(TypedEFElement.Setter, value);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
         }

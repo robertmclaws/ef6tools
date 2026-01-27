@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Reflection;
+using System.Resources;
+
 namespace Microsoft.Data.Entity.Design.Core
 {
-    using System;
-    using System.Diagnostics;
-    using System.Reflection;
-    using System.Resources;
-
     internal static class ResourceUtils
     {
         internal static string LookupResource(Type resourceManagerProvider, string resourceKey)
@@ -17,7 +17,7 @@ namespace Microsoft.Data.Entity.Design.Core
             {
                 if (staticProperty.PropertyType == typeof(ResourceManager))
                 {
-                    var resourceManager = staticProperty.GetValue(null, null) as ResourceManager;
+                    ResourceManager resourceManager = staticProperty.GetValue(null, null) as ResourceManager;
                     Debug.Assert(
                         null != resourceManager, "Unable to find ResourceManager property in class:" + resourceManagerProvider.Name);
 

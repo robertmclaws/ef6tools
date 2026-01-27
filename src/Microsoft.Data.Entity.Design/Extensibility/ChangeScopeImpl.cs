@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     internal interface IChangeScopeContainer
     {
         void OnScopeDisposed();
@@ -90,10 +91,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
         {
             get
             {
-                if (_beforeEvent == null)
-                {
-                    _beforeEvent = OnBeforeChange;
-                }
+                _beforeEvent ??= OnBeforeChange;
                 return _beforeEvent;
             }
         }
@@ -104,10 +102,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
         {
             get
             {
-                if (_afterEvent == null)
-                {
-                    _afterEvent = OnAfterChange;
-                }
+                _afterEvent ??= OnAfterChange;
                 return _afterEvent;
             }
         }
@@ -137,7 +132,6 @@ namespace Microsoft.Data.Entity.Design.Extensibility
             return match;
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         private void OnBeforeChange(object sender, XObjectChangeEventArgs e)
         {
             if (_isComplete)
@@ -153,7 +147,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
             }
             else
             {
-                var node = sender as XObject;
+                XObject node = sender as XObject;
                 if (node is XElement)
                 {
                     valid = VerifyUserEdit(node as XElement);
@@ -204,7 +198,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
             }
             else
             {
-                var node = sender as XObject;
+                XObject node = sender as XObject;
                 if (node is XElement
                     || node is XAttribute)
                 {
@@ -227,8 +221,7 @@ namespace Microsoft.Data.Entity.Design.Extensibility
                         while (node.Parent != null)
                         {
                             node = node.Parent;
-                            var xElement = node as XElement;
-                            if (xElement != null)
+                            if (node is XElement xElement)
                             {
                                 valid = VerifyUserEdit(xElement);
                                 break;

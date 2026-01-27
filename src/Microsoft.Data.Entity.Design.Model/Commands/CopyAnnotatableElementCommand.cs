@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal abstract class CopyAnnotatableElementCommand : Command
     {
         protected virtual void AddAnnotations(AnnotatableElementClipboardFormat clipboardFormat, EFElement element)
@@ -14,8 +14,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 var name = t.Item1;
                 var value = t.Item2;
-                var xn = XName.Get(name);
-                var xa = new XAttribute(xn, value);
+                XName xn = XName.Get(name);
+                XAttribute xa = new XAttribute(xn, value);
                 element.XElement.Add(xa);
             }
 
@@ -23,7 +23,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 try
                 {
-                    var d = XDocument.Parse(s, LoadOptions.PreserveWhitespace);
+                    XDocument d = XDocument.Parse(s, LoadOptions.PreserveWhitespace);
                     var xe = d.Root;
                     xe.Remove();
                     element.XElement.Add(xe);

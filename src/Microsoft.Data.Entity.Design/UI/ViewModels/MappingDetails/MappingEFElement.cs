@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     An enum that is passed to the GetListOfValues() method.
     // </summary>
@@ -79,10 +79,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
                 {
                     foreach (var o in _children)
                     {
-                        if (o != null)
-                        {
-                            o.Dispose();
-                        }
+                        o?.Dispose();
                     }
                 }
             }
@@ -134,7 +131,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
                 }
 
                 Debug.Assert(_context != null, "You must set the Context before setting a ModelItem");
-                var xref = ModelToMappingModelXRef.GetModelToMappingModelXRef(_context);
+                ModelToMappingModelXRef xref = ModelToMappingModelXRef.GetModelToMappingModelXRef(_context);
 
                 // remove any existing xref
                 if (_modelItem != null)
@@ -173,7 +170,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
             {
                 if (_children == null)
                 {
-                    _children = new List<MappingEFElement>();
+                    _children = [];
                     LoadChildrenCollection();
                 }
                 return _children.AsReadOnly();
@@ -214,8 +211,10 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
         // </summary>
         internal virtual Dictionary<MappingLovEFElement, string> GetListOfValues(ListOfValuesCollection type)
         {
-            var lov = new Dictionary<MappingLovEFElement, string>();
-            lov.Add(LovEmptyPlaceHolder, LovEmptyPlaceHolder.DisplayName);
+            Dictionary<MappingLovEFElement, string> lov = new Dictionary<MappingLovEFElement, string>
+            {
+                { LovEmptyPlaceHolder, LovEmptyPlaceHolder.DisplayName }
+            };
             return lov;
         }
 
@@ -315,7 +314,6 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
         // <param name="cpc">If 'null' is passed then a cpc and transaction will be created for this call, pass a non-null cpc to include this in a larger transaction</param>
         // <param name="context"></param>
         // <param name="underlyingModelItem"></param>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         internal virtual void CreateModelItem(CommandProcessorContext cpc, EditingContext context, EFElement underlyingModelItem)
         {
         }
@@ -341,7 +339,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
         {
             Debug.Assert(cpc != null, "You should send a cpc to this function so that the entire switch is in a single transaction");
 
-            var cmd = new DelegateCommand(
+            DelegateCommand cmd = new DelegateCommand(
                 () =>
                     {
                         if (deleteModelItemOnly)
@@ -357,7 +355,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
                         }
                     });
 
-            var cp = new CommandProcessor(cpc, cmd);
+            CommandProcessor cp = new CommandProcessor(cpc, cmd);
             cp.Invoke();
         }
 
@@ -424,10 +422,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
                 _children = null;
             }
 
-            if (Parent != null)
-            {
-                Parent.OnChildDeleted(this);
-            }
+            Parent?.OnChildDeleted(this);
         }
 
         // <summary>
@@ -443,7 +438,6 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
         // </summary>
         // <param name="melem"></param>
         // <param name="cpc">If 'null' is passed then a cpc and transaction will be created for this call, pass a non-null cpc to include this in a larger transaction</param>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         private static void DeleteModelItemsRecursive(MappingEFElement melem, CommandProcessorContext cpc)
         {
             foreach (var childMappingEFElement in melem.Children)

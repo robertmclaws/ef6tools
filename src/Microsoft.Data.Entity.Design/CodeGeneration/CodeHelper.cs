@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.CodeDom;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System;
-    using System.CodeDom;
-    using System.CodeDom.Compiler;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
-
     /// <summary>
     /// Helper methods for generating code.
     /// </summary>
@@ -186,7 +186,6 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
             return "\"" + value + "\"";
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
         internal string Literal(int value)
         {
             return value.ToString(CultureInfo.InvariantCulture);

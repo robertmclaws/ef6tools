@@ -1,20 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+using ModelRes = Microsoft.Data.Entity.Design.Model.Resources;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Properties;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-
     /// <summary>
     ///     Rule fired when an EntityType changes
     /// </summary>
@@ -38,7 +37,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
                 return;
             }
 
-            var changedEntity = e.ModelElement as EntityType;
+            EntityType changedEntity = e.ModelElement as EntityType;
             Debug.Assert(changedEntity != null);
             Debug.Assert(changedEntity.EntityDesignerViewModel != null);
 
@@ -64,13 +63,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
                         if (!EscherAttributeContentValidator.IsValidCsdlEntityTypeName(changedEntity.Name))
                         {
                             throw new InvalidOperationException(
-                                String.Format(CultureInfo.CurrentCulture, Resources.Error_EntityNameInvalid, changedEntity.Name));
+                                String.Format(CultureInfo.CurrentCulture, EntityDesignerRes.Error_EntityNameInvalid, changedEntity.Name));
                         }
 
                         if (ModelUtils.IsUniqueName(changedEntity, changedEntity.Name, viewModel.EditingContext) == false)
                         {
                             throw new InvalidOperationException(
-                                String.Format(CultureInfo.CurrentCulture, Resources.Error_EntityNameDuplicate, changedEntity.Name));
+                                String.Format(CultureInfo.CurrentCulture, EntityDesignerRes.Error_EntityNameDuplicate, changedEntity.Name));
                         }
 
                         ViewModelChangeContext.GetNewOrExistingContext(tx).ViewModelChanges.Add(new EntityTypeChange(changedEntity));

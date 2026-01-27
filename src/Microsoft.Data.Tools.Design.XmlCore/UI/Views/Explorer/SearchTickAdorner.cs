@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Windows;
-    using System.Windows.Automation.Peers;
-    using System.Windows.Controls;
-    using System.Windows.Documents;
-    using System.Windows.Input;
-    using System.Windows.Media;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.Explorer;
-
     internal class SearchTickAdorner : Adorner
     {
-        private readonly List<ExplorerEFElement> _explorerElements = new List<ExplorerEFElement>();
+        private readonly List<ExplorerEFElement> _explorerElements = [];
         private bool _explorerElementsAreSorted;
         private Point _center;
         //private bool _isSelected = false;
@@ -33,7 +33,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
             : base(adornedElement)
         {
             _brush = adornedElement.FindResource(new ComponentResourceKey(typeof(ExplorerContent), "SearchResultBrush")) as Brush;
-            var tooltip = new ToolTip();
+            ToolTip tooltip = new ToolTip();
             tooltip.Content = null;
             ToolTip = tooltip;
 
@@ -71,11 +71,9 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         private void EnsureToolTipContent()
         {
-            var toolTip = ToolTip as ToolTip;
-
-            if (toolTip != null)
+            if (ToolTip is ToolTip toolTip)
             {
-                var toolTipText = new StringBuilder();
+                StringBuilder toolTipText = new StringBuilder();
                 var first = true;
                 const int maxItemsInToolTip = 5;
                 var countItems = 0;
@@ -234,8 +232,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 
         protected override string GetItemStatusCore()
         {
-            var itemStatus = new StringBuilder();
-            var searchTickAdorner = (SearchTickAdorner)Owner;
+            StringBuilder itemStatus = new StringBuilder();
+            SearchTickAdorner searchTickAdorner = (SearchTickAdorner)Owner;
 
             foreach (var seXsdInfo in searchTickAdorner.ExplorerElements)
             {

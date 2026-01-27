@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-
     internal sealed class PreviewBuffer : IDisposable
     {
         // Dictionary used to store preview temp file information used in one preview session.
@@ -31,7 +31,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 
         public PreviewBuffer(IServiceProvider serviceProvider)
         {
-            _tempFiles = new Dictionary<string, PreviewTempFile>();
+            _tempFiles = [];
             _bufferForNoChanges = CreateEmptyEditor(serviceProvider);
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             IVsTextLines vsTextLines = null;
             // get the ILocalRegistry interface so we can use it to create the text buffer from the shell's local registry
-            var localRegistry = (ILocalRegistry)serviceProvider.GetService(typeof(ILocalRegistry));
+            ILocalRegistry localRegistry = (ILocalRegistry)serviceProvider.GetService(typeof(ILocalRegistry));
             if (localRegistry != null)
             {
                 vsTextLines = VsTextBufferFactory.CreateInstance<IVsTextLines>(serviceProvider, localRegistry);
@@ -60,9 +60,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             ArgumentValidation.CheckForNullReference(fileExtension, "fileExtension");
 
-            PreviewTempFile tempFile = null;
             // If the temp file already exists, use that one.
-            if (!_tempFiles.TryGetValue(fileExtension, out tempFile))
+            if (!_tempFiles.TryGetValue(fileExtension, out PreviewTempFile tempFile))
             {
                 var failed = false;
                 // Create a new preview temp file
@@ -75,9 +74,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                 else
                 {
                     // Open the file in invisible editor and get text buffer from it.
-                    IVsInvisibleEditor invisibleEditor = null;
-                    IVsTextLines textBuffer = null;
-                    if (RdtManager.Instance.TryGetTextLinesAndInvisibleEditor(tempFilePath, out invisibleEditor, out textBuffer)
+                    if (RdtManager.Instance.TryGetTextLinesAndInvisibleEditor(tempFilePath, out IVsInvisibleEditor invisibleEditor, out IVsTextLines textBuffer)
                         && invisibleEditor != null
                         && textBuffer != null)
                     {
@@ -175,7 +172,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                 // If there is ChangeProposal, make sure that change is visible in the text view.
                 // If ChangeProposal is null, that might be file node, make the first chagne visible.
                 // Here we will only work with Text based change proposal.
-                var visibleChange = node.ChangeProposal as TextChangeProposal;
+                TextChangeProposal visibleChange = node.ChangeProposal as TextChangeProposal;
                 if (visibleChange == null)
                 {
                     // Try to get first change in this file
@@ -212,7 +209,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             ArgumentValidation.CheckForNullReference(vsTextView, "vsTextView");
 
-            var textSpan = new TextSpan();
+            TextSpan textSpan = new TextSpan();
             textSpan.iStartLine = startLine;
             textSpan.iEndLine = endLine;
             textSpan.iStartIndex = startColumn;
@@ -224,10 +221,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         /// <summary>
         ///     Copy file content to the TextLines buffer
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults",
-            MessageId =
-                "Microsoft.VisualStudio.TextManager.Interop.IVsTextLines.ReplaceLines(System.Int32,System.Int32,System.Int32,System.Int32,System.IntPtr,System.Int32,Microsoft.VisualStudio.TextManager.Interop.TextSpan[])"
-            )]
         private static void CopyFileToBuffer(string sourceFilename, IVsTextLines buffer)
         {
             ArgumentValidation.CheckForEmptyString(sourceFilename, "sourceFileName");
@@ -262,11 +255,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             ArgumentValidation.CheckForNullReference(textBuffer, "textBuffer");
 
-            var lineCount = 0;
             var charCount = 0;
 
             // Get line count for the whole buffer.
-            var result = textBuffer.GetLineCount(out lineCount);
+            var result = textBuffer.GetLineCount(out int lineCount);
             if (result == VSConstants.S_OK
                 && lineCount > 0)
             {
@@ -283,7 +275,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             }
 
             // Create a TextSpan from begin to end of the text buffer.
-            var span = new TextSpan();
+            TextSpan span = new TextSpan();
             span.iStartLine = 0;
             span.iStartIndex = 0;
             span.iEndLine = lineCount - 1 > 0 ? lineCount - 1 : 0;
@@ -300,8 +292,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             ArgumentValidation.CheckForEmptyString(fileExtension, "fileExtension");
 
-            string tempFileName = null;
-            FileUtils.CreateUniqueFilename("vstdRefactoring", fileExtension, out tempFileName);
+            FileUtils.CreateUniqueFilename("vstdRefactoring", fileExtension, out string tempFileName);
             return tempFileName;
         }
 
@@ -321,11 +312,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             if (disposing)
             {
-                var dispBufferForNoChanges = _bufferForNoChanges as IDisposable;
-                if (dispBufferForNoChanges != null)
-                {
-                    dispBufferForNoChanges.Dispose();
-                }
+                IDisposable dispBufferForNoChanges = _bufferForNoChanges as IDisposable;
+                dispBufferForNoChanges?.Dispose();
 
                 // Release invisible editor
                 if (_tempFiles != null)

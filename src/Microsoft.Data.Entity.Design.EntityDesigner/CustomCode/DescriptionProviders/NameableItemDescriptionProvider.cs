@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Design;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Design;
-
     /// <summary>
     ///     This provider is wired to the NameableItem abstract DomainClass so that it can provide a mock
     ///     descriptor for DSL. When any property change occurs from the diagram, DSL asks the DomainClass
@@ -20,8 +20,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
     {
         protected override ElementTypeDescriptor CreateTypeDescriptor(ICustomTypeDescriptor parent, ModelElement element)
         {
-            var nameableItem = element as NameableItem;
-            if (nameableItem != null)
+            if (element is NameableItem nameableItem)
             {
                 return new NameableItemDescriptor(parent, nameableItem);
             }
@@ -43,7 +42,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 
         public override PropertyDescriptorCollection GetProperties(Attribute[] attributes)
         {
-            var propertyCollection = new PropertyDescriptorCollection(null);
+            PropertyDescriptorCollection propertyCollection = new PropertyDescriptorCollection(null);
 
             var propertyInfo = ModelElement.Store.DomainDataDirectory.FindDomainProperty(NameableItem.NameDomainPropertyId);
             Debug.Assert(

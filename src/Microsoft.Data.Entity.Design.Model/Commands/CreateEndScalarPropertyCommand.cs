@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class CreateEndScalarPropertyCommand : Command
     {
         private readonly AssociationSetMapping _associationSetMapping;
@@ -103,8 +103,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 && _associationSetEnd == null
                 && _endProperty == null)
             {
-                var prereq = GetPreReqCommand(CreateEndPropertyCommand.PrereqId) as CreateEndPropertyCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateEndPropertyCommand.PrereqId) is CreateEndPropertyCommand prereq)
                 {
                     _endProperty = prereq.EndProperty;
                 }
@@ -113,12 +112,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             if (_endProperty == null)
             {
-                var cmd = new CreateEndPropertyCommand(_associationSetMapping, _associationSetEnd);
+                CreateEndPropertyCommand cmd = new CreateEndPropertyCommand(_associationSetMapping, _associationSetEnd);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 _endProperty = cmd.EndProperty;
             }
@@ -129,7 +127,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 throw new CannotLocateParentItemException();
             }
 
-            var sp = new ScalarProperty(_endProperty, null);
+            ScalarProperty sp = new ScalarProperty(_endProperty, null);
             sp.Name.SetRefName(_entityProperty);
             sp.ColumnName.SetRefName(_tableColumn);
             _endProperty.AddScalarProperty(sp);
@@ -138,7 +136,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             if (_enforceConstraints)
             {
-                var asm = _endProperty.Parent as AssociationSetMapping;
+                AssociationSetMapping asm = _endProperty.Parent as AssociationSetMapping;
                 Debug.Assert(asm != null, "_endProperty parent is not an AssociationSetMapping");
                 EnforceAssociationSetMappingRules.AddRule(cpc, asm);
 

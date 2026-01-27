@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using System;
-    using System.ComponentModel;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal class StringOrNoneTypeConverter : StringConverter
     {
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
@@ -15,8 +15,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
             // this method returns the text displayed in drop-down
             if (destinationType == typeof(string))
             {
-                var v = value as StringOrNone;
-                if (v != null)
+                if (value is StringOrNone v)
                 {
                     if (StringOrNone.NoneValue.Equals(v))
                     {
@@ -37,8 +36,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
             // Note: does _not_ apply if user comes direct from NoneOptionListBoxTypeEditor which means
             // we can tell the difference between a text entry "(None)" and the TypeEditor '(None)'
             // by always returning a non-NoneValue StringOrNone here
-            var stringValue = value as string;
-            if (stringValue != null)
+            if (value is string stringValue)
             {
                 return new StringOrNone(stringValue);
             }

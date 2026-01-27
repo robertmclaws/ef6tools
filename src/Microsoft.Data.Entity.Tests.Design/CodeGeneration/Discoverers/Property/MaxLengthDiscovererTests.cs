@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     [TestClass]
     public class MaxLengthDiscovererTests
     {
         [TestMethod]
         public void Discover_returns_null_when_inapplicable()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>();
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First();
@@ -27,7 +27,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_null_when_conventional_nonkey()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>();
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First();
@@ -39,7 +39,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_null_when_conventional_key()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>().HasKey(e => e.Name);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First();
@@ -51,13 +51,13 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_binary()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>().Property(e => e.Data).HasMaxLength(256);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First();
             var property = entityType.Properties.First(p => p.Name == "Data");
 
-            var configuration = new MaxLengthDiscoverer().Discover(property, model) as MaxLengthConfiguration;
+            MaxLengthConfiguration configuration = new MaxLengthDiscoverer().Discover(property, model) as MaxLengthConfiguration;
 
             configuration.Should().NotBeNull();
             configuration.MaxLength.Should().Be(256);
@@ -66,13 +66,13 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void Discover_returns_configuration_when_string()
         {
-            var modelBuilder = new DbModelBuilder();
+            DbModelBuilder modelBuilder = new DbModelBuilder();
             modelBuilder.Entity<Entity>().Property(e => e.Name).HasMaxLength(30);
             var model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
             var entityType = model.ConceptualModel.EntityTypes.First();
             var property = entityType.Properties.First(p => p.Name == "Name");
 
-            var configuration = new MaxLengthDiscoverer().Discover(property, model) as MaxLengthStringConfiguration;
+            MaxLengthStringConfiguration configuration = new MaxLengthDiscoverer().Discover(property, model) as MaxLengthStringConfiguration;
 
             configuration.Should().NotBeNull();
             configuration.MaxLength.Should().Be(30);

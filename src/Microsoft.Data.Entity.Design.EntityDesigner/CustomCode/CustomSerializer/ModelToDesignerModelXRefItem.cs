@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.VisualStudio.Modeling;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 {
-    using System;
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.VisualStudio.Modeling;
-
     /// <summary>
     ///     This class contains XRef between DSL Model and Escher Model.
     /// </summary>
@@ -19,17 +18,14 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 
         internal ModelToDesignerModelXRefItem()
         {
-            _modelToViewModel = new Dictionary<EFObject, ModelElement>();
-            _viewModelToModel = new Dictionary<ModelElement, EFObject>();
+            _modelToViewModel = [];
+            _viewModelToModel = [];
         }
 
         internal void Add(EFObject obj, ModelElement viewElement, EditingContext context)
         {
-            var viewModel = viewElement as EntityDesignerViewModel;
-            if (viewModel != null)
-            {
-                viewModel.EditingContext = context;
-            }
+            EntityDesignerViewModel viewModel = viewElement as EntityDesignerViewModel;
+            viewModel?.EditingContext = context;
 
             Remove(obj);
             Remove(viewElement);
@@ -46,9 +42,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 
         internal void Remove(ModelElement viewElement)
         {
-            EFObject efObject;
 
-            if (_viewModelToModel.TryGetValue(viewElement, out efObject))
+            if (_viewModelToModel.TryGetValue(viewElement, out EFObject efObject))
             {
                 Remove(efObject, viewElement);
             }
@@ -56,9 +51,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 
         internal void Remove(EFObject efObject)
         {
-            ModelElement viewElement;
 
-            if (_modelToViewModel.TryGetValue(efObject, out viewElement))
+            if (_modelToViewModel.TryGetValue(efObject, out ModelElement viewElement))
             {
                 Remove(efObject, viewElement);
             }
@@ -66,15 +60,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
 
         internal ModelElement GetExisting(EFObject obj)
         {
-            ModelElement result;
-            _modelToViewModel.TryGetValue(obj, out result);
+            _modelToViewModel.TryGetValue(obj, out ModelElement result);
             return result;
         }
 
         internal EFObject GetExisting(ModelElement viewElement)
         {
-            EFObject result;
-            _viewModelToModel.TryGetValue(viewElement, out result);
+            _viewModelToModel.TryGetValue(viewElement, out EFObject result);
             return result;
         }
 
@@ -93,7 +85,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer
         {
             get
             {
-                var objects = new List<ModelElement>();
+                List<ModelElement> objects = new List<ModelElement>();
                 foreach (var melem in _viewModelToModel.Keys)
                 {
                     objects.Add(melem);

@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal abstract class RenameCommand : Command
     {
         internal RenameCommand(EFNormalizableItem element, string newName, bool uniquenessIsCaseSensitive)
@@ -53,8 +53,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 throw new CommandValidationFailedException(msg);
             }
 
-            string errorMessage = null;
-            if (!IsUniqueNameForExistingItem(out errorMessage))
+            if (!IsUniqueNameForExistingItem(out string errorMessage))
             {
                 if (String.IsNullOrEmpty(errorMessage))
                 {
@@ -71,7 +70,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             // Get the list of anti-dependencies before doing the rename, normalize and resolve steps.
             // This way all dependent items, including child elements which get unbound during NormalizeAndResolve, are included in the antiDeps list.
-            var antiDeps = new List<EFObject>();
+            List<EFObject> antiDeps = new List<EFObject>();
             antiDeps.AddRange(Element.GetAntiDependencies());
 
             // do the rename
@@ -81,11 +80,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // now update any items that point to this item so that they use the new name
             foreach (var efObject in antiDeps)
             {
-                var binding = efObject as ItemBinding;
-                if (binding != null)
-                {
-                    binding.SetRefName(Element);
-                }
+                ItemBinding binding = efObject as ItemBinding;
+                binding?.SetRefName(Element);
             }
 
             // identify any binding that was referencing this node or a child of this node,

@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.Mapping;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Diagnostics;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration.Extensions
 {
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Mapping;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Diagnostics;
-    using System.Linq;
-
     internal static class DbModelExtensions
     {
         private static readonly IDictionary<DbProviderInfo, DbProviderManifest> _providerManifestCache =
@@ -28,8 +28,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration.Extensions
                 return model.ProviderManifest;
             }
 
-            DbProviderManifest providerManifest;
-            if (!_providerManifestCache.TryGetValue(model.ProviderInfo, out providerManifest))
+            if (!_providerManifestCache.TryGetValue(model.ProviderInfo, out DbProviderManifest providerManifest))
             {
                 providerManifest = dependencyResolver
                     .GetService<DbProviderServices>(model.ProviderInfo.ProviderInvariantName)

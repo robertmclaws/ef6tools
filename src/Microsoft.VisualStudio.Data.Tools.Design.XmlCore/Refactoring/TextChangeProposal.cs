@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using System;
-
     /// <summary>
     ///     The ChangeProposal class represents the changes returned from the contributors.
     ///     These changes represent the file, offset, lengths, new value, and old value of a proposed change.
@@ -64,8 +64,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         public override bool Equals(object obj)
         {
             var isEqual = false;
-            var other = obj as TextChangeProposal;
-            if (other != null)
+            if (obj is TextChangeProposal other)
             {
                 isEqual = base.Equals(obj);
                 if (isEqual)

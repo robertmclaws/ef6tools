@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     Use this command to create a FunctionComplexProperty that lives (perhaps nested) inside a ModificationFunction.
     /// </summary>
@@ -52,8 +52,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         protected override void ProcessPreReqCommands()
         {
-            var prereq = GetPreReqCommand(PrereqId) as CreateFunctionComplexPropertyCommand;
-            if (prereq != null)
+            if (GetPreReqCommand(PrereqId) is CreateFunctionComplexPropertyCommand prereq)
             {
                 _parentComplexProperty = prereq.FunctionComplexProperty;
                 CommandValidation.ValidateFunctionComplexProperty(_parentComplexProperty);
@@ -64,7 +63,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             base.ProcessPreReqCommands();
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2208:InstantiateArgumentExceptionsCorrectly")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // check ModificationFunction or ComplexProperty parent exists
@@ -107,7 +105,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             get { return _createdProperty; }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static FunctionComplexProperty CreateComplexPropertyUsingModificationFunction(
             ModificationFunction parentModificationFunction, ComplexConceptualProperty property)
         {
@@ -122,7 +119,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             return fcp;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static FunctionComplexProperty CreateComplexPropertyUsingComplexProperty(
             FunctionComplexProperty parentComplexProperty, ComplexConceptualProperty property)
         {
@@ -136,7 +132,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             return fcp;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static FunctionComplexProperty CreateNewFunctionComplexProperty(EFElement parent, ComplexConceptualProperty property)
         {
             Debug.Assert(property != null, 
@@ -147,7 +142,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     + ".CreateNewFunctionComplexProperty() received property with null ComplexType.Target");
 
             // actually create it in the XLinq tree
-            var fcp = new FunctionComplexProperty(parent, null);
+            FunctionComplexProperty fcp = new FunctionComplexProperty(parent, null);
             fcp.Name.SetRefName(property);
             fcp.TypeName.SetRefName(property.ComplexType.Target);
 

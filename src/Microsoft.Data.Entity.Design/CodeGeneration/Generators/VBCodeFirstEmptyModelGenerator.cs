@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Infrastructure;
+using System.Globalization;
+using WizardResources = Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration.Generators
 {
-    using System.Data.Entity.Infrastructure;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Properties;
-    using System.Globalization;
-
     internal class VBCodeFirstEmptyModelGenerator : IContextGenerator
     {
         private const string VBCodeFileTemplate =
@@ -36,7 +36,7 @@ End Class
             var ctorComment = 
                 string.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.CodeFirstCodeFile_CtorComment_VB,
+                    WizardResources.CodeFirstCodeFile_CtorComment_VB,
                     contextClassName,
                     codeNamespace);
 
@@ -47,7 +47,7 @@ End Class
                     contextClassName,
                     ctorComment,
                     connectionStringName,
-                    Resources.CodeFirstCodeFile_DbSetComment_VB);
+                    WizardResources.CodeFirstCodeFile_DbSetComment_VB);
         }
     }
 }

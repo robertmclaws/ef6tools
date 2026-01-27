@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using System;
+using System.ComponentModel.Design;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Modeling.Shell;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.ComponentModel.Design;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-
     internal static class Services
     {
         public static ServiceProvider OLEServiceProvider
@@ -26,10 +25,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
         {
             get
             {
-                if (_serviceProvider == null)
-                {
-                    _serviceProvider = PackageManager.Package;
-                }
+                _serviceProvider ??= PackageManager.Package;
                 return _serviceProvider;
             }
             set { _serviceProvider = value; }

@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Resources;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Resources;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     base class for a PropertyDescriptor that describes a property of an EFElement
     /// </summary>
@@ -128,7 +128,6 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
-    [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes")]
     internal class CommonLocDisplayNameAttribute : DisplayNameAttribute
     {
         private readonly string name;
@@ -161,7 +160,6 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
     }
 
     [AttributeUsage(AttributeTargets.All)]
-    [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes")]
     internal class CommonLocDescriptionAttribute : DescriptionAttribute
     {
         private bool replaced;
@@ -197,7 +195,6 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
     }
 
     [AttributeUsage(AttributeTargets.All)]
-    [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes")]
     internal class CommonLocCategoryAttribute : CategoryAttribute
     {
         public CommonLocCategoryAttribute(string category)

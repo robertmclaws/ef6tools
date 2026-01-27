@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateAssociationSetCommand : Command
     {
         internal string Name { get; set; }
@@ -34,8 +34,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             CommandModelSpace = modelSpace;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(Association != null, "InvokeInternal is called when Association is null.");
@@ -61,14 +59,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             Debug.Assert(entityContainer != null, "No entity container");
 
             // check for uniqueness
-            string msg = null;
-            if (ModelHelper.IsUniqueName(typeof(AssociationSet), entityContainer, Name, false, out msg) == false)
+            if (ModelHelper.IsUniqueName(typeof(AssociationSet), entityContainer, Name, false, out string msg) == false)
             {
                 throw new InvalidOperationException(msg);
             }
 
             // create the new item in our model
-            var associationSet = new AssociationSet(entityContainer, null);
+            AssociationSet associationSet = new AssociationSet(entityContainer, null);
             associationSet.LocalName.Value = Name;
             entityContainer.AddAssociationSet(associationSet);
 
@@ -86,12 +83,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 && end2 != null
                 && end2.Type.Status == BindingStatus.Known)
             {
-                var setEnd1 = new AssociationSetEnd(associationSet, null);
+                AssociationSetEnd setEnd1 = new AssociationSetEnd(associationSet, null);
                 setEnd1.Role.SetRefName(end1);
                 setEnd1.EntitySet.SetRefName(end1.Type.Target.EntitySet);
                 associationSet.AddAssociationSetEnd(setEnd1);
 
-                var setEnd2 = new AssociationSetEnd(associationSet, null);
+                AssociationSetEnd setEnd2 = new AssociationSetEnd(associationSet, null);
                 setEnd2.Role.SetRefName(end2);
                 setEnd2.EntitySet.SetRefName(end2.Type.Target.EntitySet);
                 associationSet.AddAssociationSetEnd(setEnd2);

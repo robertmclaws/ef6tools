@@ -1,36 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure.Pluralization;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using AssociationSet = Microsoft.Data.Entity.Design.Model.Entity.AssociationSet;
+using ComplexType = Microsoft.Data.Entity.Design.Model.Entity.ComplexType;
+using EntitySet = Microsoft.Data.Entity.Design.Model.Entity.EntitySet;
+using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
+using EnumType = Microsoft.Data.Entity.Design.Model.Entity.EnumType;
+using NavigationProperty = Microsoft.Data.Entity.Design.Model.Entity.NavigationProperty;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.Pluralization;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Reflection;
-    using System.Text;
-    using System.Text.RegularExpressions;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using AssociationSet = Microsoft.Data.Entity.Design.Model.Entity.AssociationSet;
-    using ComplexType = Microsoft.Data.Entity.Design.Model.Entity.ComplexType;
-    using EntitySet = Microsoft.Data.Entity.Design.Model.Entity.EntitySet;
-    using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
-    using EnumType = Microsoft.Data.Entity.Design.Model.Entity.EnumType;
-    using NavigationProperty = Microsoft.Data.Entity.Design.Model.Entity.NavigationProperty;
-
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal static class ModelHelper
     {
         private const int DefaultPropertySuffixSeed = 1;
@@ -44,7 +43,7 @@ namespace Microsoft.Data.Entity.Design.Model
             new Regex(@"Collection\((?<" + CollectionCaptureName + @">(\w+\.)*\w+)\)");
 
         // Contains all scalar EDM type names. Perf note: AllPrimitiveTypes() lazily loads these once per Version - after that just return HashSet
-        private static readonly Dictionary<Version, HashSet<string>> _edmPrimitiveTypes = new Dictionary<Version, HashSet<string>>();
+        private static readonly Dictionary<Version, HashSet<string>> _edmPrimitiveTypes = [];
 
         private static HashSet<Type> _underlyingEnumTypes;
 
@@ -93,9 +92,9 @@ namespace Microsoft.Data.Entity.Design.Model
             // System.Data.Resource.CSMSL_2.xsd - [\p{L}\p{Nl}][\p{L}\p{Nl}\p{Nd}\p{Mn}\p{Mc}\p{Pc}\p{Cf}]{0,}
             var isFirst = true;
             var requiresPrefix = false;
-            var charsToReplace = new List<char>();
-            var firstRegex = new Regex(@"[\p{L}\p{Nl}]");
-            var subsequentRegex = new Regex(@"[\p{L}\p{Nl}\p{Nd}\p{Mn}\p{Mc}\p{Pc}\p{Cf}]");
+            List<char> charsToReplace = new List<char>();
+            Regex firstRegex = new Regex(@"[\p{L}\p{Nl}]");
+            Regex subsequentRegex = new Regex(@"[\p{L}\p{Nl}\p{Nd}\p{Mn}\p{Mc}\p{Pc}\p{Cf}]");
             foreach (var c in identifier)
             {
                 if (isFirst)
@@ -178,7 +177,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
                 if (existingItem != null)
                 {
-                    var et = existingItem as EntityType;
+                    EntityType et = existingItem as EntityType;
 
                     Debug.Assert(
                         et != null,
@@ -197,7 +196,7 @@ namespace Microsoft.Data.Entity.Design.Model
             {
                 if (existingItem != null)
                 {
-                    var complexType = existingItem as ComplexType;
+                    ComplexType complexType = existingItem as ComplexType;
 
                     Debug.Assert(
                         complexType != null,
@@ -216,7 +215,7 @@ namespace Microsoft.Data.Entity.Design.Model
             {
                 if (existingItem != null)
                 {
-                    var enumType = existingItem as EnumType;
+                    EnumType enumType = existingItem as EnumType;
 
                     Debug.Assert(
                         enumType != null,
@@ -234,23 +233,20 @@ namespace Microsoft.Data.Entity.Design.Model
             else if ((typeof(PropertyBase)).IsAssignableFrom(type))
             {
                 // type is derived from or equal to PropertyBase (eg, a Property or a NavigationProperty)
-                var et = container as EntityType;
-                if (et != null)
+                if (container is EntityType et)
                 {
-                    string message;
-                    return ValidateEntityPropertyName(et, proposedName, uniquenessIsCaseSensitive, out message);
+                    return ValidateEntityPropertyName(et, proposedName, uniquenessIsCaseSensitive, out string message);
                 }
                 else
                 {
-                    var complexType = container as ComplexType;
+                    ComplexType complexType = container as ComplexType;
                     Debug.Assert(complexType != null, "container should be a ComplexType");
-                    string message;
-                    return ValidateComplexTypePropertyName(complexType, proposedName, uniquenessIsCaseSensitive, out message);
+                    return ValidateComplexTypePropertyName(complexType, proposedName, uniquenessIsCaseSensitive, out string message);
                 }
             }
             else if ((typeof(BaseEntityContainer)).IsAssignableFrom(type))
             {
-                var baseEntityModel = container as BaseEntityModel;
+                BaseEntityModel baseEntityModel = container as BaseEntityModel;
                 Debug.Assert(baseEntityModel != null, "container should be a BaseEntityModel");
                 if (baseEntityModel != null)
                 {
@@ -370,8 +366,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 return false;
             }
 
-            var cet = entityType as ConceptualEntityType;
-            if (cet != null)
+            if (entityType is ConceptualEntityType cet)
             {
                 // check the base type hierarchy
                 var parentEntity = cet.BaseType.Target;
@@ -495,8 +490,8 @@ namespace Microsoft.Data.Entity.Design.Model
             var uniqueTableName = proposedTableName;
 
             var i = 1;
-            var ec = storageModel.FirstEntityContainer as StorageEntityContainer;
-            var existingTableNames = new HashSet<string>(
+            StorageEntityContainer ec = storageModel.FirstEntityContainer as StorageEntityContainer;
+            HashSet<string> existingTableNames = new HashSet<string>(
                 ec.EntitySets()
                     .Cast<StorageEntitySet>()
                     .Where(es => es.Schema.Value == schemaName)
@@ -531,14 +526,12 @@ namespace Microsoft.Data.Entity.Design.Model
             }
 
             // Now see if the requested facet is appropriate to that type
-            FacetDescription facet;
-            return TryGetFacet(storagePrimType, facetName, out facet);
+            return TryGetFacet(storagePrimType, facetName, out FacetDescription facet);
         }
 
         internal static bool IsValidModelFacet(string primTypeString, string facetName)
         {
-            FacetDescription facet;
-            return TryGetFacet(GetPrimitiveTypeFromString(primTypeString), facetName, out facet);
+            return TryGetFacet(GetPrimitiveTypeFromString(primTypeString), facetName, out FacetDescription facet);
         }
 
         internal static bool TryGetFacet(PrimitiveType primType, string facetName, out FacetDescription facetDescription)
@@ -573,11 +566,10 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             Debug.Assert(EntityFrameworkVersion.IsValidVersion(targetSchemaVersion), "invalid schema version");
 
-            HashSet<string> primitiveTypeSet;
-            if (!_edmPrimitiveTypes.TryGetValue(targetSchemaVersion, out primitiveTypeSet))
+            if (!_edmPrimitiveTypes.TryGetValue(targetSchemaVersion, out HashSet<string> primitiveTypeSet))
             {
                 // lazily load primitive types
-                var edmCollection = new EdmItemCollection(new XmlReader[] { });
+                EdmItemCollection edmCollection = new EdmItemCollection(new XmlReader[] { });
 
                 primitiveTypeSet = new HashSet<string>(
                     edmCollection.GetPrimitiveTypes(EntityFrameworkVersion.VersionToDouble(targetSchemaVersion))
@@ -604,23 +596,22 @@ namespace Microsoft.Data.Entity.Design.Model
         /// </returns>
         internal static HashSet<string> AllPrimaryKeyPrimitiveTypes()
         {
-            // TODO: this is a hack (also is incorrect for V1 where Binary is not a valid key type) - should be fixed - see StoreModelBuilder.IsValidKeyType()
-            return AllPrimitiveTypes(EntityFrameworkVersion.Version2);
+            // Only Version3 is supported now
+            return AllPrimitiveTypes(EntityFrameworkVersion.Version3);
         }
 
         internal static HashSet<Type> UnderlyingEnumTypes
         {
             get
             {
-                if (_underlyingEnumTypes == null)
-                {
-                    _underlyingEnumTypes = new HashSet<Type>();
-                    _underlyingEnumTypes.Add(typeof(Int32));
-                    _underlyingEnumTypes.Add(typeof(Int16));
-                    _underlyingEnumTypes.Add(typeof(Int64));
-                    _underlyingEnumTypes.Add(typeof(Byte));
-                    _underlyingEnumTypes.Add(typeof(SByte));
-                }
+                _underlyingEnumTypes ??=
+                    [
+                        typeof(Int32),
+                        typeof(Int16),
+                        typeof(Int64),
+                        typeof(Byte),
+                        typeof(SByte),
+                    ];
                 return _underlyingEnumTypes;
             }
         }
@@ -683,7 +674,7 @@ namespace Microsoft.Data.Entity.Design.Model
             // if couldn't find an existing fragment, create it
             if (createIfNoneFound && cpc != null)
             {
-                var createETM = new CreateEntityTypeMappingCommand(
+                CreateEntityTypeMappingCommand createETM = new CreateEntityTypeMappingCommand(
                     conceptualEntityType as ConceptualEntityType,
                     kind);
                 CommandProcessor.InvokeSingleCommand(cpc, createETM);
@@ -708,12 +699,9 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             // first see if we have a Default ETM
             var mappingFragment = FindMappingFragment(cpc, conceptualEntityType, storageEntityType, EntityTypeMappingKind.Default, false);
-            if (mappingFragment == null)
-            {
-                // if we don't have a default, then find or create an IsTypeOf ETM to put this in
-                mappingFragment = FindMappingFragment(
-                    cpc, conceptualEntityType, storageEntityType, EntityTypeMappingKind.IsTypeOf, createIfNoneFound);
-            }
+            // if we don't have a default, then find or create an IsTypeOf ETM to put this in
+            mappingFragment ??= FindMappingFragment(
+                cpc, conceptualEntityType, storageEntityType, EntityTypeMappingKind.IsTypeOf, createIfNoneFound);
 
             return mappingFragment;
         }
@@ -738,7 +726,7 @@ namespace Microsoft.Data.Entity.Design.Model
             Debug.Assert(storageEntityType.EntityModel.IsCSDL != true, "storageEntityType is not SSDL");
 
             // the S-Side entitySet
-            var ses = storageEntityType.EntitySet as StorageEntitySet;
+            StorageEntitySet ses = storageEntityType.EntitySet as StorageEntitySet;
             Debug.Assert(ses != null, "FindMappingFragment: StorageEntitySet is null");
 
             // find/create the ETM for this entity
@@ -752,7 +740,7 @@ namespace Microsoft.Data.Entity.Design.Model
                     return null;
                 }
 
-                var createETM = new CreateEntityTypeMappingCommand(
+                CreateEntityTypeMappingCommand createETM = new CreateEntityTypeMappingCommand(
                     conceptualEntityType as ConceptualEntityType,
                     kind);
                 CommandProcessor.InvokeSingleCommand(cpc, createETM);
@@ -777,7 +765,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 && createIfNoneFound
                 && cpc != null)
             {
-                var cmd = new CreateMappingFragmentCommand(conceptualEntityType, storageEntityType, kind);
+                CreateMappingFragmentCommand cmd = new CreateMappingFragmentCommand(conceptualEntityType, storageEntityType, kind);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 mappingFragment = cmd.MappingFragment;
                 Debug.Assert(mappingFragment != null, "MappingFragment from CreateMappingFragmentCommand should not be null");
@@ -912,8 +900,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns>True if it found a ghost node</returns>
         internal static bool IsPartOfGhostMappingNode(EFObject obj)
         {
-            var esm = obj.GetParentOfType(typeof(EntitySetMapping)) as EntitySetMapping;
-            if (esm == null)
+            if (obj.GetParentOfType(typeof(EntitySetMapping)) is not EntitySetMapping esm)
             {
                 return false;
             }
@@ -931,8 +918,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// </summary>
         private static void IsPartOfGhostMappingNodeRecurse(EFObject obj, ref bool foundGhostNode)
         {
-            var element = obj as EFElement;
-            if (element != null)
+            if (obj is EFElement element)
             {
                 if (element.IsGhostNode)
                 {
@@ -1007,8 +993,10 @@ namespace Microsoft.Data.Entity.Design.Model
             Debug.Assert(derivedType != null, "derivedType should not be null");
             var circularInheritance = false;
 
-            var visited = new Dictionary<EntityType, int>();
-            visited.Add(derivedType, 0);
+            Dictionary<EntityType, int> visited = new Dictionary<EntityType, int>
+            {
+                { derivedType, 0 }
+            };
 
             while (baseType != null)
             {
@@ -1031,11 +1019,10 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns>True if there is a cycle that includes passed ComplexType</returns>
         internal static bool ContainsCircularComplexTypeDefinition(ComplexType complexType)
         {
-            var visited = new HashSet<ComplexType>();
+            HashSet<ComplexType> visited = new HashSet<ComplexType>();
             foreach (var property in complexType.Properties())
             {
-                var complexProperty = property as ComplexConceptualProperty;
-                if (complexProperty != null
+                if (property is ComplexConceptualProperty complexProperty
                     && complexProperty.ComplexType.Status == BindingStatus.Known)
                 {
                     if (ContainsCircularComplexTypeDefinition(complexType, complexProperty.ComplexType.Target, visited))
@@ -1056,7 +1043,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns>True if there adding new property would introduce a cycle</returns>
         internal static bool ContainsCircularComplexTypeDefinition(ComplexType complexType, ComplexType newPropertyType)
         {
-            return ContainsCircularComplexTypeDefinition(complexType, newPropertyType, new HashSet<ComplexType>());
+            return ContainsCircularComplexTypeDefinition(complexType, newPropertyType, []);
         }
 
         /// <summary>
@@ -1080,8 +1067,7 @@ namespace Microsoft.Data.Entity.Design.Model
             visited.Add(currentComplexType);
             foreach (var property in currentComplexType.Properties())
             {
-                var complexProperty = property as ComplexConceptualProperty;
-                if (complexProperty != null
+                if (property is ComplexConceptualProperty complexProperty
                     && complexProperty.ComplexType.Status == BindingStatus.Known)
                 {
                     if (ContainsCircularComplexTypeDefinition(baseComplexType, complexProperty.ComplexType.Target, visited))
@@ -1107,8 +1093,6 @@ namespace Microsoft.Data.Entity.Design.Model
         ///     Exception thrown upon encountering an unresolved reference
         ///     Used in operations that require a valid model
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1064:ExceptionsShouldBePublic")]
-        [SuppressMessage("Microsoft.Design", "CA1032:ImplementStandardExceptionConstructors")]
         [Serializable]
         internal class InvalidSchemaException : Exception
         {
@@ -1141,7 +1125,7 @@ namespace Microsoft.Data.Entity.Design.Model
                     alwaysAddSuffix ? propertyNameCandidate + DefaultPropertySuffixSeed : propertyNameCandidate),
                     "Candidate property name is not valid");
 
-            var cEntityType = entityType as ConceptualEntityType;
+            ConceptualEntityType cEntityType = entityType as ConceptualEntityType;
             Debug.Assert(cEntityType != null, "Why isn't the entity type a conceptual entity type?");
 
             var allDistinctPropertyNamesInInheritanceTree =
@@ -1170,7 +1154,7 @@ namespace Microsoft.Data.Entity.Design.Model
             string propertyName = null;
             var suffix = initialSuffix == null ? "" : "" + initialSuffix.Value;
 
-            namesToAvoid = namesToAvoid ?? new HashSet<string>();
+            namesToAvoid = namesToAvoid ?? [];
 
             // Properties cannot have the same name as their EntityType.
             if (namesToAvoid.Contains(entityType.Name.Value, StringComparer.CurrentCulture) == false)
@@ -1465,7 +1449,7 @@ namespace Microsoft.Data.Entity.Design.Model
             Debug.Assert(et != null, "Null EntityType");
             Debug.Assert(fromRoleEnd != null, "Null FromRole AssociationEnd");
 
-            var assoc = fromRoleEnd.Parent as Association;
+            Association assoc = fromRoleEnd.Parent as Association;
             Debug.Assert(assoc != null, "FromRole AssociationEnd " + fromRoleEnd.ToPrettyString() + " has null Association");
 
             foreach (var selfOrBaseType in et.SafeSelfAndBaseTypes)
@@ -1611,7 +1595,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns>Set of found properties or null if at least one property was not found</returns>
         internal static IEnumerable<Property> FindProperties(EntityType entity, IEnumerable<string> propertyNames)
         {
-            var list = new List<Property>();
+            List<Property> list = new List<Property>();
             foreach (var name in propertyNames)
             {
                 var property = FindProperty(entity, name);
@@ -1634,7 +1618,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
             foreach (var f in sem.Functions())
             {
-                var dbObj = DatabaseObject.CreateFromFunction(f);
+                DatabaseObject dbObj = DatabaseObject.CreateFromFunction(f);
                 if (dbObj.Equals(functionIdentity))
                 {
                     return f;
@@ -1654,11 +1638,10 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns>True if the scalar Property is found</returns>
         internal static bool FindScalarPropertyPathByLocalName(EntityType entity, string propName, out List<Property> properties)
         {
-            properties = new List<Property>();
+            properties = [];
             foreach (var property in entity.Properties())
             {
-                var complexProperty = property as ComplexConceptualProperty;
-                if (complexProperty != null)
+                if (property is ComplexConceptualProperty complexProperty)
                 {
                     if (FindScalarPropertyPathByLocalName(complexProperty, propName, properties))
                     {
@@ -1685,8 +1668,7 @@ namespace Microsoft.Data.Entity.Design.Model
             {
                 foreach (var property in complexProperty.ComplexType.Target.Properties())
                 {
-                    var cp = property as ComplexConceptualProperty;
-                    if (cp != null)
+                    if (property is ComplexConceptualProperty cp)
                     {
                         if (FindScalarPropertyPathByLocalName(cp, propName, properties))
                         {
@@ -2005,7 +1987,7 @@ namespace Microsoft.Data.Entity.Design.Model
                     // Support both System.Data.SqlClient and Microsoft.Data.SqlClient
                     if (ProviderNames.IsSqlServerProvider(storageModel.Provider.Value))
                     {
-                        var dataType = (SqlDbType)(providerDataType);
+                        SqlDbType dataType = (SqlDbType)(providerDataType);
                         primitiveType = storageModel.GetStoragePrimitiveType(dataType.ToString());
                     }
                 }
@@ -2017,13 +1999,12 @@ namespace Microsoft.Data.Entity.Design.Model
         internal static string GetDesignerPropertyValueFromArtifact(
             string designerInfoElementName, string designerPropertyName, EFArtifact artifact)
         {
-            DesignerInfo designerInfo;
 
             // First we will try to find the OptionsDesignerInfo corresponding to the <Options> element in the artifact.
             var designerInfoRoot = artifact.DesignerInfo();
             if (designerInfoRoot != null)
             {
-                var foundDesignerInfo = designerInfoRoot.TryGetDesignerInfo(designerInfoElementName, out designerInfo);
+                var foundDesignerInfo = designerInfoRoot.TryGetDesignerInfo(designerInfoElementName, out DesignerInfo designerInfo);
 
                 // Now we will attempt to look for a <DesignerInfoPropertySet> under the <Options> element. There may not be one.
                 if (foundDesignerInfo
@@ -2031,8 +2012,7 @@ namespace Microsoft.Data.Entity.Design.Model
                     && designerInfo.PropertySet != null)
                 {
                     // If this succeeds, then we will try to find the DesignerProperty corresponding to "GenerateDatabaseScriptWorkflowPath"
-                    DesignerProperty designerProperty;
-                    if (designerInfo.PropertySet.TryGetDesignerProperty(designerPropertyName, out designerProperty))
+                    if (designerInfo.PropertySet.TryGetDesignerProperty(designerPropertyName, out DesignerProperty designerProperty))
                     {
                         // Finally if all of this succeeds, we'll return back the value of the GenerateDatabaseScriptWorkflowPath DesignerProperty
                         Debug.Assert(
@@ -2074,8 +2054,7 @@ namespace Microsoft.Data.Entity.Design.Model
             EFArtifact artifact, string designerInfoElementName, string designerPropertyName, string designerPropertyValue)
         {
             Debug.Assert(artifact != null, "artifact cannot be null");
-            DesignerInfo designerInfo;
-            var foundDesignerInfo = artifact.DesignerInfo().TryGetDesignerInfo(designerInfoElementName, out designerInfo);
+            var foundDesignerInfo = artifact.DesignerInfo().TryGetDesignerInfo(designerInfoElementName, out DesignerInfo designerInfo);
             Debug.Assert(
                 foundDesignerInfo && designerInfo != null,
                 "Could not find the DesignerInfo: " + designerInfoElementName + ". Edmx might be corrupted");
@@ -2091,8 +2070,7 @@ namespace Microsoft.Data.Entity.Design.Model
         internal static Command CreateSetDesignerPropertyCommandInsideDesignerInfo(
             DesignerInfo designerInfo, string designerPropertyName, string designerPropertyValue)
         {
-            DesignerProperty designerProperty;
-            if (designerInfo.PropertySet.TryGetDesignerProperty(designerPropertyName, out designerProperty)
+            if (designerInfo.PropertySet.TryGetDesignerProperty(designerPropertyName, out DesignerProperty designerProperty)
                 && designerProperty.ValueAttr != null)
             {
                 if (!string.Equals(designerPropertyValue, designerProperty.ValueAttr.Value))
@@ -2132,7 +2110,6 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <param name="principal">will be set to one of the ends, could be null</param>
         /// <param name="dependent">will be set to one of the ends, could be null</param>
         /// <param name="scenario">the scenario for which this is used</param>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         internal static void DeterminePrincipalDependentAssociationEnds(
             Association association, out AssociationEnd principal, out AssociationEnd dependent,
             DeterminePrincipalDependentAssociationEndsScenario scenario)
@@ -2268,7 +2245,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// </summary>
         internal static IEnumerable<XObject> GetStructuredAnnotationsForElement(EFElement efElement)
         {
-            var annotationManager = new AnnotationManager(efElement.XElement, efElement.Artifact.SchemaVersion);
+            AnnotationManager annotationManager = new AnnotationManager(efElement.XElement, efElement.Artifact.SchemaVersion);
 
             return annotationManager.GetAnnotations();
         }
@@ -2280,7 +2257,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// </summary>
         internal static IEnumerable<EntityType> GetRelatedEntityTypes(EntityType entityType)
         {
-            var relatedEntityTypes = new HashSet<EntityType>();
+            HashSet<EntityType> relatedEntityTypes = new HashSet<EntityType>();
 
             // Add related entity-types (through) association to the list.
             ICollection<Association> participatingAssociations = Association.GetAssociationsForEntityType(entityType);
@@ -2302,8 +2279,7 @@ namespace Microsoft.Data.Entity.Design.Model
             }
 
             // Check if the entity-type is a conceptual entity-type, if yes we need to examine the inheritance relationship too.
-            var cet = entityType as ConceptualEntityType;
-            if (cet != null)
+            if (entityType is ConceptualEntityType cet)
             {
                 // check the immediate base type.
                 if (cet.SafeBaseType != null
@@ -2331,7 +2307,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns></returns>
         internal static IEnumerable<AssociationConnector> GetListOfAssociationConnectorsForEntityTypeShape(EntityTypeShape entityTypeShape)
         {
-            var associationConnectors = new HashSet<AssociationConnector>();
+            HashSet<AssociationConnector> associationConnectors = new HashSet<AssociationConnector>();
 
             if (entityTypeShape == null)
             {
@@ -2373,7 +2349,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns></returns>
         internal static IEnumerable<InheritanceConnector> GetListOfInheritanceConnectorsForEntityTypeShape(EntityTypeShape entityTypeShape)
         {
-            var inheritanceConnectors = new HashSet<InheritanceConnector>();
+            HashSet<InheritanceConnector> inheritanceConnectors = new HashSet<InheritanceConnector>();
 
             if (entityTypeShape == null)
             {
@@ -2387,7 +2363,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 return inheritanceConnectors;
             }
 
-            var conceptualEntityType = entityTypeShape.EntityType.SafeTarget as ConceptualEntityType;
+            ConceptualEntityType conceptualEntityType = entityTypeShape.EntityType.SafeTarget as ConceptualEntityType;
             Debug.Assert(conceptualEntityType != null, "entityTypeShape.EntityType.SafeTarget should be a ConceptualEntityType");
 
             if (conceptualEntityType != null)
@@ -2431,7 +2407,7 @@ namespace Microsoft.Data.Entity.Design.Model
         // maps which belong to an _ancestor_ conceptual Entity Type > 0 (useful to spot TPC mapping)
         internal static Dictionary<StorageEntitySet, bool> FindTablesMappedDirectlyToConceptualEntityType(ConceptualEntityType cet)
         {
-            var result = new Dictionary<StorageEntitySet, bool>();
+            Dictionary<StorageEntitySet, bool> result = new Dictionary<StorageEntitySet, bool>();
             foreach (var etm in cet.GetAntiDependenciesOfType<EntityTypeMapping>())
             {
                 if (EntityTypeMappingKind.IsTypeOf == etm.Kind
@@ -2449,7 +2425,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
                             foreach (var sp in mf.ScalarProperties())
                             {
-                                var conceptualProperty = (sp.Name == null ? null : sp.Name.Target);
+                                var conceptualProperty = (sp.Name?.Target);
                                 if (conceptualProperty != null
                                     && !conceptualProperty.IsKeyProperty
                                     && conceptualProperty.Parent != cet)
@@ -2474,12 +2450,12 @@ namespace Microsoft.Data.Entity.Design.Model
         // it is scanning all the way to the top of the inheritance hierarchy)
         internal static HashSet<StorageEntitySet> FindTablesMappedByAncestors(ConceptualEntityType cet)
         {
-            var result = new HashSet<StorageEntitySet>();
-            var baseType = (cet.BaseType == null ? null : cet.BaseType.Target);
+            HashSet<StorageEntitySet> result = new HashSet<StorageEntitySet>();
+            var baseType = (cet.BaseType?.Target);
             while (baseType != null)
             {
                 result.UnionWith(FindTablesMappedDirectlyToConceptualEntityType(baseType).Keys);
-                baseType = (baseType.BaseType == null ? null : baseType.BaseType.Target);
+                baseType = (baseType.BaseType?.Target);
             }
 
             return result;
@@ -2535,7 +2511,7 @@ namespace Microsoft.Data.Entity.Design.Model
             }
 
             // Set up tablesMappedToThisEntityType to only have tables which are _not_ used by ancestors
-            var tablesMappedToThisEntityType =
+            HashSet<StorageEntitySet> tablesMappedToThisEntityType =
                 new HashSet<StorageEntitySet>(tablesMappedToThisEntityTypeWithAncestorInfo.Keys);
             tablesMappedToThisEntityType.ExceptWith(tablesMappedToAncestors);
             if (tablesMappedToThisEntityType.Count == 0)
@@ -2574,7 +2550,7 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns></returns>
         internal static IList<T> GetListOfPropertiesInTheirXElementsOrder<T>(IList<T> properties) where T : PropertyBase
         {
-            IList<T> sortedProperties = new List<T>();
+            IList<T> sortedProperties = [];
 
             if (properties != null
                 && properties.Count > 0)
@@ -2634,7 +2610,7 @@ namespace Microsoft.Data.Entity.Design.Model
             for (var i = 0; i < assignments.Bindings.Count; i++)
             {
                 var bindingTarget = assignments.Bindings[i].Target;
-                var mappedType = bindingTarget as ConceptualEntityType;
+                ConceptualEntityType mappedType = bindingTarget as ConceptualEntityType;
                 Debug.Assert(bindingTarget != null ? mappedType != null : true, "EntityType bindingTarget is not a ConceptualEntityType");
 
                 if (mappedType == null)
@@ -2656,7 +2632,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal static HashSet<EntityType> GetTablesMappedFrom(EntityType entityType)
         {
-            var tableTypes = new HashSet<EntityType>();
+            HashSet<EntityType> tableTypes = new HashSet<EntityType>();
             foreach (var mappingFragment in GetMappingFragments(entityType))
             {
                 tableTypes.Add(GetStoreEntityType(mappingFragment));

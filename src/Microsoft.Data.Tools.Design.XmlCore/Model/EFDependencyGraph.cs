@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
     internal class EFDependencyGraph : DependencyGraph<EFObject>
     {
         #region Test Only Code
@@ -27,7 +27,7 @@ namespace Microsoft.Data.Entity.Design.Model
             dependencies.Sort();
 #endif
 
-            var antideps = new List<string>();
+            List<string> antideps = new List<string>();
             foreach (var item in _antiDependencyMap.Keys)
             {
                 var line = item.ToPrettyString() + " :: ";
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Entity.Design.Model
             }
             antideps.Sort();
 
-            var stringBuffer = new StringBuilder();
+            StringBuilder stringBuffer = new StringBuilder();
 
 #if TRACK_DEPENDENCIES
             stringBuffer.Append("\r\nDependencies:\r\n");
@@ -94,13 +94,13 @@ namespace Microsoft.Data.Entity.Design.Model
 
         private static string DepsToSortedString(ICollection<EFObject> deps)
         {
-            var depStrings = new List<string>();
+            List<string> depStrings = new List<string>();
             foreach (var dep in deps)
             {
                 depStrings.Add(dep.ToPrettyString());
             }
             depStrings.Sort();
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             foreach (var s in depStrings)
             {
                 sb.Append(s);

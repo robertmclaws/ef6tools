@@ -1,24 +1,24 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels;
+using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
+using Microsoft.Data.Entity.Design.UI.Views.Explorer;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Entity.Design.UI.Util
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels;
-    using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
-    using Microsoft.Data.Entity.Design.UI.Views.Explorer;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal static class EntityDesignViewModelHelper
     {
         // <summary>
@@ -32,7 +32,6 @@ namespace Microsoft.Data.Entity.Design.UI.Util
         // <param name="cContainer">The input conceptual EntityContainer</param>
         // <param name="entityType">Return item originally selected for this FunctionImport (null means none selected)</param>
         // <param name="originatingId">Originating ID used for transaction.</param>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal static FunctionImport CreateFunctionImport(
             EditingContext editingContext,
             EFArtifact artifact,
@@ -62,7 +61,7 @@ namespace Microsoft.Data.Entity.Design.UI.Util
             // if user selected OK on the dialog then create the FunctionImport
             if (DialogResult.OK == result.DialogResult)
             {
-                var commands = new Collection<Command>();
+                Collection<Command> commands = new Collection<Command>();
 
                 CreateComplexTypeCommand createComplexTypeCommand = null;
 
@@ -78,8 +77,8 @@ namespace Microsoft.Data.Entity.Design.UI.Util
                 else if (result.ReturnType is ComplexType
                          && result.Schema != null)
                 {
-                    var complexType = result.ReturnType as ComplexType;
-                    var propertiesDictionary = complexType.Properties().ToDictionary(p => p.LocalName.Value);
+                    ComplexType complexType = result.ReturnType as ComplexType;
+                    Dictionary<string, Property> propertiesDictionary = complexType.Properties().ToDictionary(p => p.LocalName.Value);
                     CreateMatchingFunctionImportCommand.AddChangeComplexTypePropertiesCommands(
                         complexType, propertiesDictionary, result.Schema.RawColumns, commands);
                 }
@@ -101,7 +100,7 @@ namespace Microsoft.Data.Entity.Design.UI.Util
                 if (artifact.MappingModel() != null
                     && artifact.MappingModel().FirstEntityContainerMapping != null)
                 {
-                    var cmdFuncImpMapping = new CreateFunctionImportMappingCommand(
+                    CreateFunctionImportMappingCommand cmdFuncImpMapping = new CreateFunctionImportMappingCommand(
                         artifact.MappingModel().FirstEntityContainerMapping, result.Function, cmdFuncImp.Id);
                     cmdFuncImpMapping.AddPreReqCommand(cmdFuncImp);
                     commands.Add(cmdFuncImpMapping);
@@ -135,7 +134,7 @@ namespace Microsoft.Data.Entity.Design.UI.Util
                     }
                 }
 
-                var cp = new CommandProcessor(editingContext, originatingId, Resources.Tx_CreateFunctionImport, commands);
+                CommandProcessor cp = new CommandProcessor(editingContext, originatingId, Resources.Tx_CreateFunctionImport, commands);
                 cp.Invoke();
 
                 functionImportResult = cmdFuncImp.FunctionImport;
@@ -155,8 +154,6 @@ namespace Microsoft.Data.Entity.Design.UI.Util
         // <param name="cContainer">The input conceptual EntityContainer</param>
         // <param name="selectedObject">Return item originally selected for this FunctionImport (null means none selected)</param>
         // <param name="originatingId">Originating ID used for transaction.</param>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         internal static void EditFunctionImport(
             EditingContext editingContext,
             FunctionImport functionImport,
@@ -182,8 +179,8 @@ namespace Microsoft.Data.Entity.Design.UI.Util
             // if user selected OK on the dialog then create the FunctionImport
             if (DialogResult.OK == result.DialogResult)
             {
-                var commands = new List<Command>();
-                var cp = new CommandProcessor(editingContext, originatingId, Resources.Tx_UpdateFunctionImport);
+                List<Command> commands = new List<Command>();
+                CommandProcessor cp = new CommandProcessor(editingContext, originatingId, Resources.Tx_UpdateFunctionImport);
                 CreateComplexTypeCommand createComplexTypeCommand = null;
 
                 // Make the decision based on what is returned by the dialog.
@@ -198,9 +195,9 @@ namespace Microsoft.Data.Entity.Design.UI.Util
                 else if (result.ReturnType is ComplexType
                          && result.Schema != null)
                 {
-                    var complexType = result.ReturnType as ComplexType;
+                    ComplexType complexType = result.ReturnType as ComplexType;
                     // Create Column properties dictionary. The keys will be either property's type-mapping column name if availabe or property's name.
-                    var propertiesDictionary =
+                    Dictionary<string, Property> propertiesDictionary =
                         complexType.Properties().ToDictionary(p => EdmUtils.GetFunctionImportResultColumnName(functionImport, p));
                     CreateMatchingFunctionImportCommand.AddChangeComplexTypePropertiesCommands(
                         complexType, propertiesDictionary, result.Schema.RawColumns, commands);
@@ -303,7 +300,7 @@ namespace Microsoft.Data.Entity.Design.UI.Util
                 var enumType = enumTypeViewModel.EnumType;
                 if (result == true)
                 {
-                    var cp = new CommandProcessor(editingContext, originatingId, Resources.Tx_UpdateEnumType);
+                    CommandProcessor cp = new CommandProcessor(editingContext, originatingId, Resources.Tx_UpdateEnumType);
 
                     cp.EnqueueCommand(
                         new SetEnumTypeFacetCommand(
@@ -345,7 +342,7 @@ namespace Microsoft.Data.Entity.Design.UI.Util
             }
 
             var artifactService = editingContext.GetEFArtifactService();
-            var entityDesignArtifact = artifactService.Artifact as EntityDesignArtifact;
+            EntityDesignArtifact entityDesignArtifact = artifactService.Artifact as EntityDesignArtifact;
 
             Debug.Assert(
                 entityDesignArtifact != null,
@@ -354,15 +351,15 @@ namespace Microsoft.Data.Entity.Design.UI.Util
 
             if (entityDesignArtifact != null)
             {
-                var vm = new EnumTypeViewModel(entityDesignArtifact, selectedUnderlyingType);
+                EnumTypeViewModel vm = new EnumTypeViewModel(entityDesignArtifact, selectedUnderlyingType);
 
                 var result = ShowEnumTypeDialog(vm, onDialogActivated);
 
                 if (result == true
                     && vm.IsValid)
                 {
-                    var cp = new CommandProcessor(editingContext, originatingId, Resources.Tx_CreateEnumType);
-                    var createEnumTypeCommand = new CreateEnumTypeCommand(
+                    CommandProcessor cp = new CommandProcessor(editingContext, originatingId, Resources.Tx_CreateEnumType);
+                    CreateEnumTypeCommand createEnumTypeCommand = new CreateEnumTypeCommand(
                         vm.Name, vm.SelectedUnderlyingType
                         , (vm.IsReferenceExternalType ? vm.ExternalTypeName : String.Empty), vm.IsFlag, false);
 
@@ -387,7 +384,7 @@ namespace Microsoft.Data.Entity.Design.UI.Util
             bool? result;
             try
             {
-                var dialog = new EnumTypeDialog(enumTypeViewModel);
+                EnumTypeDialog dialog = new EnumTypeDialog(enumTypeViewModel);
                 if (onDialogActivated != null)
                 {
                     EnumTypeDialog.DialogActivatedTestEvent += onDialogActivated;
@@ -414,7 +411,7 @@ namespace Microsoft.Data.Entity.Design.UI.Util
             string dialogTitle,
             Object selectedObject)
         {
-            using (var dialog = new NewFunctionImportDialog(
+            using (NewFunctionImportDialog dialog = new NewFunctionImportDialog(
                 selectedSproc,
                 selectedSprocName,
                 sModel.Functions(),
@@ -427,7 +424,7 @@ namespace Microsoft.Data.Entity.Design.UI.Util
 
                 var dialogResult = dialog.ShowDialog();
 
-                var result = new EntityDesignNewFunctionImportResult
+                EntityDesignNewFunctionImportResult result = new EntityDesignNewFunctionImportResult
                     {
                         DialogResult = dialogResult,
                         Function = dialog.Function,

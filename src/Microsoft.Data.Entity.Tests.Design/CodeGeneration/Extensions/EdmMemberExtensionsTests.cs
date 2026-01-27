@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
 {
-    using System.ComponentModel.DataAnnotations.Schema;
-    using System.Data.Entity;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class EdmMemberExtensionsTests
     {
         [TestMethod]
         public void IsKey_returns_true_when_key()
         {
-            var property = EdmProperty.CreatePrimitive("Id", PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
+            EdmProperty property = EdmProperty.CreatePrimitive("Id", PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
             EntityType.Create("Person", "MyModel", DataSpace.CSpace, new[] { "Id" }, new[] { property }, null);
 
             property.IsKey().Should().BeTrue();
@@ -26,7 +26,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void IsKey_returns_true_when_part_of_composite_key()
         {
-            var property = EdmProperty.CreatePrimitive("Id1", PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
+            EdmProperty property = EdmProperty.CreatePrimitive("Id1", PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
             EntityType.Create(
                 "Person",
                 "MyModel",
@@ -45,7 +45,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void IsKey_returns_false_when_not_key()
         {
-            var property = EdmProperty.CreatePrimitive(
+            EdmProperty property = EdmProperty.CreatePrimitive(
                 "Name",
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.String));
             EntityType.Create(
@@ -66,7 +66,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void HasConventionalKeyName_returns_true_when_id()
         {
-            var property = EdmProperty.CreatePrimitive(
+            EdmProperty property = EdmProperty.CreatePrimitive(
                 "Id",
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
 
@@ -76,7 +76,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void HasConventionalKeyName_returns_true_when_type_and_id()
         {
-            var property = EdmProperty.CreatePrimitive(
+            EdmProperty property = EdmProperty.CreatePrimitive(
                 "PersonId",
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
             EntityType.Create("Person", "MyModel", DataSpace.CSpace, null, new[] { property }, null);
@@ -87,13 +87,13 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void HasConventionalKeyName_ignores_case()
         {
-            var property1 = EdmProperty.CreatePrimitive(
+            EdmProperty property1 = EdmProperty.CreatePrimitive(
                 "ID",
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
 
             property1.HasConventionalKeyName().Should().BeTrue();
 
-            var property2 = EdmProperty.CreatePrimitive(
+            EdmProperty property2 = EdmProperty.CreatePrimitive(
                 "PERSONID",
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
             EntityType.Create("Person", "MyModel", DataSpace.CSpace, null, new[] { property2 }, null);
@@ -104,7 +104,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void HasConventionalKeyName_returns_false_when_neither_id_nor_type_and_id()
         {
-            var property = EdmProperty.CreatePrimitive(
+            EdmProperty property = EdmProperty.CreatePrimitive(
                 "Name",
                 PrimitiveType.GetEdmPrimitiveType(PrimitiveTypeKind.Int32));
             EntityType.Create("Person", "MyModel", DataSpace.CSpace, null, new[] { property }, null);
@@ -115,7 +115,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void IsTimestamp_returns_true_when_timestamp()
         {
-            var builder = new DbModelBuilder();
+            DbModelBuilder builder = new DbModelBuilder();
             builder.Entity<EntityWithBinaryProperty>().Property(e => e.BinaryProperty)
                 .IsRowVersion();
             var model = builder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
@@ -129,7 +129,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void IsTimestamp_returns_false_when_not_timestamp()
         {
-            var builder = new DbModelBuilder();
+            DbModelBuilder builder = new DbModelBuilder();
             builder.Entity<EntityWithBinaryProperty>().Property(e => e.BinaryProperty)
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed)
                 .IsRequired()
@@ -145,7 +145,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void IsTimestamp_returns_false_when_not_computed()
         {
-            var builder = new DbModelBuilder();
+            DbModelBuilder builder = new DbModelBuilder();
             builder.Entity<EntityWithBinaryProperty>().Property(e => e.BinaryProperty)
                 .HasColumnType("timestamp")
                 .IsRequired()
@@ -161,7 +161,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration.Extensions
         [TestMethod]
         public void IsTimestamp_returns_false_when_nullable()
         {
-            var builder = new DbModelBuilder();
+            DbModelBuilder builder = new DbModelBuilder();
             builder.Entity<EntityWithBinaryProperty>().Property(e => e.BinaryProperty)
                 .HasColumnType("timestamp")
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed)

@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Linq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-
     [TestClass]
     public class FunctionDetailsV3RowViewTests
     {
@@ -31,7 +31,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
                         "paramDirection"
                     };
 
-            var view = new FunctionDetailsV3RowView(row);
+            FunctionDetailsV3RowView view = new FunctionDetailsV3RowView(row);
 
             view.Catalog.Should().Be("catalog");
             view.Schema.Should().Be("schema");
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
             const int isAggregateIndex = 4;
 
             var row = new object[12];
-            var view = new FunctionDetailsV3RowView(row);
+            FunctionDetailsV3RowView view = new FunctionDetailsV3RowView(row);
 
             row[isAggregateIndex] = false;
             view.IsIsAggregate.Should().BeFalse();
@@ -61,7 +61,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         {
             const int isComposableIndex = 5;
             var row = new object[12];
-            var view = new FunctionDetailsV3RowView(row);
+            FunctionDetailsV3RowView view = new FunctionDetailsV3RowView(row);
 
             row[isComposableIndex] = false;
             view.IsComposable.Should().BeFalse();
@@ -74,7 +74,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         {
             const int isBuiltInIndex = 6;
             var row = new object[12];
-            var view = new FunctionDetailsV3RowView(row);
+            FunctionDetailsV3RowView view = new FunctionDetailsV3RowView(row);
 
             row[isBuiltInIndex] = false;
             view.IsBuiltIn.Should().BeFalse();
@@ -88,7 +88,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
             const int isNiladicIndex = 7;
 
             var row = new object[12];
-            var view = new FunctionDetailsV3RowView(row);
+            FunctionDetailsV3RowView view = new FunctionDetailsV3RowView(row);
 
             row[isNiladicIndex] = false;
             view.IsNiladic.Should().BeFalse();
@@ -102,7 +102,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
             const int isTvfIndex = 8;
 
             var row = new object[12];
-            var view = new FunctionDetailsV3RowView(row);
+            FunctionDetailsV3RowView view = new FunctionDetailsV3RowView(row);
 
             row[isTvfIndex] = false;
             view.IsTvf.Should().BeFalse();
@@ -113,7 +113,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void DbNull_converted_to_default_values()
         {
-            var view =
+            FunctionDetailsV3RowView view =
                 new FunctionDetailsV3RowView(Enumerable.Repeat(DBNull.Value, 12).ToArray());
 
             view.Catalog.Should().BeNull();
@@ -133,7 +133,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void IsParameterXXXNull_properties_return_true_for_DBNull_values()
         {
-            var view =
+            FunctionDetailsV3RowView view =
                 new FunctionDetailsV3RowView(Enumerable.Repeat(DBNull.Value, 12).ToArray());
 
             view.IsParameterNameNull.Should().BeTrue();
@@ -144,7 +144,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.
         [TestMethod]
         public void IsParameterXXXNull_properties_return_false_for_non_DBNull_values()
         {
-            var view =
+            FunctionDetailsV3RowView view =
                 new FunctionDetailsV3RowView(Enumerable.Repeat("test", 12).ToArray());
 
             view.IsParameterNameNull.Should().BeFalse();

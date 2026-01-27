@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.IO;
+using System.Xml;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
 {
-    using System;
-    using System.IO;
-    using System.Xml;
-    using System.Xml.Linq;
-
     /// <summary>
     ///     This class will provide an XML model over an in-memory string.
     ///     The URI doesn't need to correspond to a file on disk.
@@ -22,15 +22,14 @@ namespace Microsoft.Data.Tools.XmlDesignerBase.Model.StandAlone
             _inputXml = inputXml;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override XDocument Build(Uri uri)
         {
             if (uri != _inputUri)
             {
                 throw new ArgumentException("specified URI does not match the URI used to create this model provider");
             }
-            var builder = new AnnotatedTreeBuilder();
-            using (var reader = XmlReader.Create(new StringReader(_inputXml)))
+            AnnotatedTreeBuilder builder = new AnnotatedTreeBuilder();
+            using (XmlReader reader = XmlReader.Create(new StringReader(_inputXml)))
             {
                 var doc = builder.Build(reader);
                 return doc;

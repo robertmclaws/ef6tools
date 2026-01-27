@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-
     /// <summary>
     ///     Use this command to set the StoreGeneratedPattern property on a new property.
     /// </summary>
@@ -47,8 +47,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (Property == null)
             {
-                var prereq = GetPreReqCommand(CreatePropertyCommand.PrereqId) as CreatePropertyCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreatePropertyCommand.PrereqId) is CreatePropertyCommand prereq)
                 {
                     // must be ConceptualProperty to have StoreGeneratedPattern
                     Property = prereq.CreatedProperty as ConceptualProperty;
@@ -62,7 +61,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit
@@ -72,12 +70,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 throw new InvalidOperationException("InvokeInternal is called when Property is null.");
             }
 
-            var cmd = new UpdateDefaultableValueCommand<string>(Property.StoreGeneratedPattern, SgpValue);
+            UpdateDefaultableValueCommand<string> cmd = new UpdateDefaultableValueCommand<string>(Property.StoreGeneratedPattern, SgpValue);
             CommandProcessor.InvokeSingleCommand(cpc, cmd);
 
             // ensure view keys are propagated from C-side to S-side
-            var cet = Property.EntityType as ConceptualEntityType;
-            if (cet != null)
+            if (Property.EntityType is ConceptualEntityType cet)
             {
                 PropagateViewKeysToStorageModel.AddRule(cpc, cet);
             }
@@ -87,7 +84,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // as the whole artifact has this integrity check applied by UpdateModelFromDatabaseCommand
             if (EfiTransactionOriginator.UpdateModelFromDatabaseId != cpc.OriginatorId)
             {
-                var cProp = Property as ConceptualProperty;
+                ConceptualProperty cProp = Property as ConceptualProperty;
                 Debug.Assert(cProp != null, "expected Property of type ConceptualProperty, instead got type " + Property.GetType().FullName);
                 if (cProp != null)
                 {

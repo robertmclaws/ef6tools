@@ -44,67 +44,13 @@
       </TemplateData>
     </VSTemplateHeader>
   </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>CSharp\Data\1036\DbCtxCSEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_CS_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>CSharp</ProjectType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.CS_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>CSharp\Data\1036\DbCtxCSEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_CS_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>CSharp</ProjectType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.CS_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>CSharp\Data\1036\DbCtxCSEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_CS_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>CSharp</ProjectType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.CS_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
+<VSTemplateContainer TemplateType="Item">
     <RelativePathOnDisk>CSharp\Data\1036\DbCtxCSEF6</RelativePathOnDisk>
     <TemplateFileName>DbContext_CS_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>CSharp</ProjectType>
         <Icon>__TemplateIcon.ico</Icon>
@@ -121,8 +67,8 @@
     <TemplateFileName>DbContext_CS_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>CSharp</ProjectType>
         <Icon>__TemplateIcon.ico</Icon>
@@ -139,8 +85,8 @@
     <TemplateFileName>DbContext_CS_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>CSharp</ProjectType>
         <Icon>__TemplateIcon.ico</Icon>
@@ -197,67 +143,13 @@
       </TemplateData>
     </VSTemplateHeader>
   </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>VisualBasic\Data\1036\DbCtxVBEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_VB_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>VisualBasic</ProjectType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.VB_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>VisualBasic\Data\1036\DbCtxVBEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_VB_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>VisualBasic</ProjectType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.VB_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>VisualBasic\Data\1036\DbCtxVBEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_VB_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>VisualBasic</ProjectType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.VB_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
+<VSTemplateContainer TemplateType="Item">
     <RelativePathOnDisk>VisualBasic\Data\1036\DbCtxVBEF6</RelativePathOnDisk>
     <TemplateFileName>DbContext_VB_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>VisualBasic</ProjectType>
         <Icon>__TemplateIcon.ico</Icon>
@@ -274,8 +166,8 @@
     <TemplateFileName>DbContext_VB_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>VisualBasic</ProjectType>
         <Icon>__TemplateIcon.ico</Icon>
@@ -292,8 +184,8 @@
     <TemplateFileName>DbContext_VB_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>VisualBasic</ProjectType>
         <Icon>__TemplateIcon.ico</Icon>
@@ -353,76 +245,13 @@
       </TemplateData>
     </VSTemplateHeader>
   </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>Web\CSharp\1036\DbCtxCSWSEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_CS_WS_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>Web</ProjectType>
-        <ProjectSubType>CSharp</ProjectSubType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <SupportsLanguageDropdown>false</SupportsLanguageDropdown>
-        <SupportsCodeSeparation>false</SupportsCodeSeparation>
-        <SupportsMasterPage>false</SupportsMasterPage>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.CS_ASPNET_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>Web\CSharp\1036\DbCtxCSWSEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_CS_WS_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>Web</ProjectType>
-        <ProjectSubType>CSharp</ProjectSubType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <SupportsLanguageDropdown>false</SupportsLanguageDropdown>
-        <SupportsCodeSeparation>false</SupportsCodeSeparation>
-        <SupportsMasterPage>false</SupportsMasterPage>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.CS_ASPNET_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>Web\CSharp\1036\DbCtxCSWSEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_CS_WS_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>Web</ProjectType>
-        <ProjectSubType>CSharp</ProjectSubType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <SupportsLanguageDropdown>false</SupportsLanguageDropdown>
-        <SupportsCodeSeparation>false</SupportsCodeSeparation>
-        <SupportsMasterPage>false</SupportsMasterPage>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.CS_ASPNET_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
+<VSTemplateContainer TemplateType="Item">
     <RelativePathOnDisk>Web\CSharp\1036\DbCtxCSWSEF6</RelativePathOnDisk>
     <TemplateFileName>DbContext_CS_WS_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>Web</ProjectType>
         <ProjectSubType>CSharp</ProjectSubType>
@@ -442,8 +271,8 @@
     <TemplateFileName>DbContext_CS_WS_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>Web</ProjectType>
         <ProjectSubType>CSharp</ProjectSubType>
@@ -463,8 +292,8 @@
     <TemplateFileName>DbContext_CS_WS_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>Web</ProjectType>
         <ProjectSubType>CSharp</ProjectSubType>
@@ -527,76 +356,13 @@
       </TemplateData>
     </VSTemplateHeader>
   </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>Web\VisualBasic\1036\DbCtxVBWSEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_VB_WS_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>Web</ProjectType>
-        <ProjectSubType>VisualBasic</ProjectSubType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <SupportsLanguageDropdown>false</SupportsLanguageDropdown>
-        <SupportsCodeSeparation>false</SupportsCodeSeparation>
-        <SupportsMasterPage>false</SupportsMasterPage>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.VB_ASPNET_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>Web\VisualBasic\1036\DbCtxVBWSEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_VB_WS_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>Web</ProjectType>
-        <ProjectSubType>VisualBasic</ProjectSubType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <SupportsLanguageDropdown>false</SupportsLanguageDropdown>
-        <SupportsCodeSeparation>false</SupportsCodeSeparation>
-        <SupportsMasterPage>false</SupportsMasterPage>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.VB_ASPNET_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
-    <RelativePathOnDisk>Web\VisualBasic\1036\DbCtxVBWSEF5</RelativePathOnDisk>
-    <TemplateFileName>DbContext_VB_WS_V5.0.vstemplate</TemplateFileName>
-    <VSTemplateHeader>
-      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 5.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 5.x.</Description>
-        <DefaultName>Model.tt</DefaultName>
-        <ProjectType>Web</ProjectType>
-        <ProjectSubType>VisualBasic</ProjectSubType>
-        <Icon>__TemplateIcon.ico</Icon>
-        <ProvideDefaultName>true</ProvideDefaultName>
-        <AppendDefaultFileExtension>true</AppendDefaultFileExtension>
-        <SupportsLanguageDropdown>false</SupportsLanguageDropdown>
-        <SupportsCodeSeparation>false</SupportsCodeSeparation>
-        <SupportsMasterPage>false</SupportsMasterPage>
-        <RequiredFrameworkVersion>4.0</RequiredFrameworkVersion>
-        <TemplateID>Microsoft.Data.Entity.Design.DbContextInTheBox.VB_ASPNET_V5.0</TemplateID>
-      </TemplateData>
-    </VSTemplateHeader>
-  </VSTemplateContainer>
-  <VSTemplateContainer TemplateType="Item">
+<VSTemplateContainer TemplateType="Item">
     <RelativePathOnDisk>Web\VisualBasic\1036\DbCtxVBWSEF6</RelativePathOnDisk>
     <TemplateFileName>DbContext_VB_WS_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>Web</ProjectType>
         <ProjectSubType>VisualBasic</ProjectSubType>
@@ -616,8 +382,8 @@
     <TemplateFileName>DbContext_VB_WS_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>Web</ProjectType>
         <ProjectSubType>VisualBasic</ProjectSubType>
@@ -637,8 +403,8 @@
     <TemplateFileName>DbContext_VB_WS_V6.0.vstemplate</TemplateFileName>
     <VSTemplateHeader>
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
-        <Name>Générateur de DbContext EF 6.x</Name>
-        <Description>Un élément de projet pour générer una classe DbContext fortement typé et classes d'entité ignorant la persistance. Utilisez ce modèle lors de l'utilisation avec une version EF 6.x.</Description>
+        <Name>G�n�rateur de DbContext EF 6.x</Name>
+        <Description>Un �l�ment de projet pour g�n�rer una classe DbContext fortement typ� et classes d'entit� ignorant la persistance. Utilisez ce mod�le lors de l'utilisation avec une version EF 6.x.</Description>
         <DefaultName>Model.tt</DefaultName>
         <ProjectType>Web</ProjectType>
         <ProjectSubType>VisualBasic</ProjectSubType>

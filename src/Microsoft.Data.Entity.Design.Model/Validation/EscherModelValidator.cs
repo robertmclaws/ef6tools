@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.Visitor;
+
 namespace Microsoft.Data.Entity.Design.Model.Validation
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
-
     internal static class EscherModelValidator
     {
         internal static void ValidateEscherModel(EFArtifactSet set, bool forceValidation)
@@ -28,7 +28,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
             var artifact = set.GetEntityDesignArtifact();
             if (artifact != null)
             {
-                var visitor = new EscherModelValidatorVisitor(set);
+                EscherModelValidatorVisitor visitor = new EscherModelValidatorVisitor(set);
                 visitor.Traverse(artifact);
                 artifact.SetValidityDirtyForErrorClass(ErrorClass.Escher_All, false);
             }
@@ -83,7 +83,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
             return false;
         }
 
-        internal class EscherModelValidatorVisitor : Visitor
+        internal class EscherModelValidatorVisitor : Visitor.Visitor
         {
             private readonly EFArtifactSet _artifactSet;
 
@@ -99,8 +99,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             internal override void Visit(IVisitable visitable)
             {
-                var obj = visitable as EFObject;
-                if (obj != null)
+                if (visitable is EFObject obj)
                 {
                     CheckAll(obj);
                 }
@@ -116,8 +115,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             private void CheckEntityType(EFObject obj)
             {
-                var et = obj as EntityType;
-                if (et != null)
+                if (obj is EntityType et)
                 {
                     CheckForEntityTypesWithoutEntitySets(et);
                     CheckForMultipleEntitySetsPerType(et);
@@ -127,8 +125,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             private void CheckComplexType(EFObject obj)
             {
-                var complexType = obj as ComplexType;
-                if (complexType != null)
+                if (obj is ComplexType complexType)
                 {
                     CheckForCircularComplexTypeDefinition(complexType);
                     CheckForEnumPropertiesWithStoreGeneratedPattern(complexType);
@@ -137,8 +134,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             private void CheckConceptualEntityType(EntityType et)
             {
-                var cet = et as ConceptualEntityType;
-                if (cet != null)
+                if (et is ConceptualEntityType cet)
                 {
                     CheckForUnmappedEntityType(cet);
                     CheckForCircularInheritance(cet);
@@ -148,8 +144,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             private void CheckAssociation(EFObject obj)
             {
-                var a = obj as Association;
-                if (a != null)
+                if (obj is Association a)
                 {
                     CheckForAssociationWithoutAssociationSet(a);
                     CheckForUnmappedAssociation(a);
@@ -159,8 +154,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
 
             private void CheckEntityModel(EFObject obj)
             {
-                var model = obj as ConceptualEntityModel;
-                if (model != null)
+                if (obj is ConceptualEntityModel model)
                 {
                     if (model.UsingCount > 0)
                     {
@@ -176,7 +170,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
             {
                 if (t != null)
                 {
-                    var baseTypes = new HashSet<ConceptualEntityType>();
+                    HashSet<ConceptualEntityType> baseTypes = new HashSet<ConceptualEntityType>();
                     while (t != null)
                     {
                         if (baseTypes.Contains(t))
@@ -213,7 +207,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
             {
                 if (t != null)
                 {
-                    var allEntitySets = new LinkedList<EntitySet>();
+                    LinkedList<EntitySet> allEntitySets = new LinkedList<EntitySet>();
                     foreach (var es in t.AllEntitySets)
                     {
                         allEntitySets.AddLast(es);
@@ -287,8 +281,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                         // Check whether the Entity is mapped using QueryView
                         if (et.EntitySet != null)
                         {
-                            var ces = et.EntitySet as ConceptualEntitySet;
-                            if (ces != null
+                            if (et.EntitySet is ConceptualEntitySet ces
                                 && ces.EntitySetMapping != null
                                 && ces.EntitySetMapping.HasQueryViewElement)
                             {
@@ -306,8 +299,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                     // entity type is mapped, so check for unmapped properties
                     foreach (var p in et.Properties())
                     {
-                        var ccp = p as ComplexConceptualProperty;
-                        if (ccp == null)
+                        if (p is not ComplexConceptualProperty ccp)
                         {
                             var sps = p.GetAntiDependenciesOfType<ScalarProperty>();
                             if (sps.Count == 0)
@@ -342,14 +334,12 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                                        : ErrorInfo.Severity.ERROR;
                     foreach (var property in currentProperty.ComplexType.Target.Properties())
                     {
-                        var ccp = property as ComplexConceptualProperty;
-                        if (ccp == null)
+                        if (property is not ComplexConceptualProperty ccp)
                         {
                             var unmapped = true;
                             foreach (var scalarProperty in property.GetAntiDependenciesOfType<ScalarProperty>())
                             {
-                                var etm = scalarProperty.GetParentOfType(typeof(EntityTypeMapping)) as EntityTypeMapping;
-                                if (etm != null
+                                if (scalarProperty.GetParentOfType(typeof(EntityTypeMapping)) is EntityTypeMapping etm
                                     && etm.FirstBoundConceptualEntityType == entityProperty.Parent)
                                 {
                                     unmapped = false;
@@ -426,10 +416,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                                     break;
                                 }
 
-                                if (objectForError == null)
-                                {
-                                    objectForError = a;
-                                }
+                                objectForError ??= a;
 
                                 var msg = String.Format(
                                     CultureInfo.CurrentCulture, Resources.EscherValidation_UnmappedAssociationEnd,
@@ -533,7 +520,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
             private static string NameableItemsToCommaSeparatedString<T>(ICollection<T> types) where T : EFNameableItem
             {
                 var i = 0;
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 foreach (EFNameableItem et in types)
                 {
                     sb.Append(et.LocalName.Value);

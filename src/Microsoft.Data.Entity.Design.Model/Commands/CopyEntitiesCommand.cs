@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-
     /// <summary>
     ///     Create copy of Entities (EntityType, Association, Inheritance).
     ///     If the entities are copied to a diagram, the behavior as follow:
@@ -57,8 +57,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _modelSpace = modelSpace;
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             if (_diagram != null)
@@ -78,11 +76,11 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // the model that we want to add the entity to
             var model = ModelHelper.GetEntityModel(artifact, _modelSpace);
 
-            var entitiesMap = new Dictionary<EntityTypeClipboardFormat, EntityType>(_clipboardEntities.ClipboardEntities.Count);
+            Dictionary<EntityTypeClipboardFormat, EntityType> entitiesMap = new Dictionary<EntityTypeClipboardFormat, EntityType>(_clipboardEntities.ClipboardEntities.Count);
             // create copies of EntityTypes
             foreach (var clipboardEntity in _clipboardEntities.ClipboardEntities)
             {
-                var cmd = new CopyEntityCommand(_diagram, clipboardEntity, _modelSpace);
+                CopyEntityCommand cmd = new CopyEntityCommand(_diagram, clipboardEntity, _modelSpace);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 entitiesMap.Add(clipboardEntity, cmd.EntityType);
             }
@@ -94,10 +92,9 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 if (_diagram != null)
                 {
                     // Get the association by name.
-                    var association = artifact.ArtifactSet.LookupSymbol(clipboardAssociation.NormalizedName) as Association;
-                    if (association != null)
+                    if (artifact.ArtifactSet.LookupSymbol(clipboardAssociation.NormalizedName) is Association association)
                     {
-                        var entityTypesInAssociation = association.AssociationEnds().Select(ae => ae.Type.Target).ToList();
+                        List<EntityType> entityTypesInAssociation = association.AssociationEnds().Select(ae => ae.Type.Target).ToList();
                         // Check whether the associated entity-types are created in the previous step.
                         // When the user copy and paste an association and the associated entities in the same diagram, 
                         // we need to create a new copy of the association in the model. Without the check below, the code will determine that there is no need
@@ -113,7 +110,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                                 // AssociationConnector is created by creating EntityTypeShapes that associationEnd refer to.
                                 foreach (var associationEnd in association.AssociationEnds())
                                 {
-                                    var entityType = associationEnd.Type.SafeTarget as ConceptualEntityType;
+                                    ConceptualEntityType entityType = associationEnd.Type.SafeTarget as ConceptualEntityType;
                                     Debug.Assert(
                                         entityType != null,
                                         "In: CopyEntitiesCommand's  InvokeInternal, associationEnd's Type property should be typeof ConceptualEntityType");
@@ -140,13 +137,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 if (_diagram != null)
                 {
-                    // Check if the underlying entity types are in the artifact/model to do that we need to:
-                    // - Get the Entity-Types by name.
-                    // - Check whether the entity-types match what were created in copy entities steps.
-                    var derivedEntity = artifact.ArtifactSet.LookupSymbol(inheritance.Key.NormalizedName) as EntityType;
-                    var baseEntity = artifact.ArtifactSet.LookupSymbol(inheritance.Value.NormalizedName) as EntityType;
-                    if (derivedEntity != null
-                        && baseEntity != null)
+                    if (artifact.ArtifactSet.LookupSymbol(inheritance.Key.NormalizedName) is EntityType derivedEntity
+                        && artifact.ArtifactSet.LookupSymbol(inheritance.Value.NormalizedName) is EntityType baseEntity)
                     {
                         if (entitiesMap.Values.Contains(derivedEntity)
                             && entitiesMap.Values.Contains(baseEntity))
@@ -183,8 +175,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             var clipboardEntity1 = clipboardAssociation.ClipboardEntity1;
             var clipboardEntity2 = clipboardAssociation.ClipboardEntity2;
 
-            var entity1 = entitiesMap[clipboardEntity1] as ConceptualEntityType;
-            var entity2 = entitiesMap[clipboardEntity2] as ConceptualEntityType;
+            ConceptualEntityType entity1 = entitiesMap[clipboardEntity1] as ConceptualEntityType;
+            ConceptualEntityType entity2 = entitiesMap[clipboardEntity2] as ConceptualEntityType;
 
             Debug.Assert(entity1 != null, "entity1 is not a ConceptualEntityType");
             Debug.Assert(entity2 != null, "entity2 is not a ConceptualEntityType");
@@ -204,7 +196,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 navigationPropertyName2 =
                     ModelHelper.GetUniqueConceptualPropertyName(
                         (navigationPropertyEntity2 != null ? navigationPropertyEntity2.PropertyName : entity1.LocalName.Value), entity2,
-                        new HashSet<string> { navigationPropertyName1 });
+                        [navigationPropertyName1]);
             }
             else
             {
@@ -212,7 +204,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     ModelHelper.GetUniqueConceptualPropertyName(
                         (navigationPropertyEntity2 != null ? navigationPropertyEntity2.PropertyName : entity1.LocalName.Value), entity2);
             }
-            var cmd = new CreateConceptualAssociationCommand(
+            CreateConceptualAssociationCommand cmd = new CreateConceptualAssociationCommand(
                 associationName, entity1, clipboardAssociation.Multiplicity1, navigationPropertyName1, entity2,
                 clipboardAssociation.Multiplicity2, navigationPropertyName2, true, false);
             CommandProcessor.InvokeSingleCommand(cpc, cmd);
@@ -264,7 +256,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     && (dependentPropertyList =
                         ModelHelper.FindProperties(dependent, clipboardAssociation.ReferentialConstraint.DependentProperties)) != null)
                 {
-                    var refCmd = new CreateReferentialConstraintCommand(
+                    CreateReferentialConstraintCommand refCmd = new CreateReferentialConstraintCommand(
                         associationEnds[0], associationEnds[1], principalPropertyList, dependentPropertyList
                         );
                     CommandProcessor.InvokeSingleCommand(cpc, refCmd);
@@ -280,13 +272,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             CommandProcessorContext cpc, KeyValuePair<EntityTypeClipboardFormat, EntityTypeClipboardFormat> inheritance,
             Dictionary<EntityTypeClipboardFormat, EntityType> entitiesMap)
         {
-            var derivedEntity = entitiesMap[inheritance.Key] as ConceptualEntityType;
-            var baseEntity = entitiesMap[inheritance.Value] as ConceptualEntityType;
+            ConceptualEntityType derivedEntity = entitiesMap[inheritance.Key] as ConceptualEntityType;
+            ConceptualEntityType baseEntity = entitiesMap[inheritance.Value] as ConceptualEntityType;
 
             Debug.Assert(derivedEntity != null, "EntityType derivedEntity is not a ConceptualEntityType");
             Debug.Assert(baseEntity != null, "EntityType baseEntity is not a ConceptualEntityType");
 
-            var cmd = new CreateInheritanceCommand(derivedEntity, baseEntity);
+            CreateInheritanceCommand cmd = new CreateInheritanceCommand(derivedEntity, baseEntity);
             CommandProcessor.InvokeSingleCommand(cpc, cmd);
         }
 

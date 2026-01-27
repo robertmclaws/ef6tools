@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class FunctionScalarProperty : EFElement
     {
         internal static readonly string ElementName = "ScalarProperty";
@@ -43,7 +43,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as ModificationFunction;
+                ModificationFunction parent = Parent as ModificationFunction;
                 return parent;
             }
         }
@@ -55,7 +55,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as FunctionAssociationEnd;
+                FunctionAssociationEnd parent = Parent as FunctionAssociationEnd;
                 return parent;
             }
         }
@@ -67,7 +67,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as FunctionComplexProperty;
+                FunctionComplexProperty parent = Parent as FunctionComplexProperty;
                 return parent;
             }
         }
@@ -79,14 +79,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_property == null)
-                {
-                    _property = new SingleItemBinding<Property>(
+                _property ??= new SingleItemBinding<Property>(
                         this,
                         AttributeName,
                         FunctionPropertyMappingNameNormalizer.NameNormalizer
                         );
-                }
                 return _property;
             }
         }
@@ -98,14 +95,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_parameter == null)
-                {
-                    _parameter = new SingleItemBinding<Parameter>(
+                _parameter ??= new SingleItemBinding<Parameter>(
                         this,
                         AttributeParameterName,
                         ParameterNameNormalizer.NameNormalizer
                         );
-                }
                 return _parameter;
             }
         }
@@ -117,10 +111,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_versionAttr == null)
-                {
-                    _versionAttr = new VersionDefaultableValue(this);
-                }
+                _versionAttr ??= new VersionDefaultableValue(this);
                 return _versionAttr;
             }
         }
@@ -218,7 +209,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         internal override DeleteEFElementCommand GetDeleteCommand()
         {
-            var cmd = new DeleteFunctionScalarPropertyCommand(this);
+            DeleteFunctionScalarPropertyCommand cmd = new DeleteFunctionScalarPropertyCommand(this);
             if (cmd == null)
             {
                 // shouldn't happen, just to be safe
@@ -234,9 +225,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         /// <returns></returns>
         internal List<Property> GetMappedPropertiesList()
         {
-            var properties = new List<Property>();
-            properties.Add(Name.Target);
-            var fcp = Parent as FunctionComplexProperty;
+            List<Property> properties = new List<Property>
+            {
+                Name.Target
+            };
+            FunctionComplexProperty fcp = Parent as FunctionComplexProperty;
             while (fcp != null)
             {
                 properties.Insert(0, fcp.Name.Target);

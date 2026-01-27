@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 {
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     internal class AssociationSetBranch : TreeGridDesignerBranch
     {
         private MappingAssociation _mappingAssociation;
@@ -29,8 +29,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                 return false;
             }
 
-            var mappingAssociation = component as MappingAssociation;
-            if (mappingAssociation != null)
+            if (component is MappingAssociation mappingAssociation)
             {
                 _mappingAssociation = mappingAssociation;
             }
@@ -105,8 +104,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
         {
             if (index < ElementCount)
             {
-                var mas = GetElement(index) as MappingAssociationSet;
-                if (mas != null)
+                if (GetElement(index) is MappingAssociationSet mas)
                 {
                     _expandedBranch = new AssociationSetEndBranch(mas, GetColumns());
                     return _expandedBranch;

@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class UniqueIdentifierServiceTests
     {
@@ -16,7 +16,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
             const string identifierA = "Identifier";
             const string identifierB = "IdeNTiFieR";
 
-            var service = new UniqueIdentifierService(StringComparer.Ordinal);
+            UniqueIdentifierService service = new UniqueIdentifierService(StringComparer.Ordinal);
             service.RegisterUsedIdentifier(identifierA);
             Action act = () => service.RegisterUsedIdentifier(identifierB);
             act.Should().NotThrow();
@@ -35,7 +35,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
             const string adjustedIdentifier2 = "Identifier2";
             const string adjustedIdentifier3 = "Identifier3";
 
-            var service = new UniqueIdentifierService(StringComparer.Ordinal);
+            UniqueIdentifierService service = new UniqueIdentifierService(StringComparer.Ordinal);
             service.RegisterUsedIdentifier(identifier);
 
             service.AdjustIdentifier(identifier).Should().Be(adjustedIdentifier1);
@@ -54,7 +54,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 
             Func<string, string> transform = s => s.Replace(".", "_");
 
-            var service = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase, transform);
+            UniqueIdentifierService service = new UniqueIdentifierService(StringComparer.OrdinalIgnoreCase, transform);
             service.RegisterUsedIdentifier(usedIdentifier);
 
             service.AdjustIdentifier(identifier).Should().Be(adjustedIdentifier1);
@@ -69,19 +69,18 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
             const string adjustedIdentifier1 = "Identifier1";
             const string adjustedIdentifier2 = "Identifier2";
             const string adjustedIdentifier3 = "Identifier3";
-            string adjustedIdentifier;
 
             var value1 = new object();
             var value2 = new object();
             var value3 = new object();
 
-            var service = new UniqueIdentifierService();
+            UniqueIdentifierService service = new UniqueIdentifierService();
             service.RegisterUsedIdentifier(identifier);
 
             service.AdjustIdentifier(identifier, value1).Should().Be(adjustedIdentifier1);
             service.AdjustIdentifier(identifier, value2).Should().Be(adjustedIdentifier2);
             service.AdjustIdentifier(identifier, value3).Should().Be(adjustedIdentifier3);
-            service.TryGetAdjustedName(value1, out adjustedIdentifier).Should().BeTrue();
+            service.TryGetAdjustedName(value1, out string adjustedIdentifier).Should().BeTrue();
             adjustedIdentifier.Should().Be(adjustedIdentifier1);
             service.TryGetAdjustedName(value2, out adjustedIdentifier).Should().BeTrue();
             adjustedIdentifier.Should().Be(adjustedIdentifier2);

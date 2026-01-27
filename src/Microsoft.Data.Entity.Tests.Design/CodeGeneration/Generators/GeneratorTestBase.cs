@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
-
     public class GeneratorTestBase
     {
         private static DbModel _model;
@@ -15,7 +15,7 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
             {
                 if (_model == null)
                 {
-                    var modelBuilder = new DbModelBuilder();
+                    DbModelBuilder modelBuilder = new DbModelBuilder();
                     modelBuilder.Entity<Entity>();
                     _model = modelBuilder.Build(new DbProviderInfo("System.Data.SqlClient", "2012"));
                 }

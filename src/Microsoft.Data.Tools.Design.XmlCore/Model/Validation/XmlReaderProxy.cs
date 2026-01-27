@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Xml;
+using System.Xml.Schema;
+
 namespace Microsoft.Data.Entity.Design.Model.Validation
 {
-    using System;
-    using System.Diagnostics;
-    using System.Xml;
-    using System.Xml.Schema;
-
     internal class XmlReaderProxy : XmlReader, IXmlLineInfo
     {
         private readonly XmlReader _proxy;
@@ -35,8 +35,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                 return _lineNumberService.HasLineInfo();
             }
 
-            var lineInfo = _proxy as IXmlLineInfo;
-            if (lineInfo != null)
+            if (_proxy is IXmlLineInfo lineInfo)
             {
                 return lineInfo.HasLineInfo();
             }
@@ -55,8 +54,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                 }
                 else
                 {
-                    var lineInfo = _proxy as IXmlLineInfo;
-                    if (lineInfo != null)
+                    if (_proxy is IXmlLineInfo lineInfo)
                     {
                         lineNumber = lineInfo.LineNumber;
                     }
@@ -76,8 +74,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
                 }
                 else
                 {
-                    var lineInfo = _proxy as IXmlLineInfo;
-                    if (lineInfo != null)
+                    if (_proxy is IXmlLineInfo lineInfo)
                     {
                         linePosition = lineInfo.LinePosition;
                     }

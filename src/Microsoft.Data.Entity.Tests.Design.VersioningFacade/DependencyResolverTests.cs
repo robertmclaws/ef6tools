@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Infrastructure.Pluralization;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade
 {
-    using System;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Infrastructure.Pluralization;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class DependencyResolverTests
     {
@@ -100,7 +100,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade
         {
             var services = DependencyResolver.Instance.GetServices(typeof(DbProviderServices), "Microsoft.Data.SqlClient");
             services.Should().NotBeNull();
-            var serviceList = new System.Collections.Generic.List<object>(services);
+            List<object> serviceList = new System.Collections.Generic.List<object>(services);
             serviceList.Should().ContainSingle();
             serviceList[0].Should().NotBeNull();
         }
@@ -118,7 +118,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade
         {
             var services = DependencyResolver.Instance.GetServices(typeof(IPluralizationService), null);
             services.Should().NotBeNull();
-            var serviceList = new System.Collections.Generic.List<object>(services);
+            List<object> serviceList = new System.Collections.Generic.List<object>(services);
             serviceList.Should().ContainSingle();
             serviceList[0].Should().BeAssignableTo<IPluralizationService>();
         }

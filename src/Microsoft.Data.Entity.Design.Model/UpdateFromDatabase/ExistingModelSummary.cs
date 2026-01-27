@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
-
     internal class ExistingModelSummary
     {
         // the artifact from which this was created
@@ -21,19 +21,19 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         // EFArtifact.ReloadArtifact() which invalidates the EntityTypes - however the 
         // names remain the same and so can be used)
         private readonly Dictionary<Symbol, EntityTypeIdentity> _cEntityTypeNameToEntityTypeIdentity =
-            new Dictionary<Symbol, EntityTypeIdentity>();
+            [];
 
         // records all tables and views referred to by the S-side EntitySets in this model
         // mapping their identity to their local name
-        private readonly Dictionary<DatabaseObject, string> _allTablesAndViews = new Dictionary<DatabaseObject, string>();
+        private readonly Dictionary<DatabaseObject, string> _allTablesAndViews = [];
 
         // a map of the DatabaseObjects (from the S-side EntitySets) to their column names
         private readonly Dictionary<DatabaseObject, HashSet<string>> _databaseObjectColumns =
-            new Dictionary<DatabaseObject, HashSet<string>>();
+            [];
 
         // records all tables and views referred to by the S-side Functions in this model
         // mapping their identity to their local name
-        private readonly Dictionary<DatabaseObject, string> _allFunctions = new Dictionary<DatabaseObject, string>();
+        private readonly Dictionary<DatabaseObject, string> _allFunctions = [];
 
         // records the AssociationIdentities for all the Associations in this model
         private readonly AssociationSummary _associationSummary;
@@ -42,7 +42,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         // in the EntityTypeIdentity for the child EntityType to a HashSet of DatabaseObjects
         // for the base EntityType
         private readonly Dictionary<DatabaseObject, HashSet<DatabaseObject>> _cAncestorTypeDatabaseObjectMap =
-            new Dictionary<DatabaseObject, HashSet<DatabaseObject>>();
+            [];
 
         // maps a DatabaseObject to the HashSet of NormalizedNames of the 
         // C-side EntityTypes whose EntityTypeIdentity includes that DatabaseObject
@@ -50,12 +50,12 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         // EFArtifact.ReloadArtifact() which invalidates the EntityTypes - however the 
         // names remain the same and so can be used)
         private readonly Dictionary<DatabaseObject, HashSet<Symbol>> _databaseObjectToCEntityTypeNamesMap =
-            new Dictionary<DatabaseObject, HashSet<Symbol>>();
+            [];
 
         // Dictionary used for lazy-loading of the EntityTypes represented by 
         // _databaseObjectToCEntityTypeNamesMap above
         private readonly Dictionary<DatabaseObject, HashSet<ConceptualEntityType>> _lazyLoadDatabaseObjectToCEntityTypesMap =
-            new Dictionary<DatabaseObject, HashSet<ConceptualEntityType>>();
+            [];
 
         internal ExistingModelSummary(EFArtifact artifact)
         {
@@ -87,8 +87,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
                     if (null != artifact.StorageModel().FirstEntityContainer)
                     {
-                        var sec = artifact.StorageModel().FirstEntityContainer as StorageEntityContainer;
-                        if (sec != null)
+                        if (artifact.StorageModel().FirstEntityContainer is StorageEntityContainer sec)
                         {
                             RecordStorageEntitySetsAndProperties(sec);
                         }
@@ -97,10 +96,9 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
             }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         internal string TraceString()
         {
-            var sb = new StringBuilder("[ExistingModelSummary");
+            StringBuilder sb = new StringBuilder("[ExistingModelSummary");
             sb.AppendLine(" artifactUri=" + (_artifact == null ? "null" : _artifact.Uri.ToString()));
 
             sb.Append(
@@ -187,8 +185,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                 return null;
             }
 
-            EntityTypeIdentity results;
-            _cEntityTypeNameToEntityTypeIdentity.TryGetValue(normalizedName, out results);
+            _cEntityTypeNameToEntityTypeIdentity.TryGetValue(normalizedName, out EntityTypeIdentity results);
             return results;
         }
 
@@ -213,8 +210,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal HashSet<string> GetColumnsForDatabaseObject(DatabaseObject dbObj)
         {
-            HashSet<string> results;
-            _databaseObjectColumns.TryGetValue(dbObj, out results);
+            _databaseObjectColumns.TryGetValue(dbObj, out HashSet<string> results);
             return results;
         }
 
@@ -225,8 +221,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal HashSet<DatabaseObject> GetAncestorTypeTablesAndViews(DatabaseObject tableOrView)
         {
-            HashSet<DatabaseObject> results;
-            _cAncestorTypeDatabaseObjectMap.TryGetValue(tableOrView, out results);
+            _cAncestorTypeDatabaseObjectMap.TryGetValue(tableOrView, out HashSet<DatabaseObject> results);
             return results;
         }
 
@@ -241,20 +236,18 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         {
             // First try the lazy load map to see if we've already calculated
             // the HashSet for this DatabaseObject
-            HashSet<ConceptualEntityType> entityTypesLazyLoad;
-            _lazyLoadDatabaseObjectToCEntityTypesMap.TryGetValue(tableOrView, out entityTypesLazyLoad);
+            _lazyLoadDatabaseObjectToCEntityTypesMap.TryGetValue(tableOrView, out HashSet<ConceptualEntityType> entityTypesLazyLoad);
             if (null != entityTypesLazyLoad)
             {
                 return entityTypesLazyLoad;
             }
 
             // if not then consult the NormalizedNames map 
-            HashSet<Symbol> entityTypeNormalizedNamesForDbObj;
-            _databaseObjectToCEntityTypeNamesMap.TryGetValue(tableOrView, out entityTypeNormalizedNamesForDbObj);
+            _databaseObjectToCEntityTypeNamesMap.TryGetValue(tableOrView, out HashSet<Symbol> entityTypeNormalizedNamesForDbObj);
             if (null != entityTypeNormalizedNamesForDbObj)
             {
                 var artifactSet = Artifact.ArtifactSet;
-                var entityTypes = new HashSet<ConceptualEntityType>();
+                HashSet<ConceptualEntityType> entityTypes = new HashSet<ConceptualEntityType>();
                 foreach (var entityTypeName in entityTypeNormalizedNamesForDbObj)
                 {
                     var element = artifactSet.LookupSymbol(entityTypeName);
@@ -264,10 +257,9 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                     }
                     else
                     {
-                        var et = element as EntityType;
-                        var cet = element as ConceptualEntityType;
+                        EntityType et = element as EntityType;
 
-                        if (null == cet)
+                        if (element is not ConceptualEntityType cet)
                         {
                             Debug.Assert(
                                 et != null, "symbol " + entityTypeName +
@@ -305,10 +297,9 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         {
             foreach (var es in sec.EntitySets())
             {
-                var ses = es as StorageEntitySet;
-                if (null != ses)
+                if (es is StorageEntitySet ses)
                 {
-                    var dbObj = DatabaseObject.CreateFromEntitySet(ses);
+                    DatabaseObject dbObj = DatabaseObject.CreateFromEntitySet(ses);
                     _allTablesAndViews.Add(dbObj, ses.LocalName.Value);
                     var et = ses.EntityType.Target;
                     if (null == et)
@@ -330,7 +321,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         {
             foreach (var f in sem.Functions())
             {
-                var dbObj = DatabaseObject.CreateFromFunction(f);
+                DatabaseObject dbObj = DatabaseObject.CreateFromFunction(f);
                 _allFunctions.Add(dbObj, f.LocalName.Value);
             }
         }
@@ -378,7 +369,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
                         // loop over all ancestor types (i.e. this EntityType's base-type
                         // and its base-type etc.)
-                        var baseType = et as ConceptualEntityType;
+                        ConceptualEntityType baseType = et as ConceptualEntityType;
                         Debug.Assert(baseType != null, "EntityType is not a ConceptualEntityType");
 
                         while ((baseType = baseType.BaseType.Target) != null)
@@ -401,11 +392,10 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         private void AddTableOrViewToBaseTypeMappings(
             DatabaseObject key, DatabaseObject databaseObjectInAncestor)
         {
-            HashSet<DatabaseObject> tablesAndViewsHashSet = null;
-            _cAncestorTypeDatabaseObjectMap.TryGetValue(key, out tablesAndViewsHashSet);
+            _cAncestorTypeDatabaseObjectMap.TryGetValue(key, out HashSet<DatabaseObject> tablesAndViewsHashSet);
             if (null == tablesAndViewsHashSet)
             {
-                tablesAndViewsHashSet = _cAncestorTypeDatabaseObjectMap[key] = new HashSet<DatabaseObject>();
+                tablesAndViewsHashSet = _cAncestorTypeDatabaseObjectMap[key] = [];
             }
 
             tablesAndViewsHashSet.Add(databaseObjectInAncestor);
@@ -421,8 +411,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                 return;
             }
 
-            EntityTypeIdentity etId = null;
-            _cEntityTypeNameToEntityTypeIdentity.TryGetValue(normalizedName, out etId);
+            _cEntityTypeNameToEntityTypeIdentity.TryGetValue(normalizedName, out EntityTypeIdentity etId);
             if (null == etId)
             {
                 etId = _cEntityTypeNameToEntityTypeIdentity[normalizedName] = new EntityTypeIdentity();
@@ -440,11 +429,10 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                 return;
             }
 
-            HashSet<Symbol> entityTypeNamesHashSet = null;
-            _databaseObjectToCEntityTypeNamesMap.TryGetValue(key, out entityTypeNamesHashSet);
+            _databaseObjectToCEntityTypeNamesMap.TryGetValue(key, out HashSet<Symbol> entityTypeNamesHashSet);
             if (null == entityTypeNamesHashSet)
             {
-                entityTypeNamesHashSet = _databaseObjectToCEntityTypeNamesMap[key] = new HashSet<Symbol>();
+                entityTypeNamesHashSet = _databaseObjectToCEntityTypeNamesMap[key] = [];
             }
 
             entityTypeNamesHashSet.Add(normalizedName);
@@ -459,11 +447,10 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                 return;
             }
 
-            HashSet<string> columnsHashSet = null;
-            _databaseObjectColumns.TryGetValue(key, out columnsHashSet);
+            _databaseObjectColumns.TryGetValue(key, out HashSet<string> columnsHashSet);
             if (null == columnsHashSet)
             {
-                columnsHashSet = _databaseObjectColumns[key] = new HashSet<string>();
+                columnsHashSet = _databaseObjectColumns[key] = [];
             }
 
             columnsHashSet.Add(propName);

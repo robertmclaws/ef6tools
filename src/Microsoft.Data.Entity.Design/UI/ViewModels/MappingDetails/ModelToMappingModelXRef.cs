@@ -1,42 +1,41 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImports;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImports;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails;
-
     internal class ModelToMappingModelXRef : ContextItem
     {
         private static Dictionary<Type, Type> _modelTypeToViewModelType;
-        private readonly Dictionary<EFElement, MappingEFElement> _dict = new Dictionary<EFElement, MappingEFElement>();
+        private readonly Dictionary<EFElement, MappingEFElement> _dict = [];
 
         private static Dictionary<Type, Type> ModelTypeToViewModelType
         {
             get
             {
-                if (_modelTypeToViewModelType == null)
-                {
-                    _modelTypeToViewModelType = new Dictionary<Type, Type>();
-                    _modelTypeToViewModelType[typeof(Condition)] = typeof(MappingCondition);
-                    _modelTypeToViewModelType[typeof(Association)] = typeof(MappingAssociation);
-                    _modelTypeToViewModelType[typeof(AssociationSet)] = typeof(MappingAssociationSet);
-                    _modelTypeToViewModelType[typeof(AssociationSetEnd)] = typeof(MappingAssociationSetEnd);
-                    _modelTypeToViewModelType[typeof(ModificationFunction)] = typeof(MappingModificationFunctionMapping);
-                    _modelTypeToViewModelType[typeof(FunctionScalarProperty)] = typeof(MappingFunctionScalarProperty);
-                    _modelTypeToViewModelType[typeof(ResultBinding)] = typeof(MappingResultBinding);
-                    _modelTypeToViewModelType[typeof(FunctionImportMapping)] = typeof(MappingFunctionImport);
-                    _modelTypeToViewModelType[typeof(FunctionImportScalarProperty)] = typeof(MappingFunctionImportScalarProperty);
-                }
+                _modelTypeToViewModelType ??= new Dictionary<Type, Type>
+                    {
+                        [typeof(Condition)] = typeof(MappingCondition),
+                        [typeof(Association)] = typeof(MappingAssociation),
+                        [typeof(AssociationSet)] = typeof(MappingAssociationSet),
+                        [typeof(AssociationSetEnd)] = typeof(MappingAssociationSetEnd),
+                        [typeof(ModificationFunction)] = typeof(MappingModificationFunctionMapping),
+                        [typeof(FunctionScalarProperty)] = typeof(MappingFunctionScalarProperty),
+                        [typeof(ResultBinding)] = typeof(MappingResultBinding),
+                        [typeof(FunctionImportMapping)] = typeof(MappingFunctionImport),
+                        [typeof(FunctionImportScalarProperty)] = typeof(MappingFunctionImportScalarProperty)
+                    };
 
                 return _modelTypeToViewModelType;
             }
@@ -65,8 +64,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
             }
             else
             {
-                Type viewModelType;
-                ModelTypeToViewModelType.TryGetValue(modelElement.GetType(), out viewModelType);
+                ModelTypeToViewModelType.TryGetValue(modelElement.GetType(), out Type viewModelType);
                 if (viewModelType == null)
                 {
                     // try the base class type
@@ -82,13 +80,12 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
                 {
                     // implement a special case for entity type
                     // create the correct C- or S-space entity type in our view model
-                    var entityType = modelElement as EntityType;
-                    if (entityType != null)
+                    if (modelElement is EntityType entityType)
                     {
                         var mappingDetailsInfo = context.Items.GetValue<MappingDetailsInfo>();
                         if (mappingDetailsInfo.EntityMappingMode == EntityMappingModes.Tables)
                         {
-                            var entityModel = entityType.Parent as BaseEntityModel;
+                            BaseEntityModel entityModel = entityType.Parent as BaseEntityModel;
                             Debug.Assert(
                                 entityModel != null,
                                 "entityType's parent should be an EntityModel but received type "
@@ -117,8 +114,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
                     }
 
                     // special case for scalar properties
-                    var scalarProperty = modelElement as ScalarProperty;
-                    if (scalarProperty != null)
+                    if (modelElement is ScalarProperty scalarProperty)
                     {
                         if (scalarProperty.Parent is MappingFragment
                             || scalarProperty.Parent is ComplexProperty)
@@ -169,8 +165,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails
 
         internal MappingEFElement GetExisting(EFElement modelElement)
         {
-            MappingEFElement result;
-            _dict.TryGetValue(modelElement, out result);
+            _dict.TryGetValue(modelElement, out MappingEFElement result);
             return result;
         }
 

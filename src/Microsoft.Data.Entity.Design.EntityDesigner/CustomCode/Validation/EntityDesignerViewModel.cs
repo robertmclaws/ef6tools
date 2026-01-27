@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Modeling.Validation;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
 {
-    using Microsoft.VisualStudio.Modeling.Validation;
-
     [ValidationState(ValidationState.Disabled)]
     internal partial class EntityDesignerViewModel
     {
@@ -20,13 +20,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ViewModel
         {
             if (String.IsNullOrEmpty(this.Namespace))
             {
-                string message = String.Format(CultureInfo.CurrentCulture, Properties.Resources.Error_ModelNamespaceEmpty);
-                context.LogError(message, Properties.Resources.ErrorCode_ModelNamespaceEmpty, this);
+                string message = String.Format(CultureInfo.CurrentCulture, Properties.EntityDesignerRes.Error_ModelNamespaceEmpty);
+                context.LogError(message, Properties.EntityDesignerRes.ErrorCode_ModelNamespaceEmpty, this);
             }
             else if (EscherAttributeContentValidator.IsValidCSDLNamespaceName(this.Namespace) == false)
             {
-                string message = String.Format(CultureInfo.CurrentCulture, Properties.Resources.Error_ModelNamespaceInvalid, this.Namespace);
-                context.LogError(message, Properties.Resources.ErrorCode_ModelNamespaceInvalid, this);
+                string message = String.Format(CultureInfo.CurrentCulture, Properties.EntityDesignerRes.Error_ModelNamespaceInvalid, this.Namespace);
+                context.LogError(message, Properties.EntityDesignerRes.ErrorCode_ModelNamespaceInvalid, this);
             }
         }
 #endif

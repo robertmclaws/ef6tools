@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     This command sets up an inheritance relationship between two entities.  This is done by adding a BaseType
     ///     attribute to the derived entity's definition.
@@ -71,8 +71,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (EntityToBeDerived == null)
             {
-                var prereq = GetPreReqCommand(CreateEntityTypeCommand.PrereqId) as CreateEntityTypeCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateEntityTypeCommand.PrereqId) is CreateEntityTypeCommand prereq)
                 {
                     Debug.Assert(prereq.EntityType is ConceptualEntityType, "EntityType is not ConceptualEntityType");
 
@@ -91,7 +90,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         ///     We override this to register an integrity check, and to deal with association set ends that reference
         ///     the existing entity set (which is going to be deleted)
         /// </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void PreInvoke(CommandProcessorContext cpc)
         {
             base.PreInvoke(cpc);
@@ -109,7 +107,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // see if this type is used by association ends; since we are creating an inheritance
             // we need to change any AssociationSetEnd references from the current EntitySet to the
             // new baseType's EntitySet (the derived type's EntitySet will be deleted)
-            var associationsToUpdate = new HashSet<Association>();
+            HashSet<Association> associationsToUpdate = new HashSet<Association>();
             if (EntityToBeDerived.EntitySet != null)
             {
                 var associationSetEndsToUpdate = EntityToBeDerived.EntitySet.GetAntiDependenciesOfType<AssociationSetEnd>();
@@ -118,8 +116,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     setEnd.EntitySet.SetRefName(BaseType.EntitySet);
                     XmlModelHelper.NormalizeAndResolve(setEnd);
 
-                    var aSet = setEnd.Parent as AssociationSet;
-                    if (aSet != null)
+                    if (setEnd.Parent is AssociationSet aSet)
                     {
                         if (aSet.Association.Target != null)
                         {
@@ -147,7 +144,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     if (storeEntitySet != null
                         && storeEntitySet.EntityType.Target != null)
                     {
-                        var set = storeEntitySet.EntityType.Target as StorageEntityType;
+                        StorageEntityType set = storeEntitySet.EntityType.Target as StorageEntityType;
                         Debug.Assert(set != null, "EntityType is not StorageEntityType");
                         CreateAssociationSetMappingCommand.CreateAssociationSetMappingAndIntellimatch(cpc, association, set);
                     }
@@ -155,10 +152,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "BaseType")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "EntityToBeDerived")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check, this should never be hit
@@ -175,14 +168,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 // since we are creating an inheritance, we need to delete EntitySet(s) for entityToBeDerived, 
                 // before we do this, move any EntityTypeMappings to the base type's EntitySetMapping
-                var entitySetToDelete = EntityToBeDerived.EntitySet as ConceptualEntitySet;
+                ConceptualEntitySet entitySetToDelete = EntityToBeDerived.EntitySet as ConceptualEntitySet;
                 var entitySetMappingToDelete = entitySetToDelete.EntitySetMapping;
 
                 // if there isn't an ESM, there won't be anything to move
                 if (entitySetMappingToDelete != null)
                 {
-                    var entitySetOfBaseType = BaseType.EntitySet as ConceptualEntitySet;
-                    if (entitySetOfBaseType != null)
+                    if (BaseType.EntitySet is ConceptualEntitySet entitySetOfBaseType)
                     {
                         // get the base type's ESM (if it doesn't exist, create one)
                         var entitySetMappingOfBaseType = entitySetOfBaseType.EntitySetMapping;
@@ -191,13 +183,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                             var entityContainer = EntityToBeDerived.EntityModel.EntityContainer;
                             Debug.Assert(entityContainer != null, "EntityToBeDerived should have an Entity Container");
 
-                            var createESM = new CreateEntitySetMappingCommand(entityContainer.EntityContainerMapping, entitySetOfBaseType);
+                            CreateEntitySetMappingCommand createESM = new CreateEntitySetMappingCommand(entityContainer.EntityContainerMapping, entitySetOfBaseType);
                             CommandProcessor.InvokeSingleCommand(cpc, createESM);
                             entitySetMappingOfBaseType = createESM.EntitySetMapping;
                         }
 
                         // move all of the ETMs
-                        var etms = new List<EntityTypeMapping>();
+                        List<EntityTypeMapping> etms = new List<EntityTypeMapping>();
                         etms.AddRange(entitySetMappingToDelete.EntityTypeMappings());
 
                         foreach (var etm in etms)
@@ -217,13 +209,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // remove all properties from derived entity's key (it will inherit the base type's keys now)
             if (EntityToBeDerived.Key != null)
             {
-                var propertyRefs = new List<PropertyRef>(EntityToBeDerived.Key.PropertyRefs);
+                List<PropertyRef> propertyRefs = new List<PropertyRef>(EntityToBeDerived.Key.PropertyRefs);
                 foreach (var propertyRef in propertyRefs)
                 {
                     var property = propertyRef.Name.Target;
                     if (property != null)
                     {
-                        var setKey = new SetKeyPropertyCommand(property, false, false, true);
+                        SetKeyPropertyCommand setKey = new SetKeyPropertyCommand(property, false, false, true);
                         CommandProcessor.InvokeSingleCommand(cpc, setKey);
                     }
                 }
@@ -240,8 +232,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             {
                 foreach (var role in end.GetAntiDependenciesOfType<ReferentialConstraintRole>())
                 {
-                    var rc = role.Parent as ReferentialConstraint;
-                    if (rc != null
+                    if (role.Parent is ReferentialConstraint rc
                         && rc.Principal == role)
                     {
                         //

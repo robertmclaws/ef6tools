@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 {
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     // <summary>
     //     The purpose of this class is to create the container node for the column mappings.  So,
     //     there is only ever one item, one row.
@@ -31,8 +31,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
                 return false;
             }
 
-            var mappingStorageEntityType = component as MappingStorageEntityType;
-            if (mappingStorageEntityType != null)
+            if (component is MappingStorageEntityType mappingStorageEntityType)
             {
                 _mappingStorageEntityType = mappingStorageEntityType;
             }
@@ -82,8 +81,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
         {
             if (index < ElementCount)
             {
-                var mcm = GetElement(index) as MappingColumnMappings;
-                if (mcm != null)
+                if (GetElement(index) is MappingColumnMappings mcm)
                 {
                     return new ScalarPropertyBranch(mcm, GetColumns());
                 }

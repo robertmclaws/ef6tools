@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Globalization;
 using System.IO;
 using System.Windows;
+using Microsoft.Data.Entity.Design;
 using Microsoft.Data.Entity.Design.Common;
 using Microsoft.Data.Entity.Design.Model;
 using Microsoft.Data.Entity.Design.Model.Entity;
@@ -45,9 +46,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 
         private void OnOkButtonClick(object sender, RoutedEventArgs e)
         {
-            string errorMessage;
 
-            if (ValidateName(out errorMessage))
+            if (ValidateName(out string errorMessage))
             {
                 this.DialogResult = true;
             }
@@ -86,7 +86,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 return false;
             }
 
-            Property property = _objectToRename as Property;
             if (_objectToRename is EntityType)
             {
                 if (!ModelHelper.IsUniqueNameForExistingItem(_objectToRename, this.NewName, true, out errorMessage))
@@ -94,7 +93,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                     return false;
                 }
             }
-            else if (property != null)
+            else if (_objectToRename is Property property)
             {
                 if (!ModelHelper.IsUniqueNameForExistingItem(property, this.NewName, true, out errorMessage))
                 {

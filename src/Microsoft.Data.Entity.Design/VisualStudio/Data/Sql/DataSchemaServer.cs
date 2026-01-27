@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.VisualStudio.Data.Services;
+using Microsoft.VisualStudio.Data.Services.RelationalObjectModel;
+using Microsoft.VisualStudio.Data.Services.SupportEntities;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Data.Sql
 {
-    using System;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.VisualStudio.Data.Services;
-    using Microsoft.VisualStudio.Data.Services.RelationalObjectModel;
-    using Microsoft.VisualStudio.Data.Services.SupportEntities;
-
     internal class DataSchemaServer : IDataSchemaServer
     {
         private readonly IVsDataConnection _connection;
@@ -86,8 +86,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Data.Sql
             {
                 string catalog = null;
 
-                var dsi = _connection.GetService(typeof(IVsDataSourceInformation)) as IVsDataSourceInformation;
-                if (dsi != null)
+                if (_connection.GetService(typeof(IVsDataSourceInformation)) is IVsDataSourceInformation dsi)
                 {
                     catalog = dsi["DefaultCatalog"] as string;
                 }

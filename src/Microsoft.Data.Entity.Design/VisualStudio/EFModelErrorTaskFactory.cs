@@ -1,19 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-
     internal static class EFModelErrorTaskFactory
     {
         internal static ErrorTask CreateErrorTask(
@@ -23,16 +21,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             return CreateErrorTask(document, errorMessage, textSpan, taskErrorCategory, hierarchy, itemID, MARKERTYPE.MARKER_COMPILE_ERROR);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsHierarchy.GetSite(Microsoft.VisualStudio.OLE.Interop.IServiceProvider@)")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static ErrorTask CreateErrorTask(
             string document, string errorMessage, TextSpan textSpan, TaskErrorCategory taskErrorCategory, IVsHierarchy hierarchy,
             uint itemID, MARKERTYPE markerType)
         {
             ErrorTask errorTask = null;
 
-            IOleServiceProvider oleSp = null;
-            hierarchy.GetSite(out oleSp);
+            hierarchy.GetSite(out IOleServiceProvider oleSp);
             IServiceProvider sp = new ServiceProvider(oleSp);
 
             // see if Document is open
@@ -71,10 +66,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
         internal static ErrorTask CreateErrorTask(string document, Exception e, IVsHierarchy hierarchy, uint itemID)
         {
-            var textSpan = new TextSpan();
+            TextSpan textSpan = new TextSpan();
 
-            var xmle = e as XmlException;
-            if (xmle != null)
+            if (e is XmlException xmle)
             {
                 if (xmle.LineNumber >= 0)
                 {

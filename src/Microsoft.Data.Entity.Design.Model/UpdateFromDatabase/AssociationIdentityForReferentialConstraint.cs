@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class AssociationIdentityForReferentialConstraint : AssociationIdentity
     {
         private readonly ReferentialConstraintIdentity _referentialConstraintIdentity;
@@ -34,7 +34,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
         {
             get
             {
-                var allTables = new HashSet<DatabaseObject>();
+                HashSet<DatabaseObject> allTables = new HashSet<DatabaseObject>();
                 foreach (var pmi in _referentialConstraintIdentity.PropertyIdentities)
                 {
                     foreach (var dc in pmi.DependentColumns)
@@ -48,8 +48,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         public override bool Equals(object obj)
         {
-            var that = obj as AssociationIdentityForReferentialConstraint;
-            if (that != null)
+            if (obj is AssociationIdentityForReferentialConstraint that)
             {
                 return _referentialConstraintIdentity.Equals(that._referentialConstraintIdentity);
             }
@@ -85,7 +84,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
             }
             else
             {
-                var id = new AssociationIdentityForReferentialConstraint(rc);
+                AssociationIdentityForReferentialConstraint id = new AssociationIdentityForReferentialConstraint(rc);
                 return id;
             }
             return null;

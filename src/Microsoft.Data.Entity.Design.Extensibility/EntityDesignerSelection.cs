@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-
     /// <summary>
     ///     An enumeration used to specify which object types that, when selected in the Entity Data Model Designer or the Model Browser, cause the
     ///     <see
@@ -12,7 +12,6 @@ namespace Microsoft.Data.Entity.Design.Extensibility
     ///     method of the annotated class to be called.
     /// </summary>
     [Flags]
-    [SuppressMessage("Microsoft.Naming", "CA1714:FlagsEnumsShouldHavePluralNames")]
     public enum EntityDesignerSelection
     {
         /// <summary>

@@ -1,15 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class CreateMappingFragmentCommand : Command
     {
         internal EntityType ConceptualEntityType { get; set; }
@@ -73,10 +72,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // see if we have the ETM we need, if not create it
-            if (_entityTypeMapping == null)
-            {
-                _entityTypeMapping = ModelHelper.FindEntityTypeMapping(cpc, ConceptualEntityType, _entityTypeMappingKind, true);
-            }
+            _entityTypeMapping ??= ModelHelper.FindEntityTypeMapping(cpc, ConceptualEntityType, _entityTypeMappingKind, true);
 
             // make sure it was created
             Debug.Assert(_entityTypeMapping != null, "We should have created an EntityTypeMapping if needed, it is still null.");
@@ -112,8 +108,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             CommandProcessorContext cpc, MappingFragment fragToClone,
             EntityTypeMapping existingEntityTypeMapping, StorageEntitySet existingEntitySet)
         {
-            var createFragmentCommand = new CreateMappingFragmentCommand(existingEntityTypeMapping, existingEntitySet);
-            var cp = new CommandProcessor(cpc, createFragmentCommand);
+            CreateMappingFragmentCommand createFragmentCommand = new CreateMappingFragmentCommand(existingEntityTypeMapping, existingEntitySet);
+            CommandProcessor cp = new CommandProcessor(cpc, createFragmentCommand);
             cp.Invoke();
 
             var frag = createFragmentCommand.MappingFragment;
@@ -158,8 +154,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                     if (entityProperty != null
                         && tableColumn != null)
                     {
-                        var createScalarCommand = new CreateFragmentScalarPropertyCommand(frag, entityProperty, tableColumn);
-                        var cp2 = new CommandProcessor(cpc, createScalarCommand);
+                        CreateFragmentScalarPropertyCommand createScalarCommand = new CreateFragmentScalarPropertyCommand(frag, entityProperty, tableColumn);
+                        CommandProcessor cp2 = new CommandProcessor(cpc, createScalarCommand);
                         cp2.Invoke();
                     }
                 }

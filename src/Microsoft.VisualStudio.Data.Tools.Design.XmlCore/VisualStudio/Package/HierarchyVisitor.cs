@@ -1,15 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using VSErrorHandler = Microsoft.VisualStudio.ErrorHandler;
+using System;
+using System.IO;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.IO;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     // <summary>
     //     This is just wrapper for project item path
     // </summary>
@@ -31,7 +30,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 if (BaseUrl != null
                     && !string.IsNullOrEmpty(RelativePath))
                 {
-                    var url = new Url(BaseUrl, RelativePath);
+                    Url url = new Url(BaseUrl, RelativePath);
                     return url.AbsoluteUrl;
                 }
                 return RelativePath;
@@ -68,12 +67,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 throw new ArgumentNullException("root");
             }
 
-            object pvar;
             Url baseUri = null;
-            var hr = root.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectDir, out pvar);
-            var projectDir = pvar as string;
+            var hr = root.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectDir, out object pvar);
             if (VSErrorHandler.Succeeded(hr)
-                && projectDir != null)
+                && pvar is string projectDir)
             {
                 baseUri = new Url(projectDir + Path.DirectorySeparatorChar);
             }
@@ -82,8 +79,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 
         internal static bool IsSearchable(IVsHierarchy hierarchy, uint itemid)
         {
-            object pvar;
-            var hr = hierarchy.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_IsNonSearchable, out pvar);
+            var hr = hierarchy.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_IsNonSearchable, out object pvar);
             var isNonSearchable = pvar as bool?;
             if (VSErrorHandler.Succeeded(hr)
                 && isNonSearchable != null)
@@ -91,8 +87,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 return !isNonSearchable.Value;
             }
 
-            object pvar2;
-            hr = hierarchy.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_HasEnumerationSideEffects, out pvar2);
+            hr = hierarchy.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_HasEnumerationSideEffects, out object pvar2);
             var hasEnumerationSideEffects = pvar2 as bool?;
             if (VSErrorHandler.Succeeded(hr)
                 && hasEnumerationSideEffects != null)
@@ -110,11 +105,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
                 return;
             }
 
-            object pvar;
-            var hr = hierarchy.GetProperty(id, (int)__VSHPROPID.VSHPROPID_SaveName, out pvar);
-            var path = pvar as string;
+            var hr = hierarchy.GetProperty(id, (int)__VSHPROPID.VSHPROPID_SaveName, out object pvar);
             if (VSErrorHandler.Succeeded(hr)
-                && path != null)
+                && pvar is string path)
             {
                 // Dev10 Bug 653879: Retrieving project item absolute URL is expensive so retrieve when we actually need it.
                 handler(hierarchy, id, new VsProjectItemPath(baseUrl, path));

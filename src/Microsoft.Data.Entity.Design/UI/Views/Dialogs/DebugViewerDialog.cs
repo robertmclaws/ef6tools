@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 {
-    using System;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     // <summary>
     //     Displays a dialog that allows us to display debug information in modal textbox in debug builds
     // </summary>

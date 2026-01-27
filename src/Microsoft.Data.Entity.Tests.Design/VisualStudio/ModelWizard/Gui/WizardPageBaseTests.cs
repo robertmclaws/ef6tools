@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using EnvDTE;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
 {
-    using System;
-    using EnvDTE;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
     [TestClass]
     public class WizardPageBaseTests
     {
@@ -34,15 +32,15 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.ModelWizard.Gui
         [TestMethod]
         public void OnDeactivate_generates_model()
         {
-            var mockModelBuilderEngine = 
+            Mock<EdmxModelBuilderEngine> mockModelBuilderEngine = 
                 new Mock<EdmxModelBuilderEngine>(Mock.Of<IInitialModelContentsFactory>());
-            
-            var mockSettings = new Mock<ModelBuilderSettings> { CallBase = true };
+
+            Mock<ModelBuilderSettings> mockSettings = new Mock<ModelBuilderSettings> { CallBase = true };
             mockSettings.Setup(s => s.DesignTimeConnectionString).Returns("fakeConnString");
             mockSettings.Object.ModelBuilderEngine = mockModelBuilderEngine.Object;
             mockSettings.Object.Project = Mock.Of<Project>();
 
-            var mockWizardPageBase = new Mock<WizardPageBase>(
+            Mock<WizardPageBase> mockWizardPageBase = new Mock<WizardPageBase>(
                 ModelBuilderWizardFormHelper.CreateWizard(mockSettings.Object)) { CallBase = true };
             mockWizardPageBase.Setup(p => p.MovingNext).Returns(true);
 

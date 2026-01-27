@@ -1,34 +1,37 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-
     internal static class EntityFrameworkVersion
     {
-        public static readonly Version Version1 = new Version(1, 0, 0, 0);
-        public static readonly Version Version2 = new Version(2, 0, 0, 0);
+        // Only Version3 (EF6) is supported
         public static readonly Version Version3 = new Version(3, 0, 0, 0);
+
+        private static readonly HashSet<Version> AllVersionsSet =
+        [
+            Version3
+        ];
 
         public static IEnumerable<Version> GetAllVersions()
         {
+            // Only return Version3 for new model creation
             yield return Version3;
-            yield return Version2;
-            yield return Version1;
         }
 
         public static bool IsValidVersion(Version version)
         {
-            return version != null && GetAllVersions().Contains(version);
+            // Still validate old versions for backward compatibility with existing files
+            return version != null && AllVersionsSet.Contains(version);
         }
 
         internal static Version DoubleToVersion(double version)
         {
-            var v = Version.Parse(version.ToString("F1", CultureInfo.InvariantCulture));
+            Version v = Version.Parse(version.ToString("F1", CultureInfo.InvariantCulture));
             return new Version(v.Major, v.Minor, 0, 0);
         }
 

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Model.Eventing
 {
-    using System.Collections.Generic;
-
     /// <summary>
     ///     This class is used to sort EfiChanges using stable sort algorithm (i.e. one that is preserving order of equal values)
     ///     It remembers original position of EfiChange so the compare method can decide which should come first.

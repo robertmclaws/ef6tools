@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Validation;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Collections.Specialized;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class EnumTypeViewModel : IDataErrorInfo, INotifyPropertyChanged
     {
         private readonly EnumType _enumType;
@@ -58,7 +58,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels
 
                 foreach (var member in enumType.Members())
                 {
-                    var vm = new EnumTypeMemberViewModel(this, member);
+                    EnumTypeMemberViewModel vm = new EnumTypeMemberViewModel(this, member);
                     vm.PropertyChanged += enumTypeMember_PropertyChanged;
                     Members.Add(vm);
                 }
@@ -68,7 +68,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels
 
         private void Initialize()
         {
-            _members = new ObservableCollection<EnumTypeMemberViewModel>();
+            _members = [];
             _members.CollectionChanged += EnumTypeMember_CollectionChanged;
         }
 
@@ -186,10 +186,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels
         {
             get
             {
-                if (_underlyingTypes == null)
-                {
-                    _underlyingTypes = ModelHelper.UnderlyingEnumTypes.Select(t => t.Name);
-                }
+                _underlyingTypes ??= ModelHelper.UnderlyingEnumTypes.Select(t => t.Name);
                 return _underlyingTypes;
             }
         }
@@ -228,7 +225,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels
         {
             for (var i = 0; e.NewItems != null && i < e.NewItems.Count; i++)
             {
-                var enumTypeMember = e.NewItems[i] as EnumTypeMemberViewModel;
+                EnumTypeMemberViewModel enumTypeMember = e.NewItems[i] as EnumTypeMemberViewModel;
                 Debug.Assert(enumTypeMember != null, "Expected new item type: EnumTypeViewModel, Actual:" + e.NewItems[i].GetType().Name);
 
                 if (enumTypeMember != null)
@@ -257,7 +254,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels
         {
             get
             {
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 sb.AppendLine(this["Name"]);
                 sb.AppendLine(this["ExternalTypeName"]);
                 return sb.ToString();
@@ -273,19 +270,18 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels
             {
                 if (propertyName == "Name")
                 {
-                    string errorMessage;
                     if (string.IsNullOrWhiteSpace(_name)
                         || !EscherAttributeContentValidator.IsValidCsdlEnumTypeName(_name))
                     {
                         return String.Format(CultureInfo.CurrentCulture, Resources.EnumDialog_ErrorEnumTypeBadname, _name);
                     }
                     else if (IsNew
-                             && ModelHelper.IsUniqueName(typeof(EnumType), _artifact.ConceptualModel, _name, true, out errorMessage)
+                             && ModelHelper.IsUniqueName(typeof(EnumType), _artifact.ConceptualModel, _name, true, out string errorMessage)
                              == false)
                     {
                         return Resources.EnumDialog_EnsureEnumTypeUnique;
                     }
-                        // if the name has changed, ensure that it will be unique across other types.
+                    // if the name has changed, ensure that it will be unique across other types.
                     else if (IsNew == false
                              && string.CompareOrdinal(_enumType.Name.Value, Name) != 0
                              && ModelHelper.IsUniqueNameForExistingItem(_enumType, Name, true, out errorMessage) == false)

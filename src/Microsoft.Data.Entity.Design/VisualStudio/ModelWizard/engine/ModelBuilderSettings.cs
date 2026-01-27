@@ -1,22 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Activities;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Activities;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-
     // <summary>
     //     Settings class used by ModelBuilderEngine
     // </summary>
@@ -27,7 +26,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         internal ModelBuilderSettings()
         {
             _applicationType = VisualStudioProjectSystem.WindowsApplication;
-            UseLegacyProvider = OptionsDesignerInfo.UseLegacyProviderDefault;
+            // Always use modern provider (legacy provider support removed)
+            UseLegacyProvider = false;
         }
 
         #endregion Constructors
@@ -44,7 +44,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         private Func<string, object> _fnGetLocalAppSetting;
         private VisualStudioProjectSystem _applicationType;
         private EFArtifact _preexistingEFArtifact;
-        private readonly Dictionary<string, Object> _extensionData = new Dictionary<string, Object>();
+        private readonly Dictionary<string, Object> _extensionData = [];
         private WizardKind _wizardKind = WizardKind.None;
         private Dictionary<EntityStoreSchemaFilterEntry, IDataSchemaProcedure> _newFunctionSchemaProcedures;
         private Version _targetSchemaVersion;
@@ -152,7 +152,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             {
                 if (null == _newFunctionSchemaProcedures)
                 {
-                    _newFunctionSchemaProcedures = new Dictionary<EntityStoreSchemaFilterEntry, IDataSchemaProcedure>();
+                    _newFunctionSchemaProcedures = [];
                 }
                 return _newFunctionSchemaProcedures;
             }
@@ -162,7 +162,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         //     This will set up the design-time &amp; runtime invariant name properties &amp; connection string properties.
         // </summary>
         // <param name="fromDesignTime">Indicates if invariant name &amp; connection strings are from design-time (if false, ,from runtime)</param>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         internal void SetInvariantNamesAndConnectionStrings(
             IServiceProvider serviceProvider,
             Project project,
@@ -234,8 +233,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
         internal T GetExtensionDataValue<T>(string keyName)
         {
-            object value;
-            _extensionData.TryGetValue(keyName, out value);
+            _extensionData.TryGetValue(keyName, out object value);
             return (T)value;
         }
 

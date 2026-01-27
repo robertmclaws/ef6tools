@@ -1,16 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.Refactoring
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal class VsObjectSearchResult
     {
         private const string DashWithSpaces = " - ";
@@ -30,14 +29,12 @@ namespace Microsoft.Data.Entity.Design.Refactoring
 
         internal static List<VsObjectSearchResult> Search(string name, ObjectSearchLanguage searchLanguage)
         {
-            var results = new List<VsObjectSearchResult>();
-            var searchService = PackageManager.Package.GetService(typeof(SVsObjectSearch)) as IVsObjectSearch;
+            List<VsObjectSearchResult> results = new List<VsObjectSearchResult>();
 
-            if (searchService != null)
+            if (PackageManager.Package.GetService(typeof(SVsObjectSearch)) is IVsObjectSearch searchService)
             {
                 IVsObjectList2 objectList;
-                IVsObjectList searchResult;
-                var criteria = new VSOBSEARCHCRITERIA();
+                VSOBSEARCHCRITERIA criteria = new VSOBSEARCHCRITERIA();
                 criteria.eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD;
                 criteria.szName = name;
 
@@ -56,26 +53,23 @@ namespace Microsoft.Data.Entity.Design.Refactoring
 
                 if (searchService.Find(
                     (uint)__VSOBSEARCHFLAGS.VSOSF_NOSHOWUI | (uint)_VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS,
-                    new VSOBSEARCHCRITERIA[1] { criteria }, out searchResult) == VSConstants.S_OK)
+                    new VSOBSEARCHCRITERIA[1] { criteria }, out IVsObjectList searchResult) == VSConstants.S_OK)
                 {
                     objectList = searchResult as IVsObjectList2;
                     if (objectList != null)
                     {
-                        uint pCount;
-                        if (objectList.GetItemCount(out pCount) == VSConstants.S_OK)
+                        if (objectList.GetItemCount(out uint pCount) == VSConstants.S_OK)
                         {
                             for (uint i = 0; i < pCount; i++)
                             {
-                                IVsObjectList2 subList;
                                 if (objectList.GetList2(
                                     i, (uint)_LIB_LISTTYPE.LLT_HIERARCHY, (uint)_LIB_LISTFLAGS.LLF_NONE, new VSOBSEARCHCRITERIA2[0],
-                                    out subList)
+                                    out IVsObjectList2 subList)
                                     == VSConstants.S_OK)
                                 {
                                     // Switch to using our "safe" PInvoke interface for IVsObjectList2 to avoid potential memory management issues
                                     // when receiving strings as out params.
-                                    var safeSubList = subList as ISafeVsObjectList2;
-                                    if (safeSubList != null)
+                                    if (subList is ISafeVsObjectList2 safeSubList)
                                     {
                                         AddResultsToList(safeSubList, searchLanguage, results);
                                     }
@@ -92,8 +86,7 @@ namespace Microsoft.Data.Entity.Design.Refactoring
         private static void AddResultsToList(
             ISafeVsObjectList2 objectList, ObjectSearchLanguage searchLanguage, List<VsObjectSearchResult> results)
         {
-            uint objectCount;
-            if (objectList.GetItemCount(out objectCount) == VSConstants.S_OK)
+            if (objectList.GetItemCount(out uint objectCount) == VSConstants.S_OK)
             {
                 for (uint j = 0; j < objectCount; j++)
                 {
@@ -107,13 +100,10 @@ namespace Microsoft.Data.Entity.Design.Refactoring
 
                             if (text != null)
                             {
-                                string fileName;
-                                int lineNumber;
-                                int columnNumber;
 
                                 // FindAllReferencesList.cs (VS) does not implement the GetSourceContext() API of IVsObjectList2, so as a
                                 // workaround we will parse the description text to identify the file and line/col number.
-                                if (TryParseSourceData(text, searchLanguage, out fileName, out lineNumber, out columnNumber))
+                                if (TryParseSourceData(text, searchLanguage, out string fileName, out int lineNumber, out int columnNumber))
                                 {
                                     results.Add(new VsObjectSearchResult(fileName, text, lineNumber, columnNumber));
                                 }

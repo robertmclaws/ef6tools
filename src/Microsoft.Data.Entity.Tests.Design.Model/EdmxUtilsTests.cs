@@ -1,31 +1,29 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class EdmxUtilsTests
     {
         [TestMethod]
-        public void GetEDMXXsdResource_returns_valid_xsd_for_requested_version()
+        public void GetEDMXXsdResource_returns_valid_xsd_for_Version3()
         {
-            for (var majorVersion = 1; majorVersion <= 3; majorVersion++)
-            {
-                var version = new Version(majorVersion, 0, 0, 0);
-                var reader = EdmxUtils.GetEDMXXsdResource(version);
+            // Only Version3 is supported
+            Version version = new Version(3, 0, 0, 0);
+            var reader = EdmxUtils.GetEDMXXsdResource(version);
 
-                reader.Should().NotBeNull();
-                var edmxXsd = XDocument.Load(reader);
+            reader.Should().NotBeNull();
+            XDocument edmxXsd = XDocument.Load(reader);
 
-                ((string)edmxXsd.Root.Attribute("targetNamespace")).Should().Be(
-                    SchemaManager.GetEDMXNamespaceName(version));
-            }
+            ((string)edmxXsd.Root.Attribute("targetNamespace")).Should().Be(
+                SchemaManager.GetEDMXNamespaceName(version));
         }
     }
 }

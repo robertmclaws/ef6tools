@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Model.Eventing;
+
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-
     /// <summary>
     ///     This class contains the diagram information where the command transaction is originated.
     /// </summary>

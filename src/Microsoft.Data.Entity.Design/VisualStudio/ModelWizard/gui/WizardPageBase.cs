@@ -1,14 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+using Microsoft.WizardFramework;
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 {
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.WizardFramework;
-    using System;
-    using System.Drawing;
-    using System.Windows.Forms;
-
     internal class WizardPageBase : WizardPage
     {
         private readonly ModelBuilderWizardForm _wizard;

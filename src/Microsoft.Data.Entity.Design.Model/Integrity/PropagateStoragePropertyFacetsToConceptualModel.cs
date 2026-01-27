@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Xml;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
+
 namespace Microsoft.Data.Entity.Design.Model.Integrity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Xml;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
-
     /// <summary>
     ///     This class will loop over all mappings from Storage-side (S-side) properties to
     ///     Conceptual-side (C-side) properties where the C-side is within an EntityType,
@@ -37,8 +37,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
         public bool IsEqual(IIntegrityCheck otherCheck)
         {
-            var typedOtherCheck = otherCheck as PropagateStoragePropertyFacetsToConceptualModel;
-            if (typedOtherCheck != null)
+            if (otherCheck is PropagateStoragePropertyFacetsToConceptualModel typedOtherCheck)
             {
                 if (typedOtherCheck._artifact.Uri.Equals(_artifact.Uri))
                 {
@@ -58,7 +57,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             {
                 // fill out S-side facets defaults
                 var sSideTypeMap = _sSideFacetDefaults[sSidePrimitiveType.Name] = new Dictionary<string, object>();
-                var sSideTypeUsage = TypeUsage.CreateDefaultTypeUsage(sSidePrimitiveType);
+                TypeUsage sSideTypeUsage = TypeUsage.CreateDefaultTypeUsage(sSidePrimitiveType);
                 Debug.Assert(null != sSideTypeUsage, "null sSideTypeUsage for sSidePrimitiveType " + sSidePrimitiveType.FullName);
                 if (null != sSideTypeUsage)
                 {
@@ -76,9 +75,8 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                             if (Property.AttributeMaxLength.Equals(name, StringComparison.Ordinal))
                             {
                                 // value could be an Int32 or a string - but need to pass in as a UInt32 to ModelHelper.GetMaxLengthFacetValue()
-                                uint defaultValueAsUInt;
                                 if (null != defaultValue
-                                    && uint.TryParse(defaultValue.ToString(), out defaultValueAsUInt))
+                                    && uint.TryParse(defaultValue.ToString(), out uint defaultValueAsUInt))
                                 {
                                     defaultValue = ModelHelper.GetMaxLengthFacetValue(defaultValueAsUInt);
                                 }
@@ -92,12 +90,12 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
             // initialize C-side facet default values from runtime for all valid C-side Property types
             _cSideFacetDefaults = new Dictionary<string, IDictionary<string, object>>();
-            var edmCollection = new EdmItemCollection(new XmlReader[] { });
+            EdmItemCollection edmCollection = new EdmItemCollection(new XmlReader[] { });
             foreach (var cSidePrimitiveType in edmCollection.GetPrimitiveTypes())
             {
                 // fill out C-side facets defaults
                 var cSideTypeMap = _cSideFacetDefaults[cSidePrimitiveType.Name] = new Dictionary<string, object>();
-                var cSideTypeUsage = TypeUsage.CreateDefaultTypeUsage(cSidePrimitiveType);
+                TypeUsage cSideTypeUsage = TypeUsage.CreateDefaultTypeUsage(cSidePrimitiveType);
                 Debug.Assert(null != cSideTypeUsage, "null cSideTypeUsage for cSidePrimitiveType " + cSidePrimitiveType.FullName);
                 if (null != cSideTypeUsage)
                 {
@@ -115,33 +113,28 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             }
 
             // initialize the list of facet-synchronizers
-            _facetSynchronizers = new List<SynchronizeConceptualFacet>();
-
-            // add the synchronizer for Precision
-            _facetSynchronizers.Add(
+            _facetSynchronizers =
+            [
+                // add the synchronizer for Precision
                 (storageProperty, conceptualProperty) => SynchronizeFacet(
-                    storageProperty.TypeName, storageProperty.Precision, conceptualProperty.TypeName, conceptualProperty.Precision));
-            // add the synchronizer for Scale
-            _facetSynchronizers.Add(
+                    storageProperty.TypeName, storageProperty.Precision, conceptualProperty.TypeName, conceptualProperty.Precision),
+                // add the synchronizer for Scale
                 (storageProperty, conceptualProperty) => SynchronizeFacet(
-                    storageProperty.TypeName, storageProperty.Scale, conceptualProperty.TypeName, conceptualProperty.Scale));
-            // add the synchronizer for MaxLength
-            _facetSynchronizers.Add(
+                    storageProperty.TypeName, storageProperty.Scale, conceptualProperty.TypeName, conceptualProperty.Scale),
+                // add the synchronizer for MaxLength
                 (storageProperty, conceptualProperty) => SynchronizeFacet(
-                    storageProperty.TypeName, storageProperty.MaxLength, conceptualProperty.TypeName, conceptualProperty.MaxLength));
-            // add the synchronizer for Nullable
-            _facetSynchronizers.Add(
+                    storageProperty.TypeName, storageProperty.MaxLength, conceptualProperty.TypeName, conceptualProperty.MaxLength),
+                // add the synchronizer for Nullable
                 (storageProperty, conceptualProperty) => SynchronizeFacet(
-                    storageProperty.TypeName, storageProperty.Nullable, conceptualProperty.TypeName, conceptualProperty.Nullable));
-            // add the synchronizer for Unicode
-            _facetSynchronizers.Add(
+                    storageProperty.TypeName, storageProperty.Nullable, conceptualProperty.TypeName, conceptualProperty.Nullable),
+                // add the synchronizer for Unicode
                 (storageProperty, conceptualProperty) => SynchronizeFacet(
-                    storageProperty.TypeName, storageProperty.Unicode, conceptualProperty.TypeName, conceptualProperty.Unicode));
-            // add the synchronizer for FixedLength
-            _facetSynchronizers.Add(
+                    storageProperty.TypeName, storageProperty.Unicode, conceptualProperty.TypeName, conceptualProperty.Unicode),
+                // add the synchronizer for FixedLength
                 (storageProperty, conceptualProperty) => SynchronizeFacet(
                     storageProperty.TypeName, storageProperty.FixedLength, conceptualProperty.TypeName,
-                    conceptualProperty.FixedLength));
+                    conceptualProperty.FixedLength),
+            ];
         }
 
         // helper method to return the runtime facet default for a particular S-side Property type and facet
@@ -169,12 +162,10 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                 return null;
             }
 
-            IDictionary<string, object> facetToDefaultMap;
-            if (propertyTypeToFacetsMap.TryGetValue(propertyType, out facetToDefaultMap))
+            if (propertyTypeToFacetsMap.TryGetValue(propertyType, out IDictionary<string, object> facetToDefaultMap))
             {
-                object facetDefaultAsObject;
                 if (null != facetToDefaultMap
-                    && facetToDefaultMap.TryGetValue(defaultableValue.AttributeName, out facetDefaultAsObject))
+                    && facetToDefaultMap.TryGetValue(defaultableValue.AttributeName, out object facetDefaultAsObject))
                 {
                     var facetDefault =
                         (null == facetDefaultAsObject ? null : defaultableValue.ConvertStringToValue(facetDefaultAsObject.ToString()));
@@ -189,11 +180,9 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
         // (Note: need to distinguish between that and when the facet does exist but the default is null)
         private bool ConceptualFacetExists(string cSidePropertyType, string cSideFacetName)
         {
-            IDictionary<string, object> facetDefaultValueMap;
-            if (_cSideFacetDefaults.TryGetValue(cSidePropertyType, out facetDefaultValueMap))
+            if (_cSideFacetDefaults.TryGetValue(cSidePropertyType, out IDictionary<string, object> facetDefaultValueMap))
             {
-                object facetDefault;
-                if (facetDefaultValueMap.TryGetValue(cSideFacetName, out facetDefault))
+                if (facetDefaultValueMap.TryGetValue(cSideFacetName, out object facetDefault))
                 {
                     return true;
                 }
@@ -242,7 +231,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                 foreach (var sSideProperty in sSideEntityType.Properties())
                 {
                     // add every mapped C-side Property whose parent is a C-side EntityType (as opposed to a ComplexType)
-                    var cSideProperties = new HashSet<Property>();
+                    HashSet<Property> cSideProperties = new HashSet<Property>();
                     foreach (var scalarProp in sSideProperty.GetAntiDependenciesOfType<ScalarProperty>())
                     {
                         // only count mappings through EntitySetMapping and EntityTypeMapping (MappingFragment only
@@ -387,7 +376,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             }
 
             // now update the C-side facet
-            var cmd = new UpdateDefaultableValueCommand<T>(cSideDefaultableValue, valueToSet);
+            UpdateDefaultableValueCommand<T> cmd = new UpdateDefaultableValueCommand<T>(cSideDefaultableValue, valueToSet);
             CommandProcessor.InvokeSingleCommand(_cpc, cmd);
         }
 

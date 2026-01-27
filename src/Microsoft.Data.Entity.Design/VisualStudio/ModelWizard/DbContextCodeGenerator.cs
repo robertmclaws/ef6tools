@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using EnvDTE;
-    using EnvDTE80;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-
     // <summary>
     //     Handles adding the DbContext item templates for code generation automatically if
     //     the template VSIX are installed.
@@ -117,18 +117,17 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
         // <param name="project">The project to which templates will be added.</param>
         // <param name="useLegacyTemplate">A value indicating whether to use the legacy version of the template.</param>
         // <returns>The template path and file name or null if templates should not be used.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        public string FindDbContextTemplate(Project project, bool useLegacyTemplate = true)
+        public string FindDbContextTemplate(Project project, bool useLegacyTemplate = false)
         {
             if (!TemplateSupported(project, Services.ServiceProvider))
             {
-                // DbContext is not supported on .NET 3.5, so just use built-in ObjectContext code gen.
                 return null;
             }
 
             var webTag = VsUtils.IsWebSiteProject(project) ? "WS" : "";
             var languageTag = VsUtils.GetLanguageForProject(project) == LangEnum.VisualBasic ? "VB" : "CS";
-            var version = useLegacyTemplate ? "5" : "6";
+            // Always use EF6 templates (legacy EF5 template support removed)
+            var version = "6";
 
             var templateName = string.Format(CultureInfo.InvariantCulture, _templatePattern, languageTag, webTag, version);
 
@@ -147,13 +146,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard
 
         internal static bool TemplateSupported(Project project, IServiceProvider serviceProvider)
         {
-            // Templates are supported for .NET Framework 4+ and all modern .NET projects
+            // Templates are supported for .NET Framework 4.5+ and all modern .NET projects
             var targetNetFrameworkVersion = NetFrameworkVersioningHelper.TargetNetFrameworkVersion(project, serviceProvider);
 
-            // For .NET Framework projects, check version >= 4.0
+            // For .NET Framework projects, check version >= 4.7.2
             if (targetNetFrameworkVersion != null)
             {
-                return targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4;
+                return targetNetFrameworkVersion >= NetFrameworkVersioningHelper.NetFrameworkVersion4_7_2;
             }
 
             // For other projects, check if it's a modern .NET project (not invalid/unknown)

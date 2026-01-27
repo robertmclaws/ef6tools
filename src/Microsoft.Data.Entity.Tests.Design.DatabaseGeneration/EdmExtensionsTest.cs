@@ -1,25 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Legacy = System.Data.Common;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Common;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Globalization;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators;
+using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.DatabaseGeneration;
 
 namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Globalization;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration;
-
     [TestClass]
     public class EdmExtensionTests
     {
@@ -73,14 +71,14 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         public EdmExtensionTests()
         {
             // Get SqlProviderServices.Instance via reflection to avoid compile-time dependency
-            var sqlProviderServicesType = Type.GetType(
+            Type sqlProviderServicesType = Type.GetType(
                 "System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer",
                 throwOnError: true);
             var instanceProperty = sqlProviderServicesType.GetProperty("Instance",
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-            var providerServices = (DbProviderServices)instanceProperty.GetValue(null);
+            DbProviderServices providerServices = (DbProviderServices)instanceProperty.GetValue(null);
 
-            var mockResolver = new Mock<IDbDependencyResolver>();
+            Mock<IDbDependencyResolver> mockResolver = new Mock<IDbDependencyResolver>();
             mockResolver.Setup(
                 r => r.GetService(
                     It.Is<Type>(t => t == typeof(DbProviderServices)),
@@ -118,7 +116,7 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         [TestMethod]
         public void CreateAndValidateEdmItemCollection_throws_for_invalid_csdl()
         {
-            var invalidCsdl = XDocument.Parse(Csdl);
+            XDocument invalidCsdl = XDocument.Parse(Csdl);
             invalidCsdl.Descendants("{http://schemas.microsoft.com/ado/2009/11/edm}PropertyRef").Remove();
             invalidCsdl
                 .Descendants("{http://schemas.microsoft.com/ado/2009/11/edm}EntityType")
@@ -137,30 +135,28 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         }
 
         [TestMethod]
-        public void CreateAndValidateEdmItemCollection_throws_for_valid_csdl_whose_version_is_newer_than_targetFrameworkVersion()
+        public void CreateAndValidateEdmItemCollection_throws_for_unsupported_version()
         {
+            // Version2 is no longer supported - only Version3 is valid
             Action act = () => EdmExtension.CreateAndValidateEdmItemCollection(Csdl, new Version(2, 0, 0, 0));
-            var exception = act.Should().Throw<InvalidOperationException>().Which;
+            var exception = act.Should().Throw<ArgumentException>().Which;
 
-            exception.Message.Should().Contain(
-                string.Format(
-                    CultureInfo.CurrentCulture,
-                    Resources.TargetVersionSchemaVersionMismatch,
-                    new Version(3, 0, 0, 0),
-                    new Version(2, 0, 0, 0)));
+            exception.Message.Should().Contain("2.0.0.0");
+            exception.ParamName.Should().Be("targetFrameworkVersion");
         }
 
         [TestMethod]
-        public void CreateAndValidateEdmItemCollection_throws_original_erros_even_if_targetFrameworkVersion_is_older_than_csdl_version()
+        public void CreateAndValidateEdmItemCollection_throws_for_invalid_csdl_with_Version3()
         {
-            var invalidCsdl = XDocument.Parse(Csdl);
+            // Test that invalid CSDL with valid Version3 throws appropriate errors
+            XDocument invalidCsdl = XDocument.Parse(Csdl);
             invalidCsdl.Descendants("{http://schemas.microsoft.com/ado/2009/11/edm}PropertyRef").Remove();
             invalidCsdl
                 .Descendants("{http://schemas.microsoft.com/ado/2009/11/edm}EntityType")
                 .Single()
                 .Add(new XElement("{http://schemas.microsoft.com/ado/2009/11/edm}InvalidElement"));
 
-            Action act = () => EdmExtension.CreateAndValidateEdmItemCollection(invalidCsdl.ToString(), new Version(2, 0, 0, 0));
+            Action act = () => EdmExtension.CreateAndValidateEdmItemCollection(invalidCsdl.ToString(), new Version(3, 0, 0, 0));
             var exception = act.Should().Throw<InvalidOperationException>().Which;
 
             exception.Message.Should().StartWith(Resources.ErrorCsdlNotValid.Replace("{0}", string.Empty));
@@ -183,12 +179,11 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         [TestMethod]
         public void CreateStoreItemCollection_throws_ArgumentNullException_for_null_ssdl()
         {
-            IList<EdmSchemaError> schemaErrors;
             Action act = () => EdmExtension.CreateStoreItemCollection(
                 null,
                 new Version(1, 0, 0, 0),
                 null,
-                out schemaErrors);
+                out IList<EdmSchemaError> schemaErrors);
             var exception = act.Should().Throw<ArgumentNullException>().Which;
             exception.ParamName.Should().Be("ssdl");
         }
@@ -196,13 +191,12 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         [TestMethod]
         public void CreateStoreItemCollection_throws_ArgumentNullException_for_null_targetFrameworkVersion()
         {
-            IList<EdmSchemaError> schemaErrors;
 
             Action act = () => EdmExtension.CreateStoreItemCollection(
                 string.Empty,
                 null,
                 null,
-                out schemaErrors);
+                out IList<EdmSchemaError> schemaErrors);
             var exception = act.Should().Throw<ArgumentNullException>().Which;
             exception.ParamName.Should().Be("targetFrameworkVersion");
         }
@@ -210,13 +204,12 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         [TestMethod]
         public void CreateStoreItemCollection_throws_ArgumentException_for_incorrect_targetFrameworkVersion()
         {
-            IList<EdmSchemaError> schemaErrors;
 
             Action act = () => EdmExtension.CreateStoreItemCollection(
                 string.Empty,
                 new Version(0, 0),
                 null,
-                out schemaErrors);
+                out IList<EdmSchemaError> schemaErrors);
             var exception = act.Should().Throw<ArgumentException>().Which;
             exception.ParamName.Should().Be("targetFrameworkVersion");
             exception.Message.Should().StartWith(
@@ -226,15 +219,14 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         [TestMethod]
         public void CreateStoreItemCollection_returns_errors_StoreItemCollections_for_invalid_ssdl()
         {
-            var invalidSsdl = XDocument.Parse(Ssdl);
+            XDocument invalidSsdl = XDocument.Parse(Ssdl);
             invalidSsdl.Descendants("{http://schemas.microsoft.com/ado/2009/11/edm/ssdl}" + "PropertyRef").Remove();
 
-            IList<EdmSchemaError> schemaErrors;
             var storeItemCollection = EdmExtension.CreateStoreItemCollection(
                 invalidSsdl.ToString(),
                 new Version(3, 0, 0, 0),
                 resolver,
-                out schemaErrors);
+                out IList<EdmSchemaError> schemaErrors);
 
             storeItemCollection.Should().BeNull();
             schemaErrors.Count.Should().Be(1);
@@ -244,13 +236,12 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         [TestMethod]
         public void CreateStoreItemCollection_creates_StoreItemCollection_for_valid_ssdl_and_targetFrameworkVersion()
         {
-            IList<EdmSchemaError> schemaErrors;
             var storeItemCollection =
                 EdmExtension.CreateStoreItemCollection(
                     Ssdl,
                     new Version(3, 0, 0, 0),
                     resolver,
-                    out schemaErrors);
+                    out IList<EdmSchemaError> schemaErrors);
 
             storeItemCollection.Should().NotBeNull();
             schemaErrors.Count.Should().Be(0);
@@ -286,7 +277,7 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         [TestMethod]
         public void CreateAndValidateStoreItemCollection_throws_for_invalid_ssdl_catchThrowNamingConflicts_false()
         {
-            var invalidSsdl = XDocument.Parse(Ssdl);
+            XDocument invalidSsdl = XDocument.Parse(Ssdl);
             var entityTypeElement =
                 invalidSsdl.Descendants("{http://schemas.microsoft.com/ado/2009/11/edm/ssdl}EntityType").Single();
             entityTypeElement.AddAfterSelf(new XElement("{http://schemas.microsoft.com/ado/2009/11/edm/ssdl}InvalidElement"));
@@ -300,7 +291,7 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
             var exception = act.Should().Throw<InvalidOperationException>().Which;
 
             exception.Message.Should().StartWith(Resources.ErrorNonValidSsdl.Replace("{0}", string.Empty));
-            var exceptionData = (IList<EdmSchemaError>)exception.Data["ssdlErrors"];
+            IList<EdmSchemaError> exceptionData = (IList<EdmSchemaError>)exception.Data["ssdlErrors"];
             exceptionData.Count.Should().Be(3);
             exceptionData.All(e => exception.Message.Contains(e.Message)).Should().BeTrue();
         }
@@ -308,7 +299,7 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         [TestMethod]
         public void CreateAndValidateStoreItemCollection_rewrites_exception_for_naming_conflicts_when_catchThrowNamingConflicts_true()
         {
-            var invalidSsdl = XDocument.Parse(Ssdl);
+            XDocument invalidSsdl = XDocument.Parse(Ssdl);
             var entityTypeElement =
                 invalidSsdl.Descendants("{http://schemas.microsoft.com/ado/2009/11/edm/ssdl}EntityType").Single();
             entityTypeElement.AddAfterSelf(new XElement("{http://schemas.microsoft.com/ado/2009/11/edm/ssdl}InvalidElement"));
@@ -321,7 +312,7 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
                 catchThrowNamingConflicts: true);
             var exception = act.Should().Throw<InvalidOperationException>().Which;
 
-            var exceptionData = (IList<EdmSchemaError>)exception.Data["ssdlErrors"];
+            IList<EdmSchemaError> exceptionData = (IList<EdmSchemaError>)exception.Data["ssdlErrors"];
             exception.Message.Should().Be(string.Format(Resources.ErrorNameCollision, exceptionData[0].Message));
             exceptionData.Count.Should().Be(3);
             exceptionData[0].Message.Should().Contain("'AdventureWorksModel.Store.Entities'");
@@ -346,7 +337,7 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         [TestMethod]
         public void CreateStorageMappingItemCollection_returns_errors_for_invalid_ssdl()
         {
-            var v3 = new Version(3, 0, 0, 0);
+            Version v3 = new Version(3, 0, 0, 0);
             var edmItemCollection = EdmExtension.CreateAndValidateEdmItemCollection(Csdl, v3);
             var storeItemCollection =
                 EdmExtension.CreateAndValidateStoreItemCollection(
@@ -355,19 +346,18 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
                     resolver,
                     false);
 
-            var invalidMsl = XDocument.Parse(Msl);
+            XDocument invalidMsl = XDocument.Parse(Msl);
             invalidMsl
                 .Descendants("{http://schemas.microsoft.com/ado/2009/11/mapping/cs}ScalarProperty")
                 .First()
                 .SetAttributeValue("Name", "Non-existing-property");
 
-            IList<EdmSchemaError> edmErrors;
             var storageMappingItemCollection =
                 EdmExtension.CreateStorageMappingItemCollection(
                     edmItemCollection,
                     storeItemCollection,
                     invalidMsl.ToString(),
-                    out edmErrors);
+                    out IList<EdmSchemaError> edmErrors);
 
             storageMappingItemCollection.Should().BeNull();
             edmErrors.Count.Should().Be(1);
@@ -377,7 +367,7 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
         [TestMethod]
         public void CreateStorageMappingItemCollection_creates_storage_mapping_item_collection_for_valid_artifacts()
         {
-            var v3 = new Version(3, 0, 0, 0);
+            Version v3 = new Version(3, 0, 0, 0);
             var edmItemCollection = EdmExtension.CreateAndValidateEdmItemCollection(Csdl, v3);
             var storeItemCollection =
                 EdmExtension.CreateAndValidateStoreItemCollection(
@@ -386,9 +376,8 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
                     resolver,
                     false);
 
-            IList<EdmSchemaError> edmErrors;
             var storageMappingItemCollection = EdmExtension.CreateStorageMappingItemCollection(
-                edmItemCollection, storeItemCollection, Msl, out edmErrors);
+                edmItemCollection, storeItemCollection, Msl, out IList<EdmSchemaError> edmErrors);
 
             storageMappingItemCollection.Should().NotBeNull();
             edmErrors.Count.Should().Be(0);
@@ -405,7 +394,7 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
                 {
                     var csdlEntityTypeWithVersionedEdmxNamespaceCopyToSSDL = CreateEntityTypeWithExtendedProperty(
                         SchemaManager.GetEDMXNamespaceName(version), "true");
-                    var ssdlEntityTypeElement = new XElement(
+                    XElement ssdlEntityTypeElement = new XElement(
                         (XNamespace)(SchemaManager.GetSSDLNamespaceName(version)) + "EntityType",
                         new XAttribute("Name", "TestEntityType"));
                     OutputGeneratorHelpers.CopyExtendedPropertiesToSsdlElement(
@@ -421,9 +410,9 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
                 foreach (var version in EntityFrameworkVersion.GetAllVersions())
                 {
                     var csdlEntityTypeWithVersionedEdmxNamespaceCopyToSSDL = CreateEntityTypeWithExtendedProperty(
-                        SchemaManager.GetEDMXNamespaceName(EntityFrameworkVersion.Version1), "false");
-                    var ssdlEntityTypeElement = new XElement(
-                        (XNamespace)(SchemaManager.GetSSDLNamespaceName(EntityFrameworkVersion.Version1)) + "EntityType",
+                        SchemaManager.GetEDMXNamespaceName(EntityFrameworkVersion.Version3), "false");
+                    XElement ssdlEntityTypeElement = new XElement(
+                        (XNamespace)(SchemaManager.GetSSDLNamespaceName(EntityFrameworkVersion.Version3)) + "EntityType",
                         new XAttribute("Name", "TestEntityType"));
                     OutputGeneratorHelpers.CopyExtendedPropertiesToSsdlElement(
                         csdlEntityTypeWithVersionedEdmxNamespaceCopyToSSDL, ssdlEntityTypeElement);
@@ -439,8 +428,8 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
 
                 foreach (var version in EntityFrameworkVersion.GetAllVersions())
                 {
-                    var ssdlEntityTypeElement = new XElement(
-                        (XNamespace)(SchemaManager.GetSSDLNamespaceName(EntityFrameworkVersion.Version1)) + "EntityType",
+                    XElement ssdlEntityTypeElement = new XElement(
+                        (XNamespace)(SchemaManager.GetSSDLNamespaceName(EntityFrameworkVersion.Version3)) + "EntityType",
                         new XAttribute("Name", "TestEntityType"));
                     OutputGeneratorHelpers.CopyExtendedPropertiesToSsdlElement(
                         csdlEntityTypeWithNonEdmxNamespaceCopyToSSDL, ssdlEntityTypeElement);
@@ -450,14 +439,14 @@ namespace Microsoft.Data.Entity.Tests.Design.DatabaseGeneration
 
             private static EntityType CreateEntityTypeWithExtendedProperty(XNamespace copyToSSDLNamespace, string copyToSSDLValue)
             {
-                var extendedPropertyContents =
+                XElement extendedPropertyContents =
                     new XElement(
                         (XNamespace)"http://myExtendedProperties" + "MyProp",
                         new XAttribute(
                             (XNamespace)"http://myExtendedProperties" + "MyAttribute", "MyValue"),
                         new XAttribute(
                             copyToSSDLNamespace + "CopyToSSDL", copyToSSDLValue));
-                var extendedPropertyMetadataProperty =
+                MetadataProperty extendedPropertyMetadataProperty =
                     MetadataProperty.Create(
                         "http://myExtendedProperties:MyProp",
                         TypeUsage.CreateStringTypeUsage(

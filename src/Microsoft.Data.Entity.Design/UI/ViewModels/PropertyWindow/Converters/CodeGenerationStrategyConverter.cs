@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-
     internal class CodeGenerationStrategyConverter : DynamicListConverter<string, EFEntityModelDescriptor>
     {
         protected override void PopulateMappingForSelectedObject(EFEntityModelDescriptor selectedObject)

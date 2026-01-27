@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CopyPropertyCommand : CopyAnnotatableElementCommand
     {
         private readonly PropertyClipboardFormat _clipboardProperty;
@@ -109,7 +109,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
                 if (_clipboardProperty.IsKeyProperty)
                 {
-                    var setKey = new SetKeyPropertyCommand(_createdProperty, true);
+                    SetKeyPropertyCommand setKey = new SetKeyPropertyCommand(_createdProperty, true);
                     CommandProcessor.InvokeSingleCommand(cpc, setKey);
                 }
 
@@ -117,7 +117,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
             else
             {
-                var cmd = new CopyComplexTypePropertyCommand(_clipboardProperty, _complexType);
+                CopyComplexTypePropertyCommand cmd = new CopyComplexTypePropertyCommand(_clipboardProperty, _complexType);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
                 _createdProperty = cmd.Property;
             }

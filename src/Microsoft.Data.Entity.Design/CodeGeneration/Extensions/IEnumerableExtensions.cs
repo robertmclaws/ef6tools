@@ -1,25 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration.Extensions
 {
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-
     internal static class IEnumerableExtensions
     {
         public static bool MoreThan<TSource>(this IEnumerable<TSource> source, int count)
         {
             Debug.Assert(source != null, "source is null.");
 
-            var genericCollection = source as ICollection<TSource>;
-            if (genericCollection != null)
+            if (source is ICollection<TSource> genericCollection)
             {
                 return genericCollection.Count > count;
             }
 
-            var collection = source as ICollection;
-            if (collection != null)
+            if (source is ICollection collection)
             {
                 return collection.Count > count;
             }

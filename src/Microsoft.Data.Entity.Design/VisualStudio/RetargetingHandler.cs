@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Xml;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Xml;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class RetargetingHandler
     {
         private readonly IVsHierarchy _hierarchy;
@@ -44,7 +44,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             var targetSchemaVersion = EdmUtils.GetEntityFrameworkVersion(project, _serviceProvider, useLatestIfNoEF: false);
             Debug.Assert(targetSchemaVersion != null, "schema version must not be null for projects that support EF");
 
-            var documentMap = new Dictionary<string, object>();
+            Dictionary<string, object> documentMap = new Dictionary<string, object>();
 
             foreach (var vsFileInfo in GetEdmxFileInfos())
             {

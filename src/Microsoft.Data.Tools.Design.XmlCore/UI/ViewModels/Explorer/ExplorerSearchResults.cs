@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Visitor;
+using Microsoft.Data.Tools.XmlDesignerBase;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     This class represents the ExplorerSearchResults context item kept in sorted order.
     /// </summary>
@@ -64,7 +64,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             Reset();
             _targetString = modelSearchResults.TargetString;
             _elementTextToSearch = modelSearchResults.ElementTextToSearch;
-            var modelToExplorerModelXRef = ModelToExplorerModelXRef.GetModelToBrowserModelXRef(context);
+            ModelToExplorerModelXRef modelToExplorerModelXRef = ModelToExplorerModelXRef.GetModelToBrowserModelXRef(context);
             if (null != modelToExplorerModelXRef)
             {
                 // add all the ExplorerEFElements to _results
@@ -401,7 +401,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             if (null == _results)
             {
-                _results = new List<ExplorerEFElement>();
+                _results = [];
             }
         }
 
@@ -409,7 +409,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             EnsureResults();
 
-            var individualResultsAsStringBuilder = new StringBuilder();
+            StringBuilder individualResultsAsStringBuilder = new StringBuilder();
             var index = 0;
             foreach (var explorerElement in Results)
             {

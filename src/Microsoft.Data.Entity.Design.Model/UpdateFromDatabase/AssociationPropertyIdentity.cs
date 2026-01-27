@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
-
     /// <summary>
     ///     This class defines the "Identity" of a property that participates in an association.
     ///     This can be either through an AssociationSetMapping, or through a C-side ReferentialConstratint.
@@ -33,7 +33,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
             var principal = referentialConstraint.Principal;
             var dependent = referentialConstraint.Dependent;
 
-            var identities = new SortedListAllowDupes<AssociationPropertyIdentity>(AssociationPropertyIdentityComparer.Instance);
+            SortedListAllowDupes<AssociationPropertyIdentity> identities = new SortedListAllowDupes<AssociationPropertyIdentity>(AssociationPropertyIdentityComparer.Instance);
 
             if (principal != null
                 && dependent != null)
@@ -47,13 +47,10 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                     while (pPropRefs.MoveNext()
                            && dPropRefs.MoveNext())
                     {
-                        var pProp = pPropRefs.Current.Name.Target as ConceptualProperty;
-                        var dProp = dPropRefs.Current.Name.Target as ConceptualProperty;
-
-                        if (pProp != null
-                            && dProp != null)
+                        if (pPropRefs.Current.Name.Target is ConceptualProperty pProp
+                            && dPropRefs.Current.Name.Target is ConceptualProperty dProp)
                         {
-                            var id = new AssociationPropertyIdentity();
+                            AssociationPropertyIdentity id = new AssociationPropertyIdentity();
                             id.PrincipalColumns = GetMappedColumnsForConceptualProperty(pProp);
                             id.DependentColumns = GetMappedColumnsForConceptualProperty(dProp);
                             identities.Add(id);
@@ -66,12 +63,12 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal static SortedListAllowDupes<AssociationPropertyIdentity> CreateIdentitiesFromAssociationEndProperty(EndProperty endProp)
         {
-            var props = new SortedListAllowDupes<AssociationPropertyIdentity>(AssociationPropertyIdentityComparer.Instance);
+            SortedListAllowDupes<AssociationPropertyIdentity> props = new SortedListAllowDupes<AssociationPropertyIdentity>(AssociationPropertyIdentityComparer.Instance);
 
             foreach (var sProp in endProp.ScalarProperties())
             {
-                var id = new AssociationPropertyIdentity();
-                var keyProperty = sProp.Name.Target as ConceptualProperty;
+                AssociationPropertyIdentity id = new AssociationPropertyIdentity();
+                ConceptualProperty keyProperty = sProp.Name.Target as ConceptualProperty;
 
                 id.PrincipalColumns = GetMappedColumnsForConceptualProperty(keyProperty);
                 id.DependentColumns = new SortedListAllowDupes<DatabaseColumn>(new DatabaseColumnComparer());
@@ -79,7 +76,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                 var sSideProperty = sProp.ColumnName.Target;
                 if (null != sSideProperty)
                 {
-                    var stc = DatabaseColumn.CreateFromProperty(sSideProperty);
+                    DatabaseColumn stc = DatabaseColumn.CreateFromProperty(sSideProperty);
                     id.DependentColumns.Add(stc);
                     props.Add(id);
                 }
@@ -89,7 +86,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal string TraceString()
         {
-            var sb = new StringBuilder("[AssociationPropertyIdentity");
+            StringBuilder sb = new StringBuilder("[AssociationPropertyIdentity");
             sb.Append(
                 " " + EFToolsTraceUtils.FormatNamedEnumerable(
                     "principalColumns", _principalColumns, delegate(DatabaseColumn dc) { return dc.ToString(); }));
@@ -103,7 +100,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         private static SortedListAllowDupes<DatabaseColumn> GetMappedColumnsForConceptualProperty(ConceptualProperty property)
         {
-            var columns = new SortedListAllowDupes<DatabaseColumn>(new DatabaseColumnComparer());
+            SortedListAllowDupes<DatabaseColumn> columns = new SortedListAllowDupes<DatabaseColumn>(new DatabaseColumnComparer());
             if (property != null)
             {
                 foreach (var sp in property.GetAntiDependenciesOfType<ScalarProperty>())
@@ -121,7 +118,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                             // hierarchy) there can be multiple ScalarProperty anti-dependencies of property 
                             // (one for each EntityTypeMapping) all of which map to the same DatabaseColumn - 
                             // in this case only insert the first of these
-                            var dbCol = DatabaseColumn.CreateFromProperty(sp.ColumnName.Target);
+                            DatabaseColumn dbCol = DatabaseColumn.CreateFromProperty(sp.ColumnName.Target);
                             if (!columns.Contains(dbCol))
                             {
                                 columns.Add(dbCol);
@@ -151,8 +148,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         public override bool Equals(object obj)
         {
-            var that = obj as AssociationPropertyIdentity;
-            if (that == null)
+            if (obj is not AssociationPropertyIdentity that)
             {
                 return false;
             }

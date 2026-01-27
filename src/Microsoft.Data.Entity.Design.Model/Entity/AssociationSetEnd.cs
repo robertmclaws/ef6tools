@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class AssociationSetEnd : EFNormalizableItem
     {
         internal static readonly string ElementName = "End";
@@ -40,13 +40,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_roleBinding == null)
-                {
-                    _roleBinding = new SingleItemBinding<AssociationEnd>(
+                _roleBinding ??= new SingleItemBinding<AssociationEnd>(
                         this,
                         AttributeRole,
                         AssociationSetEndRoleNormalizer.NameNormalizer);
-                }
 
                 return _roleBinding;
             }
@@ -59,13 +56,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_entitySetBinding == null)
-                {
-                    _entitySetBinding = new SingleItemBinding<EntitySet>(
+                _entitySetBinding ??= new SingleItemBinding<EntitySet>(
                         this,
                         AttributeEntitySet,
                         AssociationSetEndEntitySetNormalizer.NameNormalizer);
-                }
                 return _entitySetBinding;
             }
         }
@@ -145,10 +139,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             {
                 var antiDeps = Artifact.ArtifactSet.GetAntiDependencies(this);
 
-                var ends = new List<EndProperty>();
+                List<EndProperty> ends = new List<EndProperty>();
                 foreach (var antiDep in antiDeps)
                 {
-                    var end = antiDep as EndProperty;
+                    EndProperty end = antiDep as EndProperty;
                     if (end == null
                         && antiDep.Parent != null)
                     {

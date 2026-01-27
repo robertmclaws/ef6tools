@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System.Diagnostics;
-
     /// <summary>
     ///     Efficiently walk the items in a given column. Class returned
     ///     by ITree.EnumerateColumnItems.

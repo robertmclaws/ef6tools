@@ -1,37 +1,34 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using EntityProperty = Microsoft.Data.Entity.Design.Model.Entity.Property;
-
-// remove this one
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Globalization;
+using System.Linq;
+using System.Windows.Forms;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Data.Sql;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.VisualStudio.Data.Services;
+using ComplexType = Microsoft.Data.Entity.Design.Model.Entity.ComplexType;
+using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
+using XmlDesignerBaseResources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
 
 namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Globalization;
-    using System.Linq;
-    using System.Windows.Forms;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Data.Sql;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.VisualStudio.Data.Services;
-    using ComplexType = Microsoft.Data.Entity.Design.Model.Entity.ComplexType;
-    using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
-    using Resources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
-
     [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal partial class NewFunctionImportDialog : Form
     {
@@ -104,7 +101,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         private readonly ICollection<Function> _functions; // list of functions originally passed to constructor
         private string[] _sortedEdmPrimitiveTypes;
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal NewFunctionImportDialog(
             Function baseFunction,
             string functionImportName,
@@ -131,16 +127,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             InitializeComponent();
             InitializeDialogFont();
 
-            // set tooltip on functionImportComposableCheckBox if not supported
-            if (false == _composableFunctionImportFeatureState.IsEnabled())
-            {
-                var isComposableToolTipMsg = string.Format(
-                    CultureInfo.CurrentCulture, DialogsResource.NewFunctionImportDialog_IsComposableTooltipText,
-                    EntityFrameworkVersion.Version2);
-                var isComposableToolTip = new ToolTip();
-                isComposableToolTip.ShowAlways = true; // show even if control inactive
-                isComposableToolTip.SetToolTip(functionImportComposableCheckBox, isComposableToolTipMsg);
-            }
+            // Composable function imports are always enabled for Version3 (EF6)
+            // No tooltip needed since the feature is always supported
 
             // once the components are initialized, check the functionImportComposableCheckBox if appropriate
             if (_composableFunctionImportFeatureState.IsEnabled())
@@ -164,7 +152,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 returnTypeShapeGroup.Visible = false;
                 if (ClientSize.Height > returnTypeShapeGroup.Height)
                 {
-                    var newSize = new Size(Size.Width, Size.Height - returnTypeShapeGroup.Height);
+                    Size newSize = new Size(Size.Width, Size.Height - returnTypeShapeGroup.Height);
                     MinimumSize = newSize;
                     Size = newSize;
                 }
@@ -178,10 +166,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             UpdateReturnTypeInfoAreaState();
             SetCreateNewComplexTypeButtonProperties();
 
-            if (components == null)
-            {
-                components = new Container();
-            }
+            components ??= new Container();
             // Since Visual Studio has already defined Dispose method in the generated file(designer.cs),
             // we instantiates Diposer class that calls our custom dispose method when Form is disposed.
             components.Add(new Disposer(OnDispose));
@@ -203,12 +188,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             Debug.Assert(
                 _openedDbConnection == null,
                 "There is still open DBConnection when NewFunctionImportDialog is closing.");
-
-            if (_openedDbConnection != null)
-            {
-                _openedDbConnection.Close();
-                _openedDbConnection = null;
-            }
+            _openedDbConnection?.Close();
+            _openedDbConnection = null;
         }
 
         #region Overriden Methods
@@ -232,9 +213,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 }
                 else
                 {
-                    string msg;
                     if (_mode == DialogMode.New
-                        && !ModelHelper.IsUniqueName(typeof(FunctionImport), _container, FunctionImportName, false, out msg))
+                        && !ModelHelper.IsUniqueName(typeof(FunctionImport), _container, FunctionImportName, false, out string msg))
                     {
                         VsUtils.ShowErrorDialog(DialogsResource.NewFunctionImportDialog_EnsureUniqueNameMsg);
                         e.Cancel = true;
@@ -286,8 +266,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         // </summary>
         private void ReturnTypeArea_OnMouseMove(Object sender, MouseEventArgs e)
         {
-            var parent = sender as Control;
-            if (parent == null)
+            if (sender is not Control parent)
             {
                 return;
             }
@@ -342,7 +321,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             {
                 if (emptyReturnTypeButton.Checked)
                 {
-                    return Resources.NoneDisplayValueUsedForUX;
+                    return XmlDesignerBaseResources.NoneDisplayValueUsedForUX;
                 }
                 else if (scalarTypeReturnButton.Checked)
                 {
@@ -766,14 +745,14 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 
                 // Update complex type mode
                 // Create a sorted list for both schema columns and complex type properties.
-                var sortedColums = columns.OrderBy(col => col.Name).ToList();
+                List<IDataSchemaColumn> sortedColums = columns.OrderBy(col => col.Name).ToList();
                 // ad this point, the selected item must not be null.
-                var selectedComplexType = complexTypeReturnComboBox.SelectedItem as ComplexType;
+                ComplexType selectedComplexType = complexTypeReturnComboBox.SelectedItem as ComplexType;
                 Debug.Assert(selectedComplexType != null, "There is no selected complex type.");
 
                 if (selectedComplexType != null)
                 {
-                    var sortedProperties = selectedComplexType.Properties().OrderBy(
+                    List<EntityProperty> sortedProperties = selectedComplexType.Properties().OrderBy(
                         entityProperty =>
                         EdmUtils.GetFunctionImportResultColumnName(_editedFunctionImport, entityProperty)).ToList();
 
@@ -851,7 +830,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         // <summary>
         //     Helper function to create an item row in return type list view.
         // </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private ListViewItem CreateReturnTypeShapeListItem(IDataSchemaColumn column, EntityProperty property, string action)
         {
             var storageModel = _container.Artifact.StorageModel();
@@ -910,8 +888,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                     item.SubItems.Add(
                         GetReturnTypeListViewCellText(
                             isUpdateMode
-                            , (propertyPrimitiveType != null ? propertyPrimitiveType.GetEdmPrimitiveType().Name : null)
-                            , (columnPrimitiveType != null ? columnPrimitiveType.GetEdmPrimitiveType().Name : null)));
+                            , (propertyPrimitiveType?.GetEdmPrimitiveType().Name)
+                            , (columnPrimitiveType?.GetEdmPrimitiveType().Name)));
                 }
 
                 // DB Type for the CSDL type property should always be null.
@@ -919,7 +897,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                     GetReturnTypeListViewCellText(
                         false
                         , null
-                        , (columnPrimitiveType != null ? columnPrimitiveType.Name : null)));
+                        , (columnPrimitiveType?.Name)));
 
                 // Nullable
                 item.SubItems.Add(
@@ -1114,13 +1092,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
 
         private void UpdateStateComboBoxes(object selectedElement, Function baseFunction, string functionImportName)
         {
-            // This code was refactored from EditFunctionImportDialog.
-            // If selectedEntityType is not null, selects the EntityType radio button and selects the entity type from the combo box.
-            var selectedElementAsString = selectedElement as string;
-            var selectedElementAsComplexType = selectedElement as ComplexType;
-            var selectedElementAsEntityType = selectedElement as EntityType;
-            if (null != selectedElementAsString
-                && Resources.NoneDisplayValueUsedForUX != selectedElementAsString)
+            if (selectedElement is string selectedElementAsString
+                && XmlDesignerBaseResources.NoneDisplayValueUsedForUX != selectedElementAsString)
             {
                 // primitive type
                 if (scalarTypeReturnComboBox.Items.Contains(selectedElementAsString))
@@ -1136,7 +1109,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                     emptyReturnTypeButton.Checked = true;
                 }
             }
-            else if (null != selectedElementAsComplexType)
+            else if (selectedElement is ComplexType selectedElementAsComplexType)
             {
                 // ComplexType
                 if (complexTypeReturnComboBox.Items.Contains(selectedElementAsComplexType))
@@ -1152,7 +1125,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                     emptyReturnTypeButton.Checked = true;
                 }
             }
-            else if (null != selectedElementAsEntityType)
+            else if (selectedElement is EntityType selectedElementAsEntityType)
             {
                 // EntityType
                 if (entityTypeReturnComboBox.Items.Contains(selectedElementAsEntityType))
@@ -1205,8 +1178,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             _openedDbConnection = Connection;
             if (_openedDbConnection != null)
             {
-                var server = new DataSchemaServer(_openedDbConnection);
-                var function = (Function)e.Argument;
+                DataSchemaServer server = new DataSchemaServer(_openedDbConnection);
+                Function function = (Function)e.Argument;
                 storedProc = server.GetProcedureOrFunction(function.DatabaseSchemaName, function.DatabaseFunctionName);
             }
             e.Result = storedProc;
@@ -1235,9 +1208,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 }
                 else if (!e.Cancelled)
                 {
-                    var schemaProcedure = e.Result as IDataSchemaProcedure;
-
-                    if (schemaProcedure == null)
+                    if (e.Result is not IDataSchemaProcedure schemaProcedure)
                     {
                         Debug.Assert(
                             Function != null,
@@ -1270,11 +1241,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
             }
             finally
             {
-                if (_openedDbConnection != null)
-                {
-                    _openedDbConnection.Close();
-                    _openedDbConnection = null;
-                }
+                _openedDbConnection?.Close();
+                _openedDbConnection = null;
             }
 
             if (GetResultColumnsCompletedEventStorage != null)
@@ -1293,7 +1261,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 {
                     var designTimeConnectionString = ConnectionString.GetDesignTimeProviderConnectionString(CurrentProject);
                     var provider = ConnectionString.Provider;
-                    var dcm = (IVsDataConnectionManager)Services.ServiceProvider.GetService(typeof(IVsDataConnectionManager));
+                    IVsDataConnectionManager dcm = (IVsDataConnectionManager)Services.ServiceProvider.GetService(typeof(IVsDataConnectionManager));
                     connection = dcm.GetConnection(provider, designTimeConnectionString, false);
                 }
 
@@ -1447,7 +1415,6 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
         // <summary>
         //     Launch background process to retrieve columns schema info from database.
         // </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private void LaunchBackgroundProcessToRetrieveColumnsSchema()
         {
             if (CurrentProject != null
@@ -1459,7 +1426,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Dialogs
                 SetDoWorkState(true);
 
                 // execute
-                var bw = new BackgroundWorker();
+                BackgroundWorker bw = new BackgroundWorker();
                 bw.WorkerReportsProgress = false;
                 bw.WorkerSupportsCancellation = false;
                 bw.DoWork += OnDoWork;

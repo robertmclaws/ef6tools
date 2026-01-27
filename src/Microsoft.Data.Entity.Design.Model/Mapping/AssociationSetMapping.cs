@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class AssociationSetMapping : EFElement
     {
         internal static readonly string ElementName = "AssociationSetMapping";
@@ -16,8 +16,8 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         internal static readonly string AttributeTypeName = "TypeName";
         internal static readonly string AttributeStoreEntitySet = "StoreEntitySet";
 
-        private readonly List<EndProperty> _endProperties = new List<EndProperty>();
-        private readonly List<Condition> _conditions = new List<Condition>();
+        private readonly List<EndProperty> _endProperties = [];
+        private readonly List<Condition> _conditions = [];
         private QueryView _queryView;
         private SingleItemBinding<AssociationSet> _name;
         private SingleItemBinding<Association> _typeName;
@@ -35,13 +35,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_name == null)
-                {
-                    _name = new SingleItemBinding<AssociationSet>(
+                _name ??= new SingleItemBinding<AssociationSet>(
                         this,
                         AttributeName,
                         AssociationSetNameNormalizer.NameNormalizer);
-                }
                 return _name;
             }
         }
@@ -53,13 +50,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_typeName == null)
-                {
-                    _typeName = new SingleItemBinding<Association>(
+                _typeName ??= new SingleItemBinding<Association>(
                         this,
                         AttributeTypeName,
                         AssociationNameNormalizer.NameNormalizer);
-                }
                 return _typeName;
             }
         }
@@ -71,13 +65,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_tableName == null)
-                {
-                    _tableName = new SingleItemBinding<EntitySet>(
+                _tableName ??= new SingleItemBinding<EntitySet>(
                         this,
                         AttributeStoreEntitySet,
                         EntitySetNameNormalizer.NameNormalizer);
-                }
 
                 return _tableName;
             }
@@ -154,15 +145,13 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var child1 = efContainer as EndProperty;
-            if (child1 != null)
+            if (efContainer is EndProperty child1)
             {
                 _endProperties.Remove(child1);
                 return;
             }
 
-            var child2 = efContainer as Condition;
-            if (child2 != null)
+            if (efContainer is Condition child2)
             {
                 _conditions.Remove(child2);
                 return;
@@ -239,18 +228,17 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
             get { return DisplayNameInternal(false); }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == EndProperty.ElementName)
             {
-                var ep = new EndProperty(this, elem);
+                EndProperty ep = new EndProperty(this, elem);
                 ep.Parse(unprocessedElements);
                 _endProperties.Add(ep);
             }
             else if (elem.Name.LocalName == Condition.ElementName)
             {
-                var c = new Condition(this, elem);
+                Condition c = new Condition(this, elem);
                 c.Parse(unprocessedElements);
                 _conditions.Add(c);
             }

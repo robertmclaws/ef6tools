@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 {
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     internal class AssociationBranch : HeaderBranch
     {
         private MappingAssociation _mappingAssociation;
@@ -35,7 +36,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches
 
         private void PopulateHeaders(bool initialPopulation)
         {
-            var childBranches = new List<ChildBranchInfo>(1);
+            List<ChildBranchInfo> childBranches = new List<ChildBranchInfo>(1);
 
             IBranch assocSetBranch = null;
             if (initialPopulation)

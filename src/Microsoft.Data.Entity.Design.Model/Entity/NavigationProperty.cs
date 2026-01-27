@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class NavigationProperty : PropertyBase
     {
         internal static readonly string ElementName = "NavigationProperty";
@@ -42,13 +42,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_relationshipBinding == null)
-                {
-                    _relationshipBinding = new SingleItemBinding<Association>(
+                _relationshipBinding ??= new SingleItemBinding<Association>(
                         this,
                         AttributeRelationship,
                         AssociationNameNormalizer.NameNormalizer);
-                }
                 return _relationshipBinding;
             }
         }
@@ -57,13 +54,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_fromRoleBinding == null)
-                {
-                    _fromRoleBinding = new SingleItemBinding<AssociationEnd>(
+                _fromRoleBinding ??= new SingleItemBinding<AssociationEnd>(
                         this,
                         AttributeFromRole,
                         NavigationPropertyRoleNameNormalizer);
-                }
 
                 return _fromRoleBinding;
             }
@@ -73,13 +67,10 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             get
             {
-                if (_toRoleBinding == null)
-                {
-                    _toRoleBinding = new SingleItemBinding<AssociationEnd>(
+                _toRoleBinding ??= new SingleItemBinding<AssociationEnd>(
                         this,
                         AttributeToRole,
                         NavigationPropertyRoleNameNormalizer);
-                }
                 return _toRoleBinding;
             }
         }
@@ -167,17 +158,16 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         internal static NormalizedName NavigationPropertyRoleNameNormalizer(EFElement parent, string refName)
         {
-            var navProperty = parent as NavigationProperty;
             NormalizedName normalizedName = null;
-            if (navProperty != null)
+            if (parent is NavigationProperty navProperty)
             {
-                var symbol = new Symbol(navProperty.Relationship.NormalizedName(), refName);
+                Symbol symbol = new Symbol(navProperty.Relationship.NormalizedName(), refName);
                 normalizedName = new NormalizedName(symbol, null, null, refName);
             }
 
             if (normalizedName == null)
             {
-                var symbol = new Symbol(refName);
+                Symbol symbol = new Symbol(refName);
                 normalizedName = new NormalizedName(symbol, null, null, refName);
             }
 
@@ -186,7 +176,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
 
         internal override DeleteEFElementCommand GetDeleteCommand()
         {
-            var cmd = new DeleteEFElementCommand(this);
+            DeleteEFElementCommand cmd = new DeleteEFElementCommand(this);
             if (cmd == null)
             {
                 throw new InvalidOperationException();

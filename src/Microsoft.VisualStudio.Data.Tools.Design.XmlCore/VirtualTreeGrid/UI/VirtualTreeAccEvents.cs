@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VisualStudio;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Diagnostics;
-    using System.Runtime.InteropServices;
-    using System.Threading;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-
     /// <summary>
     ///     Accessible WinEvent support for Diagrams.
     /// </summary>
@@ -62,10 +62,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                     {
                         lock (InternalSyncObject)
                         {
-                            if (instance == null)
-                            {
-                                instance = new VirtualTreeAccEvents();
-                            }
+                            instance ??= new VirtualTreeAccEvents();
                         }
                     }
                     return instance;
@@ -218,7 +215,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
                 // handle to a resource that is passed to unmanaged code.
                 // Wrapping a handle with HandleRef guarantees that the managed 
                 // object is not garbage collected until the platform invoke call completes.)
-                var viewHandleRef = new HandleRef(treeControl, treeControl.Handle);
+                HandleRef viewHandleRef = new HandleRef(treeControl, treeControl.Handle);
 
                 // Notify the system of the event.
                 NativeMethods.NotifyWinEvent(

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CopyPropertiesCommand : Command
     {
         private readonly PropertiesClipboardFormat _clipboardProperties;
@@ -54,7 +54,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             Debug.Assert(_entity != null || _complexType != null, "Undefined parent type");
-            _properties = new List<PropertyBase>();
+            _properties = [];
 
             // create copies of Properties
             foreach (var clipboardProperty in _clipboardProperties.ClipboardProperties)

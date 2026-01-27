@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-
     /// <summary>
     ///     base class for a ICustomTypeDescriptor that describes the collection of properties of an EFAttribute
     /// </summary>
@@ -158,8 +158,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
         public virtual object GetPropertyOwner(PropertyDescriptor pd)
         {
-            var efPropDesc = pd as CustomPropertyDescriptor;
-            return (efPropDesc != null) ? efPropDesc.Component : this;
+            return (pd is CustomPropertyDescriptor efPropDesc) ? efPropDesc.Component : this;
         }
 
         #endregion

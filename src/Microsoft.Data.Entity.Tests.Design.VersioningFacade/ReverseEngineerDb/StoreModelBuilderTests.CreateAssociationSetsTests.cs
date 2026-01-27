@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data.Entity.Core.Metadata.Edm;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     public partial class StoreModelBuilderTests
     {
         [TestMethod, Ignore("Different API Visibility between official dll and locally built")]
@@ -434,9 +433,6 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         public void TryCreateAssociationSet_expected_association_end_multiplicity_pk_to_pk()
         {
             Check_two_column_relationship_expected_association_end_multiplicity_pk_to_pk(
-                EntityFrameworkVersion.Version1);
-
-            Check_two_column_relationship_expected_association_end_multiplicity_pk_to_pk(
                 EntityFrameworkVersion.Version3);
         }
 
@@ -495,18 +491,12 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod, Ignore("Different API Visibility between official dll and locally built")]
         public void TryCreateAssociationSet_expected_association_end_multiplicity_pk_to_fk()
         {
+            // Version3 behavior: multiplicity is ZeroOrOne when any FK column is nullable
             Check_two_column_relationship_expected_association_end_multiplicity_pk_to_fk(
-                EntityFrameworkVersion.Version1,
+                EntityFrameworkVersion.Version3,
                 column1Nullable: true,
                 column2Nullable: true,
                 expectedSourceEndMultiplicity: RelationshipMultiplicity.ZeroOrOne,
-                expectedTargetEndMultiplicity: RelationshipMultiplicity.Many);
-
-            Check_two_column_relationship_expected_association_end_multiplicity_pk_to_fk(
-                EntityFrameworkVersion.Version1,
-                column1Nullable: false,
-                column2Nullable: true,
-                expectedSourceEndMultiplicity: RelationshipMultiplicity.One,
                 expectedTargetEndMultiplicity: RelationshipMultiplicity.Many);
 
             Check_two_column_relationship_expected_association_end_multiplicity_pk_to_fk(

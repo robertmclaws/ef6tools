@@ -2,45 +2,46 @@
 
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using VSErrorHandler = Microsoft.VisualStudio.ErrorHandler;
+using VSPackage = Microsoft.VisualStudio.Shell.Package;
 using VSTextManagerInterop = Microsoft.VisualStudio.TextManager.Interop;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.Views.Explorer;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Immutability;
+using Microsoft.VisualStudio.Modeling.Shell;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using IServiceProvider = System.IServiceProvider;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.Data.Entity.Design.Package
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Xml;
-    using System.Xml.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Tools.XmlDesignerBase.Base.Util;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.Views.Explorer;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Immutability;
-    using Microsoft.VisualStudio.Modeling.Shell;
-    using Microsoft.VisualStudio.OLE.Interop;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using IServiceProvider = System.IServiceProvider;
-
     [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal partial class MicrosoftDataEntityDesignDocData :
         IEntityDesignDocData,
@@ -59,7 +60,7 @@ namespace Microsoft.Data.Entity.Design.Package
             {
                 if (!string.IsNullOrWhiteSpace(FileName))
                 {
-                    var artifact = PackageManager.Package.ModelManager.GetArtifact(Utils.FileName2Uri(FileName)) as EntityDesignArtifact;
+                    EntityDesignArtifact artifact = PackageManager.Package.ModelManager.GetArtifact(Utils.FileName2Uri(FileName)) as EntityDesignArtifact;
                     return artifact;
                 }
                 else
@@ -98,14 +99,10 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsPersistDocData.Close")]
         private void DestroyBuffer()
         {
-            var persistDocData = _underlyingBuffer as IVsPersistDocData;
-            if (persistDocData != null)
-            {
-                persistDocData.Close();
-            }
+            IVsPersistDocData persistDocData = _underlyingBuffer as IVsPersistDocData;
+            persistDocData?.Close();
             _underlyingBuffer = null;
         }
 
@@ -148,13 +145,11 @@ namespace Microsoft.Data.Entity.Design.Package
         ///     Creates an instance of a VSTextBuffer, sets the LanguageService SID, and uses IVsPersistDocData to fire loading of the doc data.
         ///     We also start broadcasting a FileNameChanged event if the buffer gets renamed. *note* this method also gets called on reload.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsPersistDocData.LoadDocData(System.String)")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         public bool CreateAndLoadBuffer()
         {
             DestroyBuffer();
 
-            var pkg = PackageManager.Package as Package;
+            VSPackage pkg = PackageManager.Package as VSPackage;
             IServiceProvider serviceProvider = pkg;
 
             var textLinesType = typeof(VSTextManagerInterop.IVsTextLines);
@@ -164,39 +159,34 @@ namespace Microsoft.Data.Entity.Design.Package
             _underlyingBuffer = pkg.CreateInstance(ref clsid, ref riid, textLinesType);
             Debug.Assert(_underlyingBuffer != null, "Failure while creating buffer.");
 
-            var buffer = _underlyingBuffer as VSTextManagerInterop.IVsTextLines;
+            IVsTextLines buffer = _underlyingBuffer as VSTextManagerInterop.IVsTextLines;
             Debug.Assert(buffer != null, "Why does buffer not implement IVsTextLines?");
 
-            var ows = buffer as IObjectWithSite;
-            if (ows != null)
-            {
-                ows.SetSite(serviceProvider.GetService(typeof(IOleServiceProvider)));
-            }
+            IObjectWithSite ows = buffer as IObjectWithSite;
+            ows?.SetSite(serviceProvider.GetService(typeof(IOleServiceProvider)));
 
             // We want to set the LanguageService SID explicitly to the XML Language Service.
             // We need turn off GUID_VsBufferDetectLangSID before calling LoadDocData so that the 
             // TextBuffer does not do the work to detect the LanguageService SID from the file extension.
-            var userData = buffer as VSTextManagerInterop.IVsUserData;
-            if (userData != null)
+            if (buffer is VSTextManagerInterop.IVsUserData userData)
             {
-                var VsBufferDetectLangSID = new Guid("{17F375AC-C814-11d1-88AD-0000F87579D2}"); //GUID_VsBufferDetectLangSID;
+                Guid VsBufferDetectLangSID = new Guid("{17F375AC-C814-11d1-88AD-0000F87579D2}"); //GUID_VsBufferDetectLangSID;
                 VSErrorHandler.ThrowOnFailure(userData.SetData(ref VsBufferDetectLangSID, false));
             }
 
             var langSid = CommonPackageConstants.xmlEditorLanguageService;
             VSErrorHandler.ThrowOnFailure(buffer.SetLanguageServiceID(ref langSid));
 
-            var persistDocData = buffer as IVsPersistDocData;
-            if (persistDocData != null)
+            if (buffer is IVsPersistDocData persistDocData)
             {
                 persistDocData.LoadDocData(FileName);
-                var artifactUri = new Uri(FileName);
+                Uri artifactUri = new Uri(FileName);
 
                 var artifact = PackageManager.Package.ModelManager.GetArtifact(artifactUri);
                 if (artifact != null
                     && artifact.IsCodeGenArtifact)
                 {
-                    var standaloneProvider = artifact.XmlModelProvider as StandaloneXmlModelProvider;
+                    StandaloneXmlModelProvider standaloneProvider = artifact.XmlModelProvider as StandaloneXmlModelProvider;
                     if (standaloneProvider.ExtensionErrors == null
                         || standaloneProvider.ExtensionErrors.Count == 0)
                     {
@@ -210,7 +200,7 @@ namespace Microsoft.Data.Entity.Design.Package
                             if (VSHelpers.CheckOutFilesIfEditable(ServiceProvider, new[] { FileName }))
                             {
                                 string artifactText = null;
-                                using (var writer = new Utf8StringWriter())
+                                using (Utf8StringWriter writer = new Utf8StringWriter())
                                 {
                                     artifact.XDocument.Save(writer, SaveOptions.None);
                                     artifactText = writer.ToString();
@@ -267,10 +257,8 @@ namespace Microsoft.Data.Entity.Design.Package
                 if (projectItem != null)
                 {
                     var fileContents = VSHelpers.GetTextFromVsTextLines(VsBuffer);
-                    string newBufferContents;
-                    List<ExtensionError> extensionErrors;
                     if (StandaloneXmlModelProvider.TryGetBufferViaExtensions(
-                        projectItem, fileContents, out newBufferContents, out extensionErrors))
+                        projectItem, fileContents, out string newBufferContents, out List<ExtensionError> extensionErrors))
                     {
                         if (VSHelpers.CheckOutFilesIfEditable(ServiceProvider, new[] { FileName }))
                         {
@@ -320,7 +308,6 @@ namespace Microsoft.Data.Entity.Design.Package
         }
 
         // internal for testing
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal string DispatchSaveToExtensions(
             IServiceProvider serviceProvider, ProjectItem projectItem, string fileContents,
             Lazy<IModelConversionExtension, IEntityDesignerConversionData>[] converters,
@@ -336,7 +323,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
             try
             {
-                var original = XDocument.Parse(fileContents, LoadOptions.PreserveWhitespace);
+                XDocument original = XDocument.Parse(fileContents, LoadOptions.PreserveWhitespace);
                 var targetSchemaVersion = EdmUtils.GetEntityFrameworkVersion(projectItem.ContainingProject, serviceProvider);
                 Debug.Assert(targetSchemaVersion != null, "we should not get here for Misc projects");
 
@@ -346,7 +333,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 VSArtifact.DispatchToSerializationExtensions(serializers, transformContext, loading: false);
 
                 // get the extension of the file being loaded (might not be EDMX); this API will include the preceeding "."
-                var fileInfo = new FileInfo(FileName);
+                FileInfo fileInfo = new FileInfo(FileName);
                 var fileExtension = fileInfo.Extension;
 
                 // now if this is not an EDMX file, hand off to the extension who can convert it to the writable content
@@ -367,7 +354,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 else
                 {
                     // we are saving an EDMX file, so get bufferText from the XDocument
-                    using (var writer = new Utf8StringWriter())
+                    using (Utf8StringWriter writer = new Utf8StringWriter())
                     {
                         transformContext.CurrentDocument.Save(writer, SaveOptions.None);
                         return writer.ToString();
@@ -406,8 +393,6 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.TextManager.Interop.IVsChangeTrackingUndoManager.AdviseTrackingClient(Microsoft.VisualStudio.TextManager.Interop.IVsUndoTrackingEvents)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.TextManager.Interop.IVsChangeTrackingUndoManager.MarkCleanState")]
         private void RegisterUndoTracking()
         {
             IOleUndoManager undoManager = null;
@@ -418,7 +403,7 @@ namespace Microsoft.Data.Entity.Design.Package
             // In order to track when our document returns to the clean state after an undo,
             // we need to Advise for IVsUndoTrackingEvents. This is how the "remove modified 
             // star after undo" feature works.
-            var changeTrackingUndoMgr = (VSTextManagerInterop.IVsChangeTrackingUndoManager)undoManager;
+            IVsChangeTrackingUndoManager changeTrackingUndoMgr = (VSTextManagerInterop.IVsChangeTrackingUndoManager)undoManager;
             if (changeTrackingUndoMgr != null)
             {
                 changeTrackingUndoMgr.MarkCleanState();
@@ -439,7 +424,6 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.TextManager.Interop.IVsChangeTrackingUndoManager.UnadviseTrackingClient")]
         private void UnregisterUndoTracking()
         {
             IOleUndoManager undoManager = null;
@@ -449,11 +433,8 @@ namespace Microsoft.Data.Entity.Design.Package
             }
             if (undoManager != null)
             {
-                var changeTrackingUndoMgr = (VSTextManagerInterop.IVsChangeTrackingUndoManager)undoManager;
-                if (changeTrackingUndoMgr != null)
-                {
-                    changeTrackingUndoMgr.UnadviseTrackingClient();
-                }
+                IVsChangeTrackingUndoManager changeTrackingUndoMgr = (VSTextManagerInterop.IVsChangeTrackingUndoManager)undoManager;
+                changeTrackingUndoMgr?.UnadviseTrackingClient();
             }
         }
 
@@ -468,11 +449,10 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             // Make sure that we set the root element to the current active view's root element before we save.
             IServiceProvider serviceProvider = PackageManager.Package;
-            var selectionService = serviceProvider.GetService(typeof(IMonitorSelectionService)) as IMonitorSelectionService;
-            var dataEntityDesignDocView = selectionService.CurrentDocumentView as MicrosoftDataEntityDesignDocView;
+            IMonitorSelectionService selectionService = serviceProvider.GetService(typeof(IMonitorSelectionService)) as IMonitorSelectionService;
 
             // if the current active view is not Entity designer or the view belongs to another document, just get the first view available.
-            if (dataEntityDesignDocView == null
+            if (selectionService.CurrentDocumentView is not MicrosoftDataEntityDesignDocView dataEntityDesignDocView
                 || dataEntityDesignDocView.DocData != this)
             {
                 dataEntityDesignDocView = DocViews.OfType<MicrosoftDataEntityDesignDocView>().FirstOrDefault();
@@ -495,7 +475,6 @@ namespace Microsoft.Data.Entity.Design.Package
             return base.BackupFile(backupFileName);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsQueryEditQuerySave2.OnAfterSaveUnreloadableFile(System.String,System.UInt32,Microsoft.VisualStudio.Shell.Interop.VSQEQS_FILE_ATTRIBUTE_DATA[])")]
         protected override void OnDocumentLoaded()
         {
             try
@@ -513,11 +492,8 @@ namespace Microsoft.Data.Entity.Design.Package
 
                 // call IVsQueryEditQuerySave2.OnAfterSaveUnreloadableFile() otherwise VS thinks the
                 // underlying file is dirty and you get the "conflicting modifications detected" message
-                var queryEditQuerySave2 = PackageManager.Package.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
-                if (queryEditQuerySave2 != null)
-                {
-                    queryEditQuerySave2.OnAfterSaveUnreloadableFile(FileName, 0, null);
-                }
+                IVsQueryEditQuerySave2 queryEditQuerySave2 = PackageManager.Package.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
+                queryEditQuerySave2?.OnAfterSaveUnreloadableFile(FileName, 0, null);
 
                 // this handler notifies us when DSL has committed a transaction
                 EventHandler<TransactionCommitEventArgs> eventHandler = OnTransactionCommitted;
@@ -545,8 +521,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             if (RootElement != null)
             {
-                var modelRoot = RootElement as EntityDesignerViewModel;
-                if (modelRoot != null)
+                if (RootElement is EntityDesignerViewModel modelRoot)
                 {
                     var diagram = modelRoot.GetDiagram();
                     Debug.Assert(diagram != null, "DSL Diagram should have been created by now");
@@ -596,7 +571,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
                             if (saveDiagramDocument)
                             {
-                                var rdt = new RunningDocumentTable(ServiceProvider);
+                                RunningDocumentTable rdt = new RunningDocumentTable(ServiceProvider);
                                 rdt.SaveFileIfDirty(FileName);
                             }
 
@@ -623,7 +598,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     Debug.Assert(artifact != null, "artifact should not be null");
                     if (artifact != null)
                     {
-                        var xmlModelProvider = artifact.XmlModelProvider as VSXmlModelProvider;
+                        VSXmlModelProvider xmlModelProvider = artifact.XmlModelProvider as VSXmlModelProvider;
                         Debug.Assert(xmlModelProvider != null, "Unexpected xml model provider type is being used with VS implementation");
                         if (xmlModelProvider != null)
                         {
@@ -633,8 +608,7 @@ namespace Microsoft.Data.Entity.Design.Package
                             // XML Model ends up thinking the parse tree is out of sync with the buffer. We should not have to explicitly roll back the buffer
                             // since modifications from our undo manager wrap XML model parse tree modifications, which when rolled back will be committed
                             // to the buffer.
-                            IOleUndoManager bufferUndoMgr;
-                            var hr = ((VSTextManagerInterop.IVsTextBuffer)VsBuffer).GetUndoManager(out bufferUndoMgr);
+                            var hr = ((VSTextManagerInterop.IVsTextBuffer)VsBuffer).GetUndoManager(out IOleUndoManager bufferUndoMgr);
 
                             Debug.Assert(bufferUndoMgr != null, "Couldn't find the buffer undo manager. Undo/Redo will be disabled");
                             if (NativeMethods.Succeeded(hr) && bufferUndoMgr != null)
@@ -674,10 +648,7 @@ namespace Microsoft.Data.Entity.Design.Package
                     && artifactService.Artifact != null)
                 {
                     var contextManager = EditingContextManager;
-                    if (contextManager != null)
-                    {
-                        contextManager.CloseArtifact(artifactService.Artifact.Uri);
-                    }
+                    contextManager?.CloseArtifact(artifactService.Artifact.Uri);
                 }
             }
         }
@@ -713,11 +684,11 @@ namespace Microsoft.Data.Entity.Design.Package
         /// </summary>
         protected void OnFileNameChanged(object sender, EventArgs e)
         {
-            var buffer = _underlyingBuffer as VSTextManagerInterop.IVsTextLines;
+            IVsTextLines buffer = _underlyingBuffer as VSTextManagerInterop.IVsTextLines;
             Debug.Assert(buffer != null, "There is no underlying buffer in order to correctly change the filename");
             if (buffer != null)
             {
-                var ud = buffer as VSTextManagerInterop.IVsUserData;
+                IVsUserData ud = buffer as VSTextManagerInterop.IVsUserData;
                 Debug.Assert(
                     ud != null, "Cannot change the moniker associated with the buffer because there is no IVsUserData associated with it");
                 if (ud != null)
@@ -725,18 +696,16 @@ namespace Microsoft.Data.Entity.Design.Package
                     var GUID_VsBufferMoniker = typeof(VSTextManagerInterop.IVsUserData).GUID;
 
                     // get the old filename from the buffer
-                    object oldFileNameObject;
-                    var hr = ud.GetData(ref GUID_VsBufferMoniker, out oldFileNameObject);
+                    var hr = ud.GetData(ref GUID_VsBufferMoniker, out object oldFileNameObject);
                     if (NativeMethods.Succeeded(hr))
                     {
                         // set the new filename into the buffer so the XmlModel is satisfied when it tries to RegisterAndLock
                         hr = ud.SetData(ref GUID_VsBufferMoniker, FileName);
 
                         // send off notification to the package so anything else can subscribe to an event from there
-                        var oldFileName = oldFileNameObject as string;
                         if (PackageManager.Package != null
                             && NativeMethods.Succeeded(hr)
-                            && oldFileName != null)
+                            && oldFileNameObject is string oldFileName)
                         {
                             PackageManager.Package.OnFileNameChanged(oldFileName, FileName);
                         }
@@ -769,7 +738,7 @@ namespace Microsoft.Data.Entity.Design.Package
                 // look at the current selection
                 // Note: must use CurrentDocumentView rather than CurrentWindow, CurrentWindow can be e.g. the MappingDetailsWindow
                 IServiceProvider serviceProvider = PackageManager.Package;
-                var selectionService = serviceProvider.GetService(typeof(IMonitorSelectionService)) as IMonitorSelectionService;
+                IMonitorSelectionService selectionService = serviceProvider.GetService(typeof(IMonitorSelectionService)) as IMonitorSelectionService;
                 dataEntityDesignDocView = selectionService.CurrentDocumentView as MicrosoftDataEntityDesignDocView;
             }
 
@@ -778,15 +747,14 @@ namespace Microsoft.Data.Entity.Design.Package
             if (dataEntityDesignDocView != null
                 && dataEntityDesignDocView.IsLoading == false)
             {
-                var viewModel = dataEntityDesignDocView.Diagram.ModelElement as EntityDesignerViewModel;
-                if (viewModel != null)
+                if (dataEntityDesignDocView.Diagram.ModelElement is EntityDesignerViewModel viewModel)
                 {
                     viewModel.OnTransactionCommited(e);
 
                     // now set the isDirty flag on Shell's UndoManager so diagram layout changes can 
                     // also get persisted; if there isn't one of our context's in the xact, then this
                     // change didn't involve changing any items, just position or size
-                    var changeContext = ViewModelChangeContext.GetExistingContext(e.Transaction);
+                    ViewModelChangeContext changeContext = ViewModelChangeContext.GetExistingContext(e.Transaction);
                     if (changeContext == null)
                     {
                         if (IsHandlingDocumentReloaded == false)
@@ -856,8 +824,6 @@ namespace Microsoft.Data.Entity.Design.Package
             return hr;
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "System.Boolean.TryParse(System.String,System.Boolean@)")]
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void ProcessDependentTTFiles()
         {
             // check if template processing was turned off via designer options
@@ -865,10 +831,9 @@ namespace Microsoft.Data.Entity.Design.Package
             var artifact = PackageManager.Package.ModelManager.GetArtifact(Utils.FileName2Uri(FileName));
             if (artifact != null)
             {
-                DesignerInfo designerInfo;
-                if (artifact.DesignerInfo().TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out designerInfo))
+                if (artifact.DesignerInfo().TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out DesignerInfo designerInfo))
                 {
-                    var optionsDesignerInfo = designerInfo as OptionsDesignerInfo;
+                    OptionsDesignerInfo optionsDesignerInfo = designerInfo as OptionsDesignerInfo;
                     Debug.Assert(
                         optionsDesignerInfo != null,
                         "DesignerInfo associated with " + OptionsDesignerInfo.ElementName + "must be of type OptionsDesignerInfo");
@@ -888,7 +853,7 @@ namespace Microsoft.Data.Entity.Design.Package
             }
 
             // Find all .tt files in the project and invoke custom Tool 
-            var fileFinder = new VSFileFinder(".tt");
+            VSFileFinder fileFinder = new VSFileFinder(".tt");
             fileFinder.FindInProject(Hierarchy);
             foreach (var vsFileInfo in fileFinder.MatchingFiles)
             {
@@ -914,7 +879,6 @@ namespace Microsoft.Data.Entity.Design.Package
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private bool IsDependentTTFile(VSFileFinder.VSFileInfo fileInfo)
         {
             string contents = null;
@@ -949,7 +913,7 @@ namespace Microsoft.Data.Entity.Design.Package
             //
             if (contents != null)
             {
-                var fi = new FileInfo(FileName);
+                FileInfo fi = new FileInfo(FileName);
                 return contents.Contains(fi.Name);
             }
             else
@@ -1006,13 +970,12 @@ namespace Microsoft.Data.Entity.Design.Package
 
         // Currently openInNewTab flag is not used since a new diagram will alway be opened in a new tab.
         // But we would like to support open in new table vs open in existing tab scenario in the future.
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsWindowFrame.Show")]
         public void OpenDiagram(string diagramMoniker, bool openInNewTab)
         {
             // first check if the doc view for the diagram is available
             foreach (var docView in DocViews)
             {
-                var dataEntityDesignDocView = docView as MicrosoftDataEntityDesignDocView;
+                MicrosoftDataEntityDesignDocView dataEntityDesignDocView = docView as MicrosoftDataEntityDesignDocView;
                 if (dataEntityDesignDocView.Diagram.DiagramId == diagramMoniker)
                 {
                     dataEntityDesignDocView.Frame.Show();
@@ -1040,14 +1003,10 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             get
             {
-                IVsUIHierarchy hier;
-                uint itemId;
-                IVsWindowFrame pFrame;
                 if (VsShellUtilities.IsDocumentOpen(
-                    Services.ServiceProvider, FileName, PackageConstants.guidLogicalView, out hier, out itemId, out pFrame))
+                    Services.ServiceProvider, FileName, PackageConstants.guidLogicalView, out IVsUIHierarchy hier, out uint itemId, out IVsWindowFrame pFrame))
                 {
-                    object docViewObj;
-                    if (VSConstants.S_OK == pFrame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out docViewObj))
+                    if (VSConstants.S_OK == pFrame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out object docViewObj))
                     {
                         return GetDiagramFromDocView(docViewObj);
                     }
@@ -1069,9 +1028,7 @@ namespace Microsoft.Data.Entity.Design.Package
 
         private static IViewDiagram GetDiagramFromDocView(object docViewObject)
         {
-            var singleDiagramDocView = docViewObject as SingleDiagramDocView;
-
-            if (singleDiagramDocView != null)
+            if (docViewObject is SingleDiagramDocView singleDiagramDocView)
             {
                 return singleDiagramDocView.Diagram as IViewDiagram;
             }
@@ -1086,7 +1043,7 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             foreach (var docView in DocViews)
             {
-                var dataEntityDesignDocView = docView as MicrosoftDataEntityDesignDocView;
+                MicrosoftDataEntityDesignDocView dataEntityDesignDocView = docView as MicrosoftDataEntityDesignDocView;
                 Debug.Assert(dataEntityDesignDocView != null, "DocView is null or not typeof MicrosoftDataEntityDesignDocView");
                 if (dataEntityDesignDocView != null
                     && dataEntityDesignDocView.Diagram.DiagramId == diagramMoniker)
@@ -1112,14 +1069,12 @@ namespace Microsoft.Data.Entity.Design.Package
         ///     Close DocView's windows frame.
         ///     Prompt the user to save the document if the last diagram is closed and doc data is dirty.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsWindowFrame.CloseFrame(System.UInt32)")]
         private void CloseDocViewWindow(MicrosoftDataEntityDesignDocView docView)
         {
             Debug.Assert(docView != null, "docView parameter is null");
             if (docView != null)
             {
-                var isDirty = 0;
-                IsDocDataDirty(out isDirty);
+                IsDocDataDirty(out int isDirty);
                 if (DocViews.Count == 1
                     && isDirty == 1)
                 {

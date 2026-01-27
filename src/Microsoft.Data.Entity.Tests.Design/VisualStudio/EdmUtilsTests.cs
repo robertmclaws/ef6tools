@@ -1,28 +1,27 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.IO;
+using System.Xml;
+using System.Xml.Linq;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Microsoft.VisualStudio.Shell.Interop;
+using Moq;
+using Microsoft.Data.Entity.Tests.Design.TestHelpers;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using VSLangProj;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using Resources = Microsoft.Data.Entity.Design.Resources;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Xml;
-    using System.Xml.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Moq;
-    using Microsoft.Data.Entity.Tests.Design.TestHelpers;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using VSLangProj;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [TestClass]
     public class EdmUtilsTests
     {
@@ -135,7 +134,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void ConstructUniqueNamespaces_returns_uniquified_namespace_()
         {
-            EdmUtils.ConstructUniqueNamespace("Model", new HashSet<string> { "Model" }).Should().Be("Model1");
+            EdmUtils.ConstructUniqueNamespace("Model", ["Model"]).Should().Be("Model1");
         }
 
         [TestMethod]
@@ -171,7 +170,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         public void GetEntityFrameworkVersion_returns_null_when_misc_files()
         {
             var project = MockDTE.CreateMiscFilesProject();
-            var serviceProvider = new Mock<IServiceProvider>();
+            Mock<IServiceProvider> serviceProvider = new Mock<IServiceProvider>();
 
             var schemaVersion = EdmUtils.GetEntityFrameworkVersion(project, serviceProvider.Object);
 
@@ -181,7 +180,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void GetEntityFrameworkVersion_returns_version_when_ef_installed()
         {
-            var helper = new MockDTE(
+            MockDTE helper = new MockDTE(
                 ".NETFramework,Version=v4.5", references: new[] { MockDTE.CreateReference("EntityFramework", "6.0.0.0") });
 
             var schemaVersion = EdmUtils.GetEntityFrameworkVersion(helper.Project, helper.ServiceProvider);
@@ -190,42 +189,23 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         }
 
         [TestMethod]
-        public void GetEntityFrameworkVersion_returns_latest_version_when_EF_dll_in_the_project_and_useLatestIfNoEf_true()
+        public void GetEntityFrameworkVersion_always_returns_Version3_for_modern_development()
         {
-            var netFxToSchemaVersionMapping =
-                new[]
-                    {
-                        new KeyValuePair<string, Version>(".NETFramework,Version=v4.5", new Version(3, 0, 0, 0)),
-                        new KeyValuePair<string, Version>(".NETFramework,Version=v4.0", new Version(3, 0, 0, 0)),
-                        new KeyValuePair<string, Version>(".NETFramework,Version=v3.5", new Version(1, 0, 0, 0))
-                    };
+            // For modern development, GetEntityFrameworkVersion always returns Version3
+            var netFxVersions = new[]
+                {
+                    ".NETFramework,Version=v4.5",
+                    ".NETFramework,Version=v4.0",
+                    ".NETFramework,Version=v3.5"
+                };
 
-            foreach (var mapping in netFxToSchemaVersionMapping)
+            foreach (var netFx in netFxVersions)
             {
-                var helper = new MockDTE( /* .NET Framework Moniker */ mapping.Key, references: new Reference[0]);
-                var schemaVersion = EdmUtils.GetEntityFrameworkVersion(helper.Project, helper.ServiceProvider, useLatestIfNoEF: true);
-                schemaVersion.Should().Be( /*expected schema version */ mapping.Value);
-            }
-        }
-
-        [TestMethod]
-        public void
-            GetEntityFrameworkVersion_returns_version_corresponding_to_net_framework_version_when_no_EF_dll_in_the_project_and_useLatestIfNoEf_false
-            ()
-        {
-            var netFxToSchemaVersionMapping =
-                new[]
-                    {
-                        new KeyValuePair<string, Version>(".NETFramework,Version=v4.5", new Version(3, 0, 0, 0)),
-                        new KeyValuePair<string, Version>(".NETFramework,Version=v4.0", new Version(2, 0, 0, 0)),
-                        new KeyValuePair<string, Version>(".NETFramework,Version=v3.5", new Version(1, 0, 0, 0))
-                    };
-
-            foreach (var mapping in netFxToSchemaVersionMapping)
-            {
-                var helper = new MockDTE( /* .NET Framework Moniker */ mapping.Key, references: new Reference[0]);
-                var schemaVersion = EdmUtils.GetEntityFrameworkVersion(helper.Project, helper.ServiceProvider, useLatestIfNoEF: false);
-                schemaVersion.Should().Be( /*expected schema version */ mapping.Value);
+                MockDTE helper = new MockDTE(netFx, references: new Reference[0]);
+                EdmUtils.GetEntityFrameworkVersion(helper.Project, helper.ServiceProvider, useLatestIfNoEF: true)
+                    .Should().Be(new Version(3, 0, 0, 0));
+                EdmUtils.GetEntityFrameworkVersion(helper.Project, helper.ServiceProvider, useLatestIfNoEF: false)
+                    .Should().Be(new Version(3, 0, 0, 0));
             }
         }
 
@@ -235,10 +215,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock =
+            Mock<EntityDesignArtifact> entityDesignArtifactMock =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
-            using (var designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
+            using (EFDesignerInfoRoot designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
             {
                 const string designerPropertyName = "CodeGenerationStrategy";
                 designerInfoRoot
@@ -262,10 +242,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock =
+            Mock<EntityDesignArtifact> entityDesignArtifactMock =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
-            using (var designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
+            using (EFDesignerInfoRoot designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
             {
                 const string designerPropertyName = "CodeGenerationStrategy";
                 designerInfoRoot
@@ -287,10 +267,10 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
             var modelProvider = new Mock<XmlModelProvider>().Object;
-            var entityDesignArtifactMock =
+            Mock<EntityDesignArtifact> entityDesignArtifactMock =
                 new Mock<EntityDesignArtifact>(modelManager, new Uri("urn:dummy"), modelProvider);
 
-            using (var designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
+            using (EFDesignerInfoRoot designerInfoRoot = new EFDesignerInfoRoot(entityDesignArtifactMock.Object, new XElement("_")))
             {
                 const string designerPropertyName = "CodeGenerationStrategy";
                 designerInfoRoot
@@ -308,19 +288,19 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 
         private DesignerInfo SetupOptionsDesignerInfo(string designerPropertyName, string designerPropertyValue)
         {
-            var designerInfo =
+            OptionsDesignerInfo designerInfo =
                 new OptionsDesignerInfo(
                     null,
                     XElement.Parse(
                         "<Options xmlns='http://schemas.microsoft.com/ado/2009/11/edmx' />"));
-            var designerInfoPropertySet =
+            DesignerInfoPropertySet designerInfoPropertySet =
                 new DesignerInfoPropertySet(
                     designerInfo,
                     XElement.Parse(
                         "<DesignerInfoPropertySet xmlns='http://schemas.microsoft.com/ado/2009/11/edmx' />"));
             if (designerPropertyName != null)
             {
-                var designerProperty =
+                DesignerProperty designerProperty =
                     new DesignerProperty(
                         designerInfoPropertySet,
                         XElement.Parse(
@@ -337,7 +317,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void UpdateConfigForSqlDbFileUpgrade_updates_and_saves_config()
         {
-            var xmlDoc = new XmlDocument();
+            XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(
                 "<configuration>" +
                 "  <connectionStrings>" +
@@ -345,7 +325,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
                 "  </connectionStrings>" +
                 "</configuration>");
 
-            var mockConfigFileUtils =
+            Mock<ConfigFileUtils> mockConfigFileUtils =
                 new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, Mock.Of<IVsUtils>(), null);
             mockConfigFileUtils
                 .Setup(u => u.LoadConfig())
@@ -362,7 +342,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void UpdateConfigForSqlDbFileUpgrade_does_not_save_config_if_content_not_loaded()
         {
-            var mockConfigFileUtils = new Mock<ConfigFileUtils>(
+            Mock<ConfigFileUtils> mockConfigFileUtils = new Mock<ConfigFileUtils>(
                 Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, Mock.Of<IVsUtils>(), null);
 
             EdmUtils.UpdateConfigForSqlDbFileUpgrade(
@@ -376,14 +356,14 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void UpdateConfigForSqlDbFileUpgrade_logs_exceptions()
         {
-            var mockConfigFileUtils = new Mock<ConfigFileUtils>(
+            Mock<ConfigFileUtils> mockConfigFileUtils = new Mock<ConfigFileUtils>(
                 Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, Mock.Of<IVsUtils>(), null);
 
             mockConfigFileUtils
                 .Setup(u => u.LoadConfig())
                 .Throws(new InvalidOperationException("Loading Failed"));
 
-            var mockLogger = new Mock<IVsUpgradeLogger>();
+            Mock<IVsUpgradeLogger> mockLogger = new Mock<IVsUpgradeLogger>();
 
             EdmUtils.UpdateConfigForSqlDbFileUpgrade(
                 mockConfigFileUtils.Object,

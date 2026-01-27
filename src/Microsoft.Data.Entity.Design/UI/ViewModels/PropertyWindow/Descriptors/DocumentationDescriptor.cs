@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Drawing.Design;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.ComponentModel;
-    using System.ComponentModel.Design;
-    using System.Diagnostics;
-    using System.Drawing.Design;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-
     [TypeConverter(typeof(ExpandablePropertyConverter))]
     internal class DocumentationDescriptor
     {
@@ -64,7 +64,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             set
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                var cmd = new SetDocumentationSummaryCommand(_efElement, value);
+                SetDocumentationSummaryCommand cmd = new SetDocumentationSummaryCommand(_efElement, value);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
         }
@@ -88,15 +88,14 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             set
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                var cmd = new SetDocumentationLongDescriptionCommand(_efElement, value);
+                SetDocumentationLongDescriptionCommand cmd = new SetDocumentationLongDescriptionCommand(_efElement, value);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
         }
 
         private static bool IsCsdlElement(EFElement element)
         {
-            var entityModel = element.GetParentOfType(typeof(BaseEntityModel)) as BaseEntityModel;
-            if (entityModel != null
+            if (element.GetParentOfType(typeof(BaseEntityModel)) is BaseEntityModel entityModel
                 && entityModel.IsCSDL)
             {
                 return false;

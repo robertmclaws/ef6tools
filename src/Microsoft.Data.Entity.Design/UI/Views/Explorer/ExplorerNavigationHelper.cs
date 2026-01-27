@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal class ExplorerNavigationHelper
     {
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsWindowFrame.Show")]
         public static void NavigateTo(EFObject efobject)
         {
             if (efobject == null)
@@ -51,11 +50,8 @@ namespace Microsoft.Data.Entity.Design.UI.Views.Explorer
                         // note - if we don't show the frame before calling GetTreeViewItem, then 
                         // we don't find the correct tree view item the first time GetTreeViewItem is called.
                         // we find a parent. Rather, we find a parent close to the root. 
-                        var frame = PackageManager.Package.ExplorerWindow.Frame as IVsWindowFrame;
-                        if (frame != null)
-                        {
-                            frame.Show();
-                        }
+                        IVsWindowFrame frame = PackageManager.Package.ExplorerWindow.Frame as IVsWindowFrame;
+                        frame?.Show();
 
                         // Ensure that the root node is expanded so the selected node is shown.
                         // Only need to expand the root node, the rest of the nodes will be expanded when the code traverse to the selected node.

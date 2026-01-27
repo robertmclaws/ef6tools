@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Collections;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Drawing;
-    using System.Windows.Forms;
-
     #region VirtualTreeDisplayDataMasks class
 
     /// <summary>
@@ -549,8 +549,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns false, there is no need to compare VirtualTreeDisplayData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator ==(VirtualTreeDisplayData operand1, VirtualTreeDisplayData operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -563,8 +561,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns false, there is no need to compare VirtualTreeDisplayData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool Compare(VirtualTreeDisplayData operand1, VirtualTreeDisplayData operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -577,8 +573,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns true, there is no need to compare VirtualTreeDisplayData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator !=(VirtualTreeDisplayData operand1, VirtualTreeDisplayData operand2)
         {
             Debug.Assert(false); // There is no need to compare these

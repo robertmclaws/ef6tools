@@ -1,28 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data.Entity.Core.EntityClient;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using EnvDTE;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Data.Core;
+using Microsoft.VisualStudio.Data.Services;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Data.Common;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Data.Core;
-    using Microsoft.VisualStudio.Data.Services;
-
     internal abstract class DatabaseEngineBase
     {
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected static ModelBuilderSettings SetupSettingsAndModeForDbPages(
             IServiceProvider serviceProvider,
             Project project,
@@ -34,22 +29,19 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             var conceptualEntityModel = artifact.ConceptualModel();
             Debug.Assert(conceptualEntityModel != null, "Null Conceptual Entity Model");
-            var entityContainer = conceptualEntityModel.FirstEntityContainer as ConceptualEntityContainer;
+            ConceptualEntityContainer entityContainer = conceptualEntityModel.FirstEntityContainer as ConceptualEntityContainer;
             Debug.Assert(entityContainer != null, "Null Conceptual Entity Container");
             var entityContainerName = entityContainer.LocalName.Value;
 
             // set up ModelBuilderSettings for startMode=noConnectionMode
             startMode = noConnectionMode;
-            var settings = new ModelBuilderSettings
+            ModelBuilderSettings settings = new ModelBuilderSettings
             {
                 VSApplicationType = VsUtils.GetApplicationType(serviceProvider, project),
                 AppConfigConnectionPropertyName = entityContainerName,
                 Artifact = artifact,
-                UseLegacyProvider = ModelHelper.GetDesignerPropertyValueFromArtifactAsBool(
-                    OptionsDesignerInfo.ElementName,
-                    OptionsDesignerInfo.AttributeUseLegacyProvider,
-                    OptionsDesignerInfo.UseLegacyProviderDefault,
-                    artifact),
+                // Always use modern provider (legacy provider support removed)
+                UseLegacyProvider = false,
                 TargetSchemaVersion = artifact.SchemaVersion,
                 Project = project,
                 ModelPath = artifact.Uri.LocalPath,
@@ -77,10 +69,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                     IVsDataConnection dataConnection = null;
                     try
                     {
-                        var dataConnectionManager = serviceProvider.GetService(typeof(IVsDataConnectionManager)) as IVsDataConnectionManager;
+                        IVsDataConnectionManager dataConnectionManager = serviceProvider.GetService(typeof(IVsDataConnectionManager)) as IVsDataConnectionManager;
                         Debug.Assert(dataConnectionManager != null, "Could not find IVsDataConnectionManager");
 
-                        var dataProviderManager = serviceProvider.GetService(typeof(IVsDataProviderManager)) as IVsDataProviderManager;
+                        IVsDataProviderManager dataProviderManager = serviceProvider.GetService(typeof(IVsDataProviderManager)) as IVsDataProviderManager;
                         Debug.Assert(dataProviderManager != null, "Could not find IVsDataProviderManager");
 
                         if (dataConnectionManager != null
@@ -162,7 +154,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             return settings;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected static bool CanCreateAndOpenConnection(
             StoreSchemaConnectionFactory connectionFactory, string providerInvariantName, string designTimeInvariantName,
             string designTimeConnectionString)

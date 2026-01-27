@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Diagnostics;
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System;
-    using System.Collections;
-    using System.Diagnostics;
-    using System.Windows.Forms;
-
     #region PositionManagerEventArgs class
 
     /// <summary>
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         internal PositionManagerEventArgs(VirtualTree owningTree)
         {
             myMultiColumnTree = (null != (owningTree as IMultiColumnTree)) ? owningTree : null;
-            myTable = new Hashtable();
+            myTable = [];
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <returns>An array of PositionTracker structures</returns>
         public PositionTracker[] RetrievePositions(object key, bool multiColumnPositions)
         {
-            var positions = myTable[key] as PositionTracker[];
+            PositionTracker[] positions = myTable[key] as PositionTracker[];
             if (!multiColumnPositions
                 && positions != null
                 && myMultiColumnTree != null)
@@ -1067,10 +1067,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         public void NotifyStateChange(StateRefreshChanges stateChanges, int row, int column)
         {
             Debug.Assert(myTree != null, "unable to notify state change.");
-            if (myTree != null)
-            {
-                myTree.NotifyStateChange(row, column, stateChanges);
-            }
+            myTree?.NotifyStateChange(row, column, stateChanges);
         }
     }
 

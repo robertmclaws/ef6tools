@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
 {
-    using System;
-    using System.Linq;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-
     [TestClass]
     public class DesignerErrorListTests
     {
@@ -23,11 +23,11 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio
         [TestMethod]
         public void Can_add_clear_error_list_tasks()
         {
-            var mockServiceProvider = new Mock<IServiceProvider>();
+            Mock<IServiceProvider> mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider.Setup(p => p.GetService(typeof(SVsTaskList))).Returns(new Mock<IVsTaskList>().Object);
 
-            var task = new ErrorTask();
-            var errorList = new DesignerErrorList(mockServiceProvider.Object);
+            ErrorTask task = new ErrorTask();
+            DesignerErrorList errorList = new DesignerErrorList(mockServiceProvider.Object);
 
             errorList.Provider.Tasks.Cast<ErrorTask>().Should().BeEmpty();
             errorList.AddItem(task);

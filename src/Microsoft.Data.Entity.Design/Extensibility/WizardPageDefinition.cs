@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.WizardFramework;
+
 namespace Microsoft.Data.Entity.Design.Extensibility
 {
-    using Microsoft.WizardFramework;
-
     internal class WizardPageDefinition
     {
         internal WizardPage WizardPage { get; private set; }

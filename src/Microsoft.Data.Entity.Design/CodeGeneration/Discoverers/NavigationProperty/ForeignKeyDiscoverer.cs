@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
-
     internal class ForeignKeyDiscoverer : INavigationPropertyConfigurationDiscoverer
     {
         public IFluentConfiguration Discover(NavigationProperty navigationProperty, DbModel model)
@@ -15,7 +15,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
             Debug.Assert(navigationProperty != null, "navigationProperty is null.");
             Debug.Assert(model != null, "model is null.");
 
-            var associationType = (AssociationType)navigationProperty.RelationshipType;
+            AssociationType associationType = (AssociationType)navigationProperty.RelationshipType;
 
             if (!associationType.IsForeignKey
                 || (navigationProperty.ToEndMember.RelationshipMultiplicity != RelationshipMultiplicity.Many
@@ -26,7 +26,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
             }
 
             var constraint = associationType.Constraint;
-            var entityType = (EntityType)navigationProperty.DeclaringType;
+            EntityType entityType = (EntityType)navigationProperty.DeclaringType;
             var fromProperty = constraint.FromProperties.First();
             var fromPropertyName = fromProperty.Name;
             var toEntityType = navigationProperty.ToEndMember.GetEntityType();
@@ -47,7 +47,7 @@ namespace Microsoft.Data.Entity.Design.CodeGeneration
                 return null;
             }
 
-            var configuration = new ForeignKeyConfiguration();
+            ForeignKeyConfiguration configuration = new ForeignKeyConfiguration();
 
             foreach (var property in toProperties)
             {

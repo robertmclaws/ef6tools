@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CopyComplexTypeCommand : CopyAnnotatableElementCommand
     {
         private readonly ComplexTypeClipboardFormat _clipboardComplexType;
@@ -22,12 +22,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // create copy of the ComplexType
-            var cmd = new CreateComplexTypeCommand(_clipboardComplexType.Name, true);
+            CreateComplexTypeCommand cmd = new CreateComplexTypeCommand(_clipboardComplexType.Name, true);
             CommandProcessor.InvokeSingleCommand(cpc, cmd);
             _createdComplexType = cmd.ComplexType;
 
             // copy child properties
-            var cmd2 = new CopyPropertiesCommand(_clipboardComplexType.Properties, _createdComplexType);
+            CopyPropertiesCommand cmd2 = new CopyPropertiesCommand(_clipboardComplexType.Properties, _createdComplexType);
             CommandProcessor.InvokeSingleCommand(cpc, cmd2);
             AddAnnotations(_clipboardComplexType, _createdComplexType);
         }

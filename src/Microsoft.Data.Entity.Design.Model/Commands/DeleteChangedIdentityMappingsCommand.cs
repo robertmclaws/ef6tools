@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.UpdateFromDatabase;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.UpdateFromDatabase;
-
     internal class DeleteChangedIdentityMappingsCommand : Command
     {
         private readonly ExistingModelSummary _preExistingModel;
@@ -38,29 +38,27 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // Find the S-side EntitySets (in the current artifact) which 
             // have different identities compared to those in the existing model
             // but the same names and delete their mappings
-            HashSet<StorageEntitySet> storageEntitySetsWithSameNameButDifferentIdentity;
-            FindNewStorageEntitySetsWithSameName(artifact, out storageEntitySetsWithSameNameButDifferentIdentity);
+            FindNewStorageEntitySetsWithSameName(artifact, out HashSet<StorageEntitySet> storageEntitySetsWithSameNameButDifferentIdentity);
             DeleteMappingsForEntitySets(cpc, storageEntitySetsWithSameNameButDifferentIdentity);
 
             // Find the S-side Functions (in the current artifact) which 
             // have different identities compared to those in the existing model
             // but the same names and delete their mappings
-            HashSet<Function> storageFunctionsWithSameNameButDifferentIdentity;
-            FindNewStorageFunctionsWithSameName(artifact, out storageFunctionsWithSameNameButDifferentIdentity);
+            FindNewStorageFunctionsWithSameName(artifact, out HashSet<Function> storageFunctionsWithSameNameButDifferentIdentity);
             DeleteMappingsForFunctions(cpc, storageFunctionsWithSameNameButDifferentIdentity);
         }
 
         private void FindNewStorageEntitySetsWithSameName(
             EFArtifact artifact, out HashSet<StorageEntitySet> storageEntitySetsWithSameNameButDifferentIdentity)
         {
-            storageEntitySetsWithSameNameButDifferentIdentity = new HashSet<StorageEntitySet>();
+            storageEntitySetsWithSameNameButDifferentIdentity = [];
 
             if (null != artifact
                 && null != artifact.StorageModel()
                 && null != artifact.StorageModel().FirstEntityContainer)
             {
                 // set up Dictionary of EntitySetName to EntitySet for new (DB-based) artifact
-                var newEntitySetMap = new Dictionary<string, EntitySet>();
+                Dictionary<string, EntitySet> newEntitySetMap = new Dictionary<string, EntitySet>();
                 foreach (var newEntitySet in artifact.StorageModel().FirstEntityContainer.EntitySets())
                 {
                     newEntitySetMap.Add(newEntitySet.LocalName.Value, newEntitySet);
@@ -72,15 +70,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 {
                     var existingEntitySetLocalName = existingEntitySet.Value;
 
-                    EntitySet newEntitySet;
-                    if (newEntitySetMap.TryGetValue(existingEntitySetLocalName, out newEntitySet))
+                    if (newEntitySetMap.TryGetValue(existingEntitySetLocalName, out EntitySet newEntitySet))
                     {
-                        var newStorageEntitySet = newEntitySet as StorageEntitySet;
-                        if (null != newStorageEntitySet)
+                        if (newEntitySet is StorageEntitySet newStorageEntitySet)
                         {
                             // we have a StorageEntitySet in the DB-based artifact which is the
                             // same as one in the pre-existing artifact. Now compare identities.
-                            var newEntitySetIdentity = DatabaseObject.CreateFromEntitySet(newStorageEntitySet);
+                            DatabaseObject newEntitySetIdentity = DatabaseObject.CreateFromEntitySet(newStorageEntitySet);
                             var existingEntitySetIdentity = existingEntitySet.Key;
                             if (!newEntitySetIdentity.Equals(existingEntitySetIdentity))
                             {
@@ -95,13 +91,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         private void FindNewStorageFunctionsWithSameName(
             EFArtifact artifact, out HashSet<Function> storageFunctionsWithSameNameButDifferentIdentity)
         {
-            storageFunctionsWithSameNameButDifferentIdentity = new HashSet<Function>();
+            storageFunctionsWithSameNameButDifferentIdentity = [];
 
             if (null != artifact
                 && null != artifact.StorageModel())
             {
                 // set up Dictionary of EntitySetName to EntitySet for new (DB-based) artifact
-                var newFunctionMap = new Dictionary<string, Function>();
+                Dictionary<string, Function> newFunctionMap = new Dictionary<string, Function>();
                 foreach (var newFunction in artifact.StorageModel().Functions())
                 {
                     newFunctionMap.Add(newFunction.LocalName.Value, newFunction);
@@ -113,14 +109,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 {
                     var existingFunctionLocalName = existingFunction.Value;
 
-                    Function newFunction;
-                    if (newFunctionMap.TryGetValue(existingFunctionLocalName, out newFunction))
+                    if (newFunctionMap.TryGetValue(existingFunctionLocalName, out Function newFunction))
                     {
                         if (null != newFunction)
                         {
                             // we have a Function in the DB-based artifact which is the
                             // same as one in the pre-existing artifact. Now compare identities.
-                            var newFunctionIdentity = DatabaseObject.CreateFromFunction(newFunction);
+                            DatabaseObject newFunctionIdentity = DatabaseObject.CreateFromFunction(newFunction);
                             var existingFunctionIdentity = existingFunction.Key;
                             if (!newFunctionIdentity.Equals(existingFunctionIdentity))
                             {

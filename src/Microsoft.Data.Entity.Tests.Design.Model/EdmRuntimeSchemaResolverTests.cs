@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.IO;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System;
-    using System.IO;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class EdmRuntimeSchemaResolverTests
     {
@@ -33,11 +33,11 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         [TestMethod]
         public void Can_get_resource_stream_for_all_schemas()
         {
-            var schemaResolver = new EdmRuntimeSchemaResolver();
+            EdmRuntimeSchemaResolver schemaResolver = new EdmRuntimeSchemaResolver();
 
             foreach (var schemaUri in KnownSchemaNames.Select(schemaName => new Uri("res://" + schemaName, UriKind.Absolute)))
             {
-                var stream = (Stream)schemaResolver.GetEntity(schemaUri, null, null);
+                Stream stream = (Stream)schemaResolver.GetEntity(schemaUri, null, null);
                 stream.Should().NotBeNull();
                 stream.Dispose();
             }
@@ -46,7 +46,7 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         [TestMethod]
         public void Can_resolve_absolute_uri_based_on_base_uri_and_relative_uri()
         {
-            var schemaResolver = new EdmRuntimeSchemaResolver();
+            EdmRuntimeSchemaResolver schemaResolver = new EdmRuntimeSchemaResolver();
 
             foreach (var schemaName in KnownSchemaNames)
             {

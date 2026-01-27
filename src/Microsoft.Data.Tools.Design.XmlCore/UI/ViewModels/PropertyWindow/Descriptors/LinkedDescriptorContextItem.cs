@@ -1,20 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model.Commands;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     // The instance of this class decides when to begin/end an undo scope.
     // This enables operations among PropertyTypeDescriptors to be grouped in a single transaction.
     internal class LinkedDescriptorContextItem : ContextItem
     {
         #region Fields
 
-        private readonly List<LinkedPropertyTypeDescriptor> _propertyTypeDescriptors = new List<LinkedPropertyTypeDescriptor>();
+        private readonly List<LinkedPropertyTypeDescriptor> _propertyTypeDescriptors = [];
         private CommandProcessorContext _cpc;
         private int _counter;
 
@@ -29,7 +29,6 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
         #endregion
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1821:RemoveEmptyFinalizers")]
         ~LinkedDescriptorContextItem()
         {
             Debug.Assert(

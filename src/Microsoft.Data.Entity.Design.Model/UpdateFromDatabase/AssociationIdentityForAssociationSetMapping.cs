@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     The identity of a given C-side Association consists of the table
     ///     on which the Association is stored plus the set of AssociationEndIdentity
@@ -25,19 +25,18 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal static AssociationIdentity CreateAssociationIdentity(AssociationSetMapping asm)
         {
-            var sSideEntitySet = asm.StoreEntitySet.Target as StorageEntitySet;
-            if (null == sSideEntitySet)
+            if (asm.StoreEntitySet.Target is not StorageEntitySet sSideEntitySet)
             {
                 // a null sSideEntitySet indicates an unresolved AssociationSetMapping
                 // we treat this as equivalent to the AssociationSet being unmapped
                 return null;
             }
 
-            var assocId = new AssociationIdentityForAssociationSetMapping();
+            AssociationIdentityForAssociationSetMapping assocId = new AssociationIdentityForAssociationSetMapping();
             assocId._assocTable = DatabaseObject.CreateFromEntitySet(sSideEntitySet);
             foreach (var endProp in asm.EndProperties())
             {
-                var assocEndId = new AssociationEndIdentity(endProp);
+                AssociationEndIdentity assocEndId = new AssociationEndIdentity(endProp);
                 assocId.AddAssociationEndIdentity(assocEndId);
             }
 
@@ -46,7 +45,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal override string TraceString()
         {
-            var sb = new StringBuilder(
+            StringBuilder sb = new StringBuilder(
                 "[AssociationIdentityForAssociationSetMapping assocTable=" + _assocTable.ToString());
             sb.Append(", ends[0]=" + (_ends[0] == null ? "null" : _ends[0].TraceString()));
             sb.Append(", ends[1]=" + (_ends[1] == null ? "null" : _ends[1].TraceString()));
@@ -136,8 +135,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         public override bool Equals(object obj)
         {
-            var objAsAssocIdentity = obj as AssociationIdentityForAssociationSetMapping;
-            if (null == objAsAssocIdentity)
+            if (obj is not AssociationIdentityForAssociationSetMapping objAsAssocIdentity)
             {
                 return false;
             }

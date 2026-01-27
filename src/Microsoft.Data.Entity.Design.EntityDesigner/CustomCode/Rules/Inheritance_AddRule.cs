@@ -1,20 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using EntityType = Microsoft.Data.Entity.Design.Model.Entity.EntityType;
-
     /// <summary>
     ///     Rule fired when an Inheritance is created
     /// </summary>
@@ -31,7 +29,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
         {
             base.ElementAdded(e);
 
-            var addedInheritance = e.ModelElement as Inheritance;
+            Inheritance addedInheritance = e.ModelElement as Inheritance;
             Debug.Assert(addedInheritance != null);
             Debug.Assert(addedInheritance.SourceEntityType != null);
             Debug.Assert(addedInheritance.SourceEntityType.EntityDesignerViewModel != null);
@@ -45,11 +43,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
                 // We need to invalidate the target entitytypeshape element; so base type name will be updated correctly.
                 foreach (var pe in  PresentationViewsSubject.GetPresentation(addedInheritance.TargetEntityType))
                 {
-                    var entityShape = pe as EntityTypeShape;
-                    if (entityShape != null)
-                    {
-                        entityShape.Invalidate();
-                    }
+                    EntityTypeShape entityShape = pe as EntityTypeShape;
+                    entityShape?.Invalidate();
                 }
 
                 var tx = ModelUtils.GetCurrentTx(e.ModelElement.Store);
@@ -60,11 +55,11 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
                     var source = addedInheritance.SourceEntityType;
                     var viewModel = source.EntityDesignerViewModel;
 
-                    var b = viewModel.ModelXRef.GetExisting(addedInheritance.SourceEntityType) as EntityType;
-                    var d = viewModel.ModelXRef.GetExisting(addedInheritance.TargetEntityType) as EntityType;
+                    EntityType b = viewModel.ModelXRef.GetExisting(addedInheritance.SourceEntityType) as EntityType;
+                    EntityType d = viewModel.ModelXRef.GetExisting(addedInheritance.TargetEntityType) as EntityType;
 
-                    var baseEntity = b as ConceptualEntityType;
-                    var derivedEntity = d as ConceptualEntityType;
+                    ConceptualEntityType baseEntity = b as ConceptualEntityType;
+                    ConceptualEntityType derivedEntity = d as ConceptualEntityType;
 
                     Debug.Assert(b != null ? baseEntity != null : true, "EntityType is not ConceptualEntityType");
                     Debug.Assert(d != null ? derivedEntity != null : true, "EntityType is not ConceptualEntityType");

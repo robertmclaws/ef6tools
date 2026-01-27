@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Xml;
+using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Design.Model.Validation
 {
-    using System;
-    using System.Xml;
-    using Moq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class XmlReaderProxyTests
     {
         [TestMethod]
         public void HasLineInfo_returns_lineNumberService_HasLineInfo_lineNumberService_not_null()
         {
-            var lineNumberServiceMock = new Mock<IXmlLineInfo>();
+            Mock<IXmlLineInfo> lineNumberServiceMock = new Mock<IXmlLineInfo>();
             lineNumberServiceMock
                 .Setup(l => l.HasLineInfo())
                 .Returns(true);
@@ -29,7 +29,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         public void HasLineInfo_calls_into_underlying_XmlReader_HasLineInfo_if_XmlReader_implements_IXmlLineInfo_and_lineNumberService_null(
             )
         {
-            var xmlReaderMock = new Mock<XmlReader>();
+            Mock<XmlReader> xmlReaderMock = new Mock<XmlReader>();
             var xmlLineInfoMock = xmlReaderMock.As<IXmlLineInfo>();
             xmlLineInfoMock
                 .Setup(l => l.HasLineInfo())
@@ -51,7 +51,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         [TestMethod]
         public void LineNumber_returns_lineNumberService_LineNumber_lineNumberService_not_null()
         {
-            var lineNumberServiceMock = new Mock<IXmlLineInfo>();
+            Mock<IXmlLineInfo> lineNumberServiceMock = new Mock<IXmlLineInfo>();
             lineNumberServiceMock
                 .Setup(l => l.LineNumber)
                 .Returns(42);
@@ -65,7 +65,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         [TestMethod]
         public void LineNumber_calls_into_underlying_XmlReader_LineNumber_if_XmlReader_implements_IXmlLineInfo_and_lineNumberService_null()
         {
-            var xmlReaderMock = new Mock<XmlReader>();
+            Mock<XmlReader> xmlReaderMock = new Mock<XmlReader>();
             var xmlLineInfoMock = xmlReaderMock.As<IXmlLineInfo>();
             xmlLineInfoMock
                 .Setup(l => l.LineNumber)
@@ -87,7 +87,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         [TestMethod]
         public void LinePosition_returns_LinePositionService_LinePosition_LinePositionService_not_null()
         {
-            var linePositionServiceMock = new Mock<IXmlLineInfo>();
+            Mock<IXmlLineInfo> linePositionServiceMock = new Mock<IXmlLineInfo>();
             linePositionServiceMock
                 .Setup(l => l.LinePosition)
                 .Returns(42);
@@ -102,7 +102,7 @@ namespace Microsoft.Data.Entity.Design.Model.Validation
         public void
             LinePosition_calls_into_underlying_XmlReader_LinePosition_if_XmlReader_implements_IXmlLineInfo_and_LinePositionService_null()
         {
-            var xmlReaderMock = new Mock<XmlReader>();
+            Mock<XmlReader> xmlReaderMock = new Mock<XmlReader>();
             var xmlLineInfoMock = xmlReaderMock.As<IXmlLineInfo>();
             xmlLineInfoMock
                 .Setup(l => l.LinePosition)

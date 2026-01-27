@@ -1,22 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.XmlEditor;
+using IServiceProvider = System.IServiceProvider;
+using XmlModel = Microsoft.Data.Tools.XmlDesignerBase.Model.XmlModel;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-#if VS12ORNEWER
-    using Microsoft.Data.Entity.Design.VisualStudio;
-#endif
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Microsoft.VisualStudio.OLE.Interop;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.XmlEditor;
-    using IServiceProvider = System.IServiceProvider;
-    using XmlModel = Microsoft.Data.Tools.XmlDesignerBase.Model.XmlModel;
-
     /// <summary>
     ///     The VS implementation of the XmlModelProvider. This uses
     ///     our VSModelInformationService to provide the model data.
@@ -25,10 +20,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
     {
         private readonly IServiceProvider _services;
         private XmlStore _xmlStore;
-        private Dictionary<Uri, VSXmlModel> _xmlModels = new Dictionary<Uri, VSXmlModel>();
+        private Dictionary<Uri, VSXmlModel> _xmlModels = [];
 
         private Dictionary<XmlEditingScope, VSXmlTransaction> _txDictionary =
-            new Dictionary<XmlEditingScope, VSXmlTransaction>();
+            [];
 
         private readonly IXmlDesignerPackage _xmlDesignerPackage;
 
@@ -43,7 +38,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
             _services = services;
             if (_xmlStore == null)
             {
-                var xmlEditorService = (XmlEditorService)services.GetService(
+                XmlEditorService xmlEditorService = (XmlEditorService)services.GetService(
                     typeof(XmlEditorService));
                 _xmlStore = xmlEditorService.CreateXmlStore();
                 _xmlStore.EditingScopeCompleted += OnXmlModelTransactionCompleted;
@@ -107,7 +102,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
         ///     Returns the Xml model for a given file token, or null
         ///     if there is no Xml model for the token.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public override XmlModel GetXmlModel(Uri sourceUri)
         {
             Debug.Assert(_xmlDesignerPackage.IsForegroundThread, "Can't request an XmlModel on background thread");
@@ -118,18 +112,16 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 #if DEBUG
             var skipChecks = false;
 
-#if VS12ORNEWER
-    // The behaviour of VsShellUtilities.IsDocumentOpen changed in VS2013. In VS2012 IsDocumentOpen would return true if the document
-    // has been loaded even though loading the solution has not finished yet. In VS2013 IsOpenDocument returns false if the solution 
-    // is still being loaded. This caused multiple asserts when opening a project after VS was closed when edmx file was active/opened
-    // See http://entityframework.codeplex.com/workitem/1163 for more details and repro steps.
+            // The behaviour of VsShellUtilities.IsDocumentOpen changed in VS2013. In VS2012 IsDocumentOpen would return true if the document
+            // has been loaded even though loading the solution has not finished yet. In VS2013 IsOpenDocument returns false if the solution
+            // is still being loaded. This caused multiple asserts when opening a project after VS was closed when edmx file was active/opened
+            // See http://entityframework.codeplex.com/workitem/1163 for more details and repro steps.
             var solution = (IVsSolution)_services.GetService(typeof (IVsSolution));
             object propertyValue;
             if(solution != null && NativeMethods.Succeeded(solution.GetProperty((int)__VSPROPID2.VSPROPID_IsSolutionOpeningDocs, out propertyValue)))
             {
                 skipChecks = true;
             }
-#endif
 
             // Alert: when we try to load the XmlModel for diagram file, the document is not opened in VS.
             //  The If statement is added to skip the check for diagram files.
@@ -157,8 +149,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
             }
 #endif
 
-            VSXmlModel vsXmlModel = null;
-            if (!_xmlModels.TryGetValue(sourceUri, out vsXmlModel))
+            if (!_xmlModels.TryGetValue(sourceUri, out VSXmlModel vsXmlModel))
             {
                 Microsoft.VisualStudio.XmlEditor.XmlModel xmlModel = null;
                 try
@@ -242,7 +233,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
             }
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal VSXmlTransaction GetTransaction(XmlEditingScope editorTx)
         {
             if (!(_txDictionary.TryGetValue(editorTx, out VSXmlTransaction tx)))
@@ -260,7 +250,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
                     {
                         var designerTx = ((senderId != null) && (senderId is XmlStore) && (senderId == _xmlStore));
                         XmlTransaction tx = GetTransaction(e.EditingScope);
-                        var args = new XmlTransactionEventArgs(tx, designerTx);
+                        XmlTransactionEventArgs args = new XmlTransactionEventArgs(tx, designerTx);
                         OnTransactionCompleted(args);
                         _txDictionary.Remove(e.EditingScope);
                     });
@@ -273,7 +263,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
                     {
                         var designerTx = ((senderId != null) && (senderId is XmlStore) && (senderId == _xmlStore));
                         XmlTransaction tx = GetTransaction(e.EditingScope);
-                        var args = new XmlTransactionEventArgs(tx, designerTx);
+                        XmlTransactionEventArgs args = new XmlTransactionEventArgs(tx, designerTx);
                         OnUndoRedoCompleted(args);
                         _txDictionary.Remove(e.EditingScope);
                     });
@@ -293,14 +283,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio
 
         public IOleUndoManager UndoManager
         {
-            get { return _xmlStore != null ? _xmlStore.UndoManager : null; }
+            get { return _xmlStore?.UndoManager; }
             set
             {
                 Debug.Assert(_xmlStore != null);
-                if (_xmlStore != null)
-                {
-                    _xmlStore.UndoManager = value;
-                }
+                _xmlStore?.UndoManager = value;
             }
         }
     }

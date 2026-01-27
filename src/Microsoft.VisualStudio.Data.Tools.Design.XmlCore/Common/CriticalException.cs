@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Threading;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
+using Microsoft.Win32;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Threading;
-    using System.Windows.Forms;
-    using System.Windows.Forms.Design;
-    using Microsoft.Win32;
-
     internal static class CriticalException
     {
         private const string RegistryKeyPath = @"Software\Microsoft\DataTools";
@@ -34,7 +34,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
                         {
                             using (var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath, false))
                             {
-                                var value = key != null ? key.GetValue(RegistryValueName) : null;
+                                var value = key?.GetValue(RegistryValueName);
                                 if (value != null
                                     && value.ToString() != "0")
                                 {
@@ -95,8 +95,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 
             if (serviceProvider != null)
             {
-                var uiService = serviceProvider.GetService(typeof(IUIService)) as IUIService;
-                if (uiService != null)
+                if (serviceProvider.GetService(typeof(IUIService)) is IUIService uiService)
                 {
                     uiService.ShowError(ex);
                     return false;

@@ -1,16 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Xml.Linq;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
 
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Xml.Linq;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-
     internal class ModelGenerationExtensionDispatcher
     {
         private readonly WizardKind _wizardKind;
@@ -68,33 +69,21 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
         protected virtual void PreDispatch()
         {
-            if (_fromDatabaseDocument != null)
-            {
-                _fromDatabaseDocument.Changing += BeforeEventHandler;
-            }
+            _fromDatabaseDocument?.Changing += BeforeEventHandler;
 
-            if (CurrentDocument != null)
-            {
-                CurrentDocument.Changing += BeforeChangingCurrentEventHandler;
-            }
+            CurrentDocument?.Changing += BeforeChangingCurrentEventHandler;
         }
 
         protected virtual void PostDispatch()
         {
             try
             {
-                if (_fromDatabaseDocument != null)
-                {
-                    _fromDatabaseDocument.Changing -= BeforeEventHandler;
-                }
+                _fromDatabaseDocument?.Changing -= BeforeEventHandler;
             }
             finally
             {
                 // be sure to unhook from the current document
-                if (CurrentDocument != null)
-                {
-                    CurrentDocument.Changing -= BeforeChangingCurrentEventHandler;
-                }
+                CurrentDocument?.Changing -= BeforeChangingCurrentEventHandler;
             }
         }
 
@@ -105,7 +94,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             PostDispatch();
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void DispatchInternal()
         {
             Debug.Assert(
@@ -144,10 +132,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             get
             {
-                if (_beforeEvent == null)
-                {
-                    _beforeEvent = OnBeforeChange;
-                }
+                _beforeEvent ??= OnBeforeChange;
                 return _beforeEvent;
             }
         }
@@ -164,10 +149,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             get
             {
-                if (_beforeChangingCurrentEvent == null)
-                {
-                    _beforeChangingCurrentEvent = OnBeforeChangingCurrent;
-                }
+                _beforeChangingCurrentEvent ??= OnBeforeChangingCurrent;
                 return _beforeChangingCurrentEvent;
             }
         }

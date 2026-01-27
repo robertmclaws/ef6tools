@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-
     internal static class SchemaFilterEntryExtensions
     {
         internal static EntityStoreSchemaFilterEffect GetEffectViaFilter(

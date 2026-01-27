@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.Model.Validation;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-
     internal static class EFNormalizableItemDefaults
     {
         internal static NormalizedName DefaultNameNormalizerForEDM(EFElement parent, string refName)
@@ -17,15 +17,13 @@ namespace Microsoft.Data.Entity.Design.Model
             NormalizedName normalizedName = null;
             if (model != null)
             {
-                string potentialAliasOrNamespacePart = null;
-                string nonAliasOrNamespacePart = null;
-                SeparateRefNameIntoParts(refName, out potentialAliasOrNamespacePart, out nonAliasOrNamespacePart);
+                SeparateRefNameIntoParts(refName, out string potentialAliasOrNamespacePart, out string nonAliasOrNamespacePart);
 
                 // does the name start with the schema's namespace or alias?
                 if (!string.IsNullOrEmpty(potentialAliasOrNamespacePart))
                 {
                     refName = nonAliasOrNamespacePart;
-                    var symbol = new Symbol(model.NamespaceValue, refName);
+                    Symbol symbol = new Symbol(model.NamespaceValue, refName);
 
                     if (potentialAliasOrNamespacePart.Equals(model.NamespaceValue, StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -41,13 +39,13 @@ namespace Microsoft.Data.Entity.Design.Model
                 else
                 {
                     // now, the name doesn't start with the alias or the namespace, so tack on the namespace
-                    var symbol = new Symbol(model.NamespaceValue, refName);
+                    Symbol symbol = new Symbol(model.NamespaceValue, refName);
                     normalizedName = new NormalizedName(symbol, null, null, refName);
                 }
             }
             else
             {
-                var symbol = new Symbol(refName);
+                Symbol symbol = new Symbol(refName);
                 normalizedName = new NormalizedName(symbol, null, null, refName);
             }
             return normalizedName;
@@ -55,11 +53,9 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal static NormalizedName DefaultNameNormalizerForMSL(EFElement parent, string refName)
         {
-            var model = MappingModel.GetMappingRoot(parent);
+            MappingModel model = MappingModel.GetMappingRoot(parent);
 
-            string potentialAliasOrNamespacePart = null;
-            string nonAliasOrNamespacePart = null;
-            SeparateRefNameIntoParts(refName, out potentialAliasOrNamespacePart, out nonAliasOrNamespacePart);
+            SeparateRefNameIntoParts(refName, out string potentialAliasOrNamespacePart, out string nonAliasOrNamespacePart);
 
             Symbol symbol = null;
             NormalizedName normalizedName = null;
@@ -85,7 +81,7 @@ namespace Microsoft.Data.Entity.Design.Model
                         {
                             var msg = string.Format(CultureInfo.CurrentCulture, Resources.RESOLVE_UNRESOLVED_ALIAS, refName);
                             var artifactSet = parent.Artifact.ModelManager.GetArtifactSet(parent.Artifact.Uri);
-                            var errorInfo = new ErrorInfo(
+                            ErrorInfo errorInfo = new ErrorInfo(
                                 ErrorInfo.Severity.ERROR, msg, parent, ErrorCodes.RESOLVE_UNRESOLVED_ALIAS, ErrorClass.ResolveError);
                             artifactSet.AddError(errorInfo);
                             return new NormalizedName(new Symbol(String.Empty), null, null, refName);

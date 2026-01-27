@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using XamlDesignerBaseResources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
+
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     /// <summary>
     ///     This is the Defaultable Value class for the Property's MaxLength Facet.
     /// </summary>
@@ -12,7 +13,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
     {
         internal static readonly StringOrPrimitiveConverter<UInt32> _maxLengthConverter =
             new StringOrPrimitiveConverter<UInt32>(
-                UInt32.TryParse, Property.MaxLengthMaxValue, Resources.NoneDisplayValueUsedForUX);
+                UInt32.TryParse, Property.MaxLengthMaxValue, XamlDesignerBaseResources.NoneDisplayValueUsedForUX);
 
         internal static StringOrPrimitiveConverter<UInt32> MaxLengthConverter
         {

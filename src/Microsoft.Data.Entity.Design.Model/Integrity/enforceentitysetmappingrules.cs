@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Integrity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     This class will ensure that our MSL generation rules are applied for a given EntitySet.  If the
     ///     EntityType in the set is the root of a hierarchy, the entire hierarchy is checked.  This is done with
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
     {
         private readonly CommandProcessorContext _cpc;
         private readonly EntitySetMapping _entitySetMapping;
-        private readonly HashSet<EFObject> _itemsToDelete = new HashSet<EFObject>();
+        private readonly HashSet<EFObject> _itemsToDelete = [];
 
         internal EnforceEntitySetMappingRules(CommandProcessorContext cpc, EntitySetMapping entitySetMapping)
         {
@@ -31,8 +31,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
         public bool IsEqual(IIntegrityCheck otherCheck)
         {
-            var typedOtherCheck = otherCheck as EnforceEntitySetMappingRules;
-            if (typedOtherCheck != null
+            if (otherCheck is EnforceEntitySetMappingRules typedOtherCheck
                 && typedOtherCheck._entitySetMapping == _entitySetMapping)
             {
                 return true;
@@ -60,7 +59,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             Debug.Assert(
                 conceptualEntitySet.EntityType.Target != null,
                 "Cannot find the root entity referenced by the EntitySetMapping and the EntitySet");
-            var rootEntityType = conceptualEntitySet.EntityType.Target as ConceptualEntityType;
+            ConceptualEntityType rootEntityType = conceptualEntitySet.EntityType.Target as ConceptualEntityType;
             Debug.Assert(conceptualEntitySet.EntityType.Target is ConceptualEntityType, "EntityType is not a ConceptualEntityType");
 
             // if this type has no children then no need to change the EntityTypeMappingKind
@@ -81,7 +80,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             }
 
             // the root node of our mapping plan
-            var rootInfo = new EntityInfo(rootEntityType);
+            EntityInfo rootInfo = new EntityInfo(rootEntityType);
             rootInfo.InheritanceStrategy = inheritanceMappingStrategy;
 
             // walk the hierarchy, gathering the information we need
@@ -119,8 +118,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
         {
             foreach (var deleteMe in _itemsToDelete)
             {
-                var deleteElement = deleteMe as EFElement;
-                if (deleteElement != null)
+                if (deleteMe is EFElement deleteElement)
                 {
                     DeleteEFElementCommand.DeleteInTransaction(_cpc, deleteElement);
                 }
@@ -215,7 +213,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                 // find or create the entity type mapping
                 if (etm == null)
                 {
-                    var createETM = new CreateEntityTypeMappingCommand(
+                    CreateEntityTypeMappingCommand createETM = new CreateEntityTypeMappingCommand(
                         _entitySetMapping,
                         info.EntityType,
                         kind);
@@ -249,7 +247,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                 {
                     if (frag == null)
                     {
-                        var cmd = new CreateMappingFragmentCommand(etm, table.EntitySet as StorageEntitySet);
+                        CreateMappingFragmentCommand cmd = new CreateMappingFragmentCommand(etm, table.EntitySet as StorageEntitySet);
                         CommandProcessor.InvokeSingleCommand(_cpc, cmd);
                         frag = cmd.MappingFragment;
                     }
@@ -268,7 +266,6 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             }
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void ProcessMappingFragment(EntityInfo info, EntityType table, MappingFragment frag)
         {
             // move any scalar mappings to this fragment if they aren't there
@@ -282,8 +279,8 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     // delete the old, create the new
                     AddToDeleteList(sp);
 
-                    var cmd = new CreateFragmentScalarPropertyTreeCommand(frag, sp.GetMappedPropertiesList(), sp.ColumnName.Target);
-                    var cp = new CommandProcessor(_cpc, cmd);
+                    CreateFragmentScalarPropertyTreeCommand cmd = new CreateFragmentScalarPropertyTreeCommand(frag, sp.GetMappedPropertiesList(), sp.ColumnName.Target);
+                    CommandProcessor cp = new CommandProcessor(_cpc, cmd);
                     cp.Invoke();
                 }
             }
@@ -313,14 +310,14 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     // delete the old, create the new
                     AddToDeleteList(cond);
 
-                    var cmd = new CreateFragmentConditionCommand(frag, column, isNull, conditionValue);
-                    var cp = new CommandProcessor(_cpc, cmd);
+                    CreateFragmentConditionCommand cmd = new CreateFragmentConditionCommand(frag, column, isNull, conditionValue);
+                    CommandProcessor cp = new CommandProcessor(_cpc, cmd);
                     cp.Invoke();
                 }
             }
 
             // build a list of all of the keys
-            var keysToMap = new List<Property>();
+            List<Property> keysToMap = new List<Property>();
             keysToMap.AddRange(info.KeyProperties);
 
             // move any key scalar mappings to this fragment if they exist in a different one - provided they are for the same table
@@ -337,8 +334,8 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     // delete the old, create the new
                     AddToDeleteList(sp);
 
-                    var cmd = new CreateFragmentScalarPropertyCommand(frag, property, column);
-                    var cp = new CommandProcessor(_cpc, cmd);
+                    CreateFragmentScalarPropertyCommand cmd = new CreateFragmentScalarPropertyCommand(frag, property, column);
+                    CommandProcessor cp = new CommandProcessor(_cpc, cmd);
                     cp.Invoke();
                 }
 
@@ -358,8 +355,8 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                         && sp.ColumnName.Target != null
                         && sp.ColumnName.Target.Parent == table)
                     {
-                        var cmd = new CreateFragmentScalarPropertyCommand(frag, sp.Name.Target, sp.ColumnName.Target);
-                        var cp = new CommandProcessor(_cpc, cmd);
+                        CreateFragmentScalarPropertyCommand cmd = new CreateFragmentScalarPropertyCommand(frag, sp.Name.Target, sp.ColumnName.Target);
+                        CommandProcessor cp = new CommandProcessor(_cpc, cmd);
                         cp.Invoke();
                     }
                 }
@@ -371,11 +368,11 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                 && info.Parent.UsesEntityTypeMappingKind(EntityTypeMappingKind.Default))
             {
                 // first gather the list of scalars from all parents
-                var parentScalars = new List<ScalarProperty>();
+                List<ScalarProperty> parentScalars = new List<ScalarProperty>();
                 GatherNonKeyScalarsFromAllParents(info.Parent, parentScalars);
 
                 // then build a list of those scalars used in our fragment
-                var existingMappedProperties = new HashSet<Property>();
+                HashSet<Property> existingMappedProperties = new HashSet<Property>();
                 foreach (var existingScalar in frag.ScalarProperties())
                 {
                     existingMappedProperties.Add(existingScalar.Name.Target);
@@ -390,8 +387,8 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     if (existingMappedProperties.Contains(sp.Name.Target) == false
                         && sp.ColumnName.Target.EntityType == table)
                     {
-                        var cmd = new CreateFragmentScalarPropertyTreeCommand(frag, sp.GetMappedPropertiesList(), sp.ColumnName.Target);
-                        var cp = new CommandProcessor(_cpc, cmd);
+                        CreateFragmentScalarPropertyTreeCommand cmd = new CreateFragmentScalarPropertyTreeCommand(frag, sp.GetMappedPropertiesList(), sp.ColumnName.Target);
+                        CommandProcessor cp = new CommandProcessor(_cpc, cmd);
                         cp.Invoke();
 
                         existingMappedProperties.Add(sp.Name.Target);
@@ -401,7 +398,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
             // make sure that we don't have any extra scalars
             // so gather the list of all SPs we expect to be here
-            var expectedMappedProperties = new List<Property>();
+            List<Property> expectedMappedProperties = new List<Property>();
             expectedMappedProperties.AddRange(info.KeyProperties);
             expectedMappedProperties.AddRange(info.NonKeyProperties);
             if (info.Parent != null
@@ -444,7 +441,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
 
             // make sure that we don't have any extra scalars (i.e. from entities that are no longer parents of this entity)
             // so gather the list of all SPs we expect to be here
-            var expectedMappedProperties = new List<Property>();
+            List<Property> expectedMappedProperties = new List<Property>();
             expectedMappedProperties.AddRange(info.KeyProperties);
             expectedMappedProperties.AddRange(info.NonKeyProperties);
             if (info.Parent != null)
@@ -464,7 +461,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             // make sure that we don't have any extra AssociationEnds
             var cet = info.EntityType;
             Debug.Assert(cet != null, "EntityType is not a ConceptualEntityType");
-            var selfAndBaseTypes = new List<ConceptualEntityType>(cet.SafeSelfAndBaseTypes);
+            List<ConceptualEntityType> selfAndBaseTypes = new List<ConceptualEntityType>(cet.SafeSelfAndBaseTypes);
             foreach (var end in function.AssociationEnds())
             {
                 var from = end.From.Target;
@@ -474,8 +471,8 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     && from.Role.Target != null
                     && to.Role.Target != null)
                 {
-                    var fromType = from.Role.Target.Type.Target as ConceptualEntityType;
-                    var toType = to.Role.Target.Type.Target as ConceptualEntityType;
+                    ConceptualEntityType fromType = from.Role.Target.Type.Target as ConceptualEntityType;
+                    ConceptualEntityType toType = to.Role.Target.Type.Target as ConceptualEntityType;
 
                     Debug.Assert(
                         from.Role.Target.Type.Target != null ? fromType != null : true, "fromType EntityType is not a ConceptualEntityType");
@@ -604,7 +601,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
             if (info.EntityType.Abstract.Value == false
                 && info.Conditions.Count > 0)
             {
-                var columns = new HashSet<Property>();
+                HashSet<Property> columns = new HashSet<Property>();
                 GatherColumnsUsedInSSideConditionsByAllChildren(info, columns, false);
 
                 foreach (var cond in info.Conditions)
@@ -689,7 +686,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     "Mixed mode - this should only happen if the user has hand-edited the file in which case the Mapping Details window should be in safe mode and so this code should not be executed");
                 if (InheritanceMappingStrategy.Mixed != inheritanceMappingStrategy)
                 {
-                    var childInfo = new EntityInfo(derived, parentInfo);
+                    EntityInfo childInfo = new EntityInfo(derived, parentInfo);
                     childInfo.InheritanceStrategy = inheritanceMappingStrategy;
                     PopulateEntityInfoRecurse(childInfo);
                 }
@@ -722,7 +719,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     && info.HasTable(frag.StoreEntitySet.Target.EntityType.Target) == false)
                 {
                     var table = frag.StoreEntitySet.Target.EntityType.Target;
-                    var ti = new TableInfo(table);
+                    TableInfo ti = new TableInfo(table);
                     ti.EntityTypeMappingKind = etm.Kind;
                     info.Tables.Add(table, ti);
                 }
@@ -772,7 +769,7 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
                     && info.HasTable(frag.StoreEntitySet.Target.EntityType.Target) == false)
                 {
                     var table = frag.StoreEntitySet.Target.EntityType.Target;
-                    var ti = new TableInfo(table);
+                    TableInfo ti = new TableInfo(table);
                     ti.EntityTypeMappingKind = etm.Kind;
                     info.Tables.Add(table, ti);
                 }
@@ -941,18 +938,18 @@ namespace Microsoft.Data.Entity.Design.Model.Integrity
         {
             internal readonly ConceptualEntityType EntityType;
             internal readonly EntityInfo Parent;
-            internal readonly List<EntityInfo> Children = new List<EntityInfo>();
+            internal readonly List<EntityInfo> Children = [];
 #if EXTRA_MAPPING_DEBUG_INFO
             internal bool HasIsTypeOfMapping;
             internal bool HasDefaultMapping;
 #endif
             internal InheritanceMappingStrategy InheritanceStrategy = InheritanceMappingStrategy.NoInheritance;
-            internal readonly List<Property> KeyProperties = new List<Property>();
-            internal readonly List<Property> NonKeyProperties = new List<Property>();
-            internal readonly List<ScalarProperty> KeyScalars = new List<ScalarProperty>();
-            internal readonly List<ScalarProperty> NonKeyScalars = new List<ScalarProperty>();
-            internal readonly List<Condition> Conditions = new List<Condition>();
-            internal readonly Dictionary<EntityType, TableInfo> Tables = new Dictionary<EntityType, TableInfo>();
+            internal readonly List<Property> KeyProperties = [];
+            internal readonly List<Property> NonKeyProperties = [];
+            internal readonly List<ScalarProperty> KeyScalars = [];
+            internal readonly List<ScalarProperty> NonKeyScalars = [];
+            internal readonly List<Condition> Conditions = [];
+            internal readonly Dictionary<EntityType, TableInfo> Tables = [];
 
             internal EntityInfo(ConceptualEntityType entityType)
             {

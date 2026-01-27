@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [TreeGridDesignerRootBranch(typeof(ModificationFunctionBranch))]
     [TreeGridDesignerColumn(typeof(ParameterColumn), Order = 1)]
     internal class MappingModificationFunctionMapping : MappingFunctionMappingRoot
@@ -159,8 +159,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 
                 if (null != ModificationFunction)
                 {
-                    var cmd = new SetRowsAffectedParameterCommand(ModificationFunction, value);
-                    var cp = new CommandProcessor(
+                    SetRowsAffectedParameterCommand cmd = new SetRowsAffectedParameterCommand(ModificationFunction, value);
+                    CommandProcessor cp = new CommandProcessor(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeScalarProperty, cmd);
                     cp.Invoke();
                 }
@@ -187,7 +187,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 
         internal override Dictionary<MappingLovEFElement, string> GetListOfValues(ListOfValuesCollection type)
         {
-            var lov = new Dictionary<MappingLovEFElement, string>();
+            Dictionary<MappingLovEFElement, string> lov = new Dictionary<MappingLovEFElement, string>();
 
             Debug.Assert(type == ListOfValuesCollection.FirstColumn, "Unsupported lov type was sent");
 
@@ -201,7 +201,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                 else
                 {
                     // this is a creator node, so get the list from the artifact
-                    var entity = MappingFunctionEntityType.ModelItem as EntityType;
+                    EntityType entity = MappingFunctionEntityType.ModelItem as EntityType;
                     storageModel = entity.Artifact.StorageModel();
                 }
 
@@ -211,7 +211,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                     lov.Add(LovDeletePlaceHolder, LovDeletePlaceHolder.DisplayName);
                 }
 
-                var functions = new List<Function>();
+                List<Function> functions = new List<Function>();
                 functions.AddRange(storageModel.Functions());
                 if (functions.Count == 0)
                 {
@@ -242,7 +242,6 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
         //     Calling this.Parent.AddChild(this) here would make the parent think it had a new child instead of updating the existing one -
         //     so it is correct to _not_ call it here.
         // </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal override void CreateModelItem(CommandProcessorContext cpc, EditingContext context, EFElement underlyingModelItem)
         {
             Debug.Assert(context != null, "null context");
@@ -252,7 +251,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 
             Debug.Assert(underlyingModelItem != null, "null underlyingModelItem");
 
-            var function = underlyingModelItem as Function;
+            Function function = underlyingModelItem as Function;
             Debug.Assert(
                 function != null, "underlyingModelItem must be of type Function, actual type = " + underlyingModelItem.GetType().FullName);
             Debug.Assert(!function.EntityModel.IsCSDL, "The function must be in the SSDL");
@@ -260,14 +259,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
             Context = context;
 
             // create a context if we weren't passed one
-            if (cpc == null)
-            {
-                cpc = new CommandProcessorContext(
+            cpc ??= new CommandProcessorContext(
                     Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_CreateFunctionMapping);
-            }
 
             // create the commands
-            var cmd = new CreateFunctionMappingCommand(MappingFunctionEntityType.EntityType, function, null, _functionType);
+            CreateFunctionMappingCommand cmd = new CreateFunctionMappingCommand(MappingFunctionEntityType.EntityType, function, null, _functionType);
             // set up our post event to fix up the view model
             cmd.PostInvokeEvent += (o, eventsArgs) =>
                 {
@@ -282,7 +278,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                     // so it is correct to _not_ call it here.
                 };
 
-            var cmd2 = new DelegateCommand(
+            DelegateCommand cmd2 = new DelegateCommand(
                 () =>
                     {
                         var mf = ModificationFunction;
@@ -305,7 +301,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                             _properties.LoadScalarProperties();
 
                             // now try and do some match ups between the function and the entity
-                            var mappedEntityType = MappingFunctionEntityType.EntityType as ConceptualEntityType;
+                            ConceptualEntityType mappedEntityType = MappingFunctionEntityType.EntityType as ConceptualEntityType;
 
                             Debug.Assert(
                                 MappingFunctionEntityType.EntityType == null || mappedEntityType != null,
@@ -320,7 +316,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                                     // parameter's name. First search this EntityType (both its scalar and complex properties),
                                     // then search its parents scalar and complex properties and so on up the hierarchy
                                     var propNameToSearchFor = mfsp.StoreParameter.LocalName.Value;
-                                    var propList = new List<Property>();
+                                    List<Property> propList = new List<Property>();
                                     var entityTypeToSearch = mappedEntityType;
                                     // reset this back to the mapped EntityType each time through the loop
                                     while (entityTypeToSearch != null
@@ -352,7 +348,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
             try
             {
                 // now make the change
-                var cp = new CommandProcessor(cpc);
+                CommandProcessor cp = new CommandProcessor(cpc);
                 cp.EnqueueCommand(cmd);
                 cp.EnqueueCommand(cmd2);
                 cp.Invoke();
@@ -377,11 +373,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
             if (IsModelItemDeleted() == false)
             {
                 // create a context if we weren't passed one
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_DeleteFunctionMapping);
-                }
 
                 // use the item's delete command
                 var deleteCommand = ModificationFunction.GetDeleteCommand(MappingFunctionEntityType.EntityType, Function, _functionType);
@@ -400,22 +393,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 
         private void ClearChildren()
         {
-            if (_children != null)
-            {
-                _children.Clear();
-            }
-
-            if (_properties != null)
-            {
-                _properties.Dispose();
-                _properties = null;
-            }
-
-            if (_resultBindings != null)
-            {
-                _resultBindings.Dispose();
-                _resultBindings = null;
-            }
+            _children?.Clear();
+            _properties?.Dispose();
+            _properties = null;
+            _resultBindings?.Dispose();
+            _resultBindings = null;
         }
     }
 }

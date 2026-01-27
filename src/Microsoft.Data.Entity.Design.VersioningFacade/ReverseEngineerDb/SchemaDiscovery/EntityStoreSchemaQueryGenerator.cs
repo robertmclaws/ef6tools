@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.EntityClient;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
-
     internal class EntityStoreSchemaQueryGenerator
     {
         private readonly string _baseQuery;
@@ -36,7 +35,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
                 return _baseQuery;
             }
 
-            var sqlStatement = new StringBuilder(_baseQuery);
+            StringBuilder sqlStatement = new StringBuilder(_baseQuery);
 
             var whereClause = CreateWhereClause(parameters);
 
@@ -63,12 +62,12 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
         {
             Debug.Assert(parameters != null, "parameters != null");
 
-            var whereClause = new StringBuilder();
+            StringBuilder whereClause = new StringBuilder();
 
             foreach (var alias in _filterAliases)
             {
-                var allows = new StringBuilder();
-                var excludes = new StringBuilder();
+                StringBuilder allows = new StringBuilder();
+                StringBuilder excludes = new StringBuilder();
                 foreach (var entry in _filters)
                 {
                     if (entry.Effect == EntityStoreSchemaFilterEffect.Allow)
@@ -122,7 +121,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.Schema
             Debug.Assert(entry != null, "entry != null");
             Debug.Assert(parameters != null, "parameters != null");
 
-            var filterText = new StringBuilder();
+            StringBuilder filterText = new StringBuilder();
             AppendComparison(filterText, alias, "CatalogName", entry.Catalog, parameters);
             AppendComparison(filterText, alias, "SchemaName", entry.Schema, parameters);
             AppendComparison(

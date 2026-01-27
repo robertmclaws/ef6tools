@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Xml;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
 {
-    using EnvDTE;
-    using EnvDTE80;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.TextManager.Interop;
-    using Moq;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Xml;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class ConfigFileUtilsTests
     {
@@ -43,7 +43,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
 
             foreach (var testCase in cases)
             {
-                var configFileUtils =
+                ConfigFileUtils configFileUtils =
                     new ConfigFileUtils(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), testCase.ApplicationType);
 
                 configFileUtils.ConfigFileName.Should().Be(testCase.ConfigFileName);
@@ -53,7 +53,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         [TestMethod]
         public void GetConfigProjectItem_calls_into_FindFirstProjectItemWithName()
         {
-            var mockVsUtils = new Mock<IVsUtils>();
+            Mock<IVsUtils> mockVsUtils = new Mock<IVsUtils>();
 
             new ConfigFileUtils(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), vsUtils: mockVsUtils.Object)
                 .GetConfigProjectItem();
@@ -73,7 +73,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
                 .Setup(u => u.FindFirstProjectItemWithName(It.IsAny<ProjectItems>(), It.IsAny<string>()))
                 .Returns(projectItem);
 
-            var mockConfigFileUtils =
+            Mock<ConfigFileUtils> mockConfigFileUtils =
                 new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, mockVsUtils.Object, null)
                 { CallBase = true };
 
@@ -92,7 +92,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
                 .Setup(u => u.FindFirstProjectItemWithName(It.IsAny<ProjectItems>(), It.IsAny<string>()))
                 .Returns(projectItem);
 
-            var mockConfigFileUtils =
+            Mock<ConfigFileUtils> mockConfigFileUtils =
                 new Mock<ConfigFileUtils>(Mock.Of<Project>(), Mock.Of<IServiceProvider>(), null, mockVsUtils.Object, null)
                 { CallBase = true };
 
@@ -160,7 +160,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
                 var mockVsUtils = CreateMockVsUtils(testCase.ProjectLanguage, testCase.ApplicationType);
                 var project = CreateMockProject(testCase.ProjectLanguage).Object;
 
-                var configFileUtils =
+                ConfigFileUtils configFileUtils =
                     new ConfigFileUtils(project, Mock.Of<IServiceProvider>(), vsUtils: mockVsUtils.Object);
 
                 configFileUtils.CreateConfigFile();
@@ -173,7 +173,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         [TestMethod]
         public void LoadConfig_returns_null_if_config_does_not_exist()
         {
-            var configFileUtils = new ConfigFileUtils(
+            ConfigFileUtils configFileUtils = new ConfigFileUtils(
                 CreateMockProject(LangEnum.CSharp).Object,
                 Mock.Of<IServiceProvider>(),
                 vsUtils: CreateMockVsUtils(LangEnum.CSharp, VisualStudioProjectSystem.WebApplication).Object);
@@ -186,16 +186,16 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         {
             var configContents = "<config />";
             const string configFilePath = "configfilepath";
-            var mockTextLines = new Mock<IVsTextLines>();
+            Mock<IVsTextLines> mockTextLines = new Mock<IVsTextLines>();
             mockTextLines.Setup(
                 l => l.GetLineText(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), out configContents));
 
-            var mockVsHelpers = new Mock<IVsHelpers>();
+            Mock<IVsHelpers> mockVsHelpers = new Mock<IVsHelpers>();
             mockVsHelpers
                 .Setup(h => h.GetDocData(It.IsAny<IServiceProvider>(), It.IsAny<string>()))
                 .Returns(mockTextLines.Object);
 
-            var mockConfigProjectItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> mockConfigProjectItem = new Mock<ProjectItem>();
             mockConfigProjectItem.Setup(i => i.get_FileNames(It.IsAny<short>())).Returns(configFilePath);
 
             var mockVsUtils = CreateMockVsUtils(LangEnum.CSharp, VisualStudioProjectSystem.WebApplication);
@@ -203,7 +203,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
                 .Setup(u => u.FindFirstProjectItemWithName(It.IsAny<ProjectItems>(), It.IsAny<string>()))
                 .Returns(mockConfigProjectItem.Object);
 
-            var configFileUtils = new ConfigFileUtils(
+            ConfigFileUtils configFileUtils = new ConfigFileUtils(
                 CreateMockProject(LangEnum.CSharp).Object,
                 Mock.Of<IServiceProvider>(),
                 null,
@@ -218,7 +218,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         public void SaveConfig_invokes_WriteCheckoutXmlFilesInProject()
         {
             const string configFilePath = "configfilepath";
-            var mockConfigProjectItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> mockConfigProjectItem = new Mock<ProjectItem>();
             mockConfigProjectItem.Setup(i => i.get_FileNames(It.IsAny<short>())).Returns(configFilePath);
 
             var mockVsUtils = CreateMockVsUtils(LangEnum.CSharp, VisualStudioProjectSystem.WebApplication);
@@ -226,7 +226,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
                 .Setup(u => u.FindFirstProjectItemWithName(It.IsAny<ProjectItems>(), It.IsAny<string>()))
                 .Returns(mockConfigProjectItem.Object);
 
-            var configXml = new XmlDocument();
+            XmlDocument configXml = new XmlDocument();
             configXml.LoadXml("<config />");
 
             new ConfigFileUtils(
@@ -266,7 +266,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
         public void GetConfigPath_returns_path_if_config_project_item_exisit()
         {
             const string configFilePath = "configfilepath";
-            var mockConfigProjectItem = new Mock<ProjectItem>();
+            Mock<ProjectItem> mockConfigProjectItem = new Mock<ProjectItem>();
             mockConfigProjectItem.Setup(i => i.get_FileNames(It.IsAny<short>())).Returns(configFilePath);
 
             var mockVsUtils = CreateMockVsUtils(LangEnum.CSharp, VisualStudioProjectSystem.WebApplication);
@@ -287,7 +287,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
 
         private static Mock<IVsUtils> CreateMockVsUtils(LangEnum projectLanguage, VisualStudioProjectSystem applicationType)
         {
-            var mockVsUtils = new Mock<IVsUtils>();
+            Mock<IVsUtils> mockVsUtils = new Mock<IVsUtils>();
             mockVsUtils
                 .Setup(u => u.GetApplicationType(It.IsAny<IServiceProvider>(), It.IsAny<Project>()))
                 .Returns(applicationType);
@@ -302,11 +302,11 @@ namespace Microsoft.Data.Entity.Tests.Design.VisualStudio.Package
 
         private static Mock<Project> CreateMockProject(LangEnum projectLanguage)
         {
-            var mockSolution = new Mock<Solution2>();
-            var mockDte = new Mock<DTE>();
+            Mock<Solution2> mockSolution = new Mock<Solution2>();
+            Mock<DTE> mockDte = new Mock<DTE>();
             mockDte.Setup(d => d.Solution).Returns(mockSolution.As<Solution>().Object);
-            var mockProjectItems = new Mock<ProjectItems>();
-            var mockProject = new Mock<Project>();
+            Mock<ProjectItems> mockProjectItems = new Mock<ProjectItems>();
+            Mock<Project> mockProject = new Mock<Project>();
             mockProject.Setup(p => p.DTE).Returns(mockDte.Object);
             mockProject.Setup(p => p.ProjectItems).Returns(mockProjectItems.Object);
             mockProject.Setup(p => p.Kind)

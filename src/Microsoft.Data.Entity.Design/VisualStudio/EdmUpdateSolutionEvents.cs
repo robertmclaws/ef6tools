@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal class EdmUpdateSolutionEvents : IVsUpdateSolutionEvents2
     {
         private static EdmUpdateSolutionEvents _instance;
@@ -100,16 +100,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
 
             if (artifact.DesignerInfo() != null)
             {
-                DesignerInfo designerInfo;
-                if (artifact.DesignerInfo().TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out designerInfo))
+                if (artifact.DesignerInfo().TryGetDesignerInfo(OptionsDesignerInfo.ElementName, out DesignerInfo designerInfo))
                 {
-                    var optionsDesignerInfo = (OptionsDesignerInfo)designerInfo;
+                    OptionsDesignerInfo optionsDesignerInfo = (OptionsDesignerInfo)designerInfo;
 
                     if (optionsDesignerInfo.ValidateOnBuild != null
                         && optionsDesignerInfo.ValidateOnBuild.ValueAttr != null)
                     {
-                        bool validateOnBuild;
-                        if (bool.TryParse(optionsDesignerInfo.ValidateOnBuild.ValueAttr.Value, out validateOnBuild))
+                        if (bool.TryParse(optionsDesignerInfo.ValidateOnBuild.ValueAttr.Value, out bool validateOnBuild))
                         {
                             return validateOnBuild;
                         }

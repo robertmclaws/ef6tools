@@ -1,26 +1,26 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Moq.Protected;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.VisualStudio.Data.Tools.Tests.Design.XmlCore.VisualStudio.Package
 {
-    using System;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Moq.Protected;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class EditingContextManagerTests
     {
         [TestMethod]
         public void Verify_CloseArtifact_removes_artifact_from_model_manager()
         {
-            var artifactUri = new Uri("c:\\artifact.edmx");
-            var mockModelManager = new Mock<ModelManager>(null, null) { CallBase = true };
-            var mockArtifact = new Mock<EFArtifact>(mockModelManager.Object, artifactUri, new Mock<XmlModelProvider>().Object);
+            Uri artifactUri = new Uri("c:\\artifact.edmx");
+            Mock<ModelManager> mockModelManager = new Mock<ModelManager>(null, null) { CallBase = true };
+            Mock<EFArtifact> mockArtifact = new Mock<EFArtifact>(mockModelManager.Object, artifactUri, new Mock<XmlModelProvider>().Object);
             mockArtifact.Setup(a => a.Uri).Returns(artifactUri);
 
             mockModelManager
@@ -30,10 +30,10 @@ namespace Microsoft.VisualStudio.Data.Tools.Tests.Design.XmlCore.VisualStudio.Pa
                 .Setup(m => m.GetArtifact(artifactUri))
                 .Returns(mockArtifact.Object);
 
-            var mockPackage = new Mock<IXmlDesignerPackage>();
+            Mock<IXmlDesignerPackage> mockPackage = new Mock<IXmlDesignerPackage>();
             mockPackage.Setup(p => p.ModelManager).Returns(mockModelManager.Object);
 
-            var mockEditingContextMgr = new Mock<EditingContextManager>(mockPackage.Object) { CallBase = true };
+            Mock<EditingContextManager> mockEditingContextMgr = new Mock<EditingContextManager>(mockPackage.Object) { CallBase = true };
             mockEditingContextMgr
                 .Protected()
                 .Setup<EFArtifact>("GetNewOrExistingArtifact", artifactUri)

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity.Core.Metadata.Edm;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration.Extensions
 {
-    using System.ComponentModel.DataAnnotations.Schema;
-    using System.Data.Entity.Core.Metadata.Edm;
-
     internal static class StoreGeneratedPatternExtensions
     {
         public static DatabaseGeneratedOption ToDatabaseGeneratedOption(this StoreGeneratedPattern storeGeneratedPattern)

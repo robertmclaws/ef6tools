@@ -1,22 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Diagnostics.CodeAnalysis;
+using System;
+using System.Diagnostics;
+using EnvDTE;
 
 [module: SuppressMessage("Microsoft.Naming", "CA1706:ShortAcronymsShouldBeUppercase",
     Scope = "namespace", Target = "Microsoft.VisualStudio.TestTools.VsIdeTesting")] // Be consistent with VS Interop Assemblies.
 
 namespace Microsoft.VisualStudio.TestTools.VsIdeTesting
 {
-    using System;
-    using System.Diagnostics;
-    using EnvDTE;
-
     /// <summary>
     ///     This can be used inside tests hosted in VS IDE.
     ///     We take advantage of the fact that hosted tests run in the same app domain.
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Vs",
-        Justification = "Public class, cannot rename")]
     public static class VsIdeTestHostContext
     {
         private static IServiceProvider s_serviceProvider;
@@ -58,7 +55,6 @@ namespace Microsoft.VisualStudio.TestTools.VsIdeTesting
         ///     The reason for this is GetService is not thread safe.
         ///     This property is thread safe.
         /// </remarks>
-        [CLSCompliant(false)]
         public static DTE Dte
         {
             get
@@ -74,10 +70,7 @@ namespace Microsoft.VisualStudio.TestTools.VsIdeTesting
                 {
                     lock (s_lock) // Protect GetService.
                     {
-                        if (s_dte == null)
-                        {
-                            s_dte = (DTE)serviceProvider.GetService(typeof(DTE));
-                        }
+                        s_dte ??= (DTE)serviceProvider.GetService(typeof(DTE));
                     }
                 }
                 return s_dte;

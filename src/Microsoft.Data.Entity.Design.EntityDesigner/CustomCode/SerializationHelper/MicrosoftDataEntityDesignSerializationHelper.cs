@@ -1,31 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using DesignerModel = Microsoft.Data.Entity.Design.Model.Designer;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Text;
+using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Microsoft.VisualStudio.Modeling.Validation;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.XmlEditor;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Microsoft.VisualStudio.Modeling.Validation;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.XmlEditor;
-
     public sealed partial class MicrosoftDataEntityDesignSerializationHelper
     {
-        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "diagram")]
         internal override EntityDesignerViewModel LoadModelAndDiagram(
             SerializationResult serializationResult, Partition modelPartition, string modelFileName, Partition diagramPartition,
             string diagramFileName, ISchemaResolver schemaResolver, ValidationController validationController,
@@ -43,11 +41,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner
         /// <summary>
         ///     Helper method to create and initialize a new EntityDesignerDiagram.
         /// </summary>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override EntityDesignerDiagram CreateDiagramHelper(Partition diagramPartition, ModelElement modelRoot)
         {
-            var evm = modelRoot as EntityDesignerViewModel;
-            var diagram = new EntityDesignerDiagram(diagramPartition);
+            EntityDesignerViewModel evm = modelRoot as EntityDesignerViewModel;
+            EntityDesignerDiagram diagram = new EntityDesignerDiagram(diagramPartition);
             diagram.ModelElement = evm;
             return diagram;
         }
@@ -56,13 +53,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner
             SerializationResult serializationResult, Partition partition, string fileName, ISchemaResolver schemaResolver,
             ValidationController validationController, ISerializerLocator serializerLocator)
         {
-            var docData = VSHelpers.GetDocData(PackageManager.Package, fileName) as IEntityDesignDocData;
+            IEntityDesignDocData docData = VSHelpers.GetDocData(PackageManager.Package, fileName) as IEntityDesignDocData;
             docData.CreateAndLoadBuffer();
 
             EntityDesignerViewModel evm = null;
 
-            var serializationContext = new SerializationContext(GetDirectory(partition.Store), fileName, serializationResult);
-            var transactionContext = new TransactionContext();
+            SerializationContext serializationContext = new SerializationContext(GetDirectory(partition.Store), fileName, serializationResult);
+            TransactionContext transactionContext = new TransactionContext();
             transactionContext.Add(SerializationContext.TransactionContextKey, serializationContext);
 
             using (var t = partition.Store.TransactionManager.BeginTransaction("Load Model from " + fileName, true, transactionContext))
@@ -172,12 +169,9 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner
 
                 // SaveDiagram file if the file exists
                 // TODO: What happened if saving diagram file failed? Should we rollback the model file?
-                var diagramDocData =
-                    VSHelpers.GetDocData(PackageManager.Package, fileName + EntityDesignArtifact.ExtensionDiagram) as XmlModelDocData;
-                if (diagramDocData != null)
+                if (VSHelpers.GetDocData(PackageManager.Package, fileName + EntityDesignArtifact.ExtensionDiagram) is XmlModelDocData diagramDocData)
                 {
-                    int saveIsCancelled;
-                    diagramDocData.SaveDocData(VSSAVEFLAGS.VSSAVE_SilentSave, out diagramFileName, out saveIsCancelled);
+                    diagramDocData.SaveDocData(VSSAVEFLAGS.VSSAVE_SilentSave, out diagramFileName, out int saveIsCancelled);
                 }
             }
         }
@@ -254,7 +248,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner
                             elementDirectory != null, "ElementDirectory in partition for view model :" + diagram.Title + " is null.");
                         if (elementDirectory != null)
                         {
-                            var allElements = new List<ModelElement>(elementDirectory.AllElements.Count);
+                            List<ModelElement> allElements = new List<ModelElement>(elementDirectory.AllElements.Count);
                             allElements.AddRange(elementDirectory.AllElements);
 
                             foreach (var melem in allElements)
@@ -290,13 +284,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner
             }
 
             // get our artifact
-            var artifact = EditingContextManager.GetArtifact(viewModel.EditingContext) as EntityDesignArtifact;
+            EntityDesignArtifact artifact = EditingContextManager.GetArtifact(viewModel.EditingContext) as EntityDesignArtifact;
             Debug.Assert(artifact != null);
 
-            var serializationResult = new SerializationResult();
+            SerializationResult serializationResult = new SerializationResult();
 
-            var serializationContext = new SerializationContext(GetDirectory(viewModel.Store), artifact.Uri.LocalPath, serializationResult);
-            var transactionContext = new TransactionContext();
+            SerializationContext serializationContext = new SerializationContext(GetDirectory(viewModel.Store), artifact.Uri.LocalPath, serializationResult);
+            TransactionContext transactionContext = new TransactionContext();
             transactionContext.Add(SerializationContext.TransactionContextKey, serializationContext);
 
             var workaroundFixSerializationTransactionValue = false;
@@ -328,10 +322,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner
                         diagramModel = artifact.DesignerInfo.Diagrams.GetDiagram(diagram.DiagramId);
                     }
 
-                    if (diagramModel == null)
-                    {
-                        diagramModel = artifact.DesignerInfo.Diagrams.FirstDiagram;
-                    }
+                    diagramModel ??= artifact.DesignerInfo.Diagrams.FirstDiagram;
 
                     if (diagramModel != null)
                     {
@@ -383,9 +374,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner
                 return;
             }
 
-            var diagramModel = viewModel.ModelXRef.GetExisting(diagram) as DesignerModel.Diagram;
 
-            if (diagramModel != null)
+            if (viewModel.ModelXRef.GetExisting(diagram) is DesignerModel.Diagram diagramModel)
             {
                 // ensure that we still have all of the parts we need to re-translate from the Model
                 EntityModelToDslModelTranslatorStrategy.TranslateDiagram(diagram, diagramModel);
@@ -402,10 +392,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner
             }
 
             // remove "Select All" selection
-            if (diagram.ActiveDiagramView != null)
-            {
-                diagram.ActiveDiagramView.Selection.Set(new DiagramItem(diagram));
-            }
+            diagram.ActiveDiagramView?.Selection.Set(new DiagramItem(diagram));
         }
     }
 }

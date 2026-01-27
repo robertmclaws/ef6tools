@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.Model.Visitor;
+using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Microsoft.Data.Entity.Design.Common;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.Model.Visitor;
-    using Microsoft.Data.Entity.Design.Model.XLinqAnnotations;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Microsoft.Data.Entity.Design.Common;
-
     internal abstract class EFArtifact : EFContainer
     {
         private Uri _uri;
@@ -164,7 +164,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
                 // reparse this artifact
                 State = EFElementState.None;
-                Parse(new List<XName>());
+                Parse([]);
                 if (State == EFElementState.Parsed)
                 {
                     XmlModelHelper.NormalizeAndResolve(this);
@@ -251,11 +251,10 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             OnBeforeHandleXmlModelTransactionCompleted(sender, xmlTransactionEventArgs);
 
-            EfiChangeGroup changeGroup;
             OnHandleXmlModelTransactionCompleted(
                 sender, xmlTransactionEventArgs,
                 false, // send 'false' since this is the normal handler
-                out changeGroup);
+                out EfiChangeGroup changeGroup);
 
             OnAfterHandleXmlModelTransactionCompleted(sender, xmlTransactionEventArgs, changeGroup);
         }
@@ -264,11 +263,10 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             OnBeforeHandleXmlModelTransactionCompleted(sender, xmlTransactionEventArgs);
 
-            EfiChangeGroup changeGroup;
             OnHandleXmlModelTransactionCompleted(
                 sender, xmlTransactionEventArgs,
                 true, // send 'true' since this is the undo handler
-                out changeGroup);
+                out EfiChangeGroup changeGroup);
 
             OnAfterHandleXmlModelTransactionCompleted(sender, xmlTransactionEventArgs, changeGroup);
         }
@@ -277,13 +275,12 @@ namespace Microsoft.Data.Entity.Design.Model
         {
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected virtual void OnHandleXmlModelTransactionCompleted(
             object sender, XmlTransactionEventArgs xmlTransactionEventArgs, bool isUndoOrRedo, out EfiChangeGroup changeGroup)
         {
             // If this is an undo/redo XML transaction there is no EfiTransaction, thus the artifact will not
             // be made dirty as necessary. We will have to do it manually here.
-            var efiTransaction = xmlTransactionEventArgs.Transaction.UserState as EfiTransaction;
+            EfiTransaction efiTransaction = xmlTransactionEventArgs.Transaction.UserState as EfiTransaction;
             if (efiTransaction == null && isUndoOrRedo)
             {
                 Artifact.IsDirty = true;
@@ -354,7 +351,6 @@ namespace Microsoft.Data.Entity.Design.Model
             private readonly IXmlChange _xmlChange;
             private readonly EFObject _changedEFObject;
             private EFObject _parentOfChangedEFObject;
-            [SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
             private readonly ExpectEFObjectParentForXObject _expectEFObjectParentForXObject;
 
             public delegate bool ExpectEFObjectParentForXObject(XObject xobject);
@@ -458,17 +454,17 @@ namespace Microsoft.Data.Entity.Design.Model
         /// <returns>A set of namespace strings converted to lower case, or an empty list to process all items</returns>
         protected internal virtual HashSet<string> GetNamespaces()
         {
-            return new HashSet<string>();
+            return [];
         }
 
         private EfiChangeGroup ProcessUndoRedoChanges(XmlTransactionEventArgs xmlTransactionEventArgs)
         {
-            using (var tx = new EfiTransaction(this, EfiTransactionOriginator.UndoRedoOriginatorId, xmlTransactionEventArgs.Transaction))
+            using (EfiTransaction tx = new EfiTransaction(this, EfiTransactionOriginator.UndoRedoOriginatorId, xmlTransactionEventArgs.Transaction))
             {
                 var changeGroup = tx.ChangeGroup;
-                var undoChanges = new List<ExternalXMLModelChange>();
-                var containersToRenormalize = new List<EFContainer>();
-                var bindingsForRebind = new List<ItemBinding>();
+                List<ExternalXMLModelChange> undoChanges = new List<ExternalXMLModelChange>();
+                List<EFContainer> containersToRenormalize = new List<EFContainer>();
+                List<ItemBinding> bindingsForRebind = new List<ItemBinding>();
                 var namespaces = GetNamespaces();
 
                 // filter the changes received from XmlEditor and resolve changed EFObjects and their parents
@@ -482,7 +478,7 @@ namespace Microsoft.Data.Entity.Design.Model
                         if (xmlChange.Node.NodeType == XmlNodeType.Element
                             && xmlChange.Action == XObjectChange.Value)
                         {
-                            var nodeValueChange = xmlChange as IXmlNodeValueChange;
+                            IXmlNodeValueChange nodeValueChange = xmlChange as IXmlNodeValueChange;
                             Debug.Assert(
                                 nodeValueChange != null
                                 && string.IsNullOrEmpty(nodeValueChange.OldValue)
@@ -494,7 +490,7 @@ namespace Microsoft.Data.Entity.Design.Model
                         }
                         else
                         {
-                            var emc = new ExternalXMLModelChange(xmlChange, ExpectEFObjectForXObject);
+                            ExternalXMLModelChange emc = new ExternalXMLModelChange(xmlChange, ExpectEFObjectForXObject);
                             if (emc.IsAnnotationChange(namespaces))
                             {
                                 continue;
@@ -579,18 +575,16 @@ namespace Microsoft.Data.Entity.Design.Model
             var parentEFObject = modelChange.Parent;
             if (changedEFObject != null)
             {
-                var staleItemBinding = changedEFObject as ItemBinding;
-                var staleDefaultableValue = changedEFObject as DefaultableValue;
+                DefaultableValue staleDefaultableValue = changedEFObject as DefaultableValue;
 
-                var parentEFContainer = parentEFObject as EFContainer;
+                EFContainer parentEFContainer = parentEFObject as EFContainer;
                 Debug.Assert(parentEFContainer != null, "parentEfObject was not an EFContainer!");
-                if (staleItemBinding != null)
+                if (changedEFObject is ItemBinding staleItemBinding)
                 {
                     // if this is an itembinding, then we have to directly null out the xobject and rebind since the refname is a "symlink" to the xattribute
                     foreach (var child in parentEFContainer.Children)
                     {
-                        var updatedItemBinding = child as ItemBinding;
-                        if (updatedItemBinding != null
+                        if (child is ItemBinding updatedItemBinding
                             && updatedItemBinding.EFTypeName == staleItemBinding.EFTypeName)
                         {
                             updatedItemBinding.SetXObject(null);
@@ -604,8 +598,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 {
                     foreach (var child in parentEFContainer.Children)
                     {
-                        var updatedDefaultableValue = child as DefaultableValue;
-                        if (updatedDefaultableValue != null
+                        if (child is DefaultableValue updatedDefaultableValue
                             && updatedDefaultableValue.EFTypeName == staleDefaultableValue.EFTypeName)
                         {
                             updatedDefaultableValue.SetXObject(null);
@@ -617,7 +610,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 else
                 {
                     // Find all the dependent binding.
-                    var visitor = new AntiDependencyCollectorVisitor();
+                    AntiDependencyCollectorVisitor visitor = new AntiDependencyCollectorVisitor();
                     visitor.Traverse(changedEFObject);
                     foreach (var binding in visitor.AntiDependencyBindings)
                     {
@@ -639,8 +632,6 @@ namespace Microsoft.Data.Entity.Design.Model
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void ProcessExternalAddOrUpdateChange(
             EfiChangeGroup changeGroup, List<EFContainer> containersToRenormalize, ExternalXMLModelChange undoModelChange)
         {
@@ -649,7 +640,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
             if (parentEFObject != null)
             {
-                var parentEFContainer = parentEFObject as EFContainer;
+                EFContainer parentEFContainer = parentEFObject as EFContainer;
                 Debug.Assert(parentEFContainer != null, "parentEFObject was not an EFContainer!");
 
                 // if this is an "add" for an element, then the parent will parse the new child.
@@ -659,17 +650,15 @@ namespace Microsoft.Data.Entity.Design.Model
                     &&
                     undoModelChange.Action == XObjectChange.Add)
                 {
-                    var newXElement = undoModelChange.XNode as XElement;
-
-                    if (newXElement != null
+                    if (undoModelChange.XNode is XElement newXElement
                         &&
-                        parentEFContainer.ReparseSingleElement(new List<XName>(), newXElement))
+                        parentEFContainer.ReparseSingleElement([], newXElement))
                     {
                         var newEFObject = ModelItemAnnotation.GetModelItem(undoModelChange.XNode);
                         Debug.Assert(newEFObject != null, "Couldn't find the ModelItemAnnotation for the newly created XLinq node");
                         if (newEFObject != null)
                         {
-                            var newEFElement = newEFObject as EFElement;
+                            EFElement newEFElement = newEFObject as EFElement;
                             Debug.Assert(newEFElement != null, "If the XObject was an XElement, then we should have an EFElement as well");
                             if (newEFElement != null)
                             {
@@ -682,17 +671,15 @@ namespace Microsoft.Data.Entity.Design.Model
                     }
                     else if (undoModelChange.XNode is XAttribute)
                     {
-                        var staleItemBinding = changedEFObject as ItemBinding;
-                        var staleDefaultableValue = changedEFObject as DefaultableValue;
+                        DefaultableValue staleDefaultableValue = changedEFObject as DefaultableValue;
 
                         // item bindings might have gotten added after their parents got added in which case the MIA will be stale.
                         // we have to step through the new parent, set the xobject manually, rebind, and reset the annotation on the xlinq node.
-                        if (staleItemBinding != null)
+                        if (changedEFObject is ItemBinding staleItemBinding)
                         {
                             foreach (var child in parentEFContainer.Children)
                             {
-                                var updatedItemBinding = child as ItemBinding;
-                                if (updatedItemBinding != null
+                                if (child is ItemBinding updatedItemBinding
                                     && updatedItemBinding.EFTypeName == staleItemBinding.EFTypeName)
                                 {
                                     updatedItemBinding.SetXObject(undoModelChange.XNode);
@@ -702,14 +689,13 @@ namespace Microsoft.Data.Entity.Design.Model
                             }
                         }
 
-                            // for defaultable values that got added after parents were added, we have to discover the actual EFObject in the Escher tree,
-                            // set the xobject, and reset the annotation on the existing xlinq node
+                        // for defaultable values that got added after parents were added, we have to discover the actual EFObject in the Escher tree,
+                        // set the xobject, and reset the annotation on the existing xlinq node
                         else if (staleDefaultableValue != null)
                         {
                             foreach (var child in parentEFContainer.Children)
                             {
-                                var updatedDefaultableValue = child as DefaultableValue;
-                                if (updatedDefaultableValue != null
+                                if (child is DefaultableValue updatedDefaultableValue
                                     && updatedDefaultableValue.EFTypeName == staleDefaultableValue.EFTypeName)
                                 {
                                     updatedDefaultableValue.SetXObject(undoModelChange.XNode);
@@ -726,16 +712,12 @@ namespace Microsoft.Data.Entity.Design.Model
                     Debug.Assert(undoModelChange.XNode is XAttribute, "The only 'value' change Escher supports is to XAttributes");
                     if (undoModelChange.XNode is XAttribute)
                     {
-                        var existingItemBinding = changedEFObject as ItemBinding;
-                        if (existingItemBinding != null)
-                        {
-                            existingItemBinding.Rebind();
-                        }
+                        ItemBinding existingItemBinding = changedEFObject as ItemBinding;
+                        existingItemBinding?.Rebind();
 
                         // we have to normalize and resolve the parents of DefaultableValues
                         // because this change could affect the parent's RefName, affecting SingleItemBindings
-                        var defaultableValue = changedEFObject as DefaultableValue;
-                        if (defaultableValue != null)
+                        if (changedEFObject is DefaultableValue defaultableValue)
                         {
                             XmlModelHelper.NormalizeAndResolve(parentEFContainer);
 #if DEBUG
@@ -758,7 +740,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
                 // if an object's state is unresolved, then queue it for re-normalization. This occurs
                 // for example, if itembinding changes occur before the 'add' changes for their targeted objects
-                var itemBinding = changedEFObject as ItemBinding;
+                ItemBinding itemBinding = changedEFObject as ItemBinding;
                 if ((itemBinding != null && false == itemBinding.Resolved)
                     || parentEFContainer.State != EFElementState.Resolved)
                 {
@@ -767,10 +749,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 CheckObjectToRenormalize(changedEFObject, ref containersToRenormalize);
 
                 // now tell the views that a new item has been created; this will happen for both an 'add' and a 'change'
-                string oldValue = null;
-                string newValue = null;
-                string property = null;
-                GetOldAndNewValues(undoModelChange.XmlChange, out property, out oldValue, out newValue);
+                GetOldAndNewValues(undoModelChange.XmlChange, out string property, out string oldValue, out string newValue);
 
                 changeGroup.RecordModelChange(GetChangeType(undoModelChange.XmlChange), changedEFObject, property, oldValue, newValue);
             }
@@ -785,8 +764,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         private void CheckObjectToRenormalize(EFObject efObject, ref List<EFContainer> containersToRenormalize)
         {
-            var efContainer = efObject as EFContainer;
-            if (efContainer != null)
+            if (efObject is EFContainer efContainer)
             {
                 if (efContainer.State != EFElementState.Resolved)
                 {
@@ -822,7 +800,7 @@ namespace Microsoft.Data.Entity.Design.Model
                         if (xmlChange.Node.NodeType == XmlNodeType.Element
                             && xmlChange.Action == XObjectChange.Value)
                         {
-                            var nodeValueChange = xmlChange as IXmlNodeValueChange;
+                            IXmlNodeValueChange nodeValueChange = xmlChange as IXmlNodeValueChange;
                             Debug.Assert(
                                 nodeValueChange != null
                                 && string.IsNullOrEmpty(nodeValueChange.OldValue)
@@ -834,10 +812,7 @@ namespace Microsoft.Data.Entity.Design.Model
                             continue;
                         }
 
-                        string oldValue = null;
-                        string newValue = null;
-                        string property = null;
-                        GetOldAndNewValues(xmlChange, out property, out oldValue, out newValue);
+                        GetOldAndNewValues(xmlChange, out string property, out string oldValue, out string newValue);
 
                         changeGroup.RecordModelChange(GetChangeType(xmlChange), efObject, property, oldValue, newValue);
                     }
@@ -868,15 +843,15 @@ namespace Microsoft.Data.Entity.Design.Model
         {
             if (xmlChange.Action == XObjectChange.Name)
             {
-                var nodeNameChange = xmlChange as IXmlNodeNameChange;
+                IXmlNodeNameChange nodeNameChange = xmlChange as IXmlNodeNameChange;
                 newValue = nodeNameChange.NewName.LocalName;
                 oldValue = nodeNameChange.OldName.LocalName;
                 property = string.Empty;
             }
             else if (xmlChange.Action == XObjectChange.Value)
             {
-                var nodeValueChange = xmlChange as IXmlNodeValueChange;
-                var xattr = nodeValueChange.Node as XAttribute;
+                IXmlNodeValueChange nodeValueChange = xmlChange as IXmlNodeValueChange;
+                XAttribute xattr = nodeValueChange.Node as XAttribute;
                 Debug.Assert(xattr != null);
                 property = xattr.Name.LocalName;
                 newValue = nodeValueChange.NewValue;
@@ -890,9 +865,6 @@ namespace Microsoft.Data.Entity.Design.Model
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1032:ImplementStandardExceptionConstructors",
-            Justification = "Minimizing changes, bugs tracking to refactor these")]
-        [SuppressMessage("Microsoft.Design", "CA1064:ExceptionsShouldBePublic")]
         [Serializable]
         internal class ChangeProcessingFailedException : Exception
         {
@@ -1001,7 +973,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         internal void AddParseErrorForObject(EFObject obj, string errorMessage, int errorCode)
         {
-            var ei = new ErrorInfo(ErrorInfo.Severity.ERROR, errorMessage, obj, errorCode, ErrorClass.ParseError);
+            ErrorInfo ei = new ErrorInfo(ErrorInfo.Severity.ERROR, errorMessage, obj, errorCode, ErrorClass.ParseError);
             AddParseErrorForObject(obj, ei);
         }
 
@@ -1010,15 +982,11 @@ namespace Microsoft.Data.Entity.Design.Model
             Debug.Assert(errorInfo.ErrorClass == ErrorClass.ParseError, "Unexpected error class added to EFObject");
             Debug.Assert(errorInfo.Item == obj, "ErrorInfo for wrong object added to EFObject");
 
-            if (_errors == null)
-            {
-                _errors = new Dictionary<EFObject, ICollection<ErrorInfo>>();
-            }
+            _errors ??= [];
 
-            ICollection<ErrorInfo> errorCollection;
-            if (!_errors.TryGetValue(obj, out errorCollection))
+            if (!_errors.TryGetValue(obj, out ICollection<ErrorInfo> errorCollection))
             {
-                errorCollection = new List<ErrorInfo>();
+                errorCollection = [];
                 _errors.Add(obj, errorCollection);
             }
 

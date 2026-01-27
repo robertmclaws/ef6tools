@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using EdmPackage = Microsoft.Data.Entity.Design.VisualStudio.Package;
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
 
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-
     internal enum EntityMappingModes
     {
         None,
@@ -86,20 +85,12 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
 
         private void OnContextDisposing(object sender, EventArgs e)
         {
-            var context = (EditingContext)sender;
+            EditingContext context = (EditingContext)sender;
             Debug.Assert(_context == context, "incorrect context");
-
-            if (_selectionContainer != null)
-            {
-                _selectionContainer.Dispose();
-                _selectionContainer = null;
-            }
-
-            if (_viewModel != null)
-            {
-                _viewModel.Dispose();
-                _viewModel = null;
-            }
+            _selectionContainer?.Dispose();
+            _selectionContainer = null;
+            _viewModel?.Dispose();
+            _viewModel = null;
 
             context.Items.SetValue(new MappingDetailsInfo());
             context.Disposing -= OnContextDisposing;

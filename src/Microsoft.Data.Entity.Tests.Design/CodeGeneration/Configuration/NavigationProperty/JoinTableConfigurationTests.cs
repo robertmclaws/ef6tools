@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.CodeGeneration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
 {
-    using Microsoft.Data.Entity.Design.CodeGeneration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class JoinTableConfigurationTests
     {
         [TestMethod]
         public void GetMethodChain_returns_chain_when_table()
         {
-            var configuration = new JoinTableConfiguration { Table = "Subscriptions" };
-            var code = new CSharpCodeHelper();
+            JoinTableConfiguration configuration = new JoinTableConfiguration { Table = "Subscriptions" };
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetMethodChain(code).Should().Be(".Map(m => m.ToTable(\"Subscriptions\"))");
         }
@@ -21,8 +21,8 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void GetMethodChain_returns_chain_when_table_and_schema()
         {
-            var configuration = new JoinTableConfiguration { Table = "Subscriptions", Schema = "Sales" };
-            var code = new CSharpCodeHelper();
+            JoinTableConfiguration configuration = new JoinTableConfiguration { Table = "Subscriptions", Schema = "Sales" };
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetMethodChain(code).Should().Be(".Map(m => m.ToTable(\"Subscriptions\", \"Sales\"))");
         }
@@ -30,8 +30,8 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void GetMethodChain_returns_chain_when_one_left_key()
         {
-            var configuration = new JoinTableConfiguration { LeftKeys = { "CustomerId" } };
-            var code = new CSharpCodeHelper();
+            JoinTableConfiguration configuration = new JoinTableConfiguration { LeftKeys = { "CustomerId" } };
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetMethodChain(code).Should().Be(".Map(m => m.MapLeftKey(\"CustomerId\"))");
         }
@@ -39,8 +39,8 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void GetMethodChain_returns_chain_when_more_than_one_left_key()
         {
-            var configuration = new JoinTableConfiguration { LeftKeys = { "CustomerId1", "CustomerId2" } };
-            var code = new CSharpCodeHelper();
+            JoinTableConfiguration configuration = new JoinTableConfiguration { LeftKeys = { "CustomerId1", "CustomerId2" } };
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetMethodChain(code).Should().Be(".Map(m => m.MapLeftKey(new[] { \"CustomerId1\", \"CustomerId2\" }))");
         }
@@ -48,8 +48,8 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void GetMethodChain_returns_chain_when_one_right_key()
         {
-            var configuration = new JoinTableConfiguration { RightKeys = { "ServiceId" } };
-            var code = new CSharpCodeHelper();
+            JoinTableConfiguration configuration = new JoinTableConfiguration { RightKeys = { "ServiceId" } };
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetMethodChain(code).Should().Be(".Map(m => m.MapRightKey(\"ServiceId\"))");
         }
@@ -57,8 +57,8 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void GetMethodChain_returns_chain_when_more_than_one_right_key()
         {
-            var configuration = new JoinTableConfiguration { RightKeys = { "ServiceId1", "ServiceId2" } };
-            var code = new CSharpCodeHelper();
+            JoinTableConfiguration configuration = new JoinTableConfiguration { RightKeys = { "ServiceId1", "ServiceId2" } };
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetMethodChain(code).Should().Be(".Map(m => m.MapRightKey(new[] { \"ServiceId1\", \"ServiceId2\" }))");
         }
@@ -66,13 +66,13 @@ namespace Microsoft.Data.Entity.Tests.Design.CodeGeneration
         [TestMethod]
         public void GetMethodChain_returns_chain_when_all()
         {
-            var configuration = new JoinTableConfiguration
+            JoinTableConfiguration configuration = new JoinTableConfiguration
                 {
                     Table = "Subscriptions",
                     LeftKeys = { "CustomerId" },
                     RightKeys = { "ServiceId" }
                 };
-            var code = new CSharpCodeHelper();
+            CSharpCodeHelper code = new CSharpCodeHelper();
 
             configuration.GetMethodChain(code).Should().Be(".Map(m => m.ToTable(\"Subscriptions\").MapLeftKey(\"CustomerId\").MapRightKey(\"ServiceId\"))");
         }

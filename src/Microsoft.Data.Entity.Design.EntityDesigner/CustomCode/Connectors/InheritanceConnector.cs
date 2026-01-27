@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Globalization;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.VisualStudio.Modeling.Diagrams.GraphObject;
+using Microsoft.VisualStudio.Modeling.Immutability;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 {
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Properties;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.VisualStudio.Modeling.Diagrams.GraphObject;
-    using Microsoft.VisualStudio.Modeling.Immutability;
-
     partial class InheritanceConnector
     {
         public new Inheritance ModelElement
@@ -19,8 +19,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         {
             get
             {
-                var baseName = Resources.Acc_Unnamed;
-                var derivedName = Resources.Acc_Unnamed;
+                var baseName = EntityDesignerRes.Acc_Unnamed;
+                var derivedName = EntityDesignerRes.Acc_Unnamed;
 
                 if (ModelElement != null)
                 {
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                     }
                 }
 
-                return string.Format(CultureInfo.CurrentCulture, Resources.IsInheritedFrom, baseName, derivedName);
+                return string.Format(CultureInfo.CurrentCulture, EntityDesignerRes.IsInheritedFrom, baseName, derivedName);
             }
         }
 
@@ -47,8 +47,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    Resources.AccDesc_Inheritance,
-                    Resources.CompClassName_Inheritance,
+                    EntityDesignerRes.AccDesc_Inheritance,
+                    EntityDesignerRes.CompClassName_Inheritance,
                     ModelElement.SourceEntityType.Name,
                     ModelElement.TargetEntityType.Name);
             }

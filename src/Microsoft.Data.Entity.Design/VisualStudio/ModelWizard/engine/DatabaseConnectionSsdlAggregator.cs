@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.ComponentModel;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-
     // <summary>
     //     Aggregate the tables/views/sprocs for display in the wizard by connecting to
     //     a database server

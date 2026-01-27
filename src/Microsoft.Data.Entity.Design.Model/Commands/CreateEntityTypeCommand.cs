@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     This command will create a new EntityType in either the conceptual or the storage model.  This
     ///     command also stores the initial name passed into it and can be retrieved using the
@@ -57,7 +57,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             WriteProperty(ProposedNameProperty, name);
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             var service = cpc.EditingContext.GetEFArtifactService();
@@ -77,8 +76,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
             else
             {
-                string msg = null;
-                if (ModelHelper.IsUniqueName(typeof(EntityType), model, Name, false, out msg) == false)
+                if (ModelHelper.IsUniqueName(typeof(EntityType), model, Name, false, out string msg) == false)
                 {
                     throw new CommandValidationFailedException(msg);
                 }
@@ -166,13 +164,13 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         internal static ConceptualEntityType CreateDerivedEntityType(
             CommandProcessorContext cpc, string name, ConceptualEntityType baseType, bool uniquifyName)
         {
-            var cet = new CreateEntityTypeCommand(name, uniquifyName);
-            var inh = new CreateInheritanceCommand(cet, baseType);
+            CreateEntityTypeCommand cet = new CreateEntityTypeCommand(name, uniquifyName);
+            CreateInheritanceCommand inh = new CreateInheritanceCommand(cet, baseType);
 
-            var cp = new CommandProcessor(cpc, cet, inh);
+            CommandProcessor cp = new CommandProcessor(cpc, cet, inh);
             cp.Invoke();
 
-            var derivedType = cet.EntityType as ConceptualEntityType;
+            ConceptualEntityType derivedType = cet.EntityType as ConceptualEntityType;
             Debug.Assert(derivedType != null, "EntityType is not ConceptualEntityType");
             return derivedType;
         }
@@ -192,13 +190,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         /// <param name="uniquifyName">Flag whether the name should be checked for uniqueness and then changed as required</param>
         /// <param name="isDefaultName">Flag whether the name is the default for new entity types/sets</param>
         /// <returns>The new EntityType</returns>
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static ConceptualEntityType CreateConceptualEntityTypeAndEntitySetAndProperty(
             CommandProcessorContext cpc,
             string name, string setName, bool createKeyProperty, string propertyName,
             string propertyType, string propertyStoreGeneratedPattern, bool uniquifyNames, bool isDefaultName = false)
         {
-            var cet = CreateEntityTypeAndEntitySetAndProperty(
+            ConceptualEntityType cet = CreateEntityTypeAndEntitySetAndProperty(
                 cpc, name, setName, createKeyProperty,
                 propertyName, propertyType, propertyStoreGeneratedPattern, ModelSpace.Conceptual, uniquifyNames, isDefaultName) as
                       ConceptualEntityType;
@@ -227,25 +224,25 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             string name, string setName, bool createKeyProperty, string propertyName,
             string propertyType, string propertyStoreGeneratedPattern, ModelSpace modelSpace, bool uniquifyNames, bool isDefaultName = false)
         {
-            var cp = new CommandProcessor(cpc);
+            CommandProcessor cp = new CommandProcessor(cpc);
 
-            var cet = new CreateEntityTypeCommand(name, modelSpace, uniquifyNames);
+            CreateEntityTypeCommand cet = new CreateEntityTypeCommand(name, modelSpace, uniquifyNames);
             cet.CreateWithDefaultName = isDefaultName;
             cp.EnqueueCommand(cet);
 
-            var ces = new CreateEntitySetCommand(setName, cet, modelSpace, uniquifyNames);
+            CreateEntitySetCommand ces = new CreateEntitySetCommand(setName, cet, modelSpace, uniquifyNames);
             cp.EnqueueCommand(ces);
 
             if (createKeyProperty)
             {
-                var cpcd = new CreatePropertyCommand(propertyName, cet, propertyType, false);
+                CreatePropertyCommand cpcd = new CreatePropertyCommand(propertyName, cet, propertyType, false);
                 cpcd.IsIdProperty = true;
                 cp.EnqueueCommand(cpcd);
 
-                var skpc = new SetKeyPropertyCommand(cpcd, true);
+                SetKeyPropertyCommand skpc = new SetKeyPropertyCommand(cpcd, true);
                 cp.EnqueueCommand(skpc);
 
-                var ssgpc = new SetStoreGeneratedPatternCommand(cpcd, propertyStoreGeneratedPattern);
+                SetStoreGeneratedPatternCommand ssgpc = new SetStoreGeneratedPatternCommand(cpcd, propertyStoreGeneratedPattern);
                 cp.EnqueueCommand(ssgpc);
             }
 

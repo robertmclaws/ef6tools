@@ -1,15 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure.DependencyResolution;
+using System.Data.Entity.Infrastructure.Pluralization;
+using System.Diagnostics;
+using System.Linq;
+
 namespace Microsoft.Data.Entity.Design.VersioningFacade
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Data.Entity.Infrastructure.Pluralization;
-    using System.Diagnostics;
-    using System.Linq;
-
     internal sealed class DependencyResolver : IDbDependencyResolver
     {
         public static readonly DependencyResolver Instance;
@@ -34,7 +33,7 @@ namespace Microsoft.Data.Entity.Design.VersioningFacade
 
             // Load SqlProviderServices at runtime to support SQL Server.
             System.Diagnostics.Debug.WriteLine("[EF6Tools] DependencyResolver static ctor: Pre-registering SQL Server providers");
-            var sqlProviderType = Type.GetType(
+            Type sqlProviderType = Type.GetType(
                 "System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer");
 
             if (sqlProviderType != null)

@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using System;
-
     /// <summary>
     ///     Abstract base class of all kinds of change proposals
     /// </summary>
@@ -42,8 +42,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         public override bool Equals(object obj)
         {
             var isEqual = false;
-            var other = obj as ChangeProposal;
-            if (other != null)
+            if (obj is ChangeProposal other)
             {
                 isEqual = (FileName == other.FileName);
             }

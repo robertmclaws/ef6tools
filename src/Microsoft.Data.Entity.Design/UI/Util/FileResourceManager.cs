@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Reflection;
+using System.Windows;
+
 namespace Microsoft.Data.Entity.Design.UI.Util
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Reflection;
-    using System.Windows;
-
     internal class FileResourceManager
     {
         private static FileResourceManager _instance;
@@ -22,10 +22,7 @@ namespace Microsoft.Data.Entity.Design.UI.Util
         {
             get
             {
-                if (_instance == null)
-                {
-                    _instance = new FileResourceManager(typeof(FileResourceManager).Assembly);
-                }
+                _instance ??= new FileResourceManager(typeof(FileResourceManager).Assembly);
                 return _instance;
             }
         }
@@ -40,15 +37,12 @@ namespace Microsoft.Data.Entity.Design.UI.Util
             return (FrameworkElement)Instance.LoadObject(name);
         }
 
-        [SuppressMessage("Microsoft.Globalization",
-            "CA1308:NormalizeStringsToUppercase",
-            Justification = "The lowercase string is used in a URI")]
         private object LoadObject(string name)
         {
             name = name.ToLower(CultureInfo.InvariantCulture);
             name = name.Replace("\\", "/");
 
-            var uri = new Uri(_componentName + ";component/" + name, UriKind.RelativeOrAbsolute);
+            Uri uri = new Uri(_componentName + ";component/" + name, UriKind.RelativeOrAbsolute);
 
             return Application.LoadComponent(uri);
         }

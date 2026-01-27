@@ -1,21 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
 {
-    using System;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class EntityStoreSchemaFilterEntryTests
     {
         [TestMethod]
         public void EntityStoreSchemaFilterEntry_ctor_sets_fields()
         {
-            var filterEntry =
+            EntityStoreSchemaFilterEntry filterEntry =
                 new EntityStoreSchemaFilterEntry(
                     "catalog",
                     "schema",
@@ -33,7 +33,7 @@ namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb
         [TestMethod]
         public void EntityStoreSchemaFilterEntry_ctor_sets_types_All_and_effect_Allows_by_default()
         {
-            var filterEntry =
+            EntityStoreSchemaFilterEntry filterEntry =
                 new EntityStoreSchemaFilterEntry("catalog", "schema", "name");
 
             filterEntry.Catalog.Should().Be("catalog");

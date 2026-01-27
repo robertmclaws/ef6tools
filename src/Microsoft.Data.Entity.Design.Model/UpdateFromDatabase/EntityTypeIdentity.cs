@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections.Generic;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Tools.XmlDesignerBase.Common.Diagnostics;
-
     /// <summary>
     ///     The identity of a given C-side EntityType when compared to
     ///     database objects which is given by the set of tables/views
@@ -47,8 +47,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
                 return false;
             }
 
-            var objAsEntityTypeIdentity = obj as EntityTypeIdentity;
-            if (null == objAsEntityTypeIdentity)
+            if (obj is not EntityTypeIdentity objAsEntityTypeIdentity)
             {
                 return false;
             }
@@ -97,7 +96,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal string TraceString()
         {
-            var sb = new StringBuilder("[" + typeof(EntityTypeIdentity).Name);
+            StringBuilder sb = new StringBuilder("[" + typeof(EntityTypeIdentity).Name);
             sb.Append(
                 " " + EFToolsTraceUtils.FormatNamedEnumerable(
                     "tablesAndViews", _tablesAndViews.Keys, delegate(DatabaseObject dbObj) { return dbObj.ToString(); }));

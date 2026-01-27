@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
 {
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-
     /// <summary>
     ///     Data for modifying the relative level of items below a given branch
     /// </summary>
@@ -222,8 +222,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns false, there is no need to compare two ShiftBranchLevelsData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator ==(ShiftBranchLevelsData operand1, ShiftBranchLevelsData operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -236,8 +234,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns false, there is no need to compare two ShiftBranchLevelsData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool Compare(ShiftBranchLevelsData operand1, ShiftBranchLevelsData operand2)
         {
             Debug.Assert(false); // There is no need to compare these
@@ -250,8 +246,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid
         /// <param name="operand1">Left operand</param>
         /// <param name="operand2">Right operand</param>
         /// <returns>Always returns true, there is no need to compare two ShiftBranchLevelsData structures</returns>
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand1")]
-        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "operand2")]
         public static bool operator !=(ShiftBranchLevelsData operand1, ShiftBranchLevelsData operand2)
         {
             Debug.Assert(false); // There is no need to compare these

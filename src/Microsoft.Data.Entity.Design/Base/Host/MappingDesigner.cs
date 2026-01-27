@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Entity.Design.Base.Context;
+
 namespace Microsoft.Data.Entity.Design.Base.Host
 {
-    using System;
-    using Microsoft.Data.Entity.Design.Base.Context;
-
     // <summary>
     //     The mapping designer class provides a designer.  Most
     //     of the designer API is actually provided through the

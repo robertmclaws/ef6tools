@@ -1,20 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Extensibility;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VisualStudio;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Extensibility;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VisualStudio;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal abstract class EFAnnotatableElementDescriptor<TEFElement> : ElementDescriptor<TEFElement>
         where TEFElement : EFElement
     {
@@ -38,10 +38,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             return (_documentation != null);
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         protected override void OnTypeDescriptorInitialize()
         {
-            var documentableItem = TypedEFElement as EFDocumentableItem;
+            EFDocumentableItem documentableItem = TypedEFElement as EFDocumentableItem;
             Debug.Assert(
                 !(this is IAnnotatableDocumentableDescriptor) || documentableItem != null,
                 "This descriptor is marked as documentable but the TypedEFElement is not an EFDocumentableItem");
@@ -54,8 +53,6 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
         #endregion
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         public override PropertyDescriptorCollection GetProperties(Attribute[] attributes)
         {
             var baseProperties = base.GetProperties(attributes);
@@ -66,7 +63,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             if (RunningInVS)
             {
                 // we only dispatch to extensions when we are running in VS.  This is because there is a dep on vS things like ProjectItem
-                var el = WrappedItem as EFElement;
+                EFElement el = WrappedItem as EFElement;
                 Debug.Assert(el != null, "wrapped item is null");
                 if (el != null)
                 {
@@ -74,7 +71,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 
                     if (currentSelectionOrNull != null)
                     {
-                        var currentSelection = (EntityDesignerSelection)currentSelectionOrNull;
+                        EntityDesignerSelection currentSelection = (EntityDesignerSelection)currentSelectionOrNull;
                         Debug.Assert((int)currentSelection != 0, "unexpected value for current selection");
                         var extensions = EscherExtensionPointManager.LoadPropertyDescriptorExtensions();
                         if (extensions.Length > 0)
@@ -93,8 +90,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                                 //  TODO: We track 'visited factories' since have to load the App-DB contracts as well as the standard contracts, but
                                 //        MEF also loads the standard contracts in addition to the App-DB contracts. Need to see if MEF can support
                                 //        otherwise.
-                                var propDescriptorOwners = new List<Object>();
-                                var visitedFactories = new HashSet<IEntityDesignerExtendedProperty>();
+                                List<object> propDescriptorOwners = new List<Object>();
+                                HashSet<IEntityDesignerExtendedProperty> visitedFactories = new HashSet<IEntityDesignerExtendedProperty>();
                                 foreach (var ex in extensions)
                                 {
                                     if (((int)ex.Metadata.EntityDesignerSelection & (int)currentSelection) == (int)currentSelection)
@@ -107,14 +104,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                                             visitedFactories.Add(factory);
                                             try
                                             {
-                                                var extensionContext = new PropertyExtensionContextImpl(
+                                                PropertyExtensionContextImpl extensionContext = new PropertyExtensionContextImpl(
                                                     EditingContext, projectItem, targetSchemaVersion,
                                                     factory.GetType().Assembly.GetName().GetPublicKeyToken());
 
                                                 var xelem = el.XElement;
-                                                var sem = el as StorageEntityModel;
                                                 if (currentSelection == EntityDesignerSelection.StorageModelEntityContainer
-                                                    && sem != null)
+                                                    && el is StorageEntityModel sem)
                                                 {
                                                     xelem = sem.FirstEntityContainer.XElement;
                                                 }
@@ -145,7 +141,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
                                     var props = TypeDescriptor.GetProperties(o, attributes, false);
                                     foreach (PropertyDescriptor pd in props)
                                     {
-                                        var reflectedPropertyDescriptor = new ReflectedPropertyDescriptor(EditingContext, pd, o);
+                                        ReflectedPropertyDescriptor reflectedPropertyDescriptor = new ReflectedPropertyDescriptor(EditingContext, pd, o);
                                         if (reflectedPropertyDescriptor.IsBrowsable)
                                         {
                                             if (_propertyDescriptorToOwner.ContainsKey(reflectedPropertyDescriptor))
@@ -173,8 +169,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
         {
             if (pd != null)
             {
-                Object val;
-                if (_propertyDescriptorToOwner.TryGetValue(pd, out val))
+                if (_propertyDescriptorToOwner.TryGetValue(pd, out object val))
                 {
                     return val;
                 }

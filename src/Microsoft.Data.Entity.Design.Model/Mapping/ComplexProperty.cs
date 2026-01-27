@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class ComplexProperty : EFElement
     {
         internal static readonly string ElementName = "ComplexProperty";
@@ -19,10 +19,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         private SingleItemBinding<ComplexType> _typeName;
         private DefaultableValue<bool> _isPartial;
 
-        private readonly List<ScalarProperty> _scalarProperties = new List<ScalarProperty>();
-        private readonly List<ComplexProperty> _complexProperties = new List<ComplexProperty>();
-        private readonly List<ComplexTypeMapping> _complexTypeMappings = new List<ComplexTypeMapping>();
-        private readonly List<Condition> _conditions = new List<Condition>();
+        private readonly List<ScalarProperty> _scalarProperties = [];
+        private readonly List<ComplexProperty> _complexProperties = [];
+        private readonly List<ComplexTypeMapping> _complexTypeMappings = [];
+        private readonly List<Condition> _conditions = [];
 
         internal ComplexProperty(EFElement parent, XElement element)
             : base(parent, element)
@@ -33,14 +33,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_name == null)
-                {
-                    _name = new SingleItemBinding<ComplexConceptualProperty>(
+                _name ??= new SingleItemBinding<ComplexConceptualProperty>(
                         this,
                         AttributeName,
                         ProperyMappingNameNormalizer.NameNormalizer
                         );
-                }
                 return _name;
             }
         }
@@ -49,11 +46,8 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_typeName == null)
-                {
-                    _typeName = new SingleItemBinding<ComplexType>(
+                _typeName ??= new SingleItemBinding<ComplexType>(
                         this, AttributeTypeName, EFNormalizableItemDefaults.DefaultNameNormalizerForMSL);
-                }
                 return _typeName;
             }
         }
@@ -62,10 +56,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_isPartial == null)
-                {
-                    _isPartial = new IsPartialDefaultableValue(this);
-                }
+                _isPartial ??= new IsPartialDefaultableValue(this);
                 return _isPartial;
             }
         }
@@ -213,29 +204,25 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var sp = efContainer as ScalarProperty;
-            if (sp != null)
+            if (efContainer is ScalarProperty sp)
             {
                 _scalarProperties.Remove(sp);
                 return;
             }
 
-            var cp = efContainer as ComplexProperty;
-            if (cp != null)
+            if (efContainer is ComplexProperty cp)
             {
                 _complexProperties.Remove(cp);
                 return;
             }
 
-            var ctm = efContainer as ComplexTypeMapping;
-            if (ctm != null)
+            if (efContainer is ComplexTypeMapping ctm)
             {
                 _complexTypeMappings.Remove(ctm);
                 return;
             }
 
-            var cond = efContainer as Condition;
-            if (cond != null)
+            if (efContainer is Condition cond)
             {
                 _conditions.Remove(cond);
                 return;
@@ -292,25 +279,25 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == ScalarProperty.ElementName)
             {
-                var prop = new ScalarProperty(this, elem);
+                ScalarProperty prop = new ScalarProperty(this, elem);
                 _scalarProperties.Add(prop);
                 prop.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == ElementName)
             {
-                var complexProperty = new ComplexProperty(this, elem);
+                ComplexProperty complexProperty = new ComplexProperty(this, elem);
                 _complexProperties.Add(complexProperty);
                 complexProperty.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == ComplexTypeMapping.ElementName)
             {
-                var complexTypeMapping = new ComplexTypeMapping(this, elem);
+                ComplexTypeMapping complexTypeMapping = new ComplexTypeMapping(this, elem);
                 _complexTypeMappings.Add(complexTypeMapping);
                 complexTypeMapping.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == Condition.ElementName)
             {
-                var cond = new Condition(this, elem);
+                Condition cond = new Condition(this, elem);
                 _conditions.Add(cond);
                 cond.Parse(unprocessedElements);
             }

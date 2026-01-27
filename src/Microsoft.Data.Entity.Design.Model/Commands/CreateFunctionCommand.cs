@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Database;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Database;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateFunctionCommand : Command
     {
         internal string Name { get; private set; }
@@ -74,13 +74,12 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             var service = cpc.EditingContext.GetEFArtifactService();
             var artifact = service.Artifact;
 
-            var function = new Function(artifact.StorageModel(), null);
+            Function function = new Function(artifact.StorageModel(), null);
 
             function.Name.Value = Name;
             function.Schema.Value = SchemaName;
@@ -94,7 +93,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             foreach (var parameterInfo in ParameterInfos)
             {
-                var parameter = new Parameter(function, null);
+                Parameter parameter = new Parameter(function, null);
                 parameter.Name.Value = parameterInfo.Name;
                 parameter.Mode.Value = parameterInfo.Mode;
                 parameter.Type.Value = parameterInfo.Type;
@@ -148,14 +147,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
         private static IEnumerable<ParameterDefinition> GetParameterInfos(IRawDataSchemaProcedure procedure, EFArtifact artifact)
         {
-            var parameterInfos = new List<ParameterDefinition>();
+            List<ParameterDefinition> parameterInfos = new List<ParameterDefinition>();
 
             foreach (var dataSchemaParam in procedure.RawParameters.Where(p => p != null && p.Direction != ParameterDirection.ReturnValue))
             {
                 // -1 means that the type is unknown
                 if (dataSchemaParam.ProviderDataType != -1)
                 {
-                    var info = new ParameterDefinition();
+                    ParameterDefinition info = new ParameterDefinition();
                     parameterInfos.Add(info);
                     info.Name = ModelHelper.CreateValidSimpleIdentifier(dataSchemaParam.Name);
 

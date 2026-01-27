@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-
     /// <remarks>
     ///     Describes the view/edit state of a particular value (cell) in the grid.
     /// </remarks>

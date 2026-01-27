@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Designer;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-
     internal class SetConnectorPointsCommand : Command
     {
         private readonly Connector _connector;
@@ -21,11 +21,10 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             _edgePoints = edgePoints;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // recycle connectors to avoid having rebinding the model
-            var connectorPoints = new List<ConnectorPoint>(_connector.ConnectorPoints);
+            List<ConnectorPoint> connectorPoints = new List<ConnectorPoint>(_connector.ConnectorPoints);
             if (connectorPoints.Count > _edgePoints.Count)
             {
                 var diff = _connector.ConnectorPoints.Count - _edgePoints.Count;
@@ -42,7 +41,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 var diff = _edgePoints.Count - connectorPoints.Count;
                 for (var i = 0; i < diff; i++)
                 {
-                    var cp = new ConnectorPoint(_connector, null);
+                    ConnectorPoint cp = new ConnectorPoint(_connector, null);
                     _connector.AddConnectorPoint(cp);
                     XmlModelHelper.NormalizeAndResolve(cp);
                     connectorPoints.Add(cp);

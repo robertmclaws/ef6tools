@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.IO;
-    using System.Text;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-
     /// <summary>
     /// Exports an EntityDesignerDiagram to Mermaid ER diagram format.
     /// </summary>
@@ -88,34 +88,31 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                 throw new ArgumentNullException("diagram");
             }
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             // Mermaid ER diagram header
             sb.AppendLine("erDiagram");
 
             // Collect all entities and relationships
-            var entities = new List<EntityTypeShape>();
-            var associations = new List<AssociationConnector>();
-            var inheritances = new List<InheritanceConnector>();
+            List<EntityTypeShape> entities = new List<EntityTypeShape>();
+            List<AssociationConnector> associations = new List<AssociationConnector>();
+            List<InheritanceConnector> inheritances = new List<InheritanceConnector>();
 
             foreach (ShapeElement shape in diagram.NestedChildShapes)
             {
-                var entityTypeShape = shape as EntityTypeShape;
-                if (entityTypeShape != null)
+                if (shape is EntityTypeShape entityTypeShape)
                 {
                     entities.Add(entityTypeShape);
                     continue;
                 }
 
-                var associationConnector = shape as AssociationConnector;
-                if (associationConnector != null)
+                if (shape is AssociationConnector associationConnector)
                 {
                     associations.Add(associationConnector);
                     continue;
                 }
 
-                var inheritanceConnector = shape as InheritanceConnector;
-                if (inheritanceConnector != null)
+                if (shape is InheritanceConnector inheritanceConnector)
                 {
                     inheritances.Add(inheritanceConnector);
                 }
@@ -157,14 +154,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                 return string.Empty;
             }
 
-            var entityType = shape.ModelElement as EntityType;
-            if (entityType == null)
+            if (shape.ModelElement is not EntityType entityType)
             {
                 return string.Empty;
             }
 
             var entityName = SanitizeName(entityType.Name);
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             sb.AppendFormat(CultureInfo.InvariantCulture, "    {0} {{\n", entityName);
 
@@ -174,8 +170,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             {
                 foreach (var item in propertiesCompartment.Items)
                 {
-                    var scalarProp = item as ScalarProperty;
-                    if (scalarProp != null)
+                    if (item is ScalarProperty scalarProp)
                     {
                         var propType = showTypes ? SanitizeType(scalarProp.Type) : "property";
                         var propName = SanitizeName(scalarProp.Name);
@@ -190,8 +185,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                         continue;
                     }
 
-                    var complexProp = item as ComplexProperty;
-                    if (complexProp != null)
+                    if (item is ComplexProperty complexProp)
                     {
                         var propName = SanitizeName(complexProp.Name);
                         sb.AppendFormat(
@@ -208,8 +202,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             {
                 foreach (var item in navigationCompartment.Items)
                 {
-                    var navProp = item as NavigationProperty;
-                    if (navProp != null)
+                    if (item is NavigationProperty navProp)
                     {
                         var propName = SanitizeName(navProp.Name);
                         sb.AppendFormat(
@@ -235,8 +228,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                 return string.Empty;
             }
 
-            var association = connector.ModelElement as Association;
-            if (association == null || association.SourceEntityType == null || association.TargetEntityType == null)
+            if (connector.ModelElement is not Association association || association.SourceEntityType == null || association.TargetEntityType == null)
             {
                 return string.Empty;
             }
@@ -271,8 +263,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
                 return string.Empty;
             }
 
-            var inheritance = connector.ModelElement as Inheritance;
-            if (inheritance == null || inheritance.SourceEntityType == null || inheritance.TargetEntityType == null)
+            if (connector.ModelElement is not Inheritance inheritance || inheritance.SourceEntityType == null || inheritance.TargetEntityType == null)
             {
                 return string.Empty;
             }
@@ -352,7 +343,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
             }
 
             // Replace spaces and special characters with underscores
-            var result = new StringBuilder(name.Length);
+            StringBuilder result = new StringBuilder(name.Length);
             foreach (char c in name)
             {
                 if (char.IsLetterOrDigit(c) || c == '_')

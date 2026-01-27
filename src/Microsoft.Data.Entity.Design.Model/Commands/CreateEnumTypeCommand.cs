@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     /// <summary>
     ///     Create an enum type in Conceptual Model
     /// </summary>
@@ -39,7 +39,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             UniquifyName = uniquifyName;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             var service = cpc.EditingContext.GetEFArtifactService();
@@ -59,8 +58,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
             else
             {
-                string msg = null;
-                if (ModelHelper.IsUniqueName(typeof(EnumType), model, Name, true, out msg) == false)
+                if (ModelHelper.IsUniqueName(typeof(EnumType), model, Name, true, out string msg) == false)
                 {
                     throw new CommandValidationFailedException(msg);
                 }
@@ -74,7 +72,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
 
             // create the new item in our model
-            var enumType = new EnumType(model, null);
+            EnumType enumType = new EnumType(model, null);
             Debug.Assert(enumType != null, "enumType should not be null");
             if (enumType == null)
             {
@@ -134,8 +132,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             var enumTypeName = ModelHelper.GetUniqueNameWithNumber(typeof(EnumType), model, Resources.Model_DefaultEnumTypeName);
 
             // go create it
-            var cp = new CommandProcessor(cpc);
-            var cmd = new CreateEnumTypeCommand(enumTypeName, null);
+            CommandProcessor cp = new CommandProcessor(cpc);
+            CreateEnumTypeCommand cmd = new CreateEnumTypeCommand(enumTypeName, null);
             cp.EnqueueCommand(cmd);
 
             cp.Invoke();

@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Windows.Forms;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 {
-    using System;
-    using System.Collections;
-    using System.Diagnostics;
-    using System.Windows.Forms;
-
     /// <summary>
     ///     Exception hardening work.  This class can be used to filter messages sent to a control,
     ///     and catch/display all non-critical exceptions.  Otherwise, Watson will

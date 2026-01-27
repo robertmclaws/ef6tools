@@ -1,21 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.IO;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+using Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen;
+using Microsoft.Data.Tools.XmlDesignerBase.Model;
+using Moq;
+using Moq.Protected;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Microsoft.Data.Entity.Tests.Design.Model
 {
-    using System;
-    using System.IO;
-    using System.Xml;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-    using Microsoft.Data.Entity.Design.VersioningFacade.LegacyCodegen;
-    using Microsoft.Data.Tools.XmlDesignerBase.Model;
-    using Moq;
-    using Moq.Protected;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class LegacyCodeGenerationDriverTests
     {
@@ -24,20 +23,20 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
 
-            var mockArtifact =
+            Mock<EntityDesignArtifact> mockArtifact =
                 new Mock<EntityDesignArtifact>(
                     modelManager, new Uri("http://tempuri"), new Mock<XmlModelProvider>().Object);
 
-            var modelElement = new XElement("{http://schemas.microsoft.com/ado/2009/11/edm}Schema");
+            XElement modelElement = new XElement("{http://schemas.microsoft.com/ado/2009/11/edm}Schema");
 
             using (var conceptualModel = new Mock<ConceptualEntityModel>(mockArtifact.Object, modelElement).Object)
             {
                 mockArtifact.Setup(a => a.ConceptualModel).Returns(conceptualModel);
                 mockArtifact.Setup(a => a.Uri).Returns(new Uri("http://tempuri"));
 
-                var mockCodeGen = new Mock<CodeGeneratorBase>();
-                var mockCodeGenDriver = new Mock<LegacyCodeGenerationDriver>(
-                    LanguageOption.GenerateVBCode, EntityFrameworkVersion.Version1) { CallBase = true };
+                Mock<CodeGeneratorBase> mockCodeGen = new Mock<CodeGeneratorBase>();
+                Mock<LegacyCodeGenerationDriver> mockCodeGenDriver = new Mock<LegacyCodeGenerationDriver>(
+                    LanguageOption.GenerateVBCode, EntityFrameworkVersion.Version3) { CallBase = true };
 
                 mockCodeGenDriver
                     .Protected()
@@ -64,19 +63,19 @@ namespace Microsoft.Data.Entity.Tests.Design.Model
         {
             var modelManager = new Mock<ModelManager>(null, null).Object;
 
-            var mockArtifact =
+            Mock<EntityDesignArtifact> mockArtifact =
                 new Mock<EntityDesignArtifact>(
                     modelManager, new Uri("http://tempuri"), new Mock<XmlModelProvider>().Object);
 
-            var modelElement = new XElement("{http://schemas.microsoft.com/ado/2009/11/edm}Schema");
+            XElement modelElement = new XElement("{http://schemas.microsoft.com/ado/2009/11/edm}Schema");
 
             using (var conceptualModel = new Mock<ConceptualEntityModel>(mockArtifact.Object, modelElement).Object)
             {
                 mockArtifact.Setup(a => a.ConceptualModel).Returns(conceptualModel);
                 mockArtifact.Setup(a => a.Uri).Returns(new Uri("http://tempuri"));
 
-                var mockCodeGen = new Mock<CodeGeneratorBase>();
-                var mockCodeGenDriver = new Mock<LegacyCodeGenerationDriver>(
+                Mock<CodeGeneratorBase> mockCodeGen = new Mock<CodeGeneratorBase>();
+                Mock<LegacyCodeGenerationDriver> mockCodeGenDriver = new Mock<LegacyCodeGenerationDriver>(
                     LanguageOption.GenerateVBCode, EntityFrameworkVersion.Version3) { CallBase = true };
 
                 mockCodeGenDriver

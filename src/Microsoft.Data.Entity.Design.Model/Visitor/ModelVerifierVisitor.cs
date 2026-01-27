@@ -2,7 +2,6 @@
 
 namespace Microsoft.Data.Entity.Design.Model.Visitor
 {
-    using Microsoft.Data.Entity.Design.Model.Entity;
 
 #if DEBUG
     /// <summary>

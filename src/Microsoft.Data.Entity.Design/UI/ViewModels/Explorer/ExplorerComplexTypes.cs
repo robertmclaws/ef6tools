@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     // <summary>
     //     Dummy element which contains the EntityTypes, EnumTypes and ComplexTypes
     // </summary>
@@ -36,8 +36,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         {
             // load children from model
             // note: have to go to parent to get this as this is a dummy node
-            var entityModel = Parent.ModelItem as ConceptualEntityModel;
-            if (entityModel != null)
+            if (Parent.ModelItem is ConceptualEntityModel entityModel)
             {
                 foreach (var child in entityModel.ComplexTypes())
                 {
@@ -64,8 +63,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var complexType = efElementToInsert as ComplexType;
-            if (complexType != null)
+            if (efElementToInsert is ComplexType complexType)
             {
                 var explorerComplexType = AddComplexType(complexType);
                 var index = _complexTypes.IndexOf(explorerComplexType);
@@ -79,8 +77,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerComplexType = efElementToRemove as ExplorerComplexType;
-            if (explorerComplexType == null)
+            if (efElementToRemove is not ExplorerComplexType explorerComplexType)
             {
                 Debug.Fail(
                     string.Format(
@@ -95,7 +92,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         private ExplorerComplexType AddComplexType(ComplexType complexType)
         {
-            var explorerComplexType =
+            ExplorerComplexType explorerComplexType =
                 ModelToExplorerModelXRef.GetNew(_context, complexType, this, typeof(ExplorerComplexType)) as ExplorerComplexType;
             _complexTypes.Insert(explorerComplexType);
             return explorerComplexType;

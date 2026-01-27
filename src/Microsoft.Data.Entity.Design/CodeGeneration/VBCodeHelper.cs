@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.VisualBasic;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.CodeDom.Compiler;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.VisualBasic;
-
     /// <summary>
     /// Helper methods for generating Visual Basic code.
     /// </summary>

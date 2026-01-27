@@ -1,17 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImports;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
+using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 {
-    using System;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Associations;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.FunctionImports;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables;
-
     // <summary>
     //     Based on the type of item being shown, show the correct text for the Operator column.
     // </summary>
@@ -32,36 +33,31 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
 
         public override object /* PropertyDescriptor */ GetValue(object component)
         {
-            var mc = component as MappingCondition;
-            if (mc != null)
+            if (component is MappingCondition mc)
             {
                 EnsureTypeConverters(mc);
                 return mc.Operator;
             }
 
-            var msp = component as MappingScalarProperty;
-            if (msp != null)
+            if (component is MappingScalarProperty msp)
             {
                 EnsureTypeConverters(msp);
                 return ArrowIconPlaceholder;
             }
 
-            var mesp = component as MappingEndScalarProperty;
-            if (mesp != null)
+            if (component is MappingEndScalarProperty mesp)
             {
                 EnsureTypeConverters(mesp);
                 return ArrowIconPlaceholder;
             }
 
-            var mfsp = component as MappingFunctionScalarProperty;
-            if (mfsp != null)
+            if (component is MappingFunctionScalarProperty mfsp)
             {
                 EnsureTypeConverters(mfsp);
                 return ArrowIconPlaceholder;
             }
 
-            var mrb = component as MappingResultBinding;
-            if (mrb != null)
+            if (component is MappingResultBinding mrb)
             {
                 EnsureTypeConverters(mrb);
                 return ArrowIconPlaceholder;
@@ -102,7 +98,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var lovElement = value as MappingLovEFElement;
+            MappingLovEFElement lovElement = value as MappingLovEFElement;
             var valueAsString = value as string;
 
             Debug.Assert(
@@ -117,8 +113,7 @@ namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns
                 return;
             }
 
-            var mc = component as MappingCondition;
-            if (mc != null)
+            if (component is MappingCondition mc)
             {
                 Debug.Assert(mc.ModelItem != null, "MappingCondition should not have null ModelItem");
                 lovElement = mc.GetLovElementFromLovElementOrString(lovElement, valueAsString, ListOfValuesCollection.SecondColumn);

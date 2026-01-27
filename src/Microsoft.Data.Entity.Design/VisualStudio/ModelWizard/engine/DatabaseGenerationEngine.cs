@@ -1,39 +1,34 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Activities;
+using System.Activities.Hosting;
+using System.Activities.XamlIntegration;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Xaml;
+using System.Xml;
+using EnvDTE;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.DatabaseGeneration;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Validation;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
+using Microsoft.Data.Entity.Design.VisualStudio.Package;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 {
-    using System;
-    using System.Activities;
-    using System.Activities.Hosting;
-    using System.Activities.XamlIntegration;
-    using System.Collections.Generic;
-    using System.Data.Common;
-    using System.Data.Entity.Core.Common;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Data.Entity.Infrastructure.DependencyResolution;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using System.Threading;
-    using System.Xaml;
-    using System.Xml;
-    using EnvDTE;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Validation;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui;
-    using Microsoft.Data.Entity.Design.VisualStudio.Package;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
-    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     internal class DatabaseGenerationEngine : DatabaseEngineBase
     {
         private static string _defaultWorkflowPath;
@@ -54,11 +49,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             get
             {
-                if (_defaultWorkflowPath == null)
-                {
-                    _defaultWorkflowPath = Path.Combine(
+                _defaultWorkflowPath ??= Path.Combine(
                         Path.Combine(ExtensibleFileManager.VSEFToolsMacro, _dbGenFolderName), DefaultWorkflowName);
-                }
                 return _defaultWorkflowPath;
             }
         }
@@ -67,11 +59,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             get
             {
-                if (_defaultTemplatePath == null)
-                {
-                    _defaultTemplatePath = Path.Combine(
+                _defaultTemplatePath ??= Path.Combine(
                         Path.Combine(ExtensibleFileManager.VSEFToolsMacro, _dbGenFolderName), DefaultTemplateName);
-                }
                 return _defaultTemplatePath;
             }
         }
@@ -80,10 +69,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             get
             {
-                if (_workflowFileManager == null)
-                {
-                    _workflowFileManager = new ExtensibleFileManager(_dbGenFolderName, XamlExtension);
-                }
+                _workflowFileManager ??= new ExtensibleFileManager(_dbGenFolderName, XamlExtension);
                 return _workflowFileManager;
             }
         }
@@ -92,10 +78,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             get
             {
-                if (_templateFileManager == null)
-                {
-                    _templateFileManager = new ExtensibleFileManager(_dbGenFolderName, TtExtension);
-                }
+                _templateFileManager ??= new ExtensibleFileManager(_dbGenFolderName, TtExtension);
                 return _templateFileManager;
             }
         }
@@ -105,8 +88,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             get { return DefaultDatabaseSchema; }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal static void GenerateDatabaseScriptFromModel(EntityDesignArtifact artifact)
         {
             VsUtils.EnsureProvider(artifact);
@@ -169,7 +150,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             if (startMode == ModelBuilderWizardForm.WizardMode.PerformDatabaseConfigAndDBGenSummary)
             {
                 var edmxItem = VsUtils.GetProjectItemForDocument(artifact.Uri.LocalPath, sp);
-                new DbContextCodeGenerator().AddDbContextTemplates(edmxItem, settings.UseLegacyProvider);
+                // Always use modern templates (legacy provider support removed)
+                new DbContextCodeGenerator().AddDbContextTemplates(edmxItem, useLegacyTemplate: false);
 
                 // We need to reload the artifact if we updated the edmx as part of generating
                 // model from the database.
@@ -180,12 +162,9 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         internal static bool UpdateEdmxAndEnvironment(ModelBuilderSettings settings)
         {
-            var artifact = settings.Artifact as EntityDesignArtifact;
-            if (artifact == null)
+            if (settings.Artifact is not EntityDesignArtifact artifact)
             {
                 Debug.Fail("In trying to UpdateEdmxAndEnvironment(), No Artifact was found in the ModelBuilderSettings");
                 return false;
@@ -198,27 +177,24 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 && settings.MslStringReader != null)
             {
                 // Create the XmlReaders for the ssdl and msl text
-                var ssdlXmlReader = XmlReader.Create(settings.SsdlStringReader);
-                var mslXmlReader = XmlReader.Create(settings.MslStringReader);
+                XmlReader ssdlXmlReader = XmlReader.Create(settings.SsdlStringReader);
+                XmlReader mslXmlReader = XmlReader.Create(settings.MslStringReader);
 
                 // Set up our post event to clear out the error list
-                var cmd = new ReplaceSsdlAndMslCommand(ssdlXmlReader, mslXmlReader);
+                ReplaceSsdlAndMslCommand cmd = new ReplaceSsdlAndMslCommand(ssdlXmlReader, mslXmlReader);
                 cmd.PostInvokeEvent += (o, e) =>
                     {
                         var errorList = ErrorListHelper.GetSingleDocErrorList(e.CommandProcessorContext.Artifact.Uri);
-                        if (errorList != null)
-                        {
-                            errorList.Clear();
-                        }
+                        errorList?.Clear();
                     };
 
                 // Update the model (all inside 1 transaction so we don't get multiple undo's/redo's)
                 var editingContext =
                     PackageManager.Package.DocumentFrameMgr.EditingContextManager.GetNewOrExistingContext(settings.Artifact.Uri);
-                var cpc = new CommandProcessorContext(
+                CommandProcessorContext cpc = new CommandProcessorContext(
                     editingContext,
                     EfiTransactionOriginator.GenerateDatabaseScriptFromModelId, Resources.Tx_GenerateDatabaseScriptFromModel);
-                var cp = new CommandProcessor(cpc, cmd);
+                CommandProcessor cp = new CommandProcessor(cpc, cmd);
                 var addUseLegacyProviderCommand = ModelHelper.CreateSetDesignerPropertyValueCommandFromArtifact(
                     cpc.Artifact,
                     OptionsDesignerInfo.ElementName,
@@ -249,7 +225,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 var canonicalFilePath = string.Empty;
                 try
                 {
-                    var fi = new FileInfo(settings.DdlFileName);
+                    FileInfo fi = new FileInfo(settings.DdlFileName);
                     canonicalFilePath = fi.FullName;
                 }
                 catch (Exception e)
@@ -288,18 +264,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 }
 
                 // Add DDL file to the project if it is inside the project
-                string relativePath;
-                if (VsUtils.TryGetRelativePathInProject(settings.Project, canonicalFilePath, out relativePath))
+                if (VsUtils.TryGetRelativePathInProject(settings.Project, canonicalFilePath, out string relativePath))
                 {
                     AddDDLFileToProject(settings.Project, canonicalFilePath);
                 }
 
                 // Open the DDL file if it is not already open
-                IVsUIHierarchy hier;
-                uint itemId;
-                IVsWindowFrame frame;
                 if (VsShellUtilities.IsDocumentOpen(
-                    Services.ServiceProvider, canonicalFilePath, Guid.Empty, out hier, out itemId, out frame) == false)
+                    Services.ServiceProvider, canonicalFilePath, Guid.Empty, out IVsUIHierarchy hier, out uint itemId, out IVsWindowFrame frame) == false)
                 {
                     VsShellUtilities.OpenDocument(Services.ServiceProvider, canonicalFilePath);
                 }
@@ -310,7 +282,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
         private static void OutputDdl(string ddlFileName, StringReader ddlStringReader)
         {
-            var fileInfo = new FileInfo(ddlFileName);
+            FileInfo fileInfo = new FileInfo(ddlFileName);
             if (false == fileInfo.Directory.Exists)
             {
                 fileInfo.Directory.Create();
@@ -327,7 +299,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             // and finally append to the project. This builds up the "project path" to the file so we can
             // work with linked files.
             var relativeArtifactPath = artifactProjectItem.Name;
-            var parentItem = artifactProjectItem.Collection.Parent as ProjectItem;
+            ProjectItem parentItem = artifactProjectItem.Collection.Parent as ProjectItem;
             while (parentItem != null)
             {
                 relativeArtifactPath = Path.Combine(parentItem.Name, relativeArtifactPath);
@@ -522,7 +494,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         internal static FileInfo ResolveAndValidateWorkflowPath(Project project, string unresolvedPath)
         {
             // Resolve and validate the workflow file path
-            var errorMessages = new PathValidationErrorMessages
+            PathValidationErrorMessages errorMessages = new PathValidationErrorMessages
                 {
                     NullFile = Resources.DatabaseCreation_ErrorWorkflowPathNotSet,
                     NonValid = Resources.DatabaseCreation_ErrorNonValidWorkflowUri,
@@ -560,7 +532,6 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         // <param name="targetVersion"></param>
         // <param name="workflowCompletedHandler"></param>
         // <param name="unhandledExceptionHandler"></param>
-        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1614:ElementParameterDocumentationMustHaveText")]
         internal static WorkflowApplication CreateDatabaseScriptGenerationWorkflow(
             SynchronizationContext syncContext,
             Project project,
@@ -581,7 +552,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
         {
             // Inputs are specific to the workflow. No need to provide a strongly typed bag here
             // because the workflow has to define these.
-            var inputs = new Dictionary<string, object>
+            Dictionary<string, object> inputs = new Dictionary<string, object>
                 {
                     { DatabaseGeneration.EdmConstants.csdlInputName, edmItemCollection },
                     { DatabaseGeneration.EdmConstants.existingSsdlInputName, existingSsdl },
@@ -590,11 +561,11 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
 
             // Initialize the AssemblyLoader. This will cache project/website references and proffer assembly
             // references to the XamlSchemaContext as well as the OutputGeneratorActivities
-            var assemblyLoader = new DatabaseGenerationAssemblyLoader(project, VsUtils.GetVisualStudioInstallDir());
+            DatabaseGenerationAssemblyLoader assemblyLoader = new DatabaseGenerationAssemblyLoader(project, VsUtils.GetVisualStudioInstallDir());
 
             // Parameters can be used throughout the workflow. These are more ubiquitous than inputs and
             // so they do not need to be defined ahead of time in the workflow.
-            var edmWorkflowSymbolResolver = new EdmParameterBag(
+            EdmParameterBag edmWorkflowSymbolResolver = new EdmParameterBag(
                 syncContext, assemblyLoader, targetVersion, providerInvariantName, providerManifestToken, providerConnectionString,
                 databaseSchemaName, databaseName, templatePath, artifactPath);
 
@@ -603,7 +574,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             using (var stream = workflowFileInfo.OpenRead())
             {
                 using (
-                    var xamlXmlReader = new XamlXmlReader(XmlReader.Create(stream), new DatabaseGenerationXamlSchemaContext(assemblyLoader))
+                    XamlXmlReader xamlXmlReader = new XamlXmlReader(XmlReader.Create(stream), new DatabaseGenerationXamlSchemaContext(assemblyLoader))
                     )
                 {
                     modelFirstWorkflowElement = ActivityXamlServices.Load(xamlXmlReader);
@@ -611,11 +582,13 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             }
 
             // Create a WorkflowInstance from the WorkflowElement and pass in the inputs
-            var workflowInstance = new WorkflowApplication(modelFirstWorkflowElement, inputs);
+            WorkflowApplication workflowInstance = new WorkflowApplication(modelFirstWorkflowElement, inputs);
 
             // Attach a SymbolResolver for external parameters; this is like the ParameterBag
-            var symbolResolver = new SymbolResolver();
-            symbolResolver.Add(typeof(EdmParameterBag).Name, edmWorkflowSymbolResolver);
+            SymbolResolver symbolResolver = new SymbolResolver
+            {
+                { typeof(EdmParameterBag).Name, edmWorkflowSymbolResolver }
+            };
 
             workflowInstance.Extensions.Add(symbolResolver);
             workflowInstance.Completed = workflowCompletedHandler;
@@ -654,17 +627,15 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             // resolved path should be a resolvable full path, so try creating a URI. We will need the URI's local path for the next step. This process
             // will strip out any levels of indirection in the path ('..\'). If this is a relative path pointing to a file in the project then this step will
             // be a no-op.
-            Uri resolvedUri;
-            if (Uri.TryCreate(resolvedPath, UriKind.Absolute, out resolvedUri))
+            if (Uri.TryCreate(resolvedPath, UriKind.Absolute, out Uri resolvedUri))
             {
                 resolvedPath = resolvedUri.LocalPath;
             }
 
             // We need to determine if this is a custom path; that is, something the user has typed in that is different from
             // the files in the 'user' and 'vs' directories.
-            string temporaryRelativePath;
             if (VsUtils.TryGetRelativePathInParentPath(
-                Path.Combine(ExtensibleFileManager.UserEFToolsDir.FullName, _dbGenFolderName), resolvedPath, out temporaryRelativePath)
+                Path.Combine(ExtensibleFileManager.UserEFToolsDir.FullName, _dbGenFolderName), resolvedPath, out string temporaryRelativePath)
                 == false
                 &&
                 VsUtils.TryGetRelativePathInParentPath(
@@ -674,9 +645,8 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
                 // Attempt to resolve to the project
                 try
                 {
-                    bool projectHasFilename;
-                    var projectPath = VsUtils.GetProjectPathWithName(project, out projectHasFilename);
-                    var projectDirUri = new Uri(projectPath);
+                    var projectPath = VsUtils.GetProjectPathWithName(project, out bool projectHasFilename);
+                    Uri projectDirUri = new Uri(projectPath);
                     Debug.Assert(projectDirUri != null, "The project directory URI is null; why wasn't an exception thrown?");
 
                     if (projectDirUri != null)
@@ -703,7 +673,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine
             }
 
             // If the specified file is not installed or does not exist, then we cannot continue
-            var pathFileInfo = new FileInfo(resolvedPath);
+            FileInfo pathFileInfo = new FileInfo(resolvedPath);
             if (false == pathFileInfo.Exists)
             {
                 throw new InvalidOperationException(

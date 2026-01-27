@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
 
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     internal class ExplorerDiagrams : EntityDesignExplorerEFElement
     {
         // Ghost nodes are grouping nodes in the EDM Browser which 
@@ -40,8 +40,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
         private void LoadDiagramsFromModel()
         {
             // load children from model
-            var diagrams = ModelItem as Diagrams;
-            if (diagrams != null)
+            if (ModelItem is Diagrams diagrams)
             {
                 foreach (var child in diagrams.Items)
                 {
@@ -67,8 +66,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override void InsertChild(EFElement efElementToInsert)
         {
-            var diagram = efElementToInsert as Diagram;
-            if (diagram != null)
+            if (efElementToInsert is Diagram diagram)
             {
                 var explorerDiagram = AddDiagram(diagram);
                 var index = _diagrams.IndexOf(explorerDiagram);
@@ -82,8 +80,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         protected override bool RemoveChild(ExplorerEFElement efElementToRemove)
         {
-            var explorerDiagram = efElementToRemove as ExplorerDiagram;
-            if (explorerDiagram == null)
+            if (efElementToRemove is not ExplorerDiagram explorerDiagram)
             {
                 Debug.Fail(
                     string.Format(
@@ -102,7 +99,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
         private ExplorerDiagram AddDiagram(Diagram diagram)
         {
-            var explorerDiagram = ModelToExplorerModelXRef.GetNew(_context, diagram, this, typeof(ExplorerDiagram)) as ExplorerDiagram;
+            ExplorerDiagram explorerDiagram = ModelToExplorerModelXRef.GetNew(_context, diagram, this, typeof(ExplorerDiagram)) as ExplorerDiagram;
             _diagrams.Insert(explorerDiagram);
             return explorerDiagram;
         }

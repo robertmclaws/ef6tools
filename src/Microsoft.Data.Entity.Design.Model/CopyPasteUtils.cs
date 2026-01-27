@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     // Helper class for getting/setting clipboard objects
     internal static class CopyPasteUtils
     {
@@ -62,7 +62,7 @@ namespace Microsoft.Data.Entity.Design.Model
             Debug.Assert(obj != null, "Cannot copy null to clipboard");
             if (obj != null)
             {
-                var copyDataObject = new DataObject();
+                DataObject copyDataObject = new DataObject();
                 var t = typeof(T);
                 copyDataObject.SetData(DataFormats.GetFormat(t.FullName).Name, obj);
                 Clipboard.SetDataObject(copyDataObject);
@@ -71,9 +71,8 @@ namespace Microsoft.Data.Entity.Design.Model
 
         private static T GetFromClipboard<T>() where T : class
         {
-            var copyDataObject = Clipboard.GetDataObject() as DataObject;
             var t = typeof(T);
-            if (copyDataObject != null)
+            if (Clipboard.GetDataObject() is DataObject copyDataObject)
             {
                 return copyDataObject.GetData(t.FullName) as T;
             }

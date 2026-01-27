@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Text;
-
     /// <summary>
     ///     Represents information about an EFElement whose corresponding XElement
     ///     node defining it may not have been parsed yet or may not exist.	 If it
@@ -22,7 +22,7 @@ namespace Microsoft.Data.Entity.Design.Model
     {
         internal delegate NormalizedName NameNormalizer(EFElement parent, string refName);
 
-        private readonly List<Binding<T>> _bindings = new List<Binding<T>>();
+        private readonly List<Binding<T>> _bindings = [];
         private readonly string _attributeName;
         private readonly NameNormalizer _nameNormalizer;
         protected char _delimiter;
@@ -80,7 +80,7 @@ namespace Microsoft.Data.Entity.Design.Model
 
         protected override List<NormalizedName> GetRefNameAsNormalizedNames()
         {
-            var normalizedNamesList = new List<NormalizedName>();
+            List<NormalizedName> normalizedNamesList = new List<NormalizedName>();
             if (RefName != null)
             {
                 var newRefNames = RefName.Split(_delimiter);
@@ -88,7 +88,7 @@ namespace Microsoft.Data.Entity.Design.Model
                 {
                     if (_nameNormalizer == null)
                     {
-                        var symbol = new Symbol(newRefName);
+                        Symbol symbol = new Symbol(newRefName);
                         normalizedNamesList.Add(new NormalizedName(symbol, null, null, newRefName));
                     }
                     else
@@ -115,7 +115,7 @@ namespace Microsoft.Data.Entity.Design.Model
             }
             else
             {
-                var binding = new Binding<T>(this, BindingStatus.Undefined, null);
+                Binding<T> binding = new Binding<T>(this, BindingStatus.Undefined, null);
                 _bindings.Add(binding);
             }
         }
@@ -253,7 +253,7 @@ namespace Microsoft.Data.Entity.Design.Model
         internal override void ResetBind()
         {
             Unbind();
-            var binding = new Binding<T>(this, BindingStatus.Undefined, null);
+            Binding<T> binding = new Binding<T>(this, BindingStatus.Undefined, null);
             _bindings.Add(binding);
         }
 
@@ -291,7 +291,7 @@ namespace Microsoft.Data.Entity.Design.Model
             // loop over all the references replacing toBeReplaced with
             // replacement if present in the correct part
             var origRefNameAsNormalizedNames = GetRefNameAsNormalizedNames();
-            var replacementAttrValue = new StringBuilder();
+            StringBuilder replacementAttrValue = new StringBuilder();
             var replacedAnyPart = false;
             var firstRef = true;
             foreach (var normalizedName in origRefNameAsNormalizedNames)

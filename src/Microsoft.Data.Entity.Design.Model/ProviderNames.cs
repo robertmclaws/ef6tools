@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.Model
 {
-    using System;
-
     /// <summary>
     /// Helper class for SQL Server provider invariant names.
     /// Consolidates provider name constants and comparison methods to support both

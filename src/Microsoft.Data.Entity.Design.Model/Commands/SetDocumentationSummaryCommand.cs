@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class SetDocumentationSummaryCommand : Command
     {
         private readonly EFDocumentableItem _efElement;
@@ -38,10 +38,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
             else
             {
-                if (_efElement.Documentation == null)
-                {
-                    _efElement.Documentation = new Documentation(_efElement, null);
-                }
+                _efElement.Documentation ??= new Documentation(_efElement, null);
 
                 if (_efElement.Documentation.Summary == null)
                 {

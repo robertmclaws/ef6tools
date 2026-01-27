@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+using Microsoft.Data.Tools.Model.Diagram;
+
 namespace Microsoft.Data.Entity.Design.Model.Designer
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Xml.Linq;
-    using Microsoft.Data.Tools.Model.Diagram;
-
     internal abstract class Connector : BaseDiagramObject
     {
         internal static readonly string AttributeManuallyRouted = "ManuallyRouted";
 
         private DefaultableValue<bool> _manuallyRoutedAttr;
-        private readonly List<ConnectorPoint> _connectorPoints = new List<ConnectorPoint>();
+        private readonly List<ConnectorPoint> _connectorPoints = [];
 
         protected Connector(EFElement parent, XElement element)
             : base(parent, element)
@@ -24,10 +24,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
         {
             get
             {
-                if (_manuallyRoutedAttr == null)
-                {
-                    _manuallyRoutedAttr = new ManuallyRoutedDefaultableValue(this);
-                }
+                _manuallyRoutedAttr ??= new ManuallyRoutedDefaultableValue(this);
                 return _manuallyRoutedAttr;
             }
         }
@@ -73,8 +70,7 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var point = efContainer as ConnectorPoint;
-            if (point != null)
+            if (efContainer is ConnectorPoint point)
             {
                 _connectorPoints.Remove(point);
             }
@@ -109,12 +105,11 @@ namespace Microsoft.Data.Entity.Design.Model.Designer
             base.PreParse();
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         internal override bool ParseSingleElement(ICollection<XName> unprocessedElements, XElement elem)
         {
             if (elem.Name.LocalName == ConnectorPoint.ElementName)
             {
-                var point = new ConnectorPoint(this, elem);
+                ConnectorPoint point = new ConnectorPoint(this, elem);
                 point.Parse(unprocessedElements);
                 AddConnectorPoint(point);
             }

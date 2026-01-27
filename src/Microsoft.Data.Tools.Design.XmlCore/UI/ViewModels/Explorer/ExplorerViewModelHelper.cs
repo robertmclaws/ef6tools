@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-
     /// <summary>
     ///     Represents the ViewModel that will be exposed in the Explorer Window.
     /// </summary>
@@ -56,7 +56,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
                 _viewModel = value;
 
                 // now let everyone know we've changed
-                var args = new ExplorerViewModelChangedEventArgs(_viewModel);
+                ExplorerViewModelChangedEventArgs args = new ExplorerViewModelChangedEventArgs(_viewModel);
                 if (ExplorerViewModelChanged != null)
                 {
                     ExplorerViewModelChanged(this, args);
@@ -101,8 +101,10 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             Debug.Assert(
                 serviceFromContext != null, "Null service in EditingContext for ExplorerViewModelHelper.ProcessModelChangesCommitted()");
 
-            var artifacts = new HashSet<EFArtifact>();
-            artifacts.Add(serviceFromContext.Artifact);
+            HashSet<EFArtifact> artifacts = new HashSet<EFArtifact>
+            {
+                serviceFromContext.Artifact
+            };
 
             return artifacts;
         }
@@ -121,7 +123,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
                 return;
             }
 
-            var xref = ModelToExplorerModelXRef.GetModelToBrowserModelXRef(ctx);
+            ModelToExplorerModelXRef xref = ModelToExplorerModelXRef.GetModelToBrowserModelXRef(ctx);
             var artifacts = GetCurrentArtifactsInView(ctx);
 
             foreach (var change in e.ChangeGroup.Changes)
@@ -145,8 +147,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
                         break;
 
                     case EfiChange.EfiChangeType.Update:
-                        var updatedElement = change.Changed as EFElement;
-                        if (updatedElement != null)
+                        if (change.Changed is EFElement updatedElement)
                         {
                             var explorerItem = xref.GetExisting(updatedElement);
                             if (explorerItem != null)
@@ -159,17 +160,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
                         }
                         else
                         {
-                            var defaultableValue = change.Changed as DefaultableValue;
-                            if (defaultableValue != null)
+                            if (change.Changed is DefaultableValue defaultableValue)
                             {
                                 updatedElement = defaultableValue.Parent as EFElement;
                                 if (updatedElement != null)
                                 {
                                     var explorerItem = xref.GetExisting(updatedElement);
-                                    if (explorerItem != null)
-                                    {
-                                        explorerItem.OnModelPropertyChanged(defaultableValue.PropertyName);
-                                    }
+                                    explorerItem?.OnModelPropertyChanged(defaultableValue.PropertyName);
                                 }
                             }
                         }
@@ -190,7 +187,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
 
             // must recalculate results _after_ navigation above, otherwise some ViewModel elements
             // may not have been loaded
-            var explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(ViewModel.EditingContext);
+            ExplorerSearchResults explorerSearchResults = ExplorerSearchResults.GetExplorerSearchResults(ViewModel.EditingContext);
             explorerSearchResults.RecalculateResults(ViewModel.EditingContext, modelSearchResults);
             return explorerSearchResults;
         }
@@ -210,7 +207,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             //
             // get all EFElement nodes on the path from our target node to the root.
             //
-            var elementStack = new LinkedList<EFElement>();
+            LinkedList<EFElement> elementStack = new LinkedList<EFElement>();
             var e = targetEFElement;
             while (e != null)
             {
@@ -250,13 +247,10 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.Explorer
             }
             Debug.Assert(explorerElement != null, "no explorer element found for targetEFObject");
 
-            if (explorerElement != null)
-            {
-                //
-                // now make sure that our target node in the explorer tree is visible.
-                //
-                explorerElement.ExpandTreeViewToMe();
-            }
+            //
+            // now make sure that our target node in the explorer tree is visible.
+            //
+            explorerElement?.ExpandTreeViewToMe();
 
             return explorerElement;
         }

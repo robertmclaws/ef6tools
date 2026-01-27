@@ -13,11 +13,8 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
         {
             base.Visit(visitable);
 
-            var ib = visitable as ItemBinding;
-            if (ib != null)
-            {
-                ib.Unbind();
-            }
+            ItemBinding ib = visitable as ItemBinding;
+            ib?.Unbind();
         }
     }
 }

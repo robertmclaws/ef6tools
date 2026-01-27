@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     /// <summary>
     ///     This class lets you change aspects of an AssociationEnd.
     /// </summary>
@@ -78,7 +78,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             // Bug 599719: If this end's role equals the other end's role (within the association), we end up with the same normalized
             // names, and thus corrupt the symbol table. Attempts to rebind SingleItemBindings will corrupt the model. We have to
             // short-circuit the renaming here.
-            var parentAssociation = End.Parent as Association;
+            Association parentAssociation = End.Parent as Association;
             Debug.Assert(parentAssociation != null, "Where is the association for this association end?");
             if (parentAssociation != null)
             {
@@ -94,8 +94,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
                 && !string.Equals(End.Multiplicity.Value, Multiplicity, StringComparison.OrdinalIgnoreCase))
             {
                 End.Multiplicity.Value = Multiplicity;
-                var association = End.Parent as Association;
-                if (association != null
+                if (End.Parent is Association association
                     && association.AssociationSet != null
                     && association.AssociationSet.AssociationSetMapping != null)
                 {

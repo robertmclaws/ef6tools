@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.ComponentModel;
+using Microsoft.Data.Entity.Design.Core.Controls;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
 {
-    using System.ComponentModel;
-    using Microsoft.Data.Entity.Design.Core.Controls;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters;
-
     internal class EFPropertyDescriptor : EFPropertyDescriptorBase<ConceptualProperty>
     {
         [LocCategory("PropertyWindow_Category_General")]
@@ -21,7 +21,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             set
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                var setKey = new SetKeyPropertyCommand(TypedEFElement, value);
+                SetKeyPropertyCommand setKey = new SetKeyPropertyCommand(TypedEFElement, value);
                 CommandProcessor.InvokeSingleCommand(cpc, setKey);
             }
         }
@@ -37,8 +37,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             var isReadOnly = false;
             if (TypedEFElement.EntityType != null)
             {
-                var cet = TypedEFElement.EntityType as ConceptualEntityType;
-                if (cet != null)
+                if (TypedEFElement.EntityType is ConceptualEntityType cet)
                 {
                     isReadOnly = cet.HasResolvableBaseType && !TypedEFElement.IsKeyProperty;
                 }
@@ -60,7 +59,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             set
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                var changeType = new ChangePropertyTypeCommand(TypedEFElement, value);
+                ChangePropertyTypeCommand changeType = new ChangePropertyTypeCommand(TypedEFElement, value);
                 CommandProcessor.InvokeSingleCommand(cpc, changeType);
             }
         }
@@ -75,7 +74,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors
             set
             {
                 var cpc = PropertyWindowViewModelHelper.GetCommandProcessorContext();
-                var cmd = new SetStoreGeneratedPatternCommand(TypedEFElement, value);
+                SetStoreGeneratedPatternCommand cmd = new SetStoreGeneratedPatternCommand(TypedEFElement, value);
                 CommandProcessor.InvokeSingleCommand(cpc, cmd);
             }
         }

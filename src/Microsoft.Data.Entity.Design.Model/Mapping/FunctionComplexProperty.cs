@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class FunctionComplexProperty : EFElement
     {
         internal static readonly string ElementName = "ComplexProperty";
@@ -17,8 +17,8 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         private SingleItemBinding<ComplexConceptualProperty> _property;
         private SingleItemBinding<ComplexType> _complexType;
 
-        private readonly List<FunctionScalarProperty> _scalarProperties = new List<FunctionScalarProperty>();
-        private readonly List<FunctionComplexProperty> _complexProperties = new List<FunctionComplexProperty>();
+        private readonly List<FunctionScalarProperty> _scalarProperties = [];
+        private readonly List<FunctionComplexProperty> _complexProperties = [];
 
         internal FunctionComplexProperty(EFElement parent, XElement element)
             : base(parent, element)
@@ -34,14 +34,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_property == null)
-                {
-                    _property = new SingleItemBinding<ComplexConceptualProperty>(
+                _property ??= new SingleItemBinding<ComplexConceptualProperty>(
                         this,
                         AttributeName,
                         FunctionPropertyMappingNameNormalizer.NameNormalizer
                         );
-                }
                 return _property;
             }
         }
@@ -50,14 +47,11 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_complexType == null)
-                {
-                    _complexType = new SingleItemBinding<ComplexType>(
+                _complexType ??= new SingleItemBinding<ComplexType>(
                         this,
                         AttributeTypeName,
                         EFNormalizableItemDefaults.DefaultNameNormalizerForMSL
                         );
-                }
                 return _complexType;
             }
         }
@@ -97,15 +91,13 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var sp = efContainer as FunctionScalarProperty;
-            if (sp != null)
+            if (efContainer is FunctionScalarProperty sp)
             {
                 _scalarProperties.Remove(sp);
                 return;
             }
 
-            var cp = efContainer as FunctionComplexProperty;
-            if (cp != null)
+            if (efContainer is FunctionComplexProperty cp)
             {
                 _complexProperties.Remove(cp);
                 return;
@@ -187,13 +179,13 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == FunctionScalarProperty.ElementName)
             {
-                var prop = new FunctionScalarProperty(this, elem);
+                FunctionScalarProperty prop = new FunctionScalarProperty(this, elem);
                 _scalarProperties.Add(prop);
                 prop.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == ElementName)
             {
-                var complexProperty = new FunctionComplexProperty(this, elem);
+                FunctionComplexProperty complexProperty = new FunctionComplexProperty(this, elem);
                 _complexProperties.Add(complexProperty);
                 complexProperty.Parse(unprocessedElements);
             }

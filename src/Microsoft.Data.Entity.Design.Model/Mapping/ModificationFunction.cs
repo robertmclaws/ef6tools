@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Mapping
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal enum ModificationFunctionType
     {
         None,
@@ -25,10 +25,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         internal static readonly string AttributeFunctionName = "FunctionName";
         internal static readonly string AttributeRowsAffectedParameter = "RowsAffectedParameter";
 
-        private readonly List<FunctionScalarProperty> _scalarProperties = new List<FunctionScalarProperty>();
-        private readonly List<FunctionComplexProperty> _complexProperties = new List<FunctionComplexProperty>();
-        private readonly List<FunctionAssociationEnd> _ends = new List<FunctionAssociationEnd>();
-        private readonly List<ResultBinding> _resultBindings = new List<ResultBinding>();
+        private readonly List<FunctionScalarProperty> _scalarProperties = [];
+        private readonly List<FunctionComplexProperty> _complexProperties = [];
+        private readonly List<FunctionAssociationEnd> _ends = [];
+        private readonly List<ResultBinding> _resultBindings = [];
         private SingleItemBinding<Function> _functionName;
         private SingleItemBinding<Parameter> _rowsAffectedParameterAttr;
         protected ModificationFunctionType _functionType = ModificationFunctionType.None;
@@ -43,7 +43,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                var parent = Parent as ModificationFunctionMapping;
+                ModificationFunctionMapping parent = Parent as ModificationFunctionMapping;
                 Debug.Assert(parent != null, "this.Parent should be a ModificationFunctionMapping");
                 return parent;
             }
@@ -61,13 +61,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_functionName == null)
-                {
-                    _functionName = new SingleItemBinding<Function>(
+                _functionName ??= new SingleItemBinding<Function>(
                         this,
                         AttributeFunctionName,
                         FunctionNameNormalizer.NameNormalizer);
-                }
                 return _functionName;
             }
         }
@@ -79,13 +76,10 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             get
             {
-                if (_rowsAffectedParameterAttr == null)
-                {
-                    _rowsAffectedParameterAttr = new SingleItemBinding<Parameter>(
+                _rowsAffectedParameterAttr ??= new SingleItemBinding<Parameter>(
                         this,
                         AttributeRowsAffectedParameter,
                         ParameterNameNormalizer.NameNormalizer);
-                }
                 return _rowsAffectedParameterAttr;
             }
         }
@@ -188,22 +182,19 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         protected override void OnChildDeleted(EFContainer efContainer)
         {
-            var sp = efContainer as FunctionScalarProperty;
-            if (sp != null)
+            if (efContainer is FunctionScalarProperty sp)
             {
                 _scalarProperties.Remove(sp);
                 return;
             }
 
-            var cp = efContainer as FunctionComplexProperty;
-            if (cp != null)
+            if (efContainer is FunctionComplexProperty cp)
             {
                 _complexProperties.Remove(cp);
                 return;
             }
 
-            var end = efContainer as FunctionAssociationEnd;
-            if (end != null)
+            if (efContainer is FunctionAssociationEnd end)
             {
                 _ends.Remove(end);
                 return;
@@ -214,8 +205,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
                 ||
                 _functionType == ModificationFunctionType.Update)
             {
-                var resultBinding = efContainer as ResultBinding;
-                if (resultBinding != null)
+                if (efContainer is ResultBinding resultBinding)
                 {
                     _resultBindings.Remove(resultBinding);
                     return;
@@ -270,25 +260,25 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         {
             if (elem.Name.LocalName == FunctionScalarProperty.ElementName)
             {
-                var prop = new FunctionScalarProperty(this, elem);
+                FunctionScalarProperty prop = new FunctionScalarProperty(this, elem);
                 _scalarProperties.Add(prop);
                 prop.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == FunctionComplexProperty.ElementName)
             {
-                var prop = new FunctionComplexProperty(this, elem);
+                FunctionComplexProperty prop = new FunctionComplexProperty(this, elem);
                 _complexProperties.Add(prop);
                 prop.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == FunctionAssociationEnd.ElementName)
             {
-                var end = new FunctionAssociationEnd(this, elem);
+                FunctionAssociationEnd end = new FunctionAssociationEnd(this, elem);
                 _ends.Add(end);
                 end.Parse(unprocessedElements);
             }
             else if (elem.Name.LocalName == ResultBinding.ElementName)
             {
-                var resultBinding = new ResultBinding(this, elem);
+                ResultBinding resultBinding = new ResultBinding(this, elem);
                 _resultBindings.Add(resultBinding);
                 resultBinding.Parse(unprocessedElements);
             }
@@ -316,7 +306,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
 
         internal override DeleteEFElementCommand GetDeleteCommand()
         {
-            var cmd = new DeleteFunctionMappingCommand(this);
+            DeleteFunctionMappingCommand cmd = new DeleteFunctionMappingCommand(this);
             if (cmd == null)
             {
                 // shouldn't happen, just to be safe
@@ -328,7 +318,7 @@ namespace Microsoft.Data.Entity.Design.Model.Mapping
         internal static DeleteEFElementCommand GetDeleteCommand(
             EntityType conceptualEntityType, Function function, ModificationFunctionType type)
         {
-            var cmd = new DeleteFunctionMappingCommand(conceptualEntityType, function, type);
+            DeleteFunctionMappingCommand cmd = new DeleteFunctionMappingCommand(conceptualEntityType, function, type);
             if (cmd == null)
             {
                 // shouldn't happen, just to be safe

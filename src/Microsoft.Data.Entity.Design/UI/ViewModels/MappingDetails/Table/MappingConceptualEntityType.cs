@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-
     // <summary>
     //     This class represents the root node of the view model when we are mapping entities, it points to
     //     a c-side entity and has a list of 'tables' that the entity is mapped to.
@@ -49,14 +49,14 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
         {
             get
             {
-                _storageEntityTypes = new List<MappingStorageEntityType>();
+                _storageEntityTypes = [];
 
                 if (ConceptualEntityType != null)
                 {
                     // a given entity type will have multiple entity type mappings (one default, one IsTypeOf)
                     // and therefore will have a mapping fragment for each of these; this array is here
                     // so that we can built a unique list of tables across all mapping fragments
-                    var tables = new List<EntityType>();
+                    List<EntityType> tables = new List<EntityType>();
 
                     // loop through every EntityTypeMapping that has a dep on this c-side entity
                     // and then loop through every MappingFragment, building a de-duped list of 
@@ -71,14 +71,14 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 
                             if (frag.StoreEntitySet.Status == BindingStatus.Known)
                             {
-                                var ses = frag.StoreEntitySet.Target as StorageEntitySet;
+                                StorageEntitySet ses = frag.StoreEntitySet.Target as StorageEntitySet;
                                 Debug.Assert(
                                     ses.EntityType.Status == BindingStatus.Known,
                                     "inconsistent EntityType binding status " + ses.EntityType.Status + ", should be " + BindingStatus.Known);
 
                                 if (ses.EntityType.Status == BindingStatus.Known)
                                 {
-                                    var table = ses.EntityType.Target as StorageEntityType;
+                                    StorageEntityType table = ses.EntityType.Target as StorageEntityType;
                                     Debug.Assert(
                                         ses.EntityType.Target != null ? table != null : true, "EntityType is not StorageEntityType");
                                     Debug.Assert(table != null, "table should not be null");
@@ -95,7 +95,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
                     // now that we have our list of unique 'tables', create view model entries for each
                     foreach (var table in tables)
                     {
-                        var mset = (MappingStorageEntityType)ModelToMappingModelXRef.GetNewOrExisting(_context, table, this);
+                        MappingStorageEntityType mset = (MappingStorageEntityType)ModelToMappingModelXRef.GetNewOrExisting(_context, table, this);
                         _storageEntityTypes.Add(mset);
                     }
                 }
@@ -114,7 +114,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Tables
 
         protected override void OnChildDeleted(MappingEFElement melem)
         {
-            var child = melem as MappingStorageEntityType;
+            MappingStorageEntityType child = melem as MappingStorageEntityType;
             Debug.Assert(child != null, "Unknown child being deleted");
             if (child != null)
             {

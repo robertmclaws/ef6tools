@@ -1,20 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Data;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
+
 namespace Microsoft.Data.Entity.Tests.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery
 {
-    using System;
-    using System.Data;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb.SchemaDiscovery;
-
     [TestClass]
     public class RelationshipDetailsCollectionTests
     {
         [TestMethod]
         public void Verify_RelationshipDetailsCollection_columns()
         {
-            var relationshipDetailsCollection = new RelationshipDetailsCollection();
+            RelationshipDetailsCollection relationshipDetailsCollection = new RelationshipDetailsCollection();
             relationshipDetailsCollection.Columns.Count.Should().Be(12);
             VerifyColumn(relationshipDetailsCollection.PKCatalogColumn, "PkCatalog", typeof(string));
             VerifyColumn(relationshipDetailsCollection.PKSchemaColumn, "PkSchema", typeof(string));

@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Microsoft.Data.Entity.Design.Model;
+
 namespace Microsoft.Data.Entity.Design.UI.Views.MappingDetails
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using Microsoft.Data.Entity.Design.Model;
-
     // <summary>
     //     The class that holds the current selection in the Mapping Details window.
     // </summary>

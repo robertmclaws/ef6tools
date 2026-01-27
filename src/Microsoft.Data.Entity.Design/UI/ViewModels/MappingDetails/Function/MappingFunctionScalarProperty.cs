@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Base.Shell;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
+using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Base.Shell;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Branches;
-    using Microsoft.Data.Entity.Design.UI.Views.MappingDetails.Columns;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     [TreeGridDesignerRootBranch(typeof(ParameterBranch))]
     [TreeGridDesignerColumn(typeof(ParameterColumn), Order = 1)]
     [TreeGridDesignerColumn(typeof(OperatorColumn), Order = 2)]
@@ -41,7 +41,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
         {
             get
             {
-                var sp = ModelItem as FunctionScalarProperty;
+                FunctionScalarProperty sp = ModelItem as FunctionScalarProperty;
                 if (sp != null)
                 {
                     Debug.Assert(sp.ParameterName.Status == BindingStatus.Known, "Why are we mapping an unresolved scalar?");
@@ -104,8 +104,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                         version = ModelConstants.FunctionScalarPropertyVersionCurrent;
                     }
 
-                    var cmd = new ChangeFunctionScalarPropertyCommand(ScalarProperty, version);
-                    var cp = new CommandProcessor(
+                    ChangeFunctionScalarPropertyCommand cmd = new ChangeFunctionScalarPropertyCommand(ScalarProperty, version);
+                    CommandProcessor cp = new CommandProcessor(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeScalarProperty, cmd);
                     cp.Invoke();
                 }
@@ -252,11 +252,11 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                 {
                     // delete old and create new FunctionScalarProperty in one transaction - this takes care of
                     // removing any old ComplexProperty or AssociationEnd parent nodes as necessary
-                    var cpc = new CommandProcessorContext(
+                    CommandProcessorContext cpc = new CommandProcessorContext(
                         context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_ChangeScalarProperty);
-                    var version = (ScalarProperty.Version == null ? null : ScalarProperty.Version.Value);
+                    var version = (ScalarProperty.Version?.Value);
                     // Version is used only for Update ModificationFunctions
-                    var cmd = new ChangeFunctionScalarPropertyCommand(
+                    ChangeFunctionScalarPropertyCommand cmd = new ChangeFunctionScalarPropertyCommand(
                         ScalarProperty, newPropertiesChain, _pointingNavProperty, StoreParameter, version);
                     cmd.PostInvokeEvent += (o, eventsArgs) =>
                         {
@@ -265,7 +265,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                             ModelItem = fsp;
                         };
 
-                    var cp = new CommandProcessor(cpc, cmd);
+                    CommandProcessor cp = new CommandProcessor(cpc, cmd);
                     try
                     {
                         cp.Invoke();
@@ -297,17 +297,17 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 
         internal override Dictionary<MappingLovEFElement, string> GetListOfValues(ListOfValuesCollection type)
         {
-            var lov = new Dictionary<MappingLovEFElement, string>();
+            Dictionary<MappingLovEFElement, string> lov = new Dictionary<MappingLovEFElement, string>();
 
             if (type == ListOfValuesCollection.ThirdColumn)
             {
                 var entityType = MappingFunctionEntityType.EntityType;
-                var cet = entityType as ConceptualEntityType;
+                ConceptualEntityType cet = entityType as ConceptualEntityType;
 
                 Debug.Assert(entityType == null || cet != null, "EntityType is not ConceptualEntityType");
 
-                var propsFromSelf = new List<Property>();
-                var propsFromNav = new Dictionary<NavigationProperty, HashSet<Property>>();
+                List<Property> propsFromSelf = new List<Property>();
+                Dictionary<NavigationProperty, HashSet<Property>> propsFromNav = new Dictionary<NavigationProperty, HashSet<Property>>();
 
                 // show keys for the top-most base type
                 if (cet.HasResolvableBaseType)
@@ -342,7 +342,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
 
                             if (!propsFromNav.ContainsKey(nav))
                             {
-                                propsFromNav[nav] = new HashSet<Property>();
+                                propsFromNav[nav] = [];
                             }
 
                             // bug 568863, only include keys from reference types
@@ -428,14 +428,16 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
             Debug.Assert(underlyingModelItem != null, "underlyingModelItem argument cannot be null");
             if (underlyingModelItem != null)
             {
-                var entityProperty = underlyingModelItem as Property;
+                Property entityProperty = underlyingModelItem as Property;
                 Debug.Assert(
                     entityProperty != null,
                     "underlyingModelItem argument was of type " + underlyingModelItem.GetType().FullName + ", should be Property");
                 if (entityProperty != null)
                 {
-                    var properties = new List<Property>(1);
-                    properties.Add(entityProperty);
+                    List<Property> properties = new List<Property>(1)
+                    {
+                        entityProperty
+                    };
                     CreateModelItem(cpc, context, properties);
                 }
             }
@@ -485,17 +487,14 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
             }
 
             // create a context if we weren't passed one
-            if (cpc == null)
-            {
-                cpc = new CommandProcessorContext(
+            cpc ??= new CommandProcessorContext(
                     Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_CreateScalarProperty);
-            }
 
             // create the FunctionScalarProperty command (including any intermediate ComplexProperty's or AssociationEnd's)
             var version = (MappingModificationFunctionMapping.ModificationFunctionType == ModificationFunctionType.Update
                                ? ModelConstants.FunctionScalarPropertyVersionCurrent
                                : null);
-            var cmd =
+            CreateFunctionScalarPropertyTreeCommand cmd =
                 new CreateFunctionScalarPropertyTreeCommand(mf, propertiesChain, _pointingNavProperty, parameter, version);
 
             // set up our post event to fix up the view model
@@ -512,7 +511,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
             try
             {
                 // now make the change
-                var cp = new CommandProcessor(cpc, cmd);
+                CommandProcessor cp = new CommandProcessor(cpc, cmd);
                 cp.Invoke();
             }
             catch
@@ -539,11 +538,8 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.MappingDetails.Functions
                 var storeParam = StoreParameter;
 
                 // create a context if we weren't passed one
-                if (cpc == null)
-                {
-                    cpc = new CommandProcessorContext(
+                cpc ??= new CommandProcessorContext(
                         Context, EfiTransactionOriginator.MappingDetailsOriginatorId, Resources.Tx_DeleteScalarProperty);
-                }
 
                 // use the item's delete command
                 var deleteCommand = ScalarProperty.GetDeleteCommand();

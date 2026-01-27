@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     internal class CreateFunctionImportScalarPropertyCommand : Command
     {
         private FunctionImportTypeMapping _typeMapping;
@@ -56,8 +55,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             if (_typeMapping == null)
             {
-                var prereq = GetPreReqCommand(CreateFunctionImportTypeMappingCommand.PrereqId) as CreateFunctionImportTypeMappingCommand;
-                if (prereq != null)
+                if (GetPreReqCommand(CreateFunctionImportTypeMappingCommand.PrereqId) is CreateFunctionImportTypeMappingCommand prereq)
                 {
                     _typeMapping = prereq.TypeMapping;
                 }
@@ -66,9 +64,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "InvokeInternal")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "typeMapping")]
-        [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "columnName")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             // safety check

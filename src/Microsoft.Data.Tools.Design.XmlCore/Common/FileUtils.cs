@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
+using System.IO;
+using System.Security;
+using System.Text;
+
 namespace Microsoft.Data.Entity.Design.Common
 {
-    using System;
-    using System.Globalization;
-    using System.IO;
-    using System.Security;
-    using System.Text;
-
     /// <summary>
     ///     Used to create temporary files.
     /// </summary>
@@ -73,7 +73,7 @@ namespace Microsoft.Data.Entity.Design.Common
 
                 while (true)
                 {
-                    var builder = new StringBuilder(filePathAndPrefix);
+                    StringBuilder builder = new StringBuilder(filePathAndPrefix);
                     if (index > 0)
                     {
                         if (string.IsNullOrEmpty(indexSeparator) == false)
@@ -111,11 +111,8 @@ namespace Microsoft.Data.Entity.Design.Common
                         break;
                     }
                 }
-                if (tempFileName == null)
-                {
-                    // fallback to the standard method that disregards the template
-                    tempFileName = Path.GetTempFileName();
-                }
+                // fallback to the standard method that disregards the template
+                tempFileName ??= Path.GetTempFileName();
             }
         }
 
@@ -153,13 +150,11 @@ namespace Microsoft.Data.Entity.Design.Common
                 return (file2 == null || file2.Length == 0);
             }
 
-            Uri uri1;
-            Uri uri2;
 
             try
             {
-                if (!Uri.TryCreate(file1, UriKind.Absolute, out uri1)
-                    || !Uri.TryCreate(file2, UriKind.Absolute, out uri2))
+                if (!Uri.TryCreate(file1, UriKind.Absolute, out Uri uri1)
+                    || !Uri.TryCreate(file2, UriKind.Absolute, out Uri uri2))
                 {
                     return false;
                 }

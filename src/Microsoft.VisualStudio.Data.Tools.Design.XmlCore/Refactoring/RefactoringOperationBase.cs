@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.Common;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Runtime.InteropServices;
-    using System.Windows;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.Common;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.TextManager.Interop;
-
     /// <summary>
     ///     The RefactorOperation base class drives the actual lifecycle of the refactoring operation.
     ///     The derived classes methods are invoked by the base class methods.
@@ -37,13 +37,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         /// <summary>
         ///     Raised before changes are applied
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields")]
         public EventHandler<ApplyChangesEventArgs> ApplyingChanges;
 
         /// <summary>
         ///     Raised after changes are applied
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields")]
         public EventHandler<ApplyChangesEventArgs> AppliedChanges;
 
         private bool _hasPreviewWindow = true;
@@ -52,10 +50,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         private readonly WaitDialog _waitDialog;
 
         // HashSet to prevent multiple registration of events on reentrant contributors
-        private readonly HashSet<Type> _applyingChangesTypes = new HashSet<Type>();
-        private readonly HashSet<Type> _appliedChangesTypes = new HashSet<Type>();
+        private readonly HashSet<Type> _applyingChangesTypes = [];
+        private readonly HashSet<Type> _appliedChangesTypes = [];
 
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         internal RefactoringOperationBase(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
@@ -64,7 +61,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             IsCancelled = false;
             ErrorOccurred = false;
             _hasPreviewWindow = true;
-            FileChanges = new List<FileChange>();
+            FileChanges = [];
         }
 
         #region Properties
@@ -115,10 +112,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             get
             {
-                if (_previewData == null)
-                {
-                    _previewData = new PreviewData(PreviewWindowInfo);
-                }
+                _previewData ??= new PreviewData(PreviewWindowInfo);
                 return _previewData;
             }
             set { _previewData = value; }
@@ -175,10 +169,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             try
             {
                 // If we don't have a ContributorInput yet, call OnGetContributorInput method to get ContributorInput for this operation.
-                if (ContributorInput == null)
-                {
-                    ContributorInput = OnGetContributorInput();
-                }
+                ContributorInput ??= OnGetContributorInput();
 
                 if (ErrorOccurred || IsCancelled)
                 {
@@ -267,7 +258,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         ///     This method will create a PreviewChangesEngine and PreviewChangesList and give these two information
         ///     to preview dialog.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsPreviewChangesService.PreviewChanges(Microsoft.VisualStudio.Shell.Interop.IVsPreviewChangesEngine)")]
         private void ShowPreviewWindow()
         {
             // Prepare Preview UI Data.
@@ -291,11 +281,10 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             }
 
             // Get the Preview Changes Service
-            var previewChangeService = _serviceProvider.GetService(typeof(SVsPreviewChangesService)) as IVsPreviewChangesService;
-            if (previewChangeService != null)
+            if (_serviceProvider.GetService(typeof(SVsPreviewChangesService)) is IVsPreviewChangesService previewChangeService)
             {
                 // Preview the Changes
-                using (var previewEngine = new PreviewChangesEngine(ApplyChanges, PreviewData, _serviceProvider))
+                using (PreviewChangesEngine previewEngine = new PreviewChangesEngine(ApplyChanges, PreviewData, _serviceProvider))
                 {
                     var result = previewChangeService.PreviewChanges(previewEngine);
                     Debug.Assert(result == VSConstants.S_OK, "Failed to preview the change.");
@@ -317,10 +306,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         ///     call back related RefactorOperation.ApplyChanges() to apply the changes.
         /// </summary>
         /// <returns></returns>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         internal bool ApplyChanges()
         {
-            var args = new ApplyChangesEventArgs(FileChanges);
+            ApplyChangesEventArgs args = new ApplyChangesEventArgs(FileChanges);
 
             try
             {
@@ -403,14 +391,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         /// <param name="textLines">IVsTextLines of the file content.</param>
         /// <param name="createMarker">Need to create marker or not when applying changes.</param>
         /// <param name="changeToHighlight">The ChangeProposal need to be highlighted if creating marker.</param>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults",
-            MessageId =
-                "Microsoft.VisualStudio.Shell.Interop.IVsSolution.GetProjectOfUniqueName(System.String,Microsoft.VisualStudio.Shell.Interop.IVsHierarchy@)"
-            )]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults",
-            MessageId =
-                "Microsoft.VisualStudio.TextManager.Interop.IVsTextLines.ReplaceLines(System.Int32,System.Int32,System.Int32,System.Int32,System.IntPtr,System.Int32,Microsoft.VisualStudio.TextManager.Interop.TextSpan[])"
-            )]
         internal static void ApplyChangesToOneFile(
             FileChange file, IVsTextLines textLines, bool createMarker, ChangeProposal changeToHighlight)
         {
@@ -484,8 +464,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                 // If this change is the change to be highlighted, highlight it.
                 if (createMarker)
                 {
-                    var textChangeToHighlight = changeToHighlight as TextChangeProposal;
-                    var highlight = ((textChangeToHighlight != null) &&
+                    var highlight = ((changeToHighlight is TextChangeProposal textChangeToHighlight) &&
                                      (change.StartLine == textChangeToHighlight.StartLine) &&
                                      (change.StartColumn == textChangeToHighlight.StartColumn));
                     CreateMarker(textLines, resultSpan[0], highlight);
@@ -499,7 +478,6 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         /// <param name="textLines">IVsTextLines of the file.</param>
         /// <param name="resultSpan">TextSpan to be marked.</param>
         /// <param name="highlight">Need to highlight that change or not.</param>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.TextManager.Interop.IVsTextLines.CreateLineMarker(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.VisualStudio.TextManager.Interop.IVsTextMarkerClient,Microsoft.VisualStudio.TextManager.Interop.IVsTextLineMarker[])")]
         private static void CreateMarker(IVsTextLines textLines, TextSpan resultSpan, bool highlight)
         {
             ArgumentValidation.CheckForNullReference(textLines, "textLines");
@@ -524,7 +502,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
         {
             ArgumentValidation.CheckForNullReference(file, "file");
 
-            var sortedChanges = new SortedList<Position, TextChangeProposal>(new PositionComparer());
+            SortedList<Position, TextChangeProposal> sortedChanges = new SortedList<Position, TextChangeProposal>(new PositionComparer());
 
             foreach (var changeList in file.ChangeList.Values)
             {
@@ -532,10 +510,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                 {
                     foreach (var change in changeList)
                     {
-                        var textChange = change as TextChangeProposal;
-                        if (textChange != null)
+                        if (change is TextChangeProposal textChange)
                         {
-                            var currentPosition = new Position(textChange.StartLine, textChange.StartColumn);
+                            Position currentPosition = new Position(textChange.StartLine, textChange.StartColumn);
                             if (!sortedChanges.ContainsKey(currentPosition))
                             {
                                 sortedChanges.Add(currentPosition, textChange);
@@ -582,9 +559,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             {
                 var changeFiles = new string[files.Count];
                 files.CopyTo(changeFiles, 0);
-                var userCanceled = false;
 
-                if (!QueryEditFiles(out userCanceled, changeFiles))
+                if (!QueryEditFiles(out bool userCanceled, changeFiles))
                 {
                     if (userCanceled)
                     {
@@ -599,11 +575,11 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
 
         protected IList<String> GetListOfFilesToCheckOut()
         {
-            IList<String> filesList = new List<String>();
+            IList<String> filesList = [];
             if (FileChanges.Count > 0)
             {
                 // Sort the files first, so the check out list will be sorted.
-                var files = new SortedList<string, string>();
+                SortedList<string, string> files = new SortedList<string, string>();
                 var filesCount = FileChanges.Count;
                 for (var fileIndex = 0; fileIndex < filesCount; fileIndex++)
                 {
@@ -682,11 +658,9 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             userCanceled = false;
 
             // Get the QueryEditQuerySave service
-            var queryEditQuerySave = _serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
+            IVsQueryEditQuerySave2 queryEditQuerySave = _serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
 
             // Now call the QueryEdit method to find the edit status of this files
-            uint result;
-            uint outFlags;
 
             // Note that this function can popup a dialog to ask the user to checkout the file.
             // When this dialog is visible, it is possible to receive other request to change
@@ -697,8 +671,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
                 files, // Files to edit
                 null, // Input flags
                 null, // Input array of VSQEQS_FILE_ATTRIBUTE_DATA
-                out result, // result of the checkout
-                out outFlags // Additional flags
+                out uint result, // result of the checkout
+                out uint outFlags // Additional flags
                 );
 
             if (ErrorHandler.Succeeded(hr)
@@ -728,9 +702,8 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Refactoring
             }
             else
             {
-                IVsInvisibleEditor invisibleEditor = null;
                 // File is not in RDT, open it in invisible editor.
-                if (RdtManager.Instance.TryGetTextLinesAndInvisibleEditor(fileName, out invisibleEditor, out textBuffer))
+                if (RdtManager.Instance.TryGetTextLinesAndInvisibleEditor(fileName, out IVsInvisibleEditor invisibleEditor, out textBuffer))
                 {
                     openedInvisibleEditors.Add(invisibleEditor);
                 }

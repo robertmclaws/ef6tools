@@ -1,17 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-
     // <summary>
     //     provides the information required for displaying
     //     and editing properties of EFElement items
@@ -20,35 +20,32 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow
     {
         private static Dictionary<Type, Type> _objectDescriptorTypes;
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         public static Dictionary<Type, Type> ObjectDescriptorTypes
         {
             get
             {
-                if (_objectDescriptorTypes == null)
+                // build a dictionary associating all relevant EFElement derived types 
+                // to the corresponding derived type of ItemDescriptor<TEFElement>
+                _objectDescriptorTypes ??= new Dictionary<Type, Type>
                 {
-                    // build a dictionary associating all relevant EFElement derived types 
-                    // to the corresponding derived type of ItemDescriptor<TEFElement>
-                    _objectDescriptorTypes = new Dictionary<Type, Type>();
-
-                    _objectDescriptorTypes[typeof(Association)] = typeof(EFAssociationDescriptor);
-                    _objectDescriptorTypes[typeof(AssociationSet)] = typeof(EFAssociationSetDescriptor);
-                    _objectDescriptorTypes[typeof(ConceptualEntityContainer)] = typeof(EFEntityContainerDescriptor);
-                    _objectDescriptorTypes[typeof(ConceptualEntityModel)] = typeof(EFEntityModelDescriptor);
-                    _objectDescriptorTypes[typeof(ConceptualEntitySet)] = typeof(EFEntitySetDescriptor);
-                    _objectDescriptorTypes[typeof(ConceptualEntityType)] = typeof(EFEntityTypeDescriptor);
-                    _objectDescriptorTypes[typeof(ComplexType)] = typeof(EFComplexTypeDescriptor);
-                    _objectDescriptorTypes[typeof(EnumType)] = typeof(EFEnumTypeDescriptor);
-                    _objectDescriptorTypes[typeof(Function)] = typeof(EFSFunctionDescriptor);
-                    _objectDescriptorTypes[typeof(FunctionImport)] = typeof(EFFunctionImportDescriptor);
-                    _objectDescriptorTypes[typeof(NavigationProperty)] = typeof(EFNavigationPropertyDescriptor);
-                    _objectDescriptorTypes[typeof(StorageEntityContainer)] = typeof(EFSEntityContainerDescriptor);
-                    _objectDescriptorTypes[typeof(StorageEntityModel)] = typeof(EFSEntityModelDescriptor);
-                    _objectDescriptorTypes[typeof(StorageEntityType)] = typeof(EFEntityTypeDescriptor);
-                    _objectDescriptorTypes[typeof(EntityTypeBaseType)] = typeof(EFEntityTypeBaseTypeDescriptor);
-                    _objectDescriptorTypes[typeof(Diagram)] = typeof(EFDiagramDescriptor);
-                    _objectDescriptorTypes[typeof(EntityTypeShape)] = typeof(EFEntityTypeShapeDescriptor);
-                }
+                    [typeof(Association)] = typeof(EFAssociationDescriptor),
+                    [typeof(AssociationSet)] = typeof(EFAssociationSetDescriptor),
+                    [typeof(ConceptualEntityContainer)] = typeof(EFEntityContainerDescriptor),
+                    [typeof(ConceptualEntityModel)] = typeof(EFEntityModelDescriptor),
+                    [typeof(ConceptualEntitySet)] = typeof(EFEntitySetDescriptor),
+                    [typeof(ConceptualEntityType)] = typeof(EFEntityTypeDescriptor),
+                    [typeof(ComplexType)] = typeof(EFComplexTypeDescriptor),
+                    [typeof(EnumType)] = typeof(EFEnumTypeDescriptor),
+                    [typeof(Function)] = typeof(EFSFunctionDescriptor),
+                    [typeof(FunctionImport)] = typeof(EFFunctionImportDescriptor),
+                    [typeof(NavigationProperty)] = typeof(EFNavigationPropertyDescriptor),
+                    [typeof(StorageEntityContainer)] = typeof(EFSEntityContainerDescriptor),
+                    [typeof(StorageEntityModel)] = typeof(EFSEntityModelDescriptor),
+                    [typeof(StorageEntityType)] = typeof(EFEntityTypeDescriptor),
+                    [typeof(EntityTypeBaseType)] = typeof(EFEntityTypeBaseTypeDescriptor),
+                    [typeof(Diagram)] = typeof(EFDiagramDescriptor),
+                    [typeof(EntityTypeShape)] = typeof(EFEntityTypeShapeDescriptor)
+                };
 
                 return _objectDescriptorTypes;
             }
@@ -63,20 +60,18 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow
         {
             if (obj != null)
             {
-                Type objectDescriptorType;
 
-                if (ObjectDescriptorTypes.TryGetValue(obj.GetType(), out objectDescriptorType))
+                if (ObjectDescriptorTypes.TryGetValue(obj.GetType(), out Type objectDescriptorType))
                 {
                     // create the descriptor wrapper for the EFObject object
-                    var descriptor = (ObjectDescriptor)TypeDescriptor.CreateInstance(null, objectDescriptorType, null, null);
+                    ObjectDescriptor descriptor = (ObjectDescriptor)TypeDescriptor.CreateInstance(null, objectDescriptorType, null, null);
                     descriptor.Initialize(obj, editingContext, runningInVS);
                     return descriptor;
                 }
                 else
                 {
                     // special case for Property
-                    var property = obj as Property;
-                    if (property != null)
+                    if (obj is Property property)
                     {
                         ObjectDescriptor descriptor = null;
                         if (property is ComplexConceptualProperty)
@@ -97,8 +92,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow
                     }
 
                     // special case for Parameter
-                    var parameter = obj as Parameter;
-                    if (parameter != null)
+                    if (obj is Parameter parameter)
                     {
                         ObjectDescriptor descriptor = null;
                         if (parameter.Parent is FunctionImport)

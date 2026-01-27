@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Entity;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-
     internal class CreateComplexTypeCommand : Command
     {
         internal static readonly string PrereqId = "CreateComplexTypeCommand";
@@ -38,7 +38,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         protected override void InvokeInternal(CommandProcessorContext cpc)
         {
             var service = cpc.EditingContext.GetEFArtifactService();
@@ -58,15 +57,14 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             }
             else
             {
-                string msg = null;
-                if (ModelHelper.IsUniqueName(typeof(ComplexType), model, Name, false, out msg) == false)
+                if (ModelHelper.IsUniqueName(typeof(ComplexType), model, Name, false, out string msg) == false)
                 {
                     throw new CommandValidationFailedException(msg);
                 }
             }
 
             // create the new item in our model
-            var complexType = new ComplexType(model, null);
+            ComplexType complexType = new ComplexType(model, null);
             Debug.Assert(complexType != null, "complexType should not be null");
             if (complexType == null)
             {
@@ -112,8 +110,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             var complexTypeName = ModelHelper.GetUniqueNameWithNumber(typeof(ComplexType), model, Resources.Model_DefaultComplexTypeName);
 
             // go create it
-            var cp = new CommandProcessor(cpc);
-            var cmd = new CreateComplexTypeCommand(complexTypeName, false);
+            CommandProcessor cp = new CommandProcessor(cpc);
+            CreateComplexTypeCommand cmd = new CreateComplexTypeCommand(complexTypeName, false);
             cp.EnqueueCommand(cmd);
             cp.Invoke();
             return cmd.ComplexType;

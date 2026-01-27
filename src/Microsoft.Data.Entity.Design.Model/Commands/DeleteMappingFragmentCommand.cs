@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.Mapping;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.Mapping;
-
     internal class DeleteMappingFragmentCommand : DeleteEFElementCommand
     {
         internal string ConceptualEntityTypeName { get; private set; }
@@ -25,7 +25,7 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         {
             get
             {
-                var elem = EFElement as MappingFragment;
+                MappingFragment elem = EFElement as MappingFragment;
                 Debug.Assert(elem != null, "underlying element does not exist or is not a MappingFragment");
                 if (elem == null)
                 {
@@ -40,12 +40,8 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
             if (MappingFragment.EntityTypeMapping != null
                 && MappingFragment.EntityTypeMapping.EntitySetMapping != null)
             {
-                ConceptualEntityTypeName = MappingFragment.EntityTypeMapping.FirstBoundConceptualEntityType != null
-                                               ? MappingFragment.EntityTypeMapping.FirstBoundConceptualEntityType.Name.Value
-                                               : null;
-                StorageEntitySetName = MappingFragment.StoreEntitySet.Target != null
-                                           ? MappingFragment.StoreEntitySet.Target.Name.Value
-                                           : null;
+                ConceptualEntityTypeName = MappingFragment.EntityTypeMapping.FirstBoundConceptualEntityType?.Name.Value;
+                StorageEntitySetName = MappingFragment.StoreEntitySet.Target?.Name.Value;
 
                 EnforceEntitySetMappingRules.AddRule(cpc, MappingFragment.EntityTypeMapping.EntitySetMapping);
             }

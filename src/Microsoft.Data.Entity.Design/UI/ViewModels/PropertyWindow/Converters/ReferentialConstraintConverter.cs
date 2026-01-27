@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using System;
-    using System.ComponentModel;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-
     internal class ReferentialConstraintConverter : TypeConverter
     {
         public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
@@ -24,11 +24,9 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
         {
             if (destinationType == typeof(string))
             {
-                var desc = context.Instance as EFAssociationDescriptor;
-                if (desc != null)
+                if (context.Instance is EFAssociationDescriptor desc)
                 {
-                    var assoc = desc.WrappedItem as Association;
-                    if (assoc != null)
+                    if (desc.WrappedItem is Association assoc)
                     {
                         // make sure that we can resolve basic stuff about the constraint
                         if (assoc.ReferentialConstraint == null

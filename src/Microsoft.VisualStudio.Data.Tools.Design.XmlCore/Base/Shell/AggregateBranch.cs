@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows.Forms;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.Collections;
-    using System.ComponentModel.Design;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows.Forms;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-
     /// <summary>
     ///     Class that aggregates a set of branches and displays them as a single
     ///     branch in the tree
@@ -28,7 +28,6 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         ///     Index of the primary branch in the list.  The primary branch
         ///     is used to determine branch-wide properties such as branch flags.
         /// </param>
-        [SuppressMessage("Microsoft.Usage", "CA2208:InstantiateArgumentExceptionsCorrectly")]
         internal AggregateBranch(IList branchList, int primaryBranchIndex)
         {
             if (branchList == null)
@@ -41,8 +40,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             _branchList = new ArrayList(branchList.Count);
             foreach (var obj in branchList)
             {
-                var branch = obj as IBranch;
-                if (branch != null)
+                if (obj is IBranch branch)
                 {
                     _branchList.Add(branch);
                     branch.OnBranchModification += OnInnerBranchModification;
@@ -89,7 +87,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
         LocateObjectData IBranch.LocateObject(object obj, ObjectStyle style, int locateOptions)
         {
-            var locateData = new LocateObjectData();
+            LocateObjectData locateData = new LocateObjectData();
             locateData.Row = -1;
             foreach (IBranch branch in _branchList)
             {
@@ -242,8 +240,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// <returns>The number of columns on this row</returns>
         public int GetJaggedColumnCount(int row)
         {
-            var branch = FindBranchForRow(ref row) as IMultiColumnBranch;
-            if (branch != null)
+            if (FindBranchForRow(ref row) is IMultiColumnBranch branch)
             {
                 return branch.GetJaggedColumnCount(row);
             }
@@ -257,8 +254,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
         ProcessKeyResult ITreeGridDesignerBranch.ProcessKeyPress(int row, int column, char keyPressed, Keys modifiers)
         {
-            var branch = FindBranchForRow(ref row) as ITreeGridDesignerBranch;
-            if (branch != null)
+            if (FindBranchForRow(ref row) is ITreeGridDesignerBranch branch)
             {
                 return branch.ProcessKeyPress(row, column, keyPressed, modifiers);
             }
@@ -268,8 +264,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
         ProcessKeyResult ITreeGridDesignerBranch.ProcessKeyDown(int row, int column, KeyEventArgs e)
         {
-            var branch = FindBranchForRow(ref row) as ITreeGridDesignerBranch;
-            if (branch != null)
+            if (FindBranchForRow(ref row) is ITreeGridDesignerBranch branch)
             {
                 return branch.ProcessKeyDown(row, column, e);
             }
@@ -279,8 +274,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
         TreeGridDesignerValueSupportedStates ITreeGridDesignerBranch.GetValueSupported(int row, int column)
         {
-            var branch = FindBranchForRow(ref row) as ITreeGridDesignerBranch;
-            if (branch != null)
+            if (FindBranchForRow(ref row) is ITreeGridDesignerBranch branch)
             {
                 return branch.GetValueSupported(row, column);
             }
@@ -296,8 +290,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
         CommandID ITreeGridDesignerBranch.GetDefaultAction(int index)
         {
-            var branch = FindBranchForRow(ref index) as ITreeGridDesignerBranch;
-            if (branch != null)
+            if (FindBranchForRow(ref index) is ITreeGridDesignerBranch branch)
             {
                 return branch.GetDefaultAction(index);
             }
@@ -307,20 +300,14 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
         void ITreeGridDesignerBranch.InsertCreatorNode(int index, int creatorNodeIndex)
         {
-            var branch = FindBranchForRow(ref index) as ITreeGridDesignerBranch;
-            if (branch != null)
-            {
-                branch.InsertCreatorNode(index, creatorNodeIndex);
-            }
+            ITreeGridDesignerBranch branch = FindBranchForRow(ref index) as ITreeGridDesignerBranch;
+            branch?.InsertCreatorNode(index, creatorNodeIndex);
         }
 
         void ITreeGridDesignerBranch.EndInsert(int row)
         {
-            var branch = FindBranchForRow(ref row) as ITreeGridDesignerBranch;
-            if (branch != null)
-            {
-                branch.EndInsert(row);
-            }
+            ITreeGridDesignerBranch branch = FindBranchForRow(ref row) as ITreeGridDesignerBranch;
+            branch?.EndInsert(row);
         }
 
         object ITreeGridDesignerBranch.GetBranchComponent()
@@ -328,8 +315,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             // for aggregates branches, return the component used to initialize the first branch
             if (_branchList.Count > 0)
             {
-                var branch = _branchList[0] as ITreeGridDesignerBranch;
-                if (branch != null)
+                if (_branchList[0] is ITreeGridDesignerBranch branch)
                 {
                     return branch.GetBranchComponent();
                 }
@@ -340,11 +326,8 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
 
         void ITreeGridDesignerBranch.Delete(int row, int column)
         {
-            var branch = FindBranchForRow(ref row) as ITreeGridDesignerBranch;
-            if (branch != null)
-            {
-                branch.Delete(row, column);
-            }
+            ITreeGridDesignerBranch branch = FindBranchForRow(ref row) as ITreeGridDesignerBranch;
+            branch?.Delete(row, column);
         }
 
         #endregion
@@ -370,7 +353,6 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             throw new ArgumentOutOfRangeException("row");
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2208:InstantiateArgumentExceptionsCorrectly")]
         private int FindIndexForBranch(IBranch innerBranch, int index)
         {
             var outerIndex = index;
@@ -400,11 +382,8 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         public void OnColumnValueChanged(TreeGridDesignerBranchChangedArgs args)
         {
             var row = args.Row;
-            var branch = FindBranchForRow(ref row) as ITreeGridDesignerBranch;
-            if (branch != null)
-            {
-                branch.OnColumnValueChanged(args);
-            }
+            ITreeGridDesignerBranch branch = FindBranchForRow(ref row) as ITreeGridDesignerBranch;
+            branch?.OnColumnValueChanged(args);
         }
     }
 }

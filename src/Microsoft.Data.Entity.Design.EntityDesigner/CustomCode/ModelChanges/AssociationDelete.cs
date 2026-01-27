@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Model = Microsoft.Data.Entity.Design.Model.Entity;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 {
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Rules;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-
     internal class AssociationDelete : ViewModelChange
     {
         private readonly Association _association;
@@ -25,7 +23,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.ModelChanges
 
             if (viewModel != null)
             {
-                var association = viewModel.ModelXRef.GetExisting(_association) as Model.Entity.Association;
+                Model.Entity.Association association = viewModel.ModelXRef.GetExisting(_association) as Model.Entity.Association;
                 Debug.Assert(association != null);
                 DeleteEFElementCommand.DeleteInTransaction(cpc, association);
                 viewModel.ModelXRef.Remove(association, _association);

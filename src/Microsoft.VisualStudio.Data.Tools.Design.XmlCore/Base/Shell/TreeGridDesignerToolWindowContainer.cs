@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Security;
+using System.Security.Permissions;
+using System.Windows.Forms;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Security;
-    using System.Security.Permissions;
-    using System.Windows.Forms;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Common;
-    using Microsoft.VisualStudio.Modeling.Shell;
-
     /// <summary>
     ///     This is the base class for the main control in tool windows.
     ///     It performs such things as drawing a border, a watermark, and
@@ -99,7 +98,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
             }
             catch (Exception e)
             {
-                if (CriticalException.ThrowOrShow(_mainControl != null ? _mainControl.Site : null, e))
+                if (CriticalException.ThrowOrShow(_mainControl?.Site, e))
                 {
                     throw;
                 }
@@ -146,12 +145,9 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         private void watermarkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             // Link data could be an event handler
-            var handler = e.Link.LinkData as LinkLabelLinkClickedEventHandler;
+            LinkLabelLinkClickedEventHandler handler = e.Link.LinkData as LinkLabelLinkClickedEventHandler;
             Debug.Assert(handler != null, "didn't find link-clicked handler as link data!");
-            if (handler != null)
-            {
-                handler.Invoke(sender, e);
-            }
+            handler?.Invoke(sender, e);
         }
 
         public void SetWatermarkThemedColors()

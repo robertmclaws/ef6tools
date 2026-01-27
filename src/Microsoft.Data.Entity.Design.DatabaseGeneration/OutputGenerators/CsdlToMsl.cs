@@ -1,29 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Activities;
+using System.Activities.Hosting;
+using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
+using Microsoft.Data.Entity.Design.VersioningFacade;
+
 namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
 {
-    using System;
-    using System.Activities;
-    using System.Activities.Hosting;
-    using System.Collections.Generic;
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Xml.Linq;
-    using Microsoft.Data.Entity.Design.DatabaseGeneration.Properties;
-    using Microsoft.Data.Entity.Design.VersioningFacade;
-
     /// <summary>
     ///     Generates mapping specification language (MSL) based on the provided conceptual schema definition language (CSDL).
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Msl")]
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Csdl")]
     public class CsdlToMsl : IGenerateActivityOutput
     {
-        [SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields",
-            Justification = "Changing would require changes to GenerateActivityOutput public API")]
         private OutputGeneratorActivity _activity;
         private static string _mslUri;
         private static XNamespace _msl;
@@ -57,17 +53,14 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
         {
             _activity = owningActivity;
 
-            object o;
-            inputs.TryGetValue(EdmConstants.csdlInputName, out o);
-            var edmItemCollection = o as EdmItemCollection;
-            if (edmItemCollection == null)
+            inputs.TryGetValue(EdmConstants.csdlInputName, out object o);
+            if (o is not EdmItemCollection edmItemCollection)
             {
                 throw new InvalidOperationException(Resources.ErrorCouldNotFindCSDL);
             }
 
             var symbolResolver = context.GetExtension<SymbolResolver>();
-            var edmParameterBag = symbolResolver[typeof(EdmParameterBag).Name] as EdmParameterBag;
-            if (edmParameterBag == null)
+            if (symbolResolver[typeof(EdmParameterBag).Name] is not EdmParameterBag edmParameterBag)
             {
                 throw new InvalidOperationException(Resources.ErrorNoEdmParameterBag);
             }
@@ -116,7 +109,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
 
         internal static XElement ConstructEntityContainerMapping(EdmItemCollection edm, string csdlNamespace)
         {
-            var entityContainerMappingElement = new XElement(
+            XElement entityContainerMappingElement = new XElement(
                 _msl + "EntityContainerMapping",
                 new XAttribute("StorageEntityContainer", OutputGeneratorHelpers.ConstructStorageEntityContainerName(csdlNamespace)),
                 new XAttribute("CdmEntityContainer", edm.GetEntityContainerName()));
@@ -127,7 +120,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
         internal static List<XElement> ConstructAssociationSetMappings(
             EdmItemCollection edm, string csdlNamespace, Version targetFrameworkVersion)
         {
-            var associationSetMappings = new List<XElement>();
+            List<XElement> associationSetMappings = new List<XElement>();
             foreach (var associationSet in edm.GetAllAssociationSets())
             {
                 var association = associationSet.ElementType;
@@ -137,12 +130,12 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                     var entityType1 = association.GetEnd1().GetEntityType();
                     var entityType2 = association.GetEnd2().GetEntityType();
 
-                    var associationSetMapping = new XElement(
+                    XElement associationSetMapping = new XElement(
                         _msl + "AssociationSetMapping",
                         new XAttribute("Name", associationSet.Name),
                         new XAttribute("TypeName", csdlNamespace + "." + associationSet.ElementType.Name),
                         new XAttribute("StoreEntitySet", associationSet.Name));
-                    var end1Property = new XElement(_msl + "EndProperty", new XAttribute("Name", association.GetEnd1().Name));
+                    XElement end1Property = new XElement(_msl + "EndProperty", new XAttribute("Name", association.GetEnd1().Name));
                     foreach (var property in entityType1.GetKeyProperties())
                     {
                         end1Property.Add(
@@ -152,7 +145,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                                     "ColumnName", OutputGeneratorHelpers.GetFkName(association, association.GetEnd2(), property.Name))));
                     }
                     associationSetMapping.Add(end1Property);
-                    var end2Property = new XElement(_msl + "EndProperty", new XAttribute("Name", association.GetEnd2().Name));
+                    XElement end2Property = new XElement(_msl + "EndProperty", new XAttribute("Name", association.GetEnd2().Name));
                     foreach (var property in entityType2.GetKeyProperties())
                     {
                         end2Property.Add(
@@ -166,8 +159,8 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                 }
                 else
                 {
-                    if (targetFrameworkVersion == EntityFrameworkVersion.Version1
-                        || association.ReferentialConstraints.Count <= 0)
+                    // Only Version3 is supported - only generate association set mapping when there are no referential constraints
+                    if (association.ReferentialConstraints.Count <= 0)
                     {
                         var dependentEnd = association.GetDependentEnd();
                         var principalEnd = association.GetOtherEnd(dependentEnd);
@@ -176,12 +169,12 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                         {
                             var dependentEntityType = dependentEnd.GetEntityType();
                             var principalEntityType = principalEnd.GetEntityType();
-                            var associationSetMapping = new XElement(
+                            XElement associationSetMapping = new XElement(
                                 _msl + "AssociationSetMapping",
                                 new XAttribute("Name", associationSet.Name),
                                 new XAttribute("TypeName", csdlNamespace + "." + associationSet.ElementType.Name),
                                 new XAttribute("StoreEntitySet", OutputGeneratorHelpers.GetStorageEntityTypeName(dependentEntityType, edm)));
-                            var end1Property = new XElement(_msl + "EndProperty", new XAttribute("Name", principalEnd.Name));
+                            XElement end1Property = new XElement(_msl + "EndProperty", new XAttribute("Name", principalEnd.Name));
                             foreach (var property in principalEntityType.GetKeyProperties())
                             {
                                 var columnName = (association.ReferentialConstraints.Count > 0)
@@ -194,7 +187,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                                         new XAttribute("ColumnName", columnName)));
                             }
                             associationSetMapping.Add(end1Property);
-                            var end2Property = new XElement(_msl + "EndProperty", new XAttribute("Name", dependentEnd.Name));
+                            XElement end2Property = new XElement(_msl + "EndProperty", new XAttribute("Name", dependentEnd.Name));
                             foreach (var property in dependentEntityType.GetKeyProperties())
                             {
                                 end2Property.Add(
@@ -239,15 +232,15 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
 
         internal static List<XElement> ConstructEntitySetMappings(EdmItemCollection edm, string csdlNamespace)
         {
-            var entitySetMappingElements = new List<XElement>();
+            List<XElement> entitySetMappingElements = new List<XElement>();
             foreach (var set in edm.GetAllEntitySets())
             {
-                var entitySetMapping = new XElement(_msl + "EntitySetMapping", new XAttribute("Name", set.Name));
+                XElement entitySetMapping = new XElement(_msl + "EntitySetMapping", new XAttribute("Name", set.Name));
                 foreach (var type in set.GetContainingTypes(edm))
                 {
-                    var entityTypeMapping = new XElement(
+                    XElement entityTypeMapping = new XElement(
                         _msl + "EntityTypeMapping", new XAttribute("TypeName", "IsTypeOf(" + type.FullName + ")"));
-                    var mappingFragment = new XElement(
+                    XElement mappingFragment = new XElement(
                         _msl + "MappingFragment",
                         new XAttribute("StoreEntitySet", OutputGeneratorHelpers.GetStorageEntityTypeName(type, edm)));
                     foreach (var property in type.GetRootOrSelf().GetKeyProperties())
@@ -289,8 +282,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                 return null;
             }
 
-            var complexType = complexProperty.TypeUsage.EdmType as ComplexType;
-            if (complexType != null)
+            if (complexProperty.TypeUsage.EdmType is ComplexType complexType)
             {
                 if (complexType.Properties.Count == 0)
                 {
@@ -298,7 +290,7 @@ namespace Microsoft.Data.Entity.Design.DatabaseGeneration.OutputGenerators
                 }
             }
 
-            var complexPropertyElement = new XElement(
+            XElement complexPropertyElement = new XElement(
                 _msl + "ComplexProperty", new XAttribute("Name", complexProperty.Name),
                 new XAttribute("TypeName", csdlNamespace + "." + complexProperty.TypeUsage.EdmType.Name));
 

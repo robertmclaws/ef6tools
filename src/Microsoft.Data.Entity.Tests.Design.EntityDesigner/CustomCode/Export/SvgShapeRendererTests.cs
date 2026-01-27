@@ -1,16 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Drawing;
+using System.Text;
+using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
 {
-    using System;
-    using System.Drawing;
-    using System.Text;
-    using System.Text.RegularExpressions;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
-    using Microsoft.VisualStudio.Modeling;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class SvgShapeRendererTests
     {
@@ -39,7 +37,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderCompartmentHeader_renders_dark_gray_background_rectangle()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             _renderer.RenderCompartmentHeader(sb, "Properties", true, 10, 50, 200);
 
             var result = sb.ToString();
@@ -53,7 +51,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderCompartmentHeader_renders_Collapse_icon_when_expanded()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             _renderer.RenderCompartmentHeader(sb, "Properties", isExpanded: true, 10, 50, 200);
 
             var result = sb.ToString();
@@ -63,7 +61,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderCompartmentHeader_renders_Expand_icon_when_collapsed()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             _renderer.RenderCompartmentHeader(sb, "Properties", isExpanded: false, 10, 50, 200);
 
             var result = sb.ToString();
@@ -73,7 +71,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderCompartmentHeader_renders_text_label_with_css_class()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             _renderer.RenderCompartmentHeader(sb, "Properties", true, 10, 50, 200);
 
             var result = sb.ToString();
@@ -85,7 +83,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderCompartmentHeader_renders_NavigationProperties_label()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             _renderer.RenderCompartmentHeader(sb, "Navigation Properties", true, 10, 50, 200);
 
             var result = sb.ToString();
@@ -95,7 +93,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderCompartmentHeader_escapes_special_xml_characters_in_header_text()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             _renderer.RenderCompartmentHeader(sb, "Props & Nav <test>", true, 10, 50, 200);
 
             var result = sb.ToString();
@@ -110,7 +108,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [DataRow(123.5, 456.7, 300)]
         public void RenderCompartmentHeader_positions_elements_correctly(double x, double y, double width)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             _renderer.RenderCompartmentHeader(sb, "Properties", true, x, y, width);
 
             var result = sb.ToString();
@@ -122,7 +120,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderCompartmentHeader_chevron_is_positioned_with_padding()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             _renderer.RenderCompartmentHeader(sb, "Properties", true, 10, 50, 200);
 
             var result = sb.ToString();
@@ -135,7 +133,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderCompartmentHeader_text_is_positioned_after_chevron()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             _renderer.RenderCompartmentHeader(sb, "Properties", true, 10, 50, 200);
 
             var result = sb.ToString();
@@ -148,7 +146,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderCompartmentHeader_uses_css_classes_for_text_styling()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             _renderer.RenderCompartmentHeader(sb, "Properties", true, 10, 50, 200);
 
             var result = sb.ToString();
@@ -166,7 +164,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GetOutlineColor_returns_lighter_color_for_dark_fill()
         {
-            var darkColor = Color.FromArgb(50, 50, 50);
+            Color darkColor = Color.FromArgb(50, 50, 50);
             var outlineColor = _renderer.GetOutlineColor(darkColor);
 
             // Should be lighter than input
@@ -178,7 +176,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GetOutlineColor_returns_darker_color_for_light_fill()
         {
-            var lightColor = Color.FromArgb(200, 200, 200);
+            Color lightColor = Color.FromArgb(200, 200, 200);
             var outlineColor = _renderer.GetOutlineColor(lightColor);
 
             // Should be darker than input
@@ -264,7 +262,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderPropertyIcon_uses_default_Property_icon_for_unknown_type()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             _renderer.RenderPropertyIcon(sb, 10, 20, new object());
 
@@ -276,7 +274,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         public void RenderPropertyIcon_uses_PropertyKey_icon_for_entity_key()
         {
             var prop = DslTestHelper.CreateScalarProperty(GetStore(), "Id", "Int32", isKey: true);
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             _renderer.RenderPropertyIcon(sb, 10, 20, prop);
 
@@ -288,7 +286,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         public void RenderPropertyIcon_uses_Property_icon_for_non_key_scalar()
         {
             var prop = DslTestHelper.CreateScalarProperty(GetStore(), "Name", "String", isKey: false);
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             _renderer.RenderPropertyIcon(sb, 10, 20, prop);
 
@@ -300,7 +298,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         public void RenderPropertyIcon_uses_ComplexProperty_icon_for_complex_property()
         {
             var prop = DslTestHelper.CreateComplexProperty(GetStore(), "Address");
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             _renderer.RenderPropertyIcon(sb, 10, 20, prop);
 
@@ -312,7 +310,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         public void RenderPropertyIcon_uses_NavigationProperty_icon_for_navigation_property()
         {
             var prop = DslTestHelper.CreateNavigationProperty(GetStore(), "Orders");
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             _renderer.RenderPropertyIcon(sb, 10, 20, prop);
 
@@ -327,7 +325,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderEntityIcon_uses_Class_icon()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             _renderer.RenderEntityIcon(sb, 10, 20, Color.White);
 
@@ -338,7 +336,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void RenderEntityIcon_appends_icon_reference_to_builder()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             _renderer.RenderEntityIcon(sb, 10, 20, Color.White);
 

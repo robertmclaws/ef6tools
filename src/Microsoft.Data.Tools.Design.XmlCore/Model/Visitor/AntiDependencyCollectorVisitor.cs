@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Model.Visitor
 {
-    using System.Collections.Generic;
-
     /// <summary>
     ///     This class will traverse from the starting node, visiting all children, and accumulate
     ///     all ItemBindings that point to the child, or ItemBindings that point to any duplicate symbols
@@ -11,7 +11,7 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
     /// </summary>
     internal class AntiDependencyCollectorVisitor : Visitor
     {
-        private readonly HashSet<ItemBinding> _antiDeps = new HashSet<ItemBinding>();
+        private readonly HashSet<ItemBinding> _antiDeps = [];
 
         internal HashSet<ItemBinding> AntiDependencyBindings
         {
@@ -20,8 +20,7 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
 
         internal override void Visit(IVisitable visitable)
         {
-            var ni = visitable as EFNameableItem;
-            if (ni != null)
+            if (visitable is EFNameableItem ni)
             {
                 // if this is a nameable item, include any deps for any other elements that have the same normalized name
                 foreach (EFObject efobj in ni.Artifact.ArtifactSet.GetSymbolList(ni.NormalizedName))
@@ -34,7 +33,7 @@ namespace Microsoft.Data.Entity.Design.Model.Visitor
             }
             else
             {
-                var efobj = visitable as EFObject;
+                EFObject efobj = visitable as EFObject;
                 foreach (var antiDep in efobj.GetDependentBindings())
                 {
                     _antiDeps.Add(antiDep);

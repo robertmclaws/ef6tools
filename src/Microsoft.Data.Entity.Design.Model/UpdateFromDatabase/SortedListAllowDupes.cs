@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections;
+using System.Collections.Generic;
+
 namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 {
-    using System.Collections;
-    using System.Collections.Generic;
-
     /// <summary>
     ///     Represents a Systems.Collections.Generic.List which is
     ///     always kept in sorted order and which allows duplicates.
@@ -16,7 +16,7 @@ namespace Microsoft.Data.Entity.Design.Model.UpdateFromDatabase
 
         internal SortedListAllowDupes(IComparer<T> comparer)
         {
-            _list = new List<T>();
+            _list = [];
             _comparer = comparer;
         }
 

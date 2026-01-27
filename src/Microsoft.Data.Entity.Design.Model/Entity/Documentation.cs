@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml.Linq;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Xml.Linq;
-
     internal class Documentation : EFElement
     {
         internal static readonly string ElementName = "Documentation";
@@ -104,8 +104,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         {
             element = null;
             insertBefore = false;
-            var efElement = parent as EFElement;
-            if (efElement != null
+            if (parent is EFElement efElement
                 && efElement.HasDocumentationElement
                 && efElement.DocumentationEFContainer != null)
             {

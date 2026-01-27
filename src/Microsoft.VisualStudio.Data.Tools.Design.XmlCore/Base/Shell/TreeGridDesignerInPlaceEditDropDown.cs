@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing.Design;
+using System.Windows.Forms;
+using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
+using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
+
 namespace Microsoft.Data.Entity.Design.Base.Shell
 {
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Drawing.Design;
-    using System.Windows.Forms;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.VirtualTreeGrid;
-    using Microsoft.VisualStudio.Data.Tools.Design.XmlCore;
-
     internal class TreeGridDesignerInPlaceEditDropDown : TypeEditorHost
     {
         /// <summary>
@@ -34,7 +34,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         /// <param name="e"></param>
         protected override void OnEditKeyDown(KeyEventArgs e)
         {
-            var parent = Parent as TreeGridDesignerTreeControl;
+            TreeGridDesignerTreeControl parent = Parent as TreeGridDesignerTreeControl;
 
             Debug.Assert(parent != null, "parent of TreeGridDesignerInPlaceEdit must be TreeGridDesignerTreeControl");
 
@@ -56,7 +56,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         protected override void OnEditKeyPress(KeyPressEventArgs e)
         {
             var parentControl = Parent;
-            var parent = parentControl as TreeGridDesignerTreeControl;
+            TreeGridDesignerTreeControl parent = parentControl as TreeGridDesignerTreeControl;
 
             Debug.Assert(parent != null, "parent of TreeGridDesignerInPlaceEdit must be TreeGridDesignerTreeControl");
 
@@ -78,7 +78,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         protected override void OnKeyDown(KeyEventArgs e)
         {
             // this override gets called when there's no edit control, i.e., when the TransparentEditRegion flag is set.
-            var parent = Parent as TreeGridDesignerTreeControl;
+            TreeGridDesignerTreeControl parent = Parent as TreeGridDesignerTreeControl;
 
             Debug.Assert(parent != null, "parent of TreeGridDesignerInPlaceEdit must be TreeGridDesignerTreeControl");
 
@@ -103,7 +103,7 @@ namespace Microsoft.Data.Entity.Design.Base.Shell
         {
             // this override gets called when there's no edit control, i.e., when the TransparentEditRegion flag is set.
             var parentControl = Parent;
-            var parent = parentControl as TreeGridDesignerTreeControl;
+            TreeGridDesignerTreeControl parent = parentControl as TreeGridDesignerTreeControl;
 
             Debug.Assert(parent != null, "parent of TreeGridDesignerInPlaceEdit must be TreeGridDesignerTreeControl");
 

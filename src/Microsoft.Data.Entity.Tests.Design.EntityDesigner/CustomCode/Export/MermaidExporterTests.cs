@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FluentAssertions;
+
 namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
 {
-    using System;
-    using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using FluentAssertions;
-
     [TestClass]
     public class MermaidExporterTests
     {
@@ -174,77 +174,77 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GetMermaidMultiplicity_with_one_source_returns_pipes()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("1", isSource: true).Should().Be("||");
         }
 
         [TestMethod]
         public void GetMermaidMultiplicity_with_one_target_returns_pipes()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("1", isSource: false).Should().Be("||");
         }
 
         [TestMethod]
         public void GetMermaidMultiplicity_with_zero_or_one_source_returns_pipe_o()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("0..1", isSource: true).Should().Be("|o");
         }
 
         [TestMethod]
         public void GetMermaidMultiplicity_with_zero_or_one_target_returns_o_pipe()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("0..1", isSource: false).Should().Be("o|");
         }
 
         [TestMethod]
         public void GetMermaidMultiplicity_with_star_source_returns_brace_o()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("*", isSource: true).Should().Be("}o");
         }
 
         [TestMethod]
         public void GetMermaidMultiplicity_with_star_target_returns_o_brace()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("*", isSource: false).Should().Be("o{");
         }
 
         [TestMethod]
         public void GetMermaidMultiplicity_with_zero_to_many_source_returns_brace_o()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("0..*", isSource: true).Should().Be("}o");
         }
 
         [TestMethod]
         public void GetMermaidMultiplicity_with_zero_to_many_target_returns_o_brace()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("0..*", isSource: false).Should().Be("o{");
         }
 
         [TestMethod]
         public void GetMermaidMultiplicity_with_one_to_many_source_returns_brace_pipe()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("1..*", isSource: true).Should().Be("}|");
         }
 
         [TestMethod]
         public void GetMermaidMultiplicity_with_one_to_many_target_returns_pipe_brace()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("1..*", isSource: false).Should().Be("|{");
         }
 
         [TestMethod]
         public void GetMermaidMultiplicity_with_null_returns_default_many()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity(null, isSource: true).Should().Be("}o");
             exporter.GetMermaidMultiplicity(null, isSource: false).Should().Be("o{");
         }
@@ -252,7 +252,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GetMermaidMultiplicity_with_empty_returns_default_many()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("", isSource: true).Should().Be("}o");
             exporter.GetMermaidMultiplicity("", isSource: false).Should().Be("o{");
         }
@@ -260,7 +260,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GetMermaidMultiplicity_with_unknown_value_returns_default_many()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("unknown", isSource: true).Should().Be("}o");
             exporter.GetMermaidMultiplicity("unknown", isSource: false).Should().Be("o{");
         }
@@ -268,7 +268,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GetMermaidMultiplicity_is_case_insensitive()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             // Uppercase shouldn't matter since we normalize
             exporter.GetMermaidMultiplicity("1", isSource: true).Should().Be("||");
         }
@@ -276,7 +276,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GetMermaidMultiplicity_trims_whitespace()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidMultiplicity("  1  ", isSource: true).Should().Be("||");
             exporter.GetMermaidMultiplicity(" 0..1 ", isSource: true).Should().Be("|o");
         }
@@ -288,70 +288,70 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GetMermaidRelationship_one_to_one_returns_correct_symbol()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidRelationship("1", "1").Should().Be("||--||");
         }
 
         [TestMethod]
         public void GetMermaidRelationship_one_to_many_returns_correct_symbol()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidRelationship("1", "*").Should().Be("||--o{");
         }
 
         [TestMethod]
         public void GetMermaidRelationship_many_to_one_returns_correct_symbol()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidRelationship("*", "1").Should().Be("}o--||");
         }
 
         [TestMethod]
         public void GetMermaidRelationship_many_to_many_returns_correct_symbol()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidRelationship("*", "*").Should().Be("}o--o{");
         }
 
         [TestMethod]
         public void GetMermaidRelationship_one_to_zero_or_one_returns_correct_symbol()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidRelationship("1", "0..1").Should().Be("||--o|");
         }
 
         [TestMethod]
         public void GetMermaidRelationship_zero_or_one_to_one_returns_correct_symbol()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidRelationship("0..1", "1").Should().Be("|o--||");
         }
 
         [TestMethod]
         public void GetMermaidRelationship_zero_or_one_to_many_returns_correct_symbol()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidRelationship("0..1", "*").Should().Be("|o--o{");
         }
 
         [TestMethod]
         public void GetMermaidRelationship_one_to_one_or_more_returns_correct_symbol()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidRelationship("1", "1..*").Should().Be("||--|{");
         }
 
         [TestMethod]
         public void GetMermaidRelationship_one_or_more_to_one_returns_correct_symbol()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidRelationship("1..*", "1").Should().Be("}|--||");
         }
 
         [TestMethod]
         public void GetMermaidRelationship_with_null_multiplicities_returns_default()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
             exporter.GetMermaidRelationship(null, null).Should().Be("}o--o{");
         }
 
@@ -362,7 +362,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GenerateMermaid_with_null_diagram_throws_ArgumentNullException()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
 
             Action act = () => exporter.GenerateMermaid(null);
             act.Should().Throw<ArgumentNullException>().WithParameterName("diagram");
@@ -371,7 +371,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GenerateMermaid_with_null_diagram_and_showTypes_throws_ArgumentNullException()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
 
             Action act = () => exporter.GenerateMermaid(null, showTypes: true);
             act.Should().Throw<ArgumentNullException>().WithParameterName("diagram");
@@ -384,7 +384,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void ExportToMermaid_with_null_diagram_throws_ArgumentNullException()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
 
             Action act = () => exporter.ExportToMermaid(null, "test.mmd");
             act.Should().Throw<ArgumentNullException>().WithParameterName("diagram");
@@ -393,7 +393,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void ExportToMermaid_with_null_filePath_throws_ArgumentNullException()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
 
             // We can't create a real diagram without VS infrastructure, so we test the path validation
             // by catching the diagram null check first
@@ -404,7 +404,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void ExportToMermaid_with_empty_filePath_throws_ArgumentNullException()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
 
             Action act = () => exporter.ExportToMermaid(null, "");
             act.Should().Throw<ArgumentNullException>().WithParameterName("diagram");
@@ -445,7 +445,7 @@ namespace Microsoft.Data.Entity.Tests.Design.EntityDesigner.View.Export
         [TestMethod]
         public void GetMermaidRelationship_all_standard_ef_relationships()
         {
-            var exporter = new MermaidExporter();
+            MermaidExporter exporter = new MermaidExporter();
 
             // Standard EF relationship patterns
             exporter.GetMermaidRelationship("1", "*").Should().Be("||--o{");      // One-to-Many

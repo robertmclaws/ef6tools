@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Windows.Forms;
+using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
+using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Windows.Forms;
-    using Microsoft.Data.Entity.Design.VersioningFacade.ReverseEngineerDb;
-    using Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Engine;
-
     // <summary>
     //     Given a set of TreeViews, this will map EntityStoreSchemaFilterEntries to tree nodes and vice versa.
     // </summary>
@@ -18,7 +18,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
 
         internal TreeViewSchemaFilterMapper()
         {
-            _treeViews = new List<TreeView>();
+            _treeViews = [];
             _treeView2Settings = new Dictionary<TreeView, TreeViewSchemaFilterMapperSettings>();
         }
 
@@ -37,20 +37,16 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
         internal void AddTreeView(TreeView treeView, TreeViewSchemaFilterMapperSettings settings)
         {
             _treeViews.Add(treeView);
-            if (settings == null)
-            {
-                settings = TreeViewSchemaFilterMapperSettings.GetDefaultSettings();
-            }
+            settings ??= TreeViewSchemaFilterMapperSettings.GetDefaultSettings();
             _treeView2Settings.Add(treeView, settings);
         }
 
         internal SchemaFilterEntryBag CreateSchemaFilterEntryBag()
         {
-            var schemaFilterEntryBag = new SchemaFilterEntryBag();
+            SchemaFilterEntryBag schemaFilterEntryBag = new SchemaFilterEntryBag();
             foreach (var treeView in _treeViews)
             {
-                TreeViewSchemaFilterMapperSettings settings;
-                _treeView2Settings.TryGetValue(treeView, out settings);
+                _treeView2Settings.TryGetValue(treeView, out TreeViewSchemaFilterMapperSettings settings);
 
                 foreach (TreeNode parentNode in treeView.Nodes)
                 {
@@ -77,7 +73,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                         // Check to see if the filter entries allow this.
                         // TODO this is not very performant, but we assume a small number of filters based on our
                         // existing optimization logic for selecting the filters in the first place
-                        var entryToTest = child.Tag as EntityStoreSchemaFilterEntry;
+                        EntityStoreSchemaFilterEntry entryToTest = child.Tag as EntityStoreSchemaFilterEntry;
                         Debug.Assert(entryToTest != null, "entryToTest should not be null");
                         if (entryToTest != null)
                         {
@@ -105,7 +101,7 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.ModelWizard.Gui
                 return;
             }
 
-            var e = leafNode.Tag as EntityStoreSchemaFilterEntry;
+            EntityStoreSchemaFilterEntry e = leafNode.Tag as EntityStoreSchemaFilterEntry;
             Debug.Assert(
                 e != null,
                 "Either the Tag property of the leaf node is null or the leaf node is not an EntityStoreSchemaFilterEntry");

@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
+
 namespace Microsoft.Data.Entity.Design.CodeGeneration
 {
-    using System.Data.Entity.Core.Metadata.Edm;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.Data.Entity.Design.CodeGeneration.Extensions;
-
     internal static class MultiplicityDiscoverer
     {
         public static MultiplicityConfiguration Discover(NavigationProperty navigationProperty, out bool isDefault)
         {
             Debug.Assert(navigationProperty != null, "navigationProperty is null.");
 
-            var entityType = (EntityType)navigationProperty.DeclaringType;
+            EntityType entityType = (EntityType)navigationProperty.DeclaringType;
             var otherEntityType = navigationProperty.ToEndMember.GetEntityType();
             var otherNavigationProperty = otherEntityType.NavigationProperties.First(
                 p => p.ToEndMember == navigationProperty.FromEndMember);

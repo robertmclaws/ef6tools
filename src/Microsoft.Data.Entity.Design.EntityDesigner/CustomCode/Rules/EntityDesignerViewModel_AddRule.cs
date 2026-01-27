@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.VisualStudio.Modeling;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.VisualStudio.Modeling;
-
     /// <summary>
     ///     Rule fired when a ConceptualModel is created
     /// </summary>
@@ -23,7 +23,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.Rules
         {
             base.ElementAdded(e);
 
-            var model = e.ModelElement as EntityDesignerViewModel;
+            EntityDesignerViewModel model = e.ModelElement as EntityDesignerViewModel;
             Debug.Assert(model != null);
 
             if (model != null)

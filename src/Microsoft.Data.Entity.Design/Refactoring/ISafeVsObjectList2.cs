@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.Refactoring
 {
-    using System;
-    using System.Runtime.CompilerServices;
-    using System.Runtime.InteropServices;
-    using Microsoft.VisualStudio.OLE.Interop;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     // <summary>
     //     Implements a safer version of IVsObjectList for types that do no implement IVsCoTaskMemFreeMyStrings. Types that do not implement IVsCoTaskMemFreeMyStrings will
     //     cause an exception when marshalling strings from native code to the CLR, because the native code will pass its own reference to the string instead of a

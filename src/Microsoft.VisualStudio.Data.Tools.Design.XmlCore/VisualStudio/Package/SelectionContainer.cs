@@ -1,20 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows.Threading;
+using Microsoft.Data.Entity.Design.Base.Context;
+using Microsoft.Data.Entity.Design.Model;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+using Microsoft.Data.Entity.Design.VisualStudio.Providers;
+using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Entity.Design.VisualStudio.Package
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows.Threading;
-    using Microsoft.Data.Entity.Design.Base.Context;
-    using Microsoft.Data.Entity.Design.Model;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-    using Microsoft.Data.Entity.Design.VisualStudio.Providers;
-    using Microsoft.Data.Tools.VSXmlDesignerBase.Model.VisualStudio;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     /// <summary>
     ///     This is a simple selection container object that
     ///     wraps the designers selection system.
@@ -46,24 +46,17 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         }
 
         // Disconnects this container from selection
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.ITrackSelection.OnSelectChange(Microsoft.VisualStudio.Shell.Interop.ISelectionContainer)")]
         internal void Dispose()
         {
             _editingContext.Items.Unsubscribe<T>(OnSelectionChanged);
 
             _package.ModelManager.ModelChangesCommitted -= OnModelChangesCommitted;
 
-            var trackSel = _shellServices.GetService(typeof(ITrackSelection)) as ITrackSelection;
-            if (trackSel != null)
-            {
-                trackSel.OnSelectChange(null);
-            }
+            ITrackSelection trackSel = _shellServices.GetService(typeof(ITrackSelection)) as ITrackSelection;
+            trackSel?.OnSelectChange(null);
 
             var trackSel2 = ParentServiceProvider.GetParentService<ITrackSelection>(_shellServices);
-            if (trackSel2 != null)
-            {
-                trackSel2.OnSelectChange(null);
-            }
+            trackSel2?.OnSelectChange(null);
 
             _selectionChangePending = false;
             _schemaChangePending = false;
@@ -129,30 +122,19 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         ///     The result of the Post during RaiseChange ends up here, and actually
         ///     raises the change to VS.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsUIShell.RefreshPropertyBrowser(System.Int32)")]
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.ITrackSelection.OnSelectChange(Microsoft.VisualStudio.Shell.Interop.ISelectionContainer)")]
         private void OnRaiseSelectionChange()
         {
             if (_selectionChangePending)
             {
                 _selectionChangePending = false;
-                var trackSel = _shellServices.GetService(typeof(ITrackSelection)) as ITrackSelection;
-                if (trackSel != null)
-                {
-                    trackSel.OnSelectChange(this);
-                }
+                ITrackSelection trackSel = _shellServices.GetService(typeof(ITrackSelection)) as ITrackSelection;
+                trackSel?.OnSelectChange(this);
 
                 var trackSel2 = ParentServiceProvider.GetParentService<ITrackSelection>(_shellServices);
-                if (trackSel2 != null)
-                {
-                    trackSel2.OnSelectChange(this);
-                }
+                trackSel2?.OnSelectChange(this);
 
-                var uiShell = _shellServices.GetService(typeof(IVsUIShell)) as IVsUIShell;
-                if (uiShell != null)
-                {
-                    uiShell.RefreshPropertyBrowser(0);
-                }
+                IVsUIShell uiShell = _shellServices.GetService(typeof(IVsUIShell)) as IVsUIShell;
+                uiShell?.RefreshPropertyBrowser(0);
             }
         }
 
@@ -174,18 +156,14 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         ///     The result of the Post during RaiseChange ends up here, and actually
         ///     raises the change to VS.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsUIShell.RefreshPropertyBrowser(System.Int32)")]
         private void OnRaiseSchemaChange()
         {
             if (_schemaChangePending)
             {
                 _schemaChangePending = false;
 
-                var uiShell = _shellServices.GetService(typeof(IVsUIShell)) as IVsUIShell;
-                if (uiShell != null)
-                {
-                    uiShell.RefreshPropertyBrowser(0);
-                }
+                IVsUIShell uiShell = _shellServices.GetService(typeof(IVsUIShell)) as IVsUIShell;
+                uiShell?.RefreshPropertyBrowser(0);
             }
         }
 
@@ -246,11 +224,10 @@ namespace Microsoft.Data.Entity.Design.VisualStudio.Package
         /// </summary>
         public int SelectObjects(uint cSelect, object[] apUnkSelect, uint dwFlags)
         {
-            var objectsToSelect = new List<EFObject>();
+            List<EFObject> objectsToSelect = new List<EFObject>();
             foreach (var o in apUnkSelect)
             {
-                var typeDesc = o as ObjectDescriptor;
-                if (typeDesc != null)
+                if (o is ObjectDescriptor typeDesc)
                 {
                     objectsToSelect.Add(typeDesc.WrappedItem);
                 }

@@ -1,13 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using Microsoft.Data.Entity.Design;
+using Microsoft.Data.Entity.Design.Model.Entity;
+using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
+using XmlDesignerBaseResources = Microsoft.Data.Tools.XmlDesignerBase.Resources;
+
 namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 {
-    using System;
-    using System.Diagnostics;
-    using Microsoft.Data.Entity.Design.Model.Entity;
-    using Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Descriptors;
-    using Microsoft.Data.Tools.XmlDesignerBase;
-
     internal class BaseTypeListConverter : DynamicListConverter<EntityType, ObjectDescriptor>
     {
         protected override void PopulateMappingForSelectedObject(ObjectDescriptor selectedObject)
@@ -16,13 +17,13 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
 
             if (selectedObject != null)
             {
-                var currentType = selectedObject.WrappedItem as ConceptualEntityType;
+                ConceptualEntityType currentType = selectedObject.WrappedItem as ConceptualEntityType;
                 Debug.Assert(
                     !(selectedObject.WrappedItem is EntityType) || currentType != null,
                     "EntityType is not ConceptualEntityType");
                 if (currentType == null)
                 {
-                    var entityTypeBaseType = selectedObject.WrappedItem as EntityTypeBaseType;
+                    EntityTypeBaseType entityTypeBaseType = selectedObject.WrappedItem as EntityTypeBaseType;
                     Debug.Assert(entityTypeBaseType != null, "Type Converter used on unhandled Object Descriptor.");
                     if (entityTypeBaseType != null)
                     {
@@ -32,7 +33,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
                 else
                 {
                     // Add an entry for (None) with null value
-                    AddMapping(null, Resources.NoneDisplayValueUsedForUX);
+                    AddMapping(null, XmlDesignerBaseResources.NoneDisplayValueUsedForUX);
                 }
 
                 if (currentType != null)
@@ -45,7 +46,7 @@ namespace Microsoft.Data.Entity.Design.UI.ViewModels.PropertyWindow.Converters
                         // Now get all valid  entity types to be displayed
                         foreach (var type in parent.EntityTypes())
                         {
-                            var cet = type as ConceptualEntityType;
+                            ConceptualEntityType cet = type as ConceptualEntityType;
                             Debug.Assert(cet != null, "EntityType is not ConceptualEntityType");
 
                             // Add to the list if

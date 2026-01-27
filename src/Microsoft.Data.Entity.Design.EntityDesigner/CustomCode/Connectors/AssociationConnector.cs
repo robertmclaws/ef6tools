@@ -1,25 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
+using Microsoft.Data.Entity.Design.EntityDesigner.CustomCode.Utils;
+using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
+using Microsoft.Data.Entity.Design.Model.Commands;
+using Microsoft.Data.Entity.Design.Model.Eventing;
+using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
+using Microsoft.VisualStudio.Modeling.Diagrams;
+using Microsoft.VisualStudio.Modeling.Diagrams.GraphObject;
+using Microsoft.VisualStudio.Modeling.Immutability;
+using Microsoft.VisualStudio.PlatformUI;
+using DesignRes = Microsoft.Data.Entity.Design.Resources;
+using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
+
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Globalization;
-    using Microsoft.Data.Entity.Design.EntityDesigner.CustomCode.Utils;
-    using Microsoft.Data.Entity.Design.EntityDesigner.CustomSerializer;
-    using Microsoft.Data.Entity.Design.EntityDesigner.Properties;
-    using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
-    using Microsoft.Data.Entity.Design.Model.Commands;
-    using Microsoft.Data.Entity.Design.Model.Eventing;
-    using Microsoft.Data.Entity.Design.UI.Views.Dialogs;
-    using Microsoft.VisualStudio.Modeling.Diagrams;
-    using Microsoft.VisualStudio.Modeling.Diagrams.GraphObject;
-    using Microsoft.VisualStudio.Modeling.Immutability;
-    using Microsoft.VisualStudio.PlatformUI;
-    using Resources = Microsoft.Data.Entity.Design.Resources;
-
     partial class AssociationConnector
     {
         public new Association ModelElement
@@ -65,7 +65,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             if (e.View != null)
             {
                 // If the shape is in the EmphasizedShapes list, draw the emphasis shape around the shape.
-                var entityDesignerDiagram = Diagram as EntityDesignerDiagram;
+                EntityDesignerDiagram entityDesignerDiagram = Diagram as EntityDesignerDiagram;
                 if (entityDesignerDiagram.EmphasizedShapes.Contains(new DiagramItem(this)))
                 {
                     ShapeGeometry.DoPaintEmphasis(e, this);
@@ -111,7 +111,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                 // Source: {0} ({1})\nTarget {2} ({3})
                 tooltipText = String.Format(
                     CultureInfo.CurrentCulture,
-                    Properties.Resources.Tooltip_AssociationConnector,
+                    EntityDesignerRes.Tooltip_AssociationConnector,
                     association.SourceEntityType.Name, association.SourceMultiplicity,
                     association.TargetEntityType.Name, association.TargetMultiplicity).Replace(@"\n", "\n");
             }
@@ -123,8 +123,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         {
             get
             {
-                var sourceEntityTypeName = Properties.Resources.Acc_Unnamed;
-                var targetEntityTypeName = Properties.Resources.Acc_Unnamed;
+                var sourceEntityTypeName = EntityDesignerRes.Acc_Unnamed;
+                var targetEntityTypeName = EntityDesignerRes.Acc_Unnamed;
 
                 if (ModelElement != null)
                 {
@@ -142,7 +142,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                 }
 
                 return string.Format(CultureInfo.CurrentCulture,
-                    Properties.Resources.IsInAssociationWith,
+                    EntityDesignerRes.IsInAssociationWith,
                     sourceEntityTypeName,
                     targetEntityTypeName);
             }
@@ -154,8 +154,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    Properties.Resources.AccDesc_Association,
-                    Properties.Resources.CompClassName_Association,
+                    EntityDesignerRes.AccDesc_Association,
+                    EntityDesignerRes.CompClassName_Association,
                     ModelElement.SourceEntityType.Name,
                     ModelElement.TargetEntityType.Name);
             }
@@ -171,21 +171,20 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             var association = ModelElement;
             if (association != null)
             {
-                var diagram = Diagram as EntityDesignerDiagram;
-                if (diagram != null)
+                if (Diagram is EntityDesignerDiagram diagram)
                 {
                     var ec = diagram.GetModel().EditingContext;
-                    var xref = ModelToDesignerModelXRef.GetModelToDesignerModelXRef(ec);
+                    ModelToDesignerModelXRef xref = ModelToDesignerModelXRef.GetModelToDesignerModelXRef(ec);
 
-                    var modelAssociation = xref.GetExisting(association) as Model.Entity.Association;
+                    Model.Entity.Association modelAssociation = xref.GetExisting(association) as Model.Entity.Association;
                     Debug.Assert(modelAssociation != null, "couldn't find model association for connector");
                     if (modelAssociation != null)
                     {
                         var commands = ReferentialConstraintDialog.LaunchReferentialConstraintDialog(modelAssociation);
 
-                        var cpc = new CommandProcessorContext(
-                            ec, EfiTransactionOriginator.EntityDesignerOriginatorId, Resources.Tx_ReferentialContraint);
-                        var cp = new CommandProcessor(cpc);
+                        CommandProcessorContext cpc = new CommandProcessorContext(
+                            ec, EfiTransactionOriginator.EntityDesignerOriginatorId, DesignRes.Tx_ReferentialContraint);
+                        CommandProcessor cp = new CommandProcessor(cpc);
                         foreach (var c in commands)
                         {
                             cp.EnqueueCommand(c);

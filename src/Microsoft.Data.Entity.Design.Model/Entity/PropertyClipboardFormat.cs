@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Data.Entity.Design.Model.Entity
 {
-    using System;
-
     // Represents Property info stored in Clipboard
     [Serializable]
     internal class PropertyClipboardFormat : PropertyBaseClipboardFormat
@@ -30,8 +30,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
         internal PropertyClipboardFormat(Property property)
             : base(property)
         {
-            var complexProperty = property as ComplexConceptualProperty;
-            if (complexProperty != null)
+            if (property is ComplexConceptualProperty complexProperty)
             {
                 _propertyType = complexProperty.ComplexType.RefName;
                 _isComplexProperty = true;
@@ -52,8 +51,7 @@ namespace Microsoft.Data.Entity.Design.Model.Entity
             _unicode = property.Unicode.GetAsNullableBool();
             _collation = property.Collation.Value;
 
-            var conceptualProp = property as ConceptualProperty;
-            if (conceptualProp != null)
+            if (property is ConceptualProperty conceptualProp)
             {
                 _isConceptualProperty = true;
                 _storeGeneratedPattern = conceptualProp.StoreGeneratedPattern.IsDefaulted

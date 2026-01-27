@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Shell.Interop;
+
 namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 {
-    using System;
-    using System.Diagnostics;
-    using System.Runtime.InteropServices;
-    using Microsoft.VisualStudio.Shell.Interop;
-
     internal sealed class WaitDialog
     {
         private readonly IVsThreadedWaitDialog2 _waitDialog;
@@ -17,7 +17,7 @@ namespace Microsoft.Data.Tools.VSXmlDesignerBase.Common
 
         internal WaitDialog(IServiceProvider site, string caption, bool cancelable, bool supportsPercentage = false)
         {
-            var factory = site.GetService(typeof(SVsThreadedWaitDialogFactory)) as IVsThreadedWaitDialogFactory;
+            IVsThreadedWaitDialogFactory factory = site.GetService(typeof(SVsThreadedWaitDialogFactory)) as IVsThreadedWaitDialogFactory;
             Debug.Assert(factory != null);
 
             ThrowOnFailure(factory.CreateInstance(out _waitDialog));

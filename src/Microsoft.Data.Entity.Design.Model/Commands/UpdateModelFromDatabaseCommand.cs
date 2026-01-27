@@ -1,15 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.Entity.Design.Model.Designer;
+using Microsoft.Data.Entity.Design.Model.Integrity;
+using Microsoft.Data.Entity.Design.Model.UpdateFromDatabase;
+
 namespace Microsoft.Data.Entity.Design.Model.Commands
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.Serialization;
-    using Microsoft.Data.Entity.Design.Model.Designer;
-    using Microsoft.Data.Entity.Design.Model.Integrity;
-    using Microsoft.Data.Entity.Design.Model.UpdateFromDatabase;
-
     internal class UpdateModelFromDatabaseCommand : Command
     {
         private readonly EFArtifact _newArtifactFromDB;
@@ -31,30 +30,30 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
 
             // construct a mapping of the existing model's C-side objects
             // and their S-side identities before anything is updated
-            var existingModel = new ExistingModelSummary(artifact);
+            ExistingModelSummary existingModel = new ExistingModelSummary(artifact);
 
             // replace the old SSDL with the new and fixup any references 
             // in the MSL that broke because of the replacement of the SSDL
             // (i.e. the S-side Alias and S-side EntityContainer name)
-            var replaceSsdlCommand = new ReplaceSsdlCommand(_newArtifactFromDB.StorageModel());
+            ReplaceSsdlCommand replaceSsdlCommand = new ReplaceSsdlCommand(_newArtifactFromDB.StorageModel());
             CommandProcessor.InvokeSingleCommand(cpc, replaceSsdlCommand);
 
             // remove any mappings with references which no longer work 
             // with the new SSDL
-            var deleteUnboundMappingsCommand = new DeleteUnboundMappingsCommand();
+            DeleteUnboundMappingsCommand deleteUnboundMappingsCommand = new DeleteUnboundMappingsCommand();
             CommandProcessor.InvokeSingleCommand(cpc, deleteUnboundMappingsCommand);
 
             // remove any mappings which should no longer be mapped with the new SSDL
             // but actually are because a new S-side object with identical name
             // but different identity has been added
-            var deleteChangedIdentityMappingsCommand = new DeleteChangedIdentityMappingsCommand(existingModel);
+            DeleteChangedIdentityMappingsCommand deleteChangedIdentityMappingsCommand = new DeleteChangedIdentityMappingsCommand(existingModel);
             CommandProcessor.InvokeSingleCommand(cpc, deleteChangedIdentityMappingsCommand);
 
             // from the temp model for the updated database determine which 
             // C-side objects need to be added/updated and then update the
             // C- and M- side models appropriately
-            var modelFromUpdatedDatabase = new UpdatedModelSummary(_newArtifactFromDB);
-            var updateCsdlAndMslCommand =
+            UpdatedModelSummary modelFromUpdatedDatabase = new UpdatedModelSummary(_newArtifactFromDB);
+            UpdateConceptualAndMappingModelsCommand updateCsdlAndMslCommand =
                 new UpdateConceptualAndMappingModelsCommand(existingModel, modelFromUpdatedDatabase);
             CommandProcessor.InvokeSingleCommand(cpc, updateCsdlAndMslCommand);
 
@@ -100,8 +99,6 @@ namespace Microsoft.Data.Entity.Design.Model.Commands
         }
     }
 
-    [SuppressMessage("Microsoft.Design", "CA1064:ExceptionsShouldBePublic")]
-    [SuppressMessage("Microsoft.Design", "CA1032:ImplementStandardExceptionConstructors")]
     [Serializable]
     internal class UpdateModelFromDatabaseException : Exception
     {

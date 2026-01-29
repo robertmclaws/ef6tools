@@ -123,6 +123,7 @@
 
         <!-- Converters - must be defined before templates that use them -->
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
         <local:NullToCollapsedConverter x:Key="NullToCollapsedConverter"/>
         <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
         <local:FirstItemToCollapsedConverter x:Key="FirstItemToCollapsedConverter"/>
@@ -166,10 +167,18 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
+                        <!-- Regular icon (shown when not a toggle or when toggle is unchecked) -->
                         <imaging:CrispImage Grid.Column="0"
                                             Width="16" Height="16"
                                             Moniker="{Binding Icon}"
-                                            VerticalAlignment="Center"/>
+                                            VerticalAlignment="Center"
+                                            Visibility="{Binding IsChecked, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                        <!-- Checkmark icon (shown when toggle is checked) -->
+                        <imaging:CrispImage Grid.Column="0"
+                                            Width="16" Height="16"
+                                            Moniker="{x:Static catalog:KnownMonikers.Checkmark}"
+                                            VerticalAlignment="Center"
+                                            Visibility="{Binding IsChecked, Converter={StaticResource BoolToVisibilityConverter}}"/>
                         <TextBlock Grid.Column="1"
                                    Text="{Binding Label}"
                                    Foreground="{StaticResource MenuTextBrush}"

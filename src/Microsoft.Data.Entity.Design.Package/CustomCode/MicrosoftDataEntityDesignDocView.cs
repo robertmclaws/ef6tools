@@ -318,37 +318,26 @@ namespace Microsoft.Data.Entity.Design.Package
 
         /// <summary>
         /// Called when a context menu is requested on the diagram.
-        /// Override to show our custom Windows 11-style context menu when clicking on empty diagram space.
+        /// Override to show our custom Windows 11-style context menus.
         /// </summary>
         protected override void OnContextMenuRequested(DiagramPointEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine($"[ModernEntityDesigner] OnContextMenuRequested called. MousePosition: {e.MousePosition}");
-            System.Diagnostics.Debug.WriteLine($"[ModernEntityDesigner] _contextMenuService is null: {_contextMenuService == null}");
-
-            // Check if we have a context menu service and if the click is on the diagram surface
+            // Check if we have a context menu service
             if (_contextMenuService != null)
             {
-                var isOnSurface = _contextMenuService.IsClickOnDiagramSurface(e.MousePosition);
-                System.Diagnostics.Debug.WriteLine($"[ModernEntityDesigner] IsClickOnDiagramSurface: {isOnSurface}");
-
-                if (isOnSurface)
+                var diagram = CurrentDiagram as EntityDesignerDiagram;
+                if (diagram != null)
                 {
-                    var diagram = CurrentDiagram as EntityDesignerDiagram;
-                    System.Diagnostics.Debug.WriteLine($"[ModernEntityDesigner] CurrentDiagram is EntityDesignerDiagram: {diagram != null}");
-
-                    if (diagram != null)
+                    // Try to show a custom context menu based on what was clicked
+                    if (_contextMenuService.ShowContextMenu(diagram, e.MousePosition))
                     {
-                        System.Diagnostics.Debug.WriteLine("[ModernEntityDesigner] Showing custom context menu and setting Handled = true");
-                        // Show our custom context menu and mark the event as handled
-                        _contextMenuService.ShowCustomContextMenu(diagram, e.MousePosition);
                         e.Handled = true;
                         return;
                     }
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine("[ModernEntityDesigner] Falling back to base.OnContextMenuRequested");
-            // Fall back to the default context menu for shapes
+            // Fall back to the default context menu for unsupported elements
             base.OnContextMenuRequested(e);
         }
 

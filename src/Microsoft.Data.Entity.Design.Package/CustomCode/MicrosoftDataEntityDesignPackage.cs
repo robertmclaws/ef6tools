@@ -47,9 +47,6 @@ namespace Microsoft.Data.Entity.Design.Package
         expression: "DotEdmx",
         termNames: new[] { "DotEdmx" },
         termValues: new[] { "HierSingleSelectionName:.edmx$" })]
-    // Auto-load when solution exists (needed for VS document restore on startup)
-    // This ensures the editor factory is registered before VS tries to restore .edmx documents
-    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
     internal sealed partial class MicrosoftDataEntityDesignPackage : IEdmPackage, IVsTrackProjectRetargetingEvents
     {
         private OleMenuCommand _viewExplorerCmd;

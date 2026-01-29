@@ -11,6 +11,13 @@
 [$RootKey$\DslTools\Packages\{8889e051-b7f9-4781-bb33-2a36a9bdb3a5}]
 @="Microsoft.Data.Entity.Design.Package.MicrosoftDataEntityDesignPackage"
 
+// Set Entity Designer as the default editor for .edmx files (for document restore)
+[$RootKey$\FileExtensionMappings\.edmx]
+"EditorGUID"="{c99aea30-8e36-4515-b76f-496f5a48a6aa}"
+"LogicalViewGUID"="{ab6778a7-2644-4467-bd57-154f50f3dae5}"
+"DisplayName"="EasyAF EDMX Designer"
+"Package"="{8889e051-b7f9-4781-bb33-2a36a9bdb3a5}"
+
 // Register the editor for edmx files
 [$RootKey$\Editors\{c99aea30-8e36-4515-b76f-496f5a48a6aa}]
 @="MicrosoftDataEntityDesignEditorFactory"

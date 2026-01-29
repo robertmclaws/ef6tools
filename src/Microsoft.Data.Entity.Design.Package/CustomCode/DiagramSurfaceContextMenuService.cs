@@ -5,6 +5,7 @@ using System.Windows;
 using Microsoft.Data.Entity.Design.EntityDesigner.View;
 using Microsoft.Data.Entity.Design.EntityDesigner.View.ContextMenu;
 using Microsoft.Data.Entity.Design.EntityDesigner.View.Export;
+using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
 using Microsoft.Data.Entity.Design.VisualStudio;
 using Microsoft.Data.Entity.Design.VisualStudio.Package;
 using Microsoft.VisualStudio;
@@ -15,14 +16,73 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.Data.Entity.Design.Package
 {
     /// <summary>
-    /// Service that provides a Windows 11-style context menu for the Entity Designer diagram surface.
-    /// This menu appears when right-clicking on empty space (not on shapes).
+    /// Identifies the type of element that was clicked in the diagram.
+    /// </summary>
+    internal enum DiagramHitTarget
+    {
+        /// <summary>Empty diagram surface (no element)</summary>
+        Surface,
+        /// <summary>An association connector</summary>
+        Association,
+        /// <summary>An entity type shape</summary>
+        EntityType,
+        /// <summary>An inheritance connector</summary>
+        Inheritance,
+        /// <summary>A scalar property within an entity</summary>
+        ScalarProperty,
+        /// <summary>A complex property within an entity</summary>
+        ComplexProperty,
+        /// <summary>A navigation property within an entity</summary>
+        NavigationProperty,
+        /// <summary>Unknown or unsupported element</summary>
+        Unknown
+    }
+
+    /// <summary>
+    /// Result of a hit test on the diagram.
+    /// </summary>
+    internal class DiagramHitResult
+    {
+        public DiagramHitTarget Target { get; set; }
+        public ShapeElement Shape { get; set; }
+        public object ModelElement { get; set; }
+        /// <summary>The compartment containing the clicked property (if applicable)</summary>
+        public ElementListCompartment Compartment { get; set; }
+        /// <summary>The index of the clicked item within the compartment (if applicable)</summary>
+        public int CompartmentItemIndex { get; set; } = -1;
+    }
+
+    /// <summary>
+    /// Service that provides Windows 11-style context menus for the Entity Designer.
+    /// Supports different menus for different element types (surface, association, entity, etc.).
     /// </summary>
     internal sealed class DiagramSurfaceContextMenuService : IDisposable
     {
         private readonly MicrosoftDataEntityDesignDocView _docView;
         private readonly DiagramClientView _diagramClientView;
-        private DiagramSurfaceContextMenu _contextMenu;
+
+        // Menus for different element types
+        private DiagramSurfaceContextMenu _diagramSurfaceMenu;
+        private DiagramSurfaceContextMenu _associationMenu;
+        private DiagramSurfaceContextMenu _propertyMenu;
+        private DiagramSurfaceContextMenu _navigationPropertyMenu;
+        private DiagramSurfaceContextMenu _entityMenu;
+
+        // Current association being operated on (for dynamic menu items)
+        private AssociationConnector _currentAssociation;
+
+        // Current property being operated on (for dynamic menu items)
+        private DiagramHitResult _currentPropertyHit;
+
+        // Current navigation property being operated on (for dynamic menu items)
+        private DiagramHitResult _currentNavigationPropertyHit;
+
+        // Current entity being operated on (for dynamic menu items)
+        private EntityTypeShape _currentEntityShape;
+
+        // Shared command references for diagram surface menu
+        private MenuCommandDefinition _showDataTypesCommand;
+
         private bool _isDisposed;
 
         /// <summary>
@@ -37,48 +97,196 @@ namespace Microsoft.Data.Entity.Design.Package
         }
 
         /// <summary>
-        /// Determines if the click location is on the diagram surface (empty space)
-        /// rather than on a shape or connector.
+        /// Performs a hit test at the specified position and returns what was clicked.
         /// </summary>
         /// <param name="mousePosition">The mouse position in world coordinates.</param>
-        /// <returns>True if the click is on empty diagram space.</returns>
-        public bool IsClickOnDiagramSurface(PointD mousePosition)
+        /// <returns>A DiagramHitResult indicating what was clicked.</returns>
+        public DiagramHitResult HitTest(PointD mousePosition)
         {
-            System.Diagnostics.Debug.WriteLine($"[ModernEntityDesigner] IsClickOnDiagramSurface called with position: {mousePosition}");
+            var result = new DiagramHitResult { Target = DiagramHitTarget.Surface };
 
             var diagram = _diagramClientView.Diagram;
             if (diagram == null)
             {
-                System.Diagnostics.Debug.WriteLine("[ModernEntityDesigner] Diagram is null, returning false");
-                return false;
+                return result;
             }
 
-            // Perform hit test - use DiagramHitTestInfo to get detailed results
+            // Perform hit test
             DiagramHitTestInfo hitTestInfo = new DiagramHitTestInfo(_diagramClientView);
-            var hitResult = diagram.DoHitTest(mousePosition, hitTestInfo);
-            System.Diagnostics.Debug.WriteLine($"[ModernEntityDesigner] DoHitTest returned: {hitResult}");
+            var hitSuccess = diagram.DoHitTest(mousePosition, hitTestInfo);
 
-            if (!hitResult)
+            if (!hitSuccess || hitTestInfo.HitDiagramItem == null)
             {
-                // No hit - click was on empty space
-                System.Diagnostics.Debug.WriteLine("[ModernEntityDesigner] No hit, returning true (empty space)");
-                return true;
-            }
-
-            // Check if we hit the diagram itself (not a shape)
-            if (hitTestInfo.HitDiagramItem == null)
-            {
-                System.Diagnostics.Debug.WriteLine("[ModernEntityDesigner] HitDiagramItem is null, returning true");
-                return true;
+                return result; // Empty surface
             }
 
             var hitShape = hitTestInfo.HitDiagramItem.Shape;
-            System.Diagnostics.Debug.WriteLine($"[ModernEntityDesigner] HitShape type: {hitShape?.GetType().Name ?? "null"}");
-            System.Diagnostics.Debug.WriteLine($"[ModernEntityDesigner] HitShape == diagram: {hitShape == diagram}");
+            if (hitShape == null || hitShape == diagram)
+            {
+                return result; // Empty surface
+            }
 
-            var result = hitShape == diagram || hitShape == null;
-            System.Diagnostics.Debug.WriteLine($"[ModernEntityDesigner] Returning: {result}");
+            // Check if we clicked on a property within a compartment
+            var diagramItem = hitTestInfo.HitDiagramItem;
+            if (hitShape is ElementListCompartment compartment && diagramItem.SubField is ListItemSubField listItemSubField)
+            {
+                var itemIndex = listItemSubField.Row;
+                if (itemIndex >= 0 && itemIndex < compartment.Items.Count)
+                {
+                    var clickedItem = compartment.Items[itemIndex];
+                    result.Compartment = compartment;
+                    result.CompartmentItemIndex = itemIndex;
+                    result.Shape = compartment.ParentShape;
+
+                    if (clickedItem is EntityDesigner.ViewModel.ScalarProperty scalarProp)
+                    {
+                        result.Target = DiagramHitTarget.ScalarProperty;
+                        result.ModelElement = scalarProp;
+                        return result;
+                    }
+                    else if (clickedItem is EntityDesigner.ViewModel.ComplexProperty complexProp)
+                    {
+                        result.Target = DiagramHitTarget.ComplexProperty;
+                        result.ModelElement = complexProp;
+                        return result;
+                    }
+                    else if (clickedItem is EntityDesigner.ViewModel.NavigationProperty navProp)
+                    {
+                        result.Target = DiagramHitTarget.NavigationProperty;
+                        result.ModelElement = navProp;
+                        return result;
+                    }
+                }
+            }
+
+            // Determine the type of element clicked
+            if (hitShape is AssociationConnector associationConnector)
+            {
+                result.Target = DiagramHitTarget.Association;
+                result.Shape = associationConnector;
+                result.ModelElement = associationConnector.ModelElement;
+            }
+            else if (hitShape is EntityTypeShape entityShape)
+            {
+                result.Target = DiagramHitTarget.EntityType;
+                result.Shape = entityShape;
+                result.ModelElement = entityShape.ModelElement;
+            }
+            else if (hitShape is InheritanceConnector inheritanceConnector)
+            {
+                result.Target = DiagramHitTarget.Inheritance;
+                result.Shape = inheritanceConnector;
+                result.ModelElement = inheritanceConnector.ModelElement;
+            }
+            else
+            {
+                result.Target = DiagramHitTarget.Unknown;
+                result.Shape = hitShape;
+            }
+
             return result;
+        }
+
+        /// <summary>
+        /// Determines if the click location is on the diagram surface (empty space).
+        /// </summary>
+        public bool IsClickOnDiagramSurface(PointD mousePosition)
+        {
+            return HitTest(mousePosition).Target == DiagramHitTarget.Surface;
+        }
+
+        /// <summary>
+        /// Shows the appropriate context menu based on what was clicked.
+        /// </summary>
+        /// <param name="diagram">The diagram.</param>
+        /// <param name="mousePosition">The mouse position in world coordinates.</param>
+        /// <returns>True if a context menu was shown, false otherwise.</returns>
+        public bool ShowContextMenu(EntityDesignerDiagram diagram, PointD mousePosition)
+        {
+            var hitResult = HitTest(mousePosition);
+
+            switch (hitResult.Target)
+            {
+                case DiagramHitTarget.Surface:
+                    ShowDiagramSurfaceContextMenu(diagram, mousePosition);
+                    return true;
+
+                case DiagramHitTarget.Association:
+                    ShowAssociationContextMenu(diagram, hitResult.Shape as AssociationConnector, mousePosition);
+                    return true;
+
+                case DiagramHitTarget.ScalarProperty:
+                case DiagramHitTarget.ComplexProperty:
+                    ShowPropertyContextMenu(diagram, hitResult, mousePosition);
+                    return true;
+
+                case DiagramHitTarget.NavigationProperty:
+                    ShowNavigationPropertyContextMenu(diagram, hitResult, mousePosition);
+                    return true;
+
+                case DiagramHitTarget.EntityType:
+                    ShowEntityContextMenu(diagram, hitResult.Shape as EntityTypeShape, mousePosition);
+                    return true;
+
+                // TODO: Add support for other element types
+                case DiagramHitTarget.Inheritance:
+                default:
+                    return false; // Fall back to default VS context menu
+            }
+        }
+
+        /// <summary>
+        /// Shows the diagram surface context menu at the specified position.
+        /// </summary>
+        private void ShowDiagramSurfaceContextMenu(EntityDesignerDiagram diagram, PointD mousePosition)
+        {
+            // Create context menu if needed
+            if (_diagramSurfaceMenu == null)
+            {
+                _diagramSurfaceMenu = new DiagramSurfaceContextMenu();
+                _diagramSurfaceMenu.ActionExecuted += OnDiagramSurfaceMenuActionExecuted;
+                PopulateDiagramSurfaceMenu();
+            }
+
+            // Update command states based on current diagram
+            UpdateDiagramSurfaceCommandStates(diagram);
+
+            // Show the menu
+            ShowMenuAtPosition(_diagramSurfaceMenu, diagram, mousePosition);
+        }
+
+        /// <summary>
+        /// Shows the association context menu at the specified position.
+        /// </summary>
+        private void ShowAssociationContextMenu(EntityDesignerDiagram diagram, AssociationConnector connector, PointD mousePosition)
+        {
+            _currentAssociation = connector;
+
+            // Create context menu if needed
+            if (_associationMenu == null)
+            {
+                _associationMenu = new DiagramSurfaceContextMenu();
+                _associationMenu.ActionExecuted += OnAssociationMenuActionExecuted;
+            }
+
+            // Populate the menu with dynamic items based on the association
+            PopulateAssociationMenu(connector);
+
+            // Show the menu
+            ShowMenuAtPosition(_associationMenu, diagram, mousePosition);
+        }
+
+        /// <summary>
+        /// Shows a context menu at the specified position.
+        /// </summary>
+        private void ShowMenuAtPosition(DiagramSurfaceContextMenu menu, EntityDesignerDiagram diagram, PointD mousePosition)
+        {
+            // Convert world coordinates to screen coordinates
+            var clientPoint = _diagramClientView.WorldToDevice(mousePosition);
+            var screenPoint = _diagramClientView.PointToScreen(new System.Drawing.Point((int)clientPoint.X, (int)clientPoint.Y));
+            var wpfScreenPoint = new Point(screenPoint.X, screenPoint.Y);
+
+            menu.Show(diagram, wpfScreenPoint);
         }
 
         /// <summary>
@@ -86,65 +294,49 @@ namespace Microsoft.Data.Entity.Design.Package
         /// </summary>
         /// <param name="diagram">The diagram.</param>
         /// <param name="mousePosition">The mouse position in world coordinates.</param>
+        [Obsolete("Use ShowContextMenu instead")]
         public void ShowCustomContextMenu(EntityDesignerDiagram diagram, PointD mousePosition)
         {
-            // Create context menu if needed
-            if (_contextMenu == null)
-            {
-                _contextMenu = new DiagramSurfaceContextMenu();
-                _contextMenu.ActionExecuted += OnMenuActionExecuted;
-
-                // Populate the default commands
-                PopulateDefaultCommands();
-            }
-
-            // Update command states based on current diagram
-            UpdateCommandStates(diagram);
-
-            // Convert world coordinates to screen coordinates
-            var clientPoint = _diagramClientView.WorldToDevice(mousePosition);
-            var screenPoint = _diagramClientView.PointToScreen(new System.Drawing.Point((int)clientPoint.X, (int)clientPoint.Y));
-            var wpfScreenPoint = new Point(screenPoint.X, screenPoint.Y);
-
-            // Show the menu
-            _contextMenu.Show(diagram, wpfScreenPoint);
+            ShowDiagramSurfaceContextMenu(diagram, mousePosition);
         }
 
+        #region Diagram Surface Menu
+
         /// <summary>
-        /// Populates the context menu with default commands.
+        /// Populates the diagram surface context menu with commands.
         /// </summary>
-        private void PopulateDefaultCommands()
+        private void PopulateDiagramSurfaceMenu()
         {
             // Top bar commands - 5 icon buttons (64px each + 4 separators = 324px total)
-            _contextMenu.TopBarCommands.Add(new MenuCommandDefinition(
+            _diagramSurfaceMenu.TopBarCommands.Add(new MenuCommandDefinition(
                 "UpdateModelFromDatabase",
                 "Update",
                 KnownMonikers.DatabaseModelRefresh,
                 "Update the model from the database"));
 
-            _contextMenu.TopBarCommands.Add(new MenuCommandDefinition(
+            _diagramSurfaceMenu.TopBarCommands.Add(new MenuCommandDefinition(
                 "GenerateDatabaseFromModel",
                 "Generate",
                 KnownMonikers.DatabaseScript,
                 "Generate database scripts from the model"));
 
-            _contextMenu.TopBarCommands.Add(new MenuCommandDefinition(
+            _diagramSurfaceMenu.TopBarCommands.Add(new MenuCommandDefinition(
                 "Export",
                 "Export",
                 KnownMonikers.SaveAs,
                 "Export diagram as..."));
 
-            _contextMenu.TopBarCommands.Add(new MenuCommandDefinition(
-                "ZoomToFit",
-                "Fit",
-                KnownMonikers.FitToScreen,
-                "Zoom to fit all entities"));
+            _diagramSurfaceMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Validate",
+                "Validate",
+                KnownMonikers.ValidateModel,
+                "Validate the model"));
 
-            _contextMenu.TopBarCommands.Add(new MenuCommandDefinition(
-                "Layout",
-                "Layout",
-                KnownMonikers.ShowAllFiles,
-                "Auto-arrange diagram layout"));
+            _diagramSurfaceMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "OpenXmlEditor",
+                "XML",
+                KnownMonikers.XMLFile,
+                "Open the model in the XML editor"));
 
             // Add New submenu
             var addNewMenu = new MenuCommandDefinition(
@@ -199,34 +391,25 @@ namespace Microsoft.Data.Entity.Design.Package
                 KnownMonikers.ModifyClass,
                 "Add a code generation template"));
 
-            _contextMenu.MenuItems.Add(addNewMenu);
+            _diagramSurfaceMenu.MenuItems.Add(addNewMenu);
 
-            // Scalar Property Format submenu
-            var formatMenu = new MenuCommandDefinition(
-                "ScalarPropertyFormat",
-                "Scalar Property Format",
-                KnownMonikers.Property,
-                "Property display format");
-
-            formatMenu.Children.Add(new MenuCommandDefinition(
-                "DisplayName",
-                "Display Name",
-                KnownMonikers.Property,
-                "Show property names only"));
-
-            formatMenu.Children.Add(new MenuCommandDefinition(
-                "DisplayNameAndType",
-                "Display Name and Type",
-                KnownMonikers.PropertyPublic,
-                "Show property names and types"));
-
-            _contextMenu.MenuItems.Add(formatMenu);
+            // Show Data Types toggle
+            _showDataTypesCommand = new MenuCommandDefinition(
+                "ShowDataTypes",
+                "Show Data Types",
+                KnownMonikers.Type,
+                "Show data types alongside property names")
+            {
+                IsToggle = true,
+                IsChecked = false
+            };
+            _diagramSurfaceMenu.MenuItems.Add(_showDataTypesCommand);
 
             // Separator
-            _contextMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+            _diagramSurfaceMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
 
             // Select All
-            _contextMenu.MenuItems.Add(new MenuCommandDefinition(
+            _diagramSurfaceMenu.MenuItems.Add(new MenuCommandDefinition(
                 "SelectAll",
                 "Select All",
                 KnownMonikers.SelectAll,
@@ -236,43 +419,37 @@ namespace Microsoft.Data.Entity.Design.Package
             });
 
             // Separator
-            _contextMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+            _diagramSurfaceMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
 
             // Show group
-            _contextMenu.MenuItems.Add(new MenuCommandDefinition(
+            _diagramSurfaceMenu.MenuItems.Add(new MenuCommandDefinition(
                 "ShowMappingDetails",
-                "Mapping Details",
-                KnownMonikers.Table,
+                "Show Mapping Details",
+                KnownMonikers.SchemaProperty,
                 "Show mapping details window"));
 
-            _contextMenu.MenuItems.Add(new MenuCommandDefinition(
+            _diagramSurfaceMenu.MenuItems.Add(new MenuCommandDefinition(
                 "ShowModelBrowser",
-                "Model Browser",
-                KnownMonikers.Property,
+                "Show Model Browser",
+                KnownMonikers.ShowDiagramPane,
                 "Show model browser window"));
 
-            // Separator
-            _contextMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+            // Properties (standard VS command)
+            _diagramSurfaceMenu.MenuItems.Add(new MenuCommandDefinition(
+                "Properties",
+                "Show Properties",
+                KnownMonikers.Property,
+                "Show the Properties window")
+            {
+                KeyboardShortcut = "F4"
+            });
 
-            // Validate
-            _contextMenu.MenuItems.Add(new MenuCommandDefinition(
-                "Validate",
-                "Validate",
-                KnownMonikers.Checkmark,
-                "Validate the model"));
-
-            // Open in XML Editor
-            _contextMenu.MenuItems.Add(new MenuCommandDefinition(
-                "OpenXmlEditor",
-                "Open in XML Editor",
-                KnownMonikers.XMLFile,
-                "Open the model in the XML editor"));
         }
 
         /// <summary>
-        /// Updates command states based on the current diagram state.
+        /// Updates command states for the diagram surface menu based on the current diagram state.
         /// </summary>
-        private void UpdateCommandStates(EntityDesignerDiagram diagram)
+        private void UpdateDiagramSurfaceCommandStates(EntityDesignerDiagram diagram)
         {
             if (diagram == null)
             {
@@ -282,7 +459,7 @@ namespace Microsoft.Data.Entity.Design.Package
             int entityCount = diagram.ModelElement?.EntityTypes?.Count ?? 0;
 
             // Update top bar command states
-            foreach (var cmd in _contextMenu.TopBarCommands)
+            foreach (var cmd in _diagramSurfaceMenu.TopBarCommands)
             {
                 if (cmd.Id == "AddAssociation")
                 {
@@ -291,7 +468,7 @@ namespace Microsoft.Data.Entity.Design.Package
             }
 
             // Update menu item states recursively
-            UpdateMenuItemStates(_contextMenu.MenuItems, diagram, entityCount);
+            UpdateMenuItemStates(_diagramSurfaceMenu.MenuItems, diagram, entityCount);
         }
 
         private void UpdateMenuItemStates(System.Collections.ObjectModel.ObservableCollection<object> items, EntityDesignerDiagram diagram, int entityCount)
@@ -309,14 +486,6 @@ namespace Microsoft.Data.Entity.Design.Package
                         case "AddInheritance":
                             cmd.IsEnabled = entityCount >= 2;
                             break;
-
-                        case "DisplayName":
-                            cmd.IsEnabled = diagram.DisplayNameAndType;
-                            break;
-
-                        case "DisplayNameAndType":
-                            cmd.IsEnabled = !diagram.DisplayNameAndType;
-                            break;
                     }
 
                     // Recursively update children
@@ -326,9 +495,15 @@ namespace Microsoft.Data.Entity.Design.Package
                     }
                 }
             }
+
+            // Update Show Data Types toggle state
+            if (_showDataTypesCommand != null)
+            {
+                _showDataTypesCommand.IsChecked = diagram.DisplayNameAndType;
+            }
         }
 
-        private void OnMenuActionExecuted(object sender, MenuActionEventArgs e)
+        private void OnDiagramSurfaceMenuActionExecuted(object sender, MenuActionEventArgs e)
         {
             var diagram = _docView.CurrentDiagram as EntityDesignerDiagram;
             if (diagram == null)
@@ -386,13 +561,9 @@ namespace Microsoft.Data.Entity.Design.Package
                     ExecuteZoomToFit(diagram);
                     break;
 
-                // Scalar Property Format commands
-                case "DisplayName":
-                    ExecuteDisplayName(diagram);
-                    break;
-
-                case "DisplayNameAndType":
-                    ExecuteDisplayNameAndType(diagram);
+                // Show Data Types toggle
+                case "ShowDataTypes":
+                    ExecuteToggleShowDataTypes(diagram);
                     break;
 
                 // Select All
@@ -431,8 +602,877 @@ namespace Microsoft.Data.Entity.Design.Package
                 case "OpenXmlEditor":
                     ExecuteOpenXmlEditor(diagram);
                     break;
+
+                // Properties
+                case "Properties":
+                    ExecuteProperties();
+                    break;
             }
         }
+
+        #endregion
+
+        #region Association Menu
+
+        /// <summary>
+        /// Populates the association context menu with commands based on the selected association.
+        /// </summary>
+        private void PopulateAssociationMenu(AssociationConnector connector)
+        {
+            // Clear existing items (menu is rebuilt each time for dynamic content)
+            _associationMenu.TopBarCommands.Clear();
+            _associationMenu.MenuItems.Clear();
+
+            var association = connector.ModelElement;
+            if (association == null)
+            {
+                return;
+            }
+
+            // Top bar commands - 2 icon buttons
+            _associationMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Rename",
+                "Rename",
+                KnownMonikers.Rename,
+                "Rename this association"));
+
+            _associationMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Delete",
+                "Delete",
+                KnownMonikers.DeleteListItem,
+                "Delete this association from the model"));
+
+            // Select commands - Entity 1 and Property 1
+            var sourceEntity = association.SourceEntityType;
+            var sourceNavProp = association.SourceNavigationProperty;
+
+            if (sourceEntity != null)
+            {
+                _associationMenu.MenuItems.Add(new MenuCommandDefinition(
+                    "SelectSourceEntity",
+                    $"Select {sourceEntity.Name}",
+                    KnownMonikers.Class,
+                    $"Select the {sourceEntity.Name} entity"));
+            }
+
+            if (sourceNavProp != null)
+            {
+                _associationMenu.MenuItems.Add(new MenuCommandDefinition(
+                    "SelectSourceProperty",
+                    $"Select {sourceNavProp.Name}",
+                    KnownMonikers.Property,
+                    $"Select the {sourceNavProp.Name} navigation property"));
+            }
+
+            // Separator between the two ends
+            _associationMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+
+            // Select commands - Entity 2 and Property 2
+            var targetEntity = association.TargetEntityType;
+            var targetNavProp = association.TargetNavigationProperty;
+
+            if (targetEntity != null)
+            {
+                _associationMenu.MenuItems.Add(new MenuCommandDefinition(
+                    "SelectTargetEntity",
+                    $"Select {targetEntity.Name}",
+                    KnownMonikers.Class,
+                    $"Select the {targetEntity.Name} entity"));
+            }
+
+            if (targetNavProp != null)
+            {
+                _associationMenu.MenuItems.Add(new MenuCommandDefinition(
+                    "SelectTargetProperty",
+                    $"Select {targetNavProp.Name}",
+                    KnownMonikers.Property,
+                    $"Select the {targetNavProp.Name} navigation property"));
+            }
+
+            // Separator before Show section
+            _associationMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+
+            // Show commands
+            _associationMenu.MenuItems.Add(new MenuCommandDefinition(
+                "ShowInModelBrowser",
+                "Show in Model Browser",
+                KnownMonikers.ShowDiagramPane,
+                "Show this association in the Model Browser"));
+
+            _associationMenu.MenuItems.Add(new MenuCommandDefinition(
+                "Properties",
+                "Show Properties",
+                KnownMonikers.Property,
+                "Show the Properties window")
+            {
+                KeyboardShortcut = "F4"
+            });
+        }
+
+        /// <summary>
+        /// Handles menu action events for the association context menu.
+        /// </summary>
+        private void OnAssociationMenuActionExecuted(object sender, MenuActionEventArgs e)
+        {
+            var diagram = _docView.CurrentDiagram as EntityDesignerDiagram;
+            if (diagram == null || _currentAssociation == null)
+            {
+                return;
+            }
+
+            var association = _currentAssociation.ModelElement;
+
+            switch (e.ActionName)
+            {
+                case "Rename":
+                    ExecuteRenameAssociation(_currentAssociation);
+                    break;
+
+                case "Delete":
+                    ExecuteDeleteAssociation(diagram, _currentAssociation);
+                    break;
+
+                case "SelectSourceEntity":
+                    ExecuteSelectShape(diagram, association?.SourceEntityType);
+                    break;
+
+                case "SelectSourceProperty":
+                    ExecuteSelectProperty(diagram, association?.SourceEntityType, association?.SourceNavigationProperty);
+                    break;
+
+                case "SelectTargetEntity":
+                    ExecuteSelectShape(diagram, association?.TargetEntityType);
+                    break;
+
+                case "SelectTargetProperty":
+                    ExecuteSelectProperty(diagram, association?.TargetEntityType, association?.TargetNavigationProperty);
+                    break;
+
+                case "ShowInModelBrowser":
+                    ExecuteShowInModelBrowser(_currentAssociation);
+                    break;
+
+                case "Properties":
+                    ExecuteProperties();
+                    break;
+            }
+        }
+
+        #endregion
+
+        #region Property Menu
+
+        /// <summary>
+        /// Shows the property context menu at the specified position.
+        /// </summary>
+        private void ShowPropertyContextMenu(EntityDesignerDiagram diagram, DiagramHitResult hitResult, PointD mousePosition)
+        {
+            _currentPropertyHit = hitResult;
+
+            // Create context menu if needed
+            if (_propertyMenu == null)
+            {
+                _propertyMenu = new DiagramSurfaceContextMenu();
+                _propertyMenu.ActionExecuted += OnPropertyMenuActionExecuted;
+            }
+
+            // Populate the menu with dynamic items based on the property
+            PopulatePropertyMenu(hitResult);
+
+            // Show the menu
+            ShowMenuAtPosition(_propertyMenu, diagram, mousePosition);
+        }
+
+        /// <summary>
+        /// Populates the property context menu with commands based on the selected property.
+        /// </summary>
+        private void PopulatePropertyMenu(DiagramHitResult hitResult)
+        {
+            // Clear existing items (menu is rebuilt each time for dynamic content)
+            _propertyMenu.TopBarCommands.Clear();
+            _propertyMenu.MenuItems.Clear();
+
+            var isScalarProperty = hitResult.Target == DiagramHitTarget.ScalarProperty;
+            var scalarProperty = hitResult.ModelElement as EntityDesigner.ViewModel.ScalarProperty;
+
+            // Top bar commands - Cut | Copy | Paste | Rename | Delete
+            _propertyMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Cut",
+                "Cut",
+                KnownMonikers.Cut,
+                "Cut this property")
+            {
+                KeyboardShortcut = "Ctrl+X"
+            });
+
+            _propertyMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Copy",
+                "Copy",
+                KnownMonikers.Copy,
+                "Copy this property")
+            {
+                KeyboardShortcut = "Ctrl+C"
+            });
+
+            _propertyMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Paste",
+                "Paste",
+                KnownMonikers.Paste,
+                "Paste property")
+            {
+                KeyboardShortcut = "Ctrl+V"
+            });
+
+            _propertyMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Rename",
+                "Rename",
+                KnownMonikers.Rename,
+                "Rename this property"));
+
+            _propertyMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Delete",
+                "Delete",
+                KnownMonikers.DeleteListItem,
+                "Delete this property from the model"));
+
+            // Entity Key toggle (only for scalar properties)
+            if (isScalarProperty && scalarProperty != null)
+            {
+                _propertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                    "EntityKey",
+                    "Entity Key",
+                    default,
+                    "Toggle whether this property is part of the entity key")
+                {
+                    IsToggle = true,
+                    IsChecked = scalarProperty.EntityKey
+                });
+
+                _propertyMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+            }
+
+            // Move operations
+            _propertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "MoveToTop",
+                "Move to Top",
+                KnownMonikers.GoToTop,
+                "Move this property to the top")
+            {
+                KeyboardShortcut = "Alt+Home"
+            });
+
+            _propertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "MoveUp",
+                "Move Up",
+                KnownMonikers.MoveUp,
+                "Move this property up")
+            {
+                KeyboardShortcut = "Alt+\u2191"
+            });
+
+            _propertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "MoveDown",
+                "Move Down",
+                KnownMonikers.MoveDown,
+                "Move this property down")
+            {
+                KeyboardShortcut = "Alt+\u2193"
+            });
+
+            _propertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "MoveToBottom",
+                "Move to Bottom",
+                KnownMonikers.GoToBottom,
+                "Move this property to the bottom")
+            {
+                KeyboardShortcut = "Alt+End"
+            });
+
+            // Move to New Complex Type (only for scalar properties)
+            if (isScalarProperty)
+            {
+                _propertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                    "MoveToNewComplexType",
+                    "Move to New Complex Type",
+                    KnownMonikers.MoveClass,
+                    "Move this property to a new complex type"));
+            }
+
+            _propertyMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+
+            // Show commands
+            _propertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "ShowInTableMapping",
+                "Show in Table Mapping",
+                KnownMonikers.SchemaProperty,
+                "Show this property in table mapping"));
+
+            _propertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "ShowInStoredProcedureMapping",
+                "Show in Stored Procedure Mapping",
+                KnownMonikers.StoredProcedure,
+                "Show this property in stored procedure mapping"));
+
+            _propertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "ShowInModelBrowser",
+                "Show in Model Browser",
+                KnownMonikers.ShowDiagramPane,
+                "Show this property in the Model Browser"));
+
+            _propertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "Properties",
+                "Show Properties",
+                KnownMonikers.Property,
+                "Show the Properties window")
+            {
+                KeyboardShortcut = "F4"
+            });
+        }
+
+        /// <summary>
+        /// Handles menu action events for the property context menu.
+        /// </summary>
+        private void OnPropertyMenuActionExecuted(object sender, MenuActionEventArgs e)
+        {
+            var diagram = _docView.CurrentDiagram as EntityDesignerDiagram;
+            if (diagram == null || _currentPropertyHit == null)
+            {
+                return;
+            }
+
+            switch (e.ActionName)
+            {
+                case "Cut":
+                    ExecutePropertyCut();
+                    break;
+
+                case "Copy":
+                    ExecutePropertyCopy();
+                    break;
+
+                case "Paste":
+                    ExecutePropertyPaste();
+                    break;
+
+                case "Rename":
+                    ExecutePropertyRename();
+                    break;
+
+                case "Delete":
+                    ExecutePropertyDelete();
+                    break;
+
+                case "EntityKey":
+                    ExecuteToggleEntityKey();
+                    break;
+
+                case "MoveUp":
+                    ExecutePropertyMove(MicrosoftDataEntityDesignCommands.MovePropertyUp);
+                    break;
+
+                case "MoveDown":
+                    ExecutePropertyMove(MicrosoftDataEntityDesignCommands.MovePropertyDown);
+                    break;
+
+                case "MoveToTop":
+                    ExecutePropertyMove(MicrosoftDataEntityDesignCommands.MovePropertyTop);
+                    break;
+
+                case "MoveToBottom":
+                    ExecutePropertyMove(MicrosoftDataEntityDesignCommands.MovePropertyBottom);
+                    break;
+
+                case "MoveToNewComplexType":
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.CreateComplexType);
+                    break;
+
+                case "ShowInTableMapping":
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.TableMappings);
+                    break;
+
+                case "ShowInStoredProcedureMapping":
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.SprocMappings);
+                    break;
+
+                case "ShowInModelBrowser":
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.ShowInEdmExplorer);
+                    break;
+
+                case "Properties":
+                    ExecuteProperties();
+                    break;
+            }
+        }
+
+        #endregion
+
+        #region Navigation Property Menu
+
+        /// <summary>
+        /// Shows the navigation property context menu at the specified position.
+        /// </summary>
+        private void ShowNavigationPropertyContextMenu(EntityDesignerDiagram diagram, DiagramHitResult hitResult, PointD mousePosition)
+        {
+            _currentNavigationPropertyHit = hitResult;
+
+            // Create context menu if needed
+            if (_navigationPropertyMenu == null)
+            {
+                _navigationPropertyMenu = new DiagramSurfaceContextMenu();
+                _navigationPropertyMenu.ActionExecuted += OnNavigationPropertyMenuActionExecuted;
+            }
+
+            // Populate the menu with dynamic items based on the navigation property
+            PopulateNavigationPropertyMenu(hitResult);
+
+            // Show the menu
+            ShowMenuAtPosition(_navigationPropertyMenu, diagram, mousePosition);
+        }
+
+        /// <summary>
+        /// Populates the navigation property context menu with commands.
+        /// </summary>
+        private void PopulateNavigationPropertyMenu(DiagramHitResult hitResult)
+        {
+            // Clear existing items (menu is rebuilt each time for dynamic content)
+            _navigationPropertyMenu.TopBarCommands.Clear();
+            _navigationPropertyMenu.MenuItems.Clear();
+
+            // Top bar commands - same as Association: Rename | Delete
+            _navigationPropertyMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Rename",
+                "Rename",
+                KnownMonikers.Rename,
+                "Rename this navigation property"));
+
+            _navigationPropertyMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Delete",
+                "Delete",
+                KnownMonikers.DeleteListItem,
+                "Delete this navigation property from the model"));
+
+            // Select Association command (instead of Entity Key)
+            _navigationPropertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "SelectAssociation",
+                "Select Association",
+                KnownMonikers.AssociationRelationship,
+                "Select the association for this navigation property"));
+
+            _navigationPropertyMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+
+            // Move operations
+            _navigationPropertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "MoveToTop",
+                "Move to Top",
+                KnownMonikers.GoToTop,
+                "Move this property to the top")
+            {
+                KeyboardShortcut = "Alt+Home"
+            });
+
+            _navigationPropertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "MoveUp",
+                "Move Up",
+                KnownMonikers.MoveUp,
+                "Move this property up")
+            {
+                KeyboardShortcut = "Alt+\u2191"
+            });
+
+            _navigationPropertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "MoveDown",
+                "Move Down",
+                KnownMonikers.MoveDown,
+                "Move this property down")
+            {
+                KeyboardShortcut = "Alt+\u2193"
+            });
+
+            _navigationPropertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "MoveToBottom",
+                "Move to Bottom",
+                KnownMonikers.GoToBottom,
+                "Move this property to the bottom")
+            {
+                KeyboardShortcut = "Alt+End"
+            });
+
+            _navigationPropertyMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+
+            // Show commands (no Table Mapping or Stored Procedure Mapping for nav properties)
+            _navigationPropertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "ShowInModelBrowser",
+                "Show in Model Browser",
+                KnownMonikers.ShowDiagramPane,
+                "Show this property in the Model Browser"));
+
+            _navigationPropertyMenu.MenuItems.Add(new MenuCommandDefinition(
+                "Properties",
+                "Show Properties",
+                KnownMonikers.Property,
+                "Show the Properties window")
+            {
+                KeyboardShortcut = "F4"
+            });
+        }
+
+        /// <summary>
+        /// Handles menu action events for the navigation property context menu.
+        /// </summary>
+        private void OnNavigationPropertyMenuActionExecuted(object sender, MenuActionEventArgs e)
+        {
+            var diagram = _docView.CurrentDiagram as EntityDesignerDiagram;
+            if (diagram == null || _currentNavigationPropertyHit == null)
+            {
+                return;
+            }
+
+            switch (e.ActionName)
+            {
+                case "Rename":
+                    ExecuteNavigationPropertyRename();
+                    break;
+
+                case "Delete":
+                    ExecuteNavigationPropertyDelete();
+                    break;
+
+                case "SelectAssociation":
+                    ExecuteSelectAssociationForNavigationProperty(diagram);
+                    break;
+
+                case "MoveUp":
+                    ExecuteNavigationPropertyMove(MicrosoftDataEntityDesignCommands.MovePropertyUp);
+                    break;
+
+                case "MoveDown":
+                    ExecuteNavigationPropertyMove(MicrosoftDataEntityDesignCommands.MovePropertyDown);
+                    break;
+
+                case "MoveToTop":
+                    ExecuteNavigationPropertyMove(MicrosoftDataEntityDesignCommands.MovePropertyTop);
+                    break;
+
+                case "MoveToBottom":
+                    ExecuteNavigationPropertyMove(MicrosoftDataEntityDesignCommands.MovePropertyBottom);
+                    break;
+
+                case "ShowInModelBrowser":
+                    SelectCurrentNavigationProperty();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.ShowInEdmExplorer);
+                    break;
+
+                case "Properties":
+                    ExecuteProperties();
+                    break;
+            }
+        }
+
+        #endregion
+
+        #region Entity Menu
+
+        /// <summary>
+        /// Shows the entity context menu at the specified position.
+        /// </summary>
+        private void ShowEntityContextMenu(EntityDesignerDiagram diagram, EntityTypeShape entityShape, PointD mousePosition)
+        {
+            _currentEntityShape = entityShape;
+
+            // Create context menu if needed
+            if (_entityMenu == null)
+            {
+                _entityMenu = new DiagramSurfaceContextMenu();
+                _entityMenu.ActionExecuted += OnEntityMenuActionExecuted;
+            }
+
+            // Populate the menu with dynamic items based on the entity
+            PopulateEntityMenu(entityShape);
+
+            // Show the menu
+            ShowMenuAtPosition(_entityMenu, diagram, mousePosition);
+        }
+
+        /// <summary>
+        /// Populates the entity context menu with commands.
+        /// </summary>
+        private void PopulateEntityMenu(EntityTypeShape entityShape)
+        {
+            // Clear existing items (menu is rebuilt each time for dynamic content)
+            _entityMenu.TopBarCommands.Clear();
+            _entityMenu.MenuItems.Clear();
+
+            var isExpanded = entityShape.IsExpanded;
+
+            // Top bar commands - Cut | Copy | Paste | Rename | Delete
+            _entityMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Cut",
+                "Cut",
+                KnownMonikers.Cut,
+                "Cut this entity")
+            {
+                KeyboardShortcut = "Ctrl+X"
+            });
+
+            _entityMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Copy",
+                "Copy",
+                KnownMonikers.Copy,
+                "Copy this entity")
+            {
+                KeyboardShortcut = "Ctrl+C"
+            });
+
+            _entityMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Paste",
+                "Paste",
+                KnownMonikers.Paste,
+                "Paste")
+            {
+                KeyboardShortcut = "Ctrl+V"
+            });
+
+            _entityMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Rename",
+                "Rename",
+                KnownMonikers.Rename,
+                "Rename this entity"));
+
+            _entityMenu.TopBarCommands.Add(new MenuCommandDefinition(
+                "Delete",
+                "Delete",
+                KnownMonikers.DeleteListItem,
+                "Delete this entity from the model"));
+
+            // Add New submenu
+            var addNewCommand = new MenuCommandDefinition(
+                "AddNew",
+                "Add New",
+                KnownMonikers.AddItem,
+                "Add a new item to this entity");
+
+            addNewCommand.Children.Add(new MenuCommandDefinition(
+                "AddScalarProperty",
+                "Scalar Property",
+                KnownMonikers.NewProperty,
+                "Add a new scalar property"));
+
+            addNewCommand.Children.Add(new MenuCommandDefinition(
+                "AddNavigationProperty",
+                "Navigation Property",
+                KnownMonikers.NavigationProperty,
+                "Add a new navigation property"));
+
+            addNewCommand.Children.Add(new MenuCommandDefinition(
+                "AddComplexProperty",
+                "Complex Property",
+                KnownMonikers.ComplexProperty,
+                "Add a new complex property"));
+
+            addNewCommand.Children.Add(new MenuCommandDefinition(
+                "AddAssociation",
+                "Association...",
+                KnownMonikers.AssociationRelationship,
+                "Add a new association"));
+
+            addNewCommand.Children.Add(new MenuCommandDefinition(
+                "AddInheritance",
+                "Inheritance...",
+                KnownMonikers.Inheritance,
+                "Add inheritance"));
+
+            addNewCommand.Children.Add(new MenuCommandDefinition(
+                "AddFunctionImport",
+                "Function Import...",
+                KnownMonikers.NewMethod,
+                "Add a function import"));
+
+            _entityMenu.MenuItems.Add(addNewCommand);
+
+            _entityMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+
+            // Collapse/Expand (dynamic based on state)
+            if (isExpanded)
+            {
+                _entityMenu.MenuItems.Add(new MenuCommandDefinition(
+                    "Collapse",
+                    "Collapse",
+                    KnownMonikers.CollapseAll,
+                    "Collapse this entity shape"));
+            }
+            else
+            {
+                _entityMenu.MenuItems.Add(new MenuCommandDefinition(
+                    "Expand",
+                    "Expand",
+                    KnownMonikers.ExpandAll,
+                    "Expand this entity shape"));
+            }
+
+            _entityMenu.MenuItems.Add(new MenuCommandDefinition(
+                "IncludeRelated",
+                "Include Related",
+                KnownMonikers.AddRelationship,
+                "Include related entities on the diagram"));
+
+            _entityMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+
+            _entityMenu.MenuItems.Add(new MenuCommandDefinition(
+                "MoveToNewDiagram",
+                "Move to New Diagram",
+                KnownMonikers.NewDiagram,
+                "Move this entity to a new diagram"));
+
+            _entityMenu.MenuItems.Add(new MenuCommandDefinition(
+                "RemoveFromDiagram",
+                "Remove from Diagram",
+                KnownMonikers.Cancel,
+                "Remove this entity from the diagram (does not delete from model)")
+            {
+                KeyboardShortcut = "Shift+Del"
+            });
+
+            _entityMenu.MenuItems.Add(MenuSeparatorDefinition.Instance);
+
+            // Show commands
+            _entityMenu.MenuItems.Add(new MenuCommandDefinition(
+                "ShowInTableMapping",
+                "Show in Table Mapping",
+                KnownMonikers.SchemaProperty,
+                "Show this entity in table mapping"));
+
+            _entityMenu.MenuItems.Add(new MenuCommandDefinition(
+                "ShowInStoredProcedureMapping",
+                "Show in Stored Procedure Mapping",
+                KnownMonikers.StoredProcedure,
+                "Show this entity in stored procedure mapping"));
+
+            _entityMenu.MenuItems.Add(new MenuCommandDefinition(
+                "ShowInModelBrowser",
+                "Show in Model Browser",
+                KnownMonikers.ShowDiagramPane,
+                "Show this entity in the Model Browser"));
+
+            _entityMenu.MenuItems.Add(new MenuCommandDefinition(
+                "Properties",
+                "Show Properties",
+                KnownMonikers.Property,
+                "Show the Properties window")
+            {
+                KeyboardShortcut = "F4"
+            });
+        }
+
+        /// <summary>
+        /// Handles menu action events for the entity context menu.
+        /// </summary>
+        private void OnEntityMenuActionExecuted(object sender, MenuActionEventArgs e)
+        {
+            var diagram = _docView.CurrentDiagram as EntityDesignerDiagram;
+            if (diagram == null || _currentEntityShape == null)
+            {
+                return;
+            }
+
+            switch (e.ActionName)
+            {
+                case "Cut":
+                    ExecuteEntityCut();
+                    break;
+
+                case "Copy":
+                    ExecuteEntityCopy();
+                    break;
+
+                case "Paste":
+                    ExecuteEntityPaste();
+                    break;
+
+                case "Rename":
+                    ExecuteEntityRename();
+                    break;
+
+                case "Delete":
+                    ExecuteEntityDelete();
+                    break;
+
+                case "AddScalarProperty":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.AddScalarProperty);
+                    break;
+
+                case "AddNavigationProperty":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.AddNavigationProperty);
+                    break;
+
+                case "AddComplexProperty":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.AddComplexProperty);
+                    break;
+
+                case "AddAssociation":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.AddAssociation);
+                    break;
+
+                case "AddInheritance":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.AddInheritance);
+                    break;
+
+                case "AddFunctionImport":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.AddFunctionImport);
+                    break;
+
+                case "Collapse":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.CollapseEntityTypeShape);
+                    break;
+
+                case "Expand":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.ExpandEntityTypeShape);
+                    break;
+
+                case "IncludeRelated":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.IncludeRelatedEntityType);
+                    break;
+
+                case "MoveToNewDiagram":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.MoveToNewDiagram);
+                    break;
+
+                case "RemoveFromDiagram":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.RemoveFromDiagram);
+                    break;
+
+                case "ShowInTableMapping":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.TableMappings);
+                    break;
+
+                case "ShowInStoredProcedureMapping":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.SprocMappings);
+                    break;
+
+                case "ShowInModelBrowser":
+                    SelectCurrentEntity();
+                    ExecuteVsCommand(MicrosoftDataEntityDesignCommands.ShowInEdmExplorer);
+                    break;
+
+                case "Properties":
+                    ExecuteProperties();
+                    break;
+            }
+        }
+
+        #endregion
 
         #region Command Execution
 
@@ -543,14 +1583,14 @@ namespace Microsoft.Data.Entity.Design.Package
             diagram.ZoomToFit();
         }
 
-        private void ExecuteDisplayName(EntityDesignerDiagram diagram)
+        private void ExecuteToggleShowDataTypes(EntityDesignerDiagram diagram)
         {
-            diagram.DisplayNameAndType = false;
-        }
-
-        private void ExecuteDisplayNameAndType(EntityDesignerDiagram diagram)
-        {
-            diagram.DisplayNameAndType = true;
+            diagram.DisplayNameAndType = !diagram.DisplayNameAndType;
+            // Update the toggle state
+            if (_showDataTypesCommand != null)
+            {
+                _showDataTypesCommand.IsChecked = diagram.DisplayNameAndType;
+            }
         }
 
         private void ExecuteSelectAll(EntityDesignerDiagram diagram)
@@ -580,6 +1620,23 @@ namespace Microsoft.Data.Entity.Design.Package
         {
             // Execute the View Model Browser command via VS command
             ExecuteVsCommand(MicrosoftDataEntityDesignCommands.ShowEdmExplorer);
+        }
+
+        private void ExecuteProperties()
+        {
+            // Show the Properties tool window directly via IVsUIShell
+            // Properties window GUID: {EEFA5220-E298-11D0-8F78-00A0C9110057}
+            IServiceProvider sp = PackageManager.Package;
+            if (sp != null)
+            {
+                var uiShell = sp.GetService(typeof(SVsUIShell)) as IVsUIShell;
+                if (uiShell != null)
+                {
+                    var propertiesWindowGuid = new Guid("{EEFA5220-E298-11D0-8F78-00A0C9110057}");
+                    uiShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fForceCreate, ref propertiesWindowGuid, out IVsWindowFrame frame);
+                    frame?.Show();
+                }
+            }
         }
 
         private void ExecuteUpdateModelFromDatabase(EntityDesignerDiagram diagram)
@@ -647,6 +1704,311 @@ namespace Microsoft.Data.Entity.Design.Package
             return new PointD(100, 100);
         }
 
+        // Association-specific commands
+
+        private void ExecuteRenameAssociation(AssociationConnector connector)
+        {
+            // Trigger in-place rename on the connector
+            if (connector != null && _docView.CurrentDesigner?.DiagramClientView != null)
+            {
+                var diagramItem = new DiagramItem(connector);
+                _docView.CurrentDesigner.DiagramClientView.Selection.Set(diagramItem);
+
+                // Execute the Rename command
+                ExecuteVsCommand(MicrosoftDataEntityDesignCommands.Rename);
+            }
+        }
+
+        private void ExecuteDeleteAssociation(EntityDesignerDiagram diagram, AssociationConnector connector)
+        {
+            if (connector?.ModelElement == null)
+            {
+                return;
+            }
+
+            // Select the connector first
+            var diagramItem = new DiagramItem(connector);
+            diagram.ActiveDiagramView?.Selection.Set(diagramItem);
+
+            // Execute delete via the standard VS Edit.Delete command
+            var deleteCommand = new System.ComponentModel.Design.CommandID(
+                VSConstants.GUID_VSStandardCommandSet97,
+                (int)VSConstants.VSStd97CmdID.Delete);
+            ExecuteVsCommand(deleteCommand);
+        }
+
+        private void ExecuteSelectShape(EntityDesignerDiagram diagram, EntityType entityType)
+        {
+            if (entityType == null || diagram.ActiveDiagramView == null)
+            {
+                return;
+            }
+
+            // Find the shape for this entity type
+            foreach (var shape in diagram.NestedChildShapes)
+            {
+                if (shape is EntityTypeShape entityShape && entityShape.ModelElement == entityType)
+                {
+                    var diagramItem = new DiagramItem(entityShape);
+                    diagram.ActiveDiagramView.Selection.Set(diagramItem);
+                    break;
+                }
+            }
+        }
+
+        private void ExecuteSelectProperty(EntityDesignerDiagram diagram, EntityType entityType, NavigationProperty navProperty)
+        {
+            if (entityType == null || navProperty == null || diagram.ActiveDiagramView == null)
+            {
+                return;
+            }
+
+            // Find the entity shape, then select the navigation property within it
+            foreach (var shape in diagram.NestedChildShapes)
+            {
+                if (shape is EntityTypeShape entityShape && entityShape.ModelElement == entityType)
+                {
+                    // Find the compartment containing the navigation property
+                    foreach (var nestedShape in entityShape.NestedChildShapes)
+                    {
+                        if (nestedShape is ElementListCompartment compartment)
+                        {
+                            var items = compartment.Items;
+                            for (int i = 0; i < items.Count; i++)
+                            {
+                                if (items[i] == navProperty)
+                                {
+                                    var diagramItem = new DiagramItem(compartment, compartment.ListField, new ListItemSubField(i));
+                                    diagram.ActiveDiagramView.Selection.Set(diagramItem);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        private void ExecuteShowInModelBrowser(AssociationConnector connector)
+        {
+            if (connector?.ModelElement == null)
+            {
+                return;
+            }
+
+            // Select the connector first so ShowInEdmExplorer knows what to show
+            var diagram = _docView.CurrentDiagram as EntityDesignerDiagram;
+            if (diagram?.ActiveDiagramView != null)
+            {
+                var diagramItem = new DiagramItem(connector);
+                diagram.ActiveDiagramView.Selection.Set(diagramItem);
+            }
+
+            // Execute the Show in Model Browser command
+            ExecuteVsCommand(MicrosoftDataEntityDesignCommands.ShowInEdmExplorer);
+        }
+
+        // Property-specific commands
+
+        private void SelectCurrentProperty()
+        {
+            if (_currentPropertyHit?.Compartment == null || _currentPropertyHit.CompartmentItemIndex < 0)
+            {
+                return;
+            }
+
+            var diagram = _docView.CurrentDiagram as EntityDesignerDiagram;
+            if (diagram?.ActiveDiagramView == null)
+            {
+                return;
+            }
+
+            var compartment = _currentPropertyHit.Compartment;
+            var diagramItem = new DiagramItem(compartment, compartment.ListField, new ListItemSubField(_currentPropertyHit.CompartmentItemIndex));
+            diagram.ActiveDiagramView.Selection.Set(diagramItem);
+        }
+
+        private void ExecutePropertyCut()
+        {
+            SelectCurrentProperty();
+            var cutCommand = new System.ComponentModel.Design.CommandID(
+                VSConstants.GUID_VSStandardCommandSet97,
+                (int)VSConstants.VSStd97CmdID.Cut);
+            ExecuteVsCommand(cutCommand);
+        }
+
+        private void ExecutePropertyCopy()
+        {
+            SelectCurrentProperty();
+            var copyCommand = new System.ComponentModel.Design.CommandID(
+                VSConstants.GUID_VSStandardCommandSet97,
+                (int)VSConstants.VSStd97CmdID.Copy);
+            ExecuteVsCommand(copyCommand);
+        }
+
+        private void ExecutePropertyPaste()
+        {
+            SelectCurrentProperty();
+            var pasteCommand = new System.ComponentModel.Design.CommandID(
+                VSConstants.GUID_VSStandardCommandSet97,
+                (int)VSConstants.VSStd97CmdID.Paste);
+            ExecuteVsCommand(pasteCommand);
+        }
+
+        private void ExecutePropertyRename()
+        {
+            SelectCurrentProperty();
+            ExecuteVsCommand(MicrosoftDataEntityDesignCommands.Rename);
+        }
+
+        private void ExecutePropertyDelete()
+        {
+            SelectCurrentProperty();
+            var deleteCommand = new System.ComponentModel.Design.CommandID(
+                VSConstants.GUID_VSStandardCommandSet97,
+                (int)VSConstants.VSStd97CmdID.Delete);
+            ExecuteVsCommand(deleteCommand);
+        }
+
+        private void ExecuteToggleEntityKey()
+        {
+            if (_currentPropertyHit?.ModelElement is EntityDesigner.ViewModel.ScalarProperty scalarProperty)
+            {
+                scalarProperty.ChangeEntityKey();
+            }
+        }
+
+        private void ExecutePropertyMove(System.ComponentModel.Design.CommandID moveCommand)
+        {
+            SelectCurrentProperty();
+            ExecuteVsCommand(moveCommand);
+        }
+
+        // Navigation property-specific commands
+
+        private void SelectCurrentNavigationProperty()
+        {
+            if (_currentNavigationPropertyHit?.Compartment == null || _currentNavigationPropertyHit.CompartmentItemIndex < 0)
+            {
+                return;
+            }
+
+            var diagram = _docView.CurrentDiagram as EntityDesignerDiagram;
+            if (diagram?.ActiveDiagramView == null)
+            {
+                return;
+            }
+
+            var compartment = _currentNavigationPropertyHit.Compartment;
+            var diagramItem = new DiagramItem(compartment, compartment.ListField, new ListItemSubField(_currentNavigationPropertyHit.CompartmentItemIndex));
+            diagram.ActiveDiagramView.Selection.Set(diagramItem);
+        }
+
+        private void ExecuteNavigationPropertyRename()
+        {
+            SelectCurrentNavigationProperty();
+            ExecuteVsCommand(MicrosoftDataEntityDesignCommands.Rename);
+        }
+
+        private void ExecuteNavigationPropertyDelete()
+        {
+            SelectCurrentNavigationProperty();
+            var deleteCommand = new System.ComponentModel.Design.CommandID(
+                VSConstants.GUID_VSStandardCommandSet97,
+                (int)VSConstants.VSStd97CmdID.Delete);
+            ExecuteVsCommand(deleteCommand);
+        }
+
+        private void ExecuteNavigationPropertyMove(System.ComponentModel.Design.CommandID moveCommand)
+        {
+            SelectCurrentNavigationProperty();
+            ExecuteVsCommand(moveCommand);
+        }
+
+        private void ExecuteSelectAssociationForNavigationProperty(EntityDesignerDiagram diagram)
+        {
+            if (_currentNavigationPropertyHit?.ModelElement is EntityDesigner.ViewModel.NavigationProperty navProp)
+            {
+                // Find the association connector for this navigation property
+                var association = navProp.Association;
+                if (association != null)
+                {
+                    // Find the connector shape for this association
+                    foreach (var shape in diagram.NestedChildShapes)
+                    {
+                        if (shape is AssociationConnector connector && connector.ModelElement == association)
+                        {
+                            var diagramItem = new DiagramItem(connector);
+                            diagram.ActiveDiagramView?.Selection.Set(diagramItem);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Entity-specific commands
+
+        private void SelectCurrentEntity()
+        {
+            if (_currentEntityShape == null)
+            {
+                return;
+            }
+
+            var diagram = _docView.CurrentDiagram as EntityDesignerDiagram;
+            if (diagram?.ActiveDiagramView == null)
+            {
+                return;
+            }
+
+            var diagramItem = new DiagramItem(_currentEntityShape);
+            diagram.ActiveDiagramView.Selection.Set(diagramItem);
+        }
+
+        private void ExecuteEntityCut()
+        {
+            SelectCurrentEntity();
+            var cutCommand = new System.ComponentModel.Design.CommandID(
+                VSConstants.GUID_VSStandardCommandSet97,
+                (int)VSConstants.VSStd97CmdID.Cut);
+            ExecuteVsCommand(cutCommand);
+        }
+
+        private void ExecuteEntityCopy()
+        {
+            SelectCurrentEntity();
+            var copyCommand = new System.ComponentModel.Design.CommandID(
+                VSConstants.GUID_VSStandardCommandSet97,
+                (int)VSConstants.VSStd97CmdID.Copy);
+            ExecuteVsCommand(copyCommand);
+        }
+
+        private void ExecuteEntityPaste()
+        {
+            SelectCurrentEntity();
+            var pasteCommand = new System.ComponentModel.Design.CommandID(
+                VSConstants.GUID_VSStandardCommandSet97,
+                (int)VSConstants.VSStd97CmdID.Paste);
+            ExecuteVsCommand(pasteCommand);
+        }
+
+        private void ExecuteEntityRename()
+        {
+            SelectCurrentEntity();
+            ExecuteVsCommand(MicrosoftDataEntityDesignCommands.Rename);
+        }
+
+        private void ExecuteEntityDelete()
+        {
+            SelectCurrentEntity();
+            var deleteCommand = new System.ComponentModel.Design.CommandID(
+                VSConstants.GUID_VSStandardCommandSet97,
+                (int)VSConstants.VSStd97CmdID.Delete);
+            ExecuteVsCommand(deleteCommand);
+        }
+
         #endregion
 
         #region IDisposable
@@ -660,11 +2022,39 @@ namespace Microsoft.Data.Entity.Design.Package
 
             _isDisposed = true;
 
-            if (_contextMenu != null)
+            if (_diagramSurfaceMenu != null)
             {
-                _contextMenu.ActionExecuted -= OnMenuActionExecuted;
-                _contextMenu.Dispose();
-                _contextMenu = null;
+                _diagramSurfaceMenu.ActionExecuted -= OnDiagramSurfaceMenuActionExecuted;
+                _diagramSurfaceMenu.Dispose();
+                _diagramSurfaceMenu = null;
+            }
+
+            if (_associationMenu != null)
+            {
+                _associationMenu.ActionExecuted -= OnAssociationMenuActionExecuted;
+                _associationMenu.Dispose();
+                _associationMenu = null;
+            }
+
+            if (_propertyMenu != null)
+            {
+                _propertyMenu.ActionExecuted -= OnPropertyMenuActionExecuted;
+                _propertyMenu.Dispose();
+                _propertyMenu = null;
+            }
+
+            if (_navigationPropertyMenu != null)
+            {
+                _navigationPropertyMenu.ActionExecuted -= OnNavigationPropertyMenuActionExecuted;
+                _navigationPropertyMenu.Dispose();
+                _navigationPropertyMenu = null;
+            }
+
+            if (_entityMenu != null)
+            {
+                _entityMenu.ActionExecuted -= OnEntityMenuActionExecuted;
+                _entityMenu.Dispose();
+                _entityMenu = null;
             }
         }
 

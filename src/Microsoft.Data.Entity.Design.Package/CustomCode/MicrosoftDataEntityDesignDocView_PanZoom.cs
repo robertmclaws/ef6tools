@@ -168,6 +168,14 @@ namespace Microsoft.Data.Entity.Design.Package
             // Add commands to the floating zoom control
             _floatingZoomControl.Commands.Add(_showGridCommand);
             _floatingZoomControl.Commands.Add(_snapToGridCommand);
+            
+            // Add Zoom to Fit command
+            _floatingZoomControl.Commands.Add(new MenuCommandDefinition(
+                "ZoomToFit",
+                "Zoom to Fit",
+                KnownMonikers.FitToScreen,
+                () => (CurrentDiagram as EntityDesignerDiagram)?.ZoomToFit(),
+                "Zoom to fit all entities"));
 
             // Add separator before expand/collapse commands
             _floatingZoomControl.Commands.Add(MenuSeparatorDefinition.Instance);
@@ -187,6 +195,17 @@ namespace Microsoft.Data.Entity.Design.Package
                 KnownMonikers.CollapseAll,
                 () => (CurrentDiagram as EntityDesignerDiagram)?.CollapseAllEntityTypeShapes(),
                 "Collapse all entity shapes"));
+
+            // Add separator before zoom/layout commands
+            _floatingZoomControl.Commands.Add(MenuSeparatorDefinition.Instance);
+
+            // Add Layout command
+            _floatingZoomControl.Commands.Add(new MenuCommandDefinition(
+                "Layout",
+                "Auto Layout",
+                KnownMonikers.ShowAllFiles,
+                () => (CurrentDiagram as EntityDesignerDiagram)?.AutoLayoutDiagram(),
+                "Auto-arrange entity layout"));
 
             // Calculate margin based on scrollbar width
             var rightMargin = panelWidth + 4;  // scrollbar width + small gap

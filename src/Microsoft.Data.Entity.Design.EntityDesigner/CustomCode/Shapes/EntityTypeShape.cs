@@ -27,6 +27,33 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         internal static readonly string NavigationCompartmentName = "Navigation";
         internal static readonly Color TransparentColor = Color.Magenta;
 
+        /// <summary>
+        /// Corner radius in pixels for entity shapes.
+        /// Used by both the designer and SVG export.
+        /// </summary>
+        internal const double CornerRadiusPixels = 3.0;
+
+        /// <summary>
+        /// Corner radius in world units (inches).
+        /// Matches the SVG export CornerRadius of 3 pixels at 96 DPI.
+        /// 3 pixels / 96 DPI = 0.03125 inches
+        /// </summary>
+        private const double CornerRadiusInches = CornerRadiusPixels / 96.0;
+
+        /// <summary>
+        /// Singleton instance of the rounded rectangle geometry.
+        /// </summary>
+        private static readonly ShapeGeometry RoundedGeometry =
+            new RoundedRectangleShapeGeometry(CornerRadiusInches);
+
+        /// <summary>
+        /// Gets the geometry for this shape with rounded corners.
+        /// </summary>
+        public override ShapeGeometry ShapeGeometry
+        {
+            get { return RoundedGeometry; }
+        }
+
         private bool _isAdjustedForFillColor;
 
         internal class EntityChevronButtonField : ChevronButtonField

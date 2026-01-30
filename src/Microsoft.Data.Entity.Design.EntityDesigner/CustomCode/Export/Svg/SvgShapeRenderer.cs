@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using Microsoft.Data.Entity.Design.EntityDesigner.View;
 using Microsoft.Data.Entity.Design.EntityDesigner.ViewModel;
 using System;
 using System.Collections;
@@ -15,7 +16,7 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View.Export
     /// </summary>
     internal class SvgShapeRenderer
     {
-        private const double CornerRadius = 3.0;
+        private const double CornerRadius = EntityTypeShape.CornerRadiusPixels;
         private const double HeaderHeight = 30.0;
         private const double PropertyRowHeight = 18.0;
         private const double CompartmentHeaderHeight = 24.0;

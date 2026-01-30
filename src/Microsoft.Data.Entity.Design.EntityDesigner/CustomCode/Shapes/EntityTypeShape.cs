@@ -43,8 +43,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                     && parentShape is EntityTypeShape entityShape)
                 {
                     return state.Value
-                               ? CachedFillColorAppearance(entityShape.FillColor).ChevronExpanded
-                               : CachedFillColorAppearance(entityShape.FillColor).ChevronCollapsed;
+                               ? CachedFillColorAppearance(entityShape.FillColor).HeaderIcons.ChevronExpanded
+                               : CachedFillColorAppearance(entityShape.FillColor).HeaderIcons.ChevronCollapsed;
                 }
                 return null;
             }
@@ -219,23 +219,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         {
             public Color TextColor;
             public Color OutlineColor;
-            public Bitmap EntityGlyph;
-            public Bitmap BaseTypeIcon;
-            public Bitmap ChevronExpanded;
-            public Bitmap ChevronCollapsed;
+            public HeaderIconSet HeaderIcons;
         }
-
-        private static Bitmap MakeBitmapTransparent(Bitmap source)
-        {
-            source.MakeTransparent(TransparentColor);
-            return source;
-        }
-
-        // bitmaps are cached to avoid deserializing the resources more than once and creating multiple instances in memory
-        private static readonly Bitmap EntityGlyph = MakeBitmapTransparent(EntityDesignerRes.EntityGlyph);
-        private static readonly Bitmap BaseTypeIcon = MakeBitmapTransparent(EntityDesignerRes.BaseTypeIcon);
-        private static readonly Bitmap ChevronExpanded = MakeBitmapTransparent(EntityDesignerRes.ChevronExpanded);
-        private static readonly Bitmap ChevronCollapsed = MakeBitmapTransparent(EntityDesignerRes.ChevronCollapsed);
 
         /// <summary>
         ///     Calculates appropriate colors and icons for a shape's fill color.
@@ -243,9 +228,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         private static FillColorAppearance CalculateFillColorAppearance(Color fillColor)
         {
             HslColor hslColor = HslColor.FromRgbColor(fillColor);
+            var textColor = GetTextColor(fillColor);
             return new FillColorAppearance
                 {
-                    TextColor = GetTextColor(fillColor),
+                    TextColor = textColor,
                     OutlineColor
                         = new HslColor
                             {
@@ -253,10 +239,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                                 Saturation = hslColor.Saturation * 3 / 5,
                                 Luminosity = GetHighlightLuminosity(hslColor.Luminosity)
                             }.ToRgbColor(),
-                    EntityGlyph = ThemeUtils.GetThemedButtonImage(EntityGlyph, fillColor),
-                    BaseTypeIcon = ThemeUtils.GetThemedButtonImage(BaseTypeIcon, fillColor),
-                    ChevronExpanded = ThemeUtils.GetThemedButtonImage(ChevronExpanded, fillColor),
-                    ChevronCollapsed = ThemeUtils.GetThemedButtonImage(ChevronCollapsed, fillColor)
+                    // Get cached header icons from DiagramImageHelper (keyed by text color for efficiency)
+                    HeaderIcons = DiagramImageHelper.Instance.GetHeaderIcons(textColor)
                 };
         }
 
@@ -433,10 +417,10 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                                 });
             ReplaceField(
                 shapeFields, "IconDecorator",
-                fieldName => new EntityImageField(fieldName, appearance => appearance.EntityGlyph));
+                fieldName => new EntityImageField(fieldName, appearance => appearance.HeaderIcons.EntityGlyph));
             ReplaceField(
                 shapeFields, "BaseTypeIconDecorator",
-                fieldName => new EntityImageField(fieldName, appearance => appearance.BaseTypeIcon));
+                fieldName => new EntityImageField(fieldName, appearance => appearance.HeaderIcons.BaseTypeIcon));
         }
 
         private static TField ReplaceField<TField>(IList<ShapeField> shapeFields, string fieldName, Func<string, TField> constructor)

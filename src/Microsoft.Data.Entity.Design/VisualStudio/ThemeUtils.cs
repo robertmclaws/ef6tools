@@ -128,5 +128,84 @@ namespace Microsoft.Data.Entity.Design.VisualStudio
             bitmapClone.UnlockBits(bitmapData);
             return bitmapClone;
         }
+
+        /// <summary>
+        /// Colorizes all non-transparent pixels in a bitmap to the specified foreground color,
+        /// preserving the alpha channel. Use this when you need an icon to match a specific
+        /// text color rather than relying on VS automatic theming.
+        /// </summary>
+        /// <param name="bitmap">The source bitmap to colorize.</param>
+        /// <param name="foregroundColor">The color to apply to all non-transparent pixels.</param>
+        /// <returns>A new bitmap with all non-transparent pixels set to the foreground color.</returns>
+        public static Bitmap ColorizeIcon(Bitmap bitmap, Color foregroundColor)
+        {
+            Debug.Assert(bitmap != null, "bitmap != null");
+            Bitmap result = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
+            result.SetResolution(bitmap.HorizontalResolution, bitmap.VerticalResolution);
+
+            var bitmapData = result.LockBits(
+                new Rectangle(0, 0, result.Width, result.Height),
+                ImageLockMode.WriteOnly,
+                PixelFormat.Format32bppArgb);
+
+            var sourceBitmapData = bitmap.LockBits(
+                new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                ImageLockMode.ReadOnly,
+                PixelFormat.Format32bppArgb);
+
+            try
+            {
+                int size = Math.Abs(bitmapData.Stride) * bitmapData.Height;
+                byte[] sourceBytes = new byte[size];
+                byte[] resultBytes = new byte[size];
+
+                Marshal.Copy(sourceBitmapData.Scan0, sourceBytes, 0, size);
+
+                // Process each pixel: preserve alpha, set RGB to foreground color
+                for (int i = 0; i < size; i += 4)
+                {
+                    byte alpha = sourceBytes[i + 3];
+                    if (alpha > 0)
+                    {
+                        // BGRA format
+                        resultBytes[i] = foregroundColor.B;     // Blue
+                        resultBytes[i + 1] = foregroundColor.G; // Green
+                        resultBytes[i + 2] = foregroundColor.R; // Red
+                        resultBytes[i + 3] = alpha;             // Alpha (preserved)
+                    }
+                    // Transparent pixels remain transparent (all zeros)
+                }
+
+                Marshal.Copy(resultBytes, 0, bitmapData.Scan0, size);
+            }
+            finally
+            {
+                bitmap.UnlockBits(sourceBitmapData);
+                result.UnlockBits(bitmapData);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets a colorized icon for use in entity type shape headers.
+        /// High-res 128x128 source images represent 16x16 logical pixels (8x scale).
+        /// The icon is colorized to the specified foreground color (to match header text)
+        /// and DPI metadata is set so the system renders it at the correct size.
+        /// </summary>
+        /// <param name="bitmap">The source bitmap (128x128 high-res representing 16x16 logical).</param>
+        /// <param name="foregroundColor">The color to apply (typically the header text color).</param>
+        /// <returns>A colorized bitmap with correct DPI metadata.</returns>
+        public static Bitmap GetColorizedHeaderIcon(Bitmap bitmap, Color foregroundColor)
+        {
+            Debug.Assert(bitmap != null, "bitmap != null");
+            var colorizedBitmap = ColorizeIcon(bitmap, foregroundColor);
+
+            // Set resolution so the system knows 128px = 16 logical pixels (8x scale = 768 DPI)
+            float scaleFactor = bitmap.Width / 16f;
+            colorizedBitmap.SetResolution(96f * scaleFactor, 96f * scaleFactor);
+
+            return colorizedBitmap;
+        }
     }
 }

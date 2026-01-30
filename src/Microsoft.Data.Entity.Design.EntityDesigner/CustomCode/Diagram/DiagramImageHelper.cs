@@ -1,11 +1,39 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Drawing;
 using Microsoft.Data.Entity.Design.VisualStudio;
 using EntityDesignerRes = Microsoft.Data.Entity.Design.EntityDesigner.Properties.Resources;
 
 namespace Microsoft.Data.Entity.Design.EntityDesigner.View
 {
+    /// <summary>
+    /// Contains the set of header icons for an entity type shape, colorized to match the header text.
+    /// </summary>
+    internal sealed class HeaderIconSet
+    {
+        public HeaderIconSet(Bitmap entityGlyph, Bitmap baseTypeIcon, Bitmap chevronExpanded, Bitmap chevronCollapsed)
+        {
+            EntityGlyph = entityGlyph;
+            BaseTypeIcon = baseTypeIcon;
+            ChevronExpanded = chevronExpanded;
+            ChevronCollapsed = chevronCollapsed;
+        }
+
+        public Bitmap EntityGlyph { get; }
+        public Bitmap BaseTypeIcon { get; }
+        public Bitmap ChevronExpanded { get; }
+        public Bitmap ChevronCollapsed { get; }
+
+        public void Dispose()
+        {
+            EntityGlyph?.Dispose();
+            BaseTypeIcon?.Dispose();
+            ChevronExpanded?.Dispose();
+            ChevronCollapsed?.Dispose();
+        }
+    }
+
     /// <summary>
     /// A singleton helper that pre-loads and themes all property icons at diagram startup.
     /// </summary>
@@ -39,6 +67,19 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         /// Guard flag to prevent re-entrant calls to <see cref="Load"/> while loading is in progress.
         /// </summary>
         private bool _isLoading;
+
+        /// <summary>
+        /// Cache of header icons keyed by text color. Since text color is only ever black or white,
+        /// this will contain at most 2 entries, avoiding redundant icon creation for entities
+        /// with different fill colors but the same text color.
+        /// </summary>
+        private readonly Dictionary<Color, HeaderIconSet> _headerIconsByTextColor = [];
+
+        // Source bitmaps for header icons (loaded once, reused for colorization)
+        private static readonly Bitmap SourceEntityGlyph = EntityDesignerRes.EntityGlyph;
+        private static readonly Bitmap SourceBaseTypeIcon = EntityDesignerRes.BaseTypeIcon;
+        private static readonly Bitmap SourceChevronExpanded = EntityDesignerRes.ChevronExpanded;
+        private static readonly Bitmap SourceChevronCollapsed = EntityDesignerRes.ChevronCollapsed;
 
         /// <summary>
         /// Gets the scalar property icon optimized for 100% zoom level.
@@ -199,6 +240,32 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         }
 
         /// <summary>
+        /// Gets header icons colorized for the specified text color.
+        /// </summary>
+        /// <param name="textColor">The text color (typically black or white based on fill brightness).</param>
+        /// <returns>A cached or newly created set of header icons matching the text color.</returns>
+        /// <remarks>
+        /// Since text color is only ever black or white, this cache will contain at most 2 entries,
+        /// dramatically reducing icon creation for diagrams with many entities of the same brightness.
+        /// </remarks>
+        public HeaderIconSet GetHeaderIcons(Color textColor)
+        {
+            if (_headerIconsByTextColor.TryGetValue(textColor, out var existingSet))
+            {
+                return existingSet;
+            }
+
+            var newSet = new HeaderIconSet(
+                ThemeUtils.GetColorizedHeaderIcon(SourceEntityGlyph, textColor),
+                ThemeUtils.GetColorizedHeaderIcon(SourceBaseTypeIcon, textColor),
+                ThemeUtils.GetColorizedHeaderIcon(SourceChevronExpanded, textColor),
+                ThemeUtils.GetColorizedHeaderIcon(SourceChevronCollapsed, textColor));
+
+            _headerIconsByTextColor[textColor] = newSet;
+            return newSet;
+        }
+
+        /// <summary>
         /// Disposes all currently loaded icons and resets the loaded state.
         /// </summary>
         /// <remarks>
@@ -225,6 +292,13 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
             ComplexPropertyIconNormal = null;
             NavigationPropertyIcon100 = null;
             NavigationPropertyIconNormal = null;
+
+            // Dispose and clear header icons cache
+            foreach (var iconSet in _headerIconsByTextColor.Values)
+            {
+                iconSet.Dispose();
+            }
+            _headerIconsByTextColor.Clear();
 
             IsLoaded = false;
         }

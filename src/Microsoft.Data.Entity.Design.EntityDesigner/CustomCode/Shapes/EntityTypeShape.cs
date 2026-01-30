@@ -219,7 +219,12 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
         {
             public Color TextColor;
             public Color OutlineColor;
-            public HeaderIconSet HeaderIcons;
+
+            /// <summary>
+            /// Gets the header icons for this appearance. Accessed dynamically from DiagramImageHelper
+            /// to avoid holding references to icons that may be disposed on theme change.
+            /// </summary>
+            public HeaderIconSet HeaderIcons => DiagramImageHelper.Instance.GetHeaderIcons(TextColor);
         }
 
         /// <summary>
@@ -238,9 +243,8 @@ namespace Microsoft.Data.Entity.Design.EntityDesigner.View
                                 Hue = hslColor.Hue,
                                 Saturation = hslColor.Saturation * 3 / 5,
                                 Luminosity = GetHighlightLuminosity(hslColor.Luminosity)
-                            }.ToRgbColor(),
-                    // Get cached header icons from DiagramImageHelper (keyed by text color for efficiency)
-                    HeaderIcons = DiagramImageHelper.Instance.GetHeaderIcons(textColor)
+                            }.ToRgbColor()
+                    // HeaderIcons is a computed property that dynamically fetches from DiagramImageHelper
                 };
         }
 

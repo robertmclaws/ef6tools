@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="EntityFramework" />
-    <PackageReference Include="Microsoft.EntityFramework.SqlServer" />
   </ItemGroup>
 
   <!-- Publicize EntityFramework internals at compile-time -->

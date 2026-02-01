@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFramework.SqlServer" />
     <PackageReference Include="Microsoft.VisualStudio.Data.Core" />
     <PackageReference Include="Microsoft.VisualStudio.DataTools.Interop" />
     <PackageReference Include="Microsoft.VisualStudio.Interop" />

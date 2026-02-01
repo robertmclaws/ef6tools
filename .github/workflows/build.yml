@@ -11,7 +11,7 @@ on:
         description: 'Publish to VS Marketplace'
         required: false
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: write
@@ -104,9 +104,10 @@ jobs:
     needs: build
     runs-on: windows-latest
     if: |
-      github.ref == 'refs/heads/main' &&
-      github.event_name == 'workflow_dispatch' &&
-      github.event.inputs.publish_to_marketplace == 'true'
+      github.ref == 'refs/heads/main' && (
+        github.event_name == 'push' ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_marketplace == 'true')
+      )
 
     steps:
       - name: Checkout

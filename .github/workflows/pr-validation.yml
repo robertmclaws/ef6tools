@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Full history for Nerdbank.GitVersioning
+          fetch-depth: 1
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4

@@ -13,6 +13,10 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write
+  actions: write
+
 env:
   SOLUTION_FILE: EasyAF.EntityDesigner.slnx
   CONFIGURATION: Release
@@ -24,14 +28,14 @@ jobs:
     runs-on: windows-latest
 
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.version.outputs.VERSION }}
       vsix_name: ${{ steps.vsix.outputs.name }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Full history for Nerdbank.GitVersioning
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -41,17 +45,35 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Get Version
+      - name: Calculate Version
         id: version
-        uses: dotnet/nbgv@master
+        shell: pwsh
+        run: |
+          $majorVersion = "${{ vars.VERSION_MAJOR }}"
+          if ([string]::IsNullOrEmpty($majorVersion)) { $majorVersion = "18" }
+
+          # Date-based version: Major.Year.MMDD.HHMM
+          $now = Get-Date -AsUTC
+          $year = $now.ToString("yyyy")
+          $monthDay = $now.ToString("MMdd")
+          $hourMinute = $now.ToString("HHmm")
+
+          $version = "$majorVersion.$year.$monthDay.$hourMinute"
+
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "📦 Version: $version"
+
+      - name: Update VSIX Version
+        uses: cezarypiatek/VsixVersionAction@1.2
         with:
-          setAllVars: true
+          version: ${{ steps.version.outputs.VERSION }}
+          vsix-manifest-file: src\Microsoft.Data.Entity.Design.Package\source.extension.vsixmanifest
 
       - name: Restore Dependencies
         run: dotnet restore ${{ env.SOLUTION_FILE }}
 
       - name: Build Solution
-        run: dotnet build ${{ env.SOLUTION_FILE }} -c ${{ env.CONFIGURATION }} --no-restore
+        run: dotnet build ${{ env.SOLUTION_FILE }} -c ${{ env.CONFIGURATION }} --no-restore /p:Version=${{ steps.version.outputs.VERSION }}
 
       - name: Run Tests
         run: dotnet test ${{ env.SOLUTION_FILE }} -c ${{ env.CONFIGURATION }} --no-build --verbosity normal
@@ -87,6 +109,9 @@ jobs:
       github.event.inputs.publish_to_marketplace == 'true'
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download VSIX Artifact
         uses: actions/download-artifact@v4
         with:
@@ -97,14 +122,14 @@ jobs:
         uses: cezarypiatek/VsixPublisherAction@1.1
         with:
           extension-file: ./artifacts/${{ needs.build.outputs.vsix_name }}
-          publish-manifest-file: '' # Uses manifest embedded in VSIX
+          publish-manifest-file: ./publishManifest.json
           personal-access-code: ${{ secrets.VS_MARKETPLACE_PAT }}
 
   create-release:
     name: Create GitHub Release
-    needs: build
+    needs: [build, publish]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: success()
 
     permissions:
       contents: write

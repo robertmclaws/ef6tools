@@ -118,10 +118,6 @@
         <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
     </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="NerdBank.GitVersioning" PrivateAssets="All" Condition="!Exists('packages.config')" />
-    </ItemGroup>
-
     <!-- Test project package references -->
     <ItemGroup Condition=" '$(IsTestProject)' == 'true' ">
         <PackageReference Include="FluentAssertions" />

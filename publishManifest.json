@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json.schemastore.org/vsix-publish",
+  "categories": [
+    "Coding",
+    "Data",
+    "Modeling",
+    "Scaffolding"
+  ],
+  "identity": {
+    "internalName": "EasyAF-EntityDesigner"
+  },
+  "overview": "README.md",
+  "priceCategory": "free",
+  "publisher": "CloudNimble",
+  "private": false,
+  "qna": true,
+  "repo": "https://github.com/CloudNimble/EasyAF.EntityDesigner"
+}
